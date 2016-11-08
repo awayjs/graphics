@@ -64,7 +64,7 @@ import {TransformEvent}				from "../events/TransformEvent";
  */
 export class Transform extends EventDispatcher
 {
-	public _rawData:Float32Array;
+	private _rawData:Float32Array;
 
 	private _backVector:Vector3D;
 	private _downVector:Vector3D;
@@ -72,9 +72,7 @@ export class Transform extends EventDispatcher
 	private _leftVector:Vector3D;
 	private _rightVector:Vector3D;
 	private _upVector:Vector3D;
-	
-	private _concatenatedColorTransform:ColorTransform;
-	private _concatenatedMatrix:Matrix;
+
 	private _pixelBounds:Rectangle;
 	private _colorTransform:ColorTransform;
 	private _matrix3D:Matrix3D;
@@ -84,6 +82,14 @@ export class Transform extends EventDispatcher
 	private _scale:Vector3D = new Vector3D(1, 1, 1);
 	private _components:Array<Vector3D>;
 	private _componentsDirty:boolean;
+
+	public get rawData():Float32Array
+	{
+		if (this._matrix3DDirty)
+			this._updateMatrix3D();
+
+		return this._rawData;
+	}
 
 	/**
 	 *
@@ -111,40 +117,18 @@ export class Transform extends EventDispatcher
 
 	public set colorTransform(val:ColorTransform)
 	{
-		if (this._colorTransform == val)
-			return;
-
-		this._colorTransform = val;
+		var sourceData:Float32Array = val._rawData, targetData:Float32Array = this._matrix3D._rawData;
+		
+		targetData[0] = sourceData[0];
+		targetData[1] = sourceData[1];
+		targetData[2] = sourceData[2];
+		targetData[3] = sourceData[3];
+		targetData[4] = sourceData[4];
+		targetData[5] = sourceData[5];
+		targetData[6] = sourceData[6];
+		targetData[7] = sourceData[7];
 
 		this.invalidateColorTransform();
-	}
-
-	/**
-	 * A ColorTransform object representing the combined color transformations
-	 * applied to the display object and all of its parent objects, back to the
-	 * root level. If different color transformations have been applied at
-	 * different levels, all of those transformations are concatenated into one
-	 * ColorTransform object for this property.
-	 */
-	public get concatenatedColorTransform():ColorTransform
-	{
-		return this._concatenatedColorTransform; //TODO
-	}
-
-	/**
-	 * A Matrix object representing the combined transformation matrixes of the
-	 * display object and all of its parent objects, back to the root level. If
-	 * different transformation matrixes have been applied at different levels,
-	 * all of those matrixes are concatenated into one matrix for this property.
-	 * Also, for resizeable SWF content running in the browser, this property
-	 * factors in the difference between stage coordinates and window coordinates
-	 * due to window resizing. Thus, the property converts local coordinates to
-	 * window coordinates, which may not be the same coordinate space as that of
-	 * the Scene.
-	 */
-	public get concatenatedMatrix():Matrix
-	{
-		return this._concatenatedMatrix; //TODO
 	}
 
 	/**
@@ -401,6 +385,40 @@ export class Transform extends EventDispatcher
 		this._components[3] = this._scale;
 
 		this.invalidateComponents();
+	}
+
+	public copyRawDataFrom(transform:Transform)
+	{
+		var targetData = this._rawData;
+		var sourceData = transform.rawData;
+
+		//Matrix3D data
+		targetData[0] = sourceData[0];
+		targetData[1] = sourceData[1];
+		targetData[2] = sourceData[2];
+		targetData[3] = sourceData[3];
+		targetData[4] = sourceData[4];
+		targetData[5] = sourceData[5];
+		targetData[6] = sourceData[6];
+		targetData[7] = sourceData[7];
+		targetData[8] = sourceData[8];
+		targetData[9] = sourceData[9];
+		targetData[10] = sourceData[10];
+		targetData[11] = sourceData[11];
+		targetData[12] = sourceData[12];
+		targetData[13] = sourceData[13];
+		targetData[14] = sourceData[14];
+		targetData[15] = sourceData[15];
+
+		//ColorTransform data
+		targetData[16] = sourceData[16];
+		targetData[17] = sourceData[17];
+		targetData[18] = sourceData[18];
+		targetData[19] = sourceData[19];
+		targetData[20] = sourceData[20];
+		targetData[21] = sourceData[21];
+		targetData[22] = sourceData[22];
+		targetData[23] = sourceData[23];
 	}
 
 	public dispose():void

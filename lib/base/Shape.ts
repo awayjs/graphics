@@ -4,16 +4,17 @@ import {Sphere}						from "@awayjs/core/lib/geom/Sphere";
 import {Vector3D}						from "@awayjs/core/lib/geom/Vector3D";
 import {AssetBase}					from "@awayjs/core/lib/library/AssetBase";
 
-import {IAnimator}					from "./animators/IAnimator";
-import {RenderableEvent}				from "./events/RenderableEvent";
-import {MaterialBase}					from "./materials/MaterialBase";
-import {Style}						from "./base/Style";
-import {StyleEvent}					from "./events/StyleEvent";
-import {ElementsEvent}				from "./events/ElementsEvent";
-import {IRenderable}					from "./base/IRenderable";
-import {Graphics}						from "./Graphics";
-import {ElementsBase}					from "./elements/ElementsBase";
-import {TriangleElements}				from "./elements/TriangleElements";
+import {IAnimator}					from "../animators/IAnimator";
+import {RenderableEvent}				from "../events/RenderableEvent";
+import {MaterialBase}					from "../materials/MaterialBase";
+import {StyleEvent}					from "../events/StyleEvent";
+import {ElementsEvent}				from "../events/ElementsEvent";
+import {ElementsBase}					from "../elements/ElementsBase";
+import {TriangleElements}				from "../elements/TriangleElements";
+import {Graphics}						from "../Graphics";
+
+import {Style}						from "./Style";
+import {IRenderable}					from "./IRenderable";
 
 /**
  * Graphic wraps a Elements as a scene graph instantiation. A Graphic is owned by a Sprite object.
@@ -24,9 +25,9 @@ import {TriangleElements}				from "./elements/TriangleElements";
  *
  * @class away.base.Graphic
  */
-export class Graphic extends AssetBase implements IRenderable
+export class Shape extends AssetBase implements IRenderable
 {
-	public static _available:Array<Graphic> = new Array<Graphic>();
+	public static _available:Array<Shape> = new Array<Shape>();
 
 	public static assetType:string = "[asset Graphic]";
 
@@ -45,15 +46,11 @@ export class Graphic extends AssetBase implements IRenderable
 	public count:number;
 
 	public offset:number;
-
-	public idx_count:number;
-
-	public idx_offset:number;
 	
 	public parent:Graphics;
 
 	/**
-	 * The Elements object which provides the geometry data for this Graphic.
+	 * The Elements object which provides the geometry data for this Shape.
 	 */
 	public get  elements():ElementsBase
 	{
@@ -75,7 +72,7 @@ export class Graphic extends AssetBase implements IRenderable
 	 */
 	public get assetType():string
 	{
-		return Graphic.assetType;
+		return Shape.assetType;
 	}
 
 
@@ -95,7 +92,7 @@ export class Graphic extends AssetBase implements IRenderable
 //		}
 
 	/**
-	 * The material used to render the current TriangleGraphic. If set to null, its parent Sprite's material will be used instead.
+	 * The material used to render the current Shape. If set to null, its parent Sprite's material will be used instead.
 	 */
 	public get material():MaterialBase
 	{
@@ -114,7 +111,7 @@ export class Graphic extends AssetBase implements IRenderable
 	}
 
 	/**
-	 * The style used to render the current TriangleGraphic. If set to null, its parent Sprite's style will be used instead.
+	 * The style used to render the current Shape. If set to null, its parent Sprite's style will be used instead.
 	 */
 	public get style():Style
 	{
@@ -139,9 +136,9 @@ export class Graphic extends AssetBase implements IRenderable
 
 
 	/**
-	 * Creates a new Graphic object
+	 * Creates a new Shape object
 	 */
-	constructor(index:number, parent:Graphics, elements:ElementsBase, material:MaterialBase = null, style:Style = null, count:number = 0, offset:number = 0,idx_count:number = 0, idx_offset:number = 0)
+	constructor(index:number, parent:Graphics, elements:ElementsBase, material:MaterialBase = null, style:Style = null, count:number = 0, offset:number = 0)
 	{
 		super();
 
@@ -155,10 +152,6 @@ export class Graphic extends AssetBase implements IRenderable
 		this.style = style;
 		this.count = count;
 		this.offset = offset;
-		this.idx_count = idx_count;
-		this.idx_offset = idx_offset;
-
-
 	}
 
 	/**
@@ -168,10 +161,10 @@ export class Graphic extends AssetBase implements IRenderable
 	{
 		super.dispose();
 
-		this.parent.removeGraphic(this);
+		this.parent.removeShape(this);
 		this.parent = null;
 
-		Graphic._available.push(this);
+		Shape._available.push(this);
 	}
 
 	public invalidate():void
@@ -248,7 +241,7 @@ export class Graphic extends AssetBase implements IRenderable
 		if(!(box = this.getBoxBounds()).contains(x, y, z))
 			return false;
 
-		return this._elements.hitTestPoint(x, y, z, box, this.count, this.offset, this.idx_count, this.idx_offset);
+		return this._elements.hitTestPoint(x, y, z, box, this.count, this.offset);
 	}
 	
 	public scale(scale:number):void
@@ -266,7 +259,7 @@ export class Graphic extends AssetBase implements IRenderable
 		if (this._boxBoundsInvalid) {
 			this._boxBoundsInvalid = false;
 
-			this._boxBounds = this._elements.getBoxBounds(this._boxBounds || (this._boxBounds = new Box()), this.count, this.offset, this.idx_count, this.idx_offset);
+			this._boxBounds = this._elements.getBoxBounds(this._boxBounds || (this._boxBounds = new Box()), this.count, this.offset);
 		}
 
 		return this._boxBounds;

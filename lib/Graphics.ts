@@ -19,13 +19,13 @@ import {ElementsBase}					from "./elements/ElementsBase";
 import {TriangleElements}				from "./elements/TriangleElements";
 import {IEntity}						from "./base/IEntity";
 import {Style}							from "./base/Style";
+import {Shape}							from "./base/Shape";
 import {TraverserBase}						from "./base/TraverserBase";
 import {MaterialBase}					from "./materials/MaterialBase";
 import {IAnimator}						from "./animators/IAnimator";
 import {ElementsEvent}					from "./events/ElementsEvent";
 import {StyleEvent}						from "./events/StyleEvent";
 import {ParticleData}					from "./animators/data/ParticleData";
-import {Graphic}						from "./Graphic";
 
 import {GraphicsPath}					from "./draw/GraphicsPath";
 import {GraphicsPathCommand}			from "./draw/GraphicsPathCommand";
@@ -49,15 +49,13 @@ import {Transform} from "./base/Transform";
 
 /**
  *
- * Graphics is a collection of SubGeometries, each of which contain the actual geometrical data such as vertices,
+ * Graphics is a collection of Shapes, each of which contain the actual geometrical data such as vertices,
  * normals, uvs, etc. It also contains a reference to an animation class, which defines how the geometry moves.
  * A Graphics object is assigned to a Sprite, a scene graph occurence of the geometry, which in turn assigns
  * the SubGeometries to its respective TriangleGraphic objects.
  *
  *
  *
- * @see away.core.base.SubGraphics
- * @see away.entities.Sprite
  *
  * @class Graphics
  */
@@ -74,7 +72,7 @@ export class Graphics extends AssetBase
 	private _sphereBoundsInvalid = true;
 
 	private _material:MaterialBase;
-	private _graphics:Array<Graphic> = [];
+	private _shapes:Array<Shape> = [];
 	private _animator:IAnimator;
 	private _style:Style;
 
@@ -98,7 +96,7 @@ export class Graphics extends AssetBase
 
 	public get count():number
 	{
-		return this._graphics.length;
+		return this._shapes.length;
 	}
 
 	public get transform():Transform
@@ -124,20 +122,20 @@ export class Graphics extends AssetBase
 		if (this._animator)
 			this._animator.addOwner(this);
 
-		var len:number = this._graphics.length;
-		var graphic:Graphic;
+		var len:number = this._shapes.length;
+		var shape:Shape;
 
 		for (var i:number = 0; i < len; ++i) {
-			graphic = this._graphics[i];
+			shape = this._shapes[i];
 
 			// cause material to be unregistered and registered again to work with the new animation type (if possible)
-			if (graphic.material) {
-				graphic.material.iRemoveOwner(graphic);
-				graphic.material.iAddOwner(graphic);
+			if (shape.material) {
+				shape.material.iRemoveOwner(shape);
+				shape.material.iAddOwner(shape);
 			}
 
-			//invalidate any existing graphic objects in case they need to pull new elements
-			graphic.invalidateElements();
+			//invalidate any existing shape objects in case they need to pull new elements
+			shape.invalidateElements();
 		}
 	}
 
@@ -197,20 +195,20 @@ export class Graphics extends AssetBase
 			return;
 
 		var i:number;
-		var len:number = this._graphics.length;
-		var graphic:Graphic;
+		var len:number = this._shapes.length;
+		var shape:Shape;
 
 		if (this._material)
 			for (i = 0; i < len; i++)
-				if (!(graphic = this._graphics[i])._iGetExplicitMaterial())
-					this._material.iRemoveOwner(graphic);
+				if (!(shape = this._shapes[i])._iGetExplicitMaterial())
+					this._material.iRemoveOwner(shape);
 
 		this._material = value;
 
 		if (this._material)
 			for (i = 0; i < len; i++)
-				if (!(graphic = this._graphics[i])._iGetExplicitMaterial())
-					this._material.iAddOwner(graphic);
+				if (!(shape = this._shapes[i])._iGetExplicitMaterial())
+					this._material.iAddOwner(shape);
 	}
 
 	/**
@@ -238,51 +236,49 @@ export class Graphics extends AssetBase
 	 *
 	 * @param elements
 	 */
-	public addGraphic(elements:ElementsBase, material:MaterialBase = null, style:Style = null, count:number = 0, offset:number = 0, idx_count:number=0, idx_offset:number=0):Graphic
+	public addShape(elements:ElementsBase, material:MaterialBase = null, style:Style = null, count:number = 0, offset:number = 0):Shape
 	{
-		var graphic:Graphic;
+		var shape:Shape;
 
-		if (Graphic._available.length) {
-			graphic = Graphic._available.pop();
-			graphic._iIndex = this._graphics.length;
-			graphic.parent = this;
-			graphic.elements = elements;
-			graphic.material = material;
-			graphic.style = style;
-			graphic.count = count;
-			graphic.offset = offset;
-			graphic.idx_count = idx_count;
-			graphic.idx_offset = idx_offset;
+		if (Shape._available.length) {
+			shape = Shape._available.pop();
+			shape._iIndex = this._shapes.length;
+			shape.parent = this;
+			shape.elements = elements;
+			shape.material = material;
+			shape.style = style;
+			shape.count = count;
+			shape.offset = offset;
 		} else {
-			graphic = new Graphic(this._graphics.length, this, elements, material, style, count, offset, idx_count, idx_offset);
+			shape = new Shape(this._shapes.length, this, elements, material, style, count, offset);
 		}
 
-		this._graphics.push(graphic);
+		this._shapes.push(shape);
 
-		graphic.addEventListener(ElementsEvent.INVALIDATE_VERTICES, this._onInvalidateVerticesDelegate);
-
-		this.invalidate();
-
-		return graphic;
-	}
-
-	public removeGraphic(graphic:Graphic):void
-	{
-		this._graphics.splice(this._graphics.indexOf(graphic), 1);
-
-		graphic.removeEventListener(ElementsEvent.INVALIDATE_VERTICES, this._onInvalidateVerticesDelegate);
-
-		graphic.elements = null;
-		graphic.material = null;
-		graphic.style = null;
-		graphic.clear();
+		shape.addEventListener(ElementsEvent.INVALIDATE_VERTICES, this._onInvalidateVerticesDelegate);
 
 		this.invalidate();
+
+		return shape;
 	}
 
-	public getGraphicAt(index:number):Graphic
+	public removeShape(shape:Shape):void
 	{
-		return this._graphics[index];
+		this._shapes.splice(this._shapes.indexOf(shape), 1);
+
+		shape.removeEventListener(ElementsEvent.INVALIDATE_VERTICES, this._onInvalidateVerticesDelegate);
+
+		shape.elements = null;
+		shape.material = null;
+		shape.style = null;
+		shape.clear();
+
+		this.invalidate();
+	}
+
+	public getShapeAt(index:number):Shape
+	{
+		return this._shapes[index];
 	}
 
 	/**
@@ -296,9 +292,9 @@ export class Graphics extends AssetBase
 	
 	public applyTransformation(transform:Matrix3D):void
 	{
-		var len:number = this._graphics.length;
+		var len:number = this._shapes.length;
 		for (var i:number = 0; i < len; ++i){
-			this._graphics[i].applyTransformation(transform);
+			this._shapes[i].applyTransformation(transform);
 
 		}
 	}
@@ -309,11 +305,11 @@ export class Graphics extends AssetBase
 		graphics.style = this.style;
 		graphics.particles = this.particles;
 		graphics.numParticles = this.numParticles;
-		var graphic:Graphic;
-		var len:number = this._graphics.length;
+		var shape:Shape;
+		var len:number = this._shapes.length;
 		for (var i:number = 0; i < len; ++i) {
-			graphic = this._graphics[i];
-			graphics.addGraphic(graphic.elements, graphic._iGetExplicitMaterial(), graphic._iGetExplicitStyle(), graphic.count, graphic.offset, graphic.idx_count, graphic.idx_offset);
+			shape = this._shapes[i];
+			graphics.addShape(shape.elements, shape._iGetExplicitMaterial(), shape._iGetExplicitStyle(), shape.count, shape.offset);
 		}
 
 		if (this._animator)
@@ -334,16 +330,16 @@ export class Graphics extends AssetBase
 	 */
 	public scale(scale:number):void
 	{
-		var len:number = this._graphics.length;
+		var len:number = this._shapes.length;
 		for (var i:number = 0; i < len; ++i)
-			this._graphics[i].scale(scale);
+			this._shapes[i].scale(scale);
 	}
 
 	public clear():void
 	{
-		for (var i:number = this._graphics.length - 1; i>=0; i--){
-			this._graphics[i].clear();
-			//this._graphics[i].dispose();
+		for (var i:number = this._shapes.length - 1; i>=0; i--){
+			this._shapes[i].clear();
+			//this._shapes[i].dispose();
 		}
 	}
 
@@ -353,8 +349,8 @@ export class Graphics extends AssetBase
 	public dispose():void
 	{
 		this.material = null;
-		for (var i:number = this._graphics.length - 1; i>=0; i--)
-			this._graphics[i].dispose();
+		for (var i:number = this._shapes.length - 1; i>=0; i--)
+			this._shapes[i].dispose();
 
 		if (this._animator)
 			this._animator.dispose();
@@ -367,10 +363,10 @@ export class Graphics extends AssetBase
 	 */
 	public scaleUV(scaleU:number = 1, scaleV:number = 1):void
 	{
-		var len:number = this._graphics.length;
+		var len:number = this._shapes.length;
 
 		for (var i:number = 0; i < len; ++i)
-			this._graphics[i].scaleUV(scaleU, scaleV);
+			this._shapes[i].scaleUV(scaleU, scaleV);
 	}
 
 	public getBoxBounds():Box
@@ -381,11 +377,11 @@ export class Graphics extends AssetBase
 			if (!this._boxBounds)
 				this._boxBounds = new Box();
 
-			if (this._graphics.length) {
+			if (this._shapes.length) {
 				this._boxBounds.setBoundIdentity();
-				var len:number = this._graphics.length;
+				var len:number = this._shapes.length;
 				for (var i:number = 0; i < len; i++){
-					this._boxBounds = this._boxBounds.union(this._graphics[i].getBoxBounds(), this._boxBounds);
+					this._boxBounds = this._boxBounds.union(this._shapes[i].getBoxBounds(), this._boxBounds);
 				}
 			} else {
 				this._boxBounds.setEmpty();
@@ -398,9 +394,9 @@ export class Graphics extends AssetBase
 
 	public getSphereBounds(center:Vector3D, target:Sphere = null):Sphere
 	{
-		var len:number = this._graphics.length;
+		var len:number = this._shapes.length;
 		for (var i:number = 0; i < len; i++){
-			target = this._graphics[i].getSphereBounds(center, target);
+			target = this._shapes[i].getSphereBounds(center, target);
 		}
 
 		return target;
@@ -416,25 +412,25 @@ export class Graphics extends AssetBase
 
 	public _iInvalidateSurfaces():void
 	{
-		var len:number = this._graphics.length;
+		var len:number = this._shapes.length;
 		for (var i:number = 0; i < len; ++i)
-			this._graphics[i].invalidateSurface();
+			this._shapes[i].invalidateSurface();
 	}
 
 
 	public invalidateElements():void
 	{
-		var len:number = this._graphics.length;
+		var len:number = this._shapes.length;
 		for (var i:number = 0; i < len; ++i)
-			this._graphics[i].invalidateElements();
+			this._shapes[i].invalidateElements();
 	}
 
 	public _hitTestPointInternal(x:number, y:number):boolean
 	{
 		//TODO: handle lines as well
-		var len:number = this._graphics.length;
+		var len:number = this._shapes.length;
 		for(var i:number = 0; i < len; i++)
-			if (this._graphics[i].hitTestPoint(x, y, 0))
+			if (this._shapes[i].hitTestPoint(x, y, 0))
 				return true;
 
 		return false;
@@ -442,9 +438,9 @@ export class Graphics extends AssetBase
 
 	public acceptTraverser(traverser:TraverserBase):void
 	{
-		var len:number = this._graphics.length;
+		var len:number = this._shapes.length;
 		for (var i:number = 0; i < len; i++)
-			traverser[this._graphics[i].elements.traverseName](this._graphics[i]);
+			traverser[this._shapes[i].elements.traverseName](this._shapes[i]);
 	}
 
 	private _onInvalidateProperties(event:StyleEvent):void
@@ -484,14 +480,14 @@ export class Graphics extends AssetBase
 		material.curves = true;
 
 		var sampler:Sampler2D = new Sampler2D();
-		var graphic:Graphic = this.addGraphic(elements, material);
-		if(graphic) {
-			graphic.style = new Style();
-			graphic.style.addSamplerAt(sampler, graphic.material.getTextureAt(0));
+		var shape:Shape = this.addShape(elements, material);
+		if(shape) {
+			shape.style = new Style();
+			shape.style.addSamplerAt(sampler, shape.material.getTextureAt(0));
 			//sampler.imageRect = new Rectangle(0, 0, 0.5, 0.5);
-			graphic.style.uvMatrix = new Matrix(0, 0, 0, 0, 0.126, 0);
-			graphic.material.animateUVs = true;
-			//graphic.material.imageRect = true;
+			shape.style.uvMatrix = new Matrix(0, 0, 0, 0, 0.126, 0);
+			shape.material.animateUVs = true;
+			//shape.material.imageRect = true;
 		}
 	}
 	/**

@@ -8,7 +8,7 @@ import {BasicMaterial}				from "../materials/BasicMaterial";
 import {Single2DTexture}				from "../textures/Single2DTexture";
 import {SingleCubeTexture}			from "../textures/SingleCubeTexture";
 import {TextureBase}					from "../textures/TextureBase";
-import {Graphic}						from "../Graphic";
+import {Shape}						from "../base/Shape";
 
 export class DefaultMaterialManager
 {
@@ -23,7 +23,7 @@ export class DefaultMaterialManager
 
 	public static getDefaultMaterial(renderable:IRenderable = null):MaterialBase
 	{
-		if (renderable != null && renderable.isAsset(Graphic) && (<Graphic> renderable).elements.isAsset(LineElements)) {
+		if (renderable != null && renderable.isAsset(Shape) && (<Shape> renderable).elements.isAsset(LineElements)) {
 			if (!DefaultMaterialManager._defaultColorMaterial)
 				DefaultMaterialManager.createDefaultColorMaterial();
 

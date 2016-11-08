@@ -16,7 +16,7 @@ import {ElementsBase}					from "./ElementsBase";
  */
 export class LineElements extends ElementsBase
 {
-	public static traverseName:string = TraverserBase.addRenderableName("applyLineGraphic");
+	public static traverseName:string = TraverserBase.addRenderableName("applyLineShape");
 		
 	public static assetType:string = "[asset LineElements]";
 

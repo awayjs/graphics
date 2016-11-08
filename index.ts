@@ -8,6 +8,7 @@ export {IEntity}						from "./lib/base/IEntity";
 export {IMaterial}						from "./lib/base/IMaterial";
 export {INode}							from "./lib/base/INode";
 export {IRenderable}						from "./lib/base/IRenderable";
+export {Shape}						from "./lib/base/Shape";
 export {Style}							from "./lib/base/Style";
 export {Transform}						from "./lib/base/Transform";
 export {TraverserBase}					from "./lib/base/TraverserBase";
@@ -80,5 +81,4 @@ export {HitTestCache}					from "./lib/utils/HitTestCache";
 export {ImageUtils}						from "./lib/utils/ImageUtils";
 export {MipmapGenerator}				from "./lib/utils/MipmapGenerator";
 
-export {Graphic}						from "./lib/Graphic";
 export {Graphics}						from "./lib/Graphics";

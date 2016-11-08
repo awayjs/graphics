@@ -550,6 +550,18 @@ export class ElementsUtils
 		var positions:ArrayBufferView = positionAttributes.get(count, offset);
 		var curves:ArrayBufferView = curveAttributes? curveAttributes.get(count, offset) : null;
 
+		var indices:Uint16Array;
+		var len:number;
+		if (triangleElements.indices) {
+			indices = triangleElements.indices.get(count, offset);
+			positions = positionAttributes.get(positionAttributes.count);
+			curves = curveAttributes? curveAttributes.get(curveAttributes.count) : null;
+			len = count*triangleElements.indices.dimensions;
+		} else {
+			positions = positionAttributes.get(count, offset);
+			curves = curveAttributes? curveAttributes.get(count, offset) : null;
+			len = count;
+		}
 		var id0:number;
 		var id1:number;
 		var id2:number;
@@ -564,20 +576,25 @@ export class ElementsUtils
 		var hitTestCache:HitTestCache = triangleElements.hitTestCache[offset] || (triangleElements.hitTestCache[offset] = new HitTestCache());
 		var index:number = hitTestCache.lastCollisionIndex;
 
-		if(index != -1 && index < count)
-		{
+		if (index != -1 && index < len) {
 			precheck:
 			{
-				id0 = index + 2;
-				id1 = index + 1;
-				id2 = index + 0;
+				if (indices) {
+					id0 = indices[index + 2];
+					id1 = indices[index + 1];
+					id2 = indices[index];
+				} else {
+					id0 = index + 2;
+					id1 = index + 1;
+					id2 = index;
+				}
 
-				ax = positions[id0 * posStride];
-				ay = positions[id0 * posStride + 1];
-				bx = positions[id1 * posStride];
-				by = positions[id1 * posStride + 1];
-				cx = positions[id2 * posStride];
-				cy = positions[id2 * posStride + 1];
+				ax = positions[id0*posStride];
+				ay = positions[id0*posStride + 1];
+				bx = positions[id1*posStride];
+				by = positions[id1*posStride + 1];
+				cx = positions[id2*posStride];
+				cy = positions[id2*posStride + 1];
 
 				//console.log(ax, ay, bx, by, cx, cy);
 
@@ -591,7 +608,7 @@ export class ElementsUtils
 
 				//console.log(ax,ay,bx,by,cx,cy);
 
-				var dot:number = (dx * nx) + (dy * ny);
+				var dot:number = (dx*nx) + (dy*ny);
 
 				if (dot > 0)
 					break precheck;
@@ -601,7 +618,7 @@ export class ElementsUtils
 				nx = cy - by;
 				ny = -(cx - bx);
 
-				dot = (dx * nx) + (dy * ny);
+				dot = (dx*nx) + (dy*ny);
 
 				if (dot > 0)
 					break precheck;
@@ -611,14 +628,14 @@ export class ElementsUtils
 				nx = ay - cy;
 				ny = -(ax - cx);
 
-				dot = (dx * nx) + (dy * ny);
+				dot = (dx*nx) + (dy*ny);
 
 				if (dot > 0)
 					break precheck;
 
 				if (curves) {
 					//check if not solid
-					if (curves[id0 * curveStride + 2]!=-128) {
+					if (curves[id0*curveStride + 2] != -128) {
 
 						var v0x:number = bx - ax;
 						var v0y:number = by - ay;
@@ -627,18 +644,18 @@ export class ElementsUtils
 						var v2x:number = x - ax;
 						var v2y:number = y - ay;
 
-						var den:number = v0x * v1y - v1x * v0y;
-						var v:number = (v2x * v1y - v1x * v2y) / den;
-						var w:number = (v0x * v2y - v2x * v0y) / den;
+						var den:number = v0x*v1y - v1x*v0y;
+						var v:number = (v2x*v1y - v1x*v2y)/den;
+						var w:number = (v0x*v2y - v2x*v0y)/den;
 						//var u:number = 1 - v - w;	//commented out as inlined away
 
 						//here be dragons
-						var uu:number = 0.5 * v + w;
+						var uu:number = 0.5*v + w;
 						var vv:number = w;
 
-						var d:number = uu * uu - vv;
+						var d:number = uu*uu - vv;
 
-						var az:number = curves[id0 * curveStride];
+						var az:number = curves[id0*curveStride];
 						if (d > 0 && az == -128) {
 							break precheck;
 						} else if (d < 0 && az == 127) {
@@ -652,11 +669,10 @@ export class ElementsUtils
 		}
 
 
-
 		//hard coded min vertex count to bother using a grid for
-		if (count > 150) {
+		if (len > 150) {
 			var cells:Array<Array<number>> = hitTestCache.cells;
-			var divisions:number = cells.length? hitTestCache.divisions : (hitTestCache.divisions = Math.min(Math.ceil(Math.sqrt(count)), 32));
+			var divisions:number = cells.length? hitTestCache.divisions : (hitTestCache.divisions = Math.min(Math.ceil(Math.sqrt(len)), 32));
 			var conversionX:number = divisions/box.width;
 			var conversionY:number = divisions/box.height;
 			var minx:number = box.x;
@@ -665,19 +681,25 @@ export class ElementsUtils
 			if (!cells.length) { //build grid
 
 				//now we have bounds start creating grid cells and filling
-				cells.length = divisions * divisions;
+				cells.length = divisions*divisions;
 
-				for(var k:number = 0; k < count; k+=3) {
-					id0 = k + 2;
-					id1 = k + 1;
-					id2 = k + 0;
+				for (var k:number = 0; k < len; k += 3) {
+					if (indices) {
+						id0 = indices[k + 2];
+						id1 = indices[k + 1];
+						id2 = indices[k];
+					} else {
+						id0 = k + 2;
+						id1 = k + 1;
+						id2 = k + 0;
+					}
 
-					ax = positions[id0 * posStride];
-					ay = positions[id0 * posStride + 1];
-					bx = positions[id1 * posStride];
-					by = positions[id1 * posStride + 1];
-					cx = positions[id2 * posStride];
-					cy = positions[id2 * posStride + 1];
+					ax = positions[id0*posStride];
+					ay = positions[id0*posStride + 1];
+					bx = positions[id1*posStride];
+					by = positions[id1*posStride + 1];
+					cx = positions[id2*posStride];
+					cy = positions[id2*posStride + 1];
 
 					//subtractions to push into positive space
 					var min_index_x:number = Math.floor((Math.min(ax, bx, cx) - minx)*conversionX);
@@ -714,17 +736,17 @@ export class ElementsUtils
 			for (var k:number = 0; k < nodeCount; k += 3) {
 				id2 = nodes[k + 2];
 
-				if(id2 == index) continue;
+				if (id2 == index) continue;
 
 				id1 = nodes[k + 1];
 				id0 = nodes[k];
 
-				ax = positions[id0 * posStride];
-				ay = positions[id0 * posStride + 1];
-				bx = positions[id1 * posStride];
-				by = positions[id1 * posStride + 1];
-				cx = positions[id2 * posStride];
-				cy = positions[id2 * posStride + 1];
+				ax = positions[id0*posStride];
+				ay = positions[id0*posStride + 1];
+				bx = positions[id1*posStride];
+				by = positions[id1*posStride + 1];
+				cx = positions[id2*posStride];
+				cy = positions[id2*posStride + 1];
 
 				//from a to p
 				var dx:number = ax - x;
@@ -734,7 +756,7 @@ export class ElementsUtils
 				var nx:number = by - ay;
 				var ny:number = -(bx - ax);
 
-				var dot:number = (dx * nx) + (dy * ny);
+				var dot:number = (dx*nx) + (dy*ny);
 
 				if (dot > 0)
 					continue;
@@ -744,7 +766,7 @@ export class ElementsUtils
 				nx = cy - by;
 				ny = -(cx - bx);
 
-				dot = (dx * nx) + (dy * ny);
+				dot = (dx*nx) + (dy*ny);
 
 				if (dot > 0)
 					continue;
@@ -754,14 +776,14 @@ export class ElementsUtils
 				nx = ay - cy;
 				ny = -(ax - cx);
 
-				dot = (dx * nx) + (dy * ny);
+				dot = (dx*nx) + (dy*ny);
 
 				if (dot > 0)
 					continue;
 
 				if (curves) {
 					//check if not solid
-					if (curves[id0 * curveStride + 2]!=-128) {
+					if (curves[id0*curveStride + 2] != -128) {
 
 						var v0x:number = bx - ax;
 						var v0y:number = by - ay;
@@ -770,21 +792,20 @@ export class ElementsUtils
 						var v2x:number = x - ax;
 						var v2y:number = y - ay;
 
-						var den:number = v0x * v1y - v1x * v0y;
-						var v:number = (v2x * v1y - v1x * v2y) / den;
-						var w:number = (v0x * v2y - v2x * v0y) / den;
+						var den:number = v0x*v1y - v1x*v0y;
+						var v:number = (v2x*v1y - v1x*v2y)/den;
+						var w:number = (v0x*v2y - v2x*v0y)/den;
 						//var u:number = 1 - v - w;	//commented out as inlined away
 
 						//here be dragons
-						var uu:number = 0.5 * v + w;
+						var uu:number = 0.5*v + w;
 						var vv:number = w;
 
-						var d:number = uu * uu - vv;
-						var az:number = curves[id0 * curveStride];
+						var d:number = uu*uu - vv;
+						var az:number = curves[id0*curveStride];
 
 						if (d > 0 && az == -128)
-							continue;
-						else if (d < 0 && az == 127)
+							continue; else if (d < 0 && az == 127)
 							continue;
 					}
 				}
@@ -796,20 +817,29 @@ export class ElementsUtils
 		}
 
 		//brute force
-		for(var k:number = 0; k < count; k += 3) {
-			id2 = k + 0;
+		for (var k:number = 0; k < len; k += 3) {
+			if (indices) {
+				id2 = indices[k];
+			} else {
+				id2 = k;
+			}
 
-			if(id2 == index) continue;
+			if (id2 == index) continue;
 
-			id1 = k + 1;
-			id0 = k + 2;
+			if (indices) {
+				id0 = indices[k + 2];
+				id1 = indices[k + 1];
+			} else {
+				id0 = k + 2;
+				id1 = k + 1;
+			}
 
-			ax = positions[id0 * posStride];
-			ay = positions[id0 * posStride + 1];
-			bx = positions[id1 * posStride];
-			by = positions[id1 * posStride + 1];
-			cx = positions[id2 * posStride];
-			cy = positions[id2 * posStride + 1];
+			ax = positions[id0*posStride];
+			ay = positions[id0*posStride + 1];
+			bx = positions[id1*posStride];
+			by = positions[id1*posStride + 1];
+			cx = positions[id2*posStride];
+			cy = positions[id2*posStride + 1];
 
 			//console.log(ax, ay, bx, by, cx, cy);
 
@@ -823,7 +853,7 @@ export class ElementsUtils
 
 			//console.log(ax,ay,bx,by,cx,cy);
 
-			var dot:number = (dx * nx) + (dy * ny);
+			var dot:number = (dx*nx) + (dy*ny);
 
 			if (dot > 0)
 				continue;
@@ -833,7 +863,7 @@ export class ElementsUtils
 			nx = cy - by;
 			ny = -(cx - bx);
 
-			dot = (dx * nx) + (dy * ny);
+			dot = (dx*nx) + (dy*ny);
 
 			if (dot > 0)
 				continue;
@@ -843,14 +873,14 @@ export class ElementsUtils
 			nx = ay - cy;
 			ny = -(ax - cx);
 
-			dot = (dx * nx) + (dy * ny);
+			dot = (dx*nx) + (dy*ny);
 
 			if (dot > 0)
 				continue;
 
 			if (curves) {
 				//check if not solid
-				if (curves[id0 * curveStride + 2]!=-128) {
+				if (curves[id0*curveStride + 2] != -128) {
 
 					var v0x:number = bx - ax;
 					var v0y:number = by - ay;
@@ -859,18 +889,18 @@ export class ElementsUtils
 					var v2x:number = x - ax;
 					var v2y:number = y - ay;
 
-					var den:number = v0x * v1y - v1x * v0y;
-					var v:number = (v2x * v1y - v1x * v2y) / den;
-					var w:number = (v0x * v2y - v2x * v0y) / den;
+					var den:number = v0x*v1y - v1x*v0y;
+					var v:number = (v2x*v1y - v1x*v2y)/den;
+					var w:number = (v0x*v2y - v2x*v0y)/den;
 					//var u:number = 1 - v - w;	//commented out as inlined away
 
 					//here be dragons
-					var uu:number = 0.5 * v + w;
+					var uu:number = 0.5*v + w;
 					var vv:number = w;
 
-					var d:number = uu * uu - vv;
+					var d:number = uu*uu - vv;
 
-					var az:number = curves[id0 * curveStride];
+					var az:number = curves[id0*curveStride];
 					if (d > 0 && az == -128) {
 						continue;
 					} else if (d < 0 && az == 127) {
@@ -878,263 +908,6 @@ export class ElementsUtils
 					}
 				}
 			}
-			hitTestCache.lastCollisionIndex = id2;
-			return true;
-		}
-		hitTestCache.lastCollisionIndex = -1;
-		return false;
-	}
-
-	public static hitTestTriangleElementsIndices(x:number, y:number, z:number, box:Box, triangleElements:TriangleElements, idx_count:number, idx_offset:number = 0):boolean
-	{
-		var positionAttributes:AttributesView = triangleElements.positions;
-		var posStride:number = positionAttributes.stride;
-
-		var positions:ArrayBufferView = positionAttributes.get(positionAttributes.count);
-
-		var indexAttributes:Short2Attributes = triangleElements.indices;
-		var indices:Uint16Array = indexAttributes.get(idx_count, idx_offset);
-
-		var indexDim:number = indexAttributes.dimensions;
-
-		var i=0;
-		var id0:number;
-		var id1:number;
-		var id2:number;
-
-		var ax:number;
-		var ay:number;
-		var bx:number;
-		var by:number;
-		var cx:number;
-		var cy:number;
-
-		var hitTestCache:HitTestCache = triangleElements.hitTestCache[idx_offset] || (triangleElements.hitTestCache[idx_offset] = new HitTestCache());
-		var index:number = hitTestCache.lastCollisionIndex;
-
-		var len:number = idx_count*indexDim;
-		if(index != -1 && index < len)
-		{
-			precheck:
-			{
-				id0 = indices[index + 2];
-				id1 = indices[index + 1];
-				id2 = indices[index + 0];
-
-				ax = positions[id0 * posStride];
-				ay = positions[id0 * posStride + 1];
-				bx = positions[id1 * posStride];
-				by = positions[id1 * posStride + 1];
-				cx = positions[id2 * posStride];
-				cy = positions[id2 * posStride + 1];
-
-				//from a to p
-				var dx:number = ax - x;
-				var dy:number = ay - y;
-
-				//edge normal (a-b)
-				var nx:number = by - ay;
-				var ny:number = -(bx - ax);
-
-				var dot:number = (dx * nx) + (dy * ny);
-
-				if (dot > 0)
-					break precheck;
-
-				dx = bx - x;
-				dy = by - y;
-				nx = cy - by;
-				ny = -(cx - bx);
-
-				dot = (dx * nx) + (dy * ny);
-
-				if (dot > 0)
-					break precheck;
-
-				dx = cx - x;
-				dy = cy - y;
-				nx = ay - cy;
-				ny = -(ax - cx);
-
-				dot = (dx * nx) + (dy * ny);
-
-				if (dot > 0)
-					break precheck;
-
-				return true;
-			}
-		}
-
-
-
-		//hard coded min vertex count to bother using a grid for
-		if (len > 150) {
-			var cells:Array<Array<number>> = hitTestCache.cells;
-			var divisions:number = cells.length? hitTestCache.divisions : (hitTestCache.divisions = Math.min(Math.ceil(Math.sqrt(len)), 32));
-			var conversionX:number = divisions/box.width;
-			var conversionY:number = divisions/box.height;
-			var minx:number = box.x;
-			var miny:number = box.y;
-
-			if (!cells.length) { //build grid
-
-				//now we have bounds start creating grid cells and filling
-				cells.length = divisions * divisions;
-
-				for (var k:number = 0; k < len; k += indexDim) {
-
-					id0 = indices[k+2];
-					id1 = indices[k+1];
-					id2 = indices[k];
-
-					ax = positions[id0 * posStride];
-					ay = positions[id0 * posStride + 1];
-					bx = positions[id1 * posStride];
-					by = positions[id1 * posStride + 1];
-					cx = positions[id2 * posStride];
-					cy = positions[id2 * posStride + 1];
-
-					//subtractions to push into positive space
-					var min_index_x:number = Math.floor((Math.min(ax, bx, cx) - minx)*conversionX);
-					var min_index_y:number = Math.floor((Math.min(ay, by, cy) - miny)*conversionY);
-
-					var max_index_x:number = Math.floor((Math.max(ax, bx, cx) - minx)*conversionX);
-					var max_index_y:number = Math.floor((Math.max(ay, by, cy) - miny)*conversionY);
-
-
-					for (var i:number = min_index_x; i <= max_index_x; i++) {
-						for (var j:number = min_index_y; j <= max_index_y; j++) {
-							var index:number = i + j*divisions;
-							var nodes:Array<number> = cells[index] || (cells[index] = new Array<number>());
-
-							//push in the triangle ids
-							nodes.push(id0, id1, id2);
-						}
-					}
-				}
-			}
-
-
-			var index_x:number = Math.floor((x - minx)*conversionX);
-			var index_y:number = Math.floor((y - miny)*conversionY);
-
-			if ((index_x < 0 || index_x > divisions || index_y < 0 || index_y > divisions))
-				return false;
-
-			var nodes:Array<number> = cells[index_x + index_y*divisions];
-
-			if (nodes == null)
-				return false;
-
-			var nodeCount:number = nodes.length;
-			for (var k:number = 0; k < nodeCount; k += indexDim) {
-				id2 = nodes[k + 2];
-
-				if(k + 2 == index) continue;
-
-				id1 = nodes[k + 1];
-				id0 = nodes[k];
-
-				ax = positions[id0 * posStride];
-				ay = positions[id0 * posStride + 1];
-				bx = positions[id1 * posStride];
-				by = positions[id1 * posStride + 1];
-				cx = positions[id2 * posStride];
-				cy = positions[id2 * posStride + 1];
-
-				//from a to p
-				var dx:number = ax - x;
-				var dy:number = ay - y;
-
-				//edge normal (a-b)
-				var nx:number = by - ay;
-				var ny:number = -(bx - ax);
-
-				var dot:number = (dx * nx) + (dy * ny);
-
-				if (dot > 0)
-					continue;
-
-				dx = bx - x;
-				dy = by - y;
-				nx = cy - by;
-				ny = -(cx - bx);
-
-				dot = (dx * nx) + (dy * ny);
-
-				if (dot > 0)
-					continue;
-
-				dx = cx - x;
-				dy = cy - y;
-				nx = ay - cy;
-				ny = -(ax - cx);
-
-				dot = (dx * nx) + (dy * ny);
-
-				if (dot > 0)
-					continue;
-
-				hitTestCache.lastCollisionIndex = k;
-				return true;
-			}
-			hitTestCache.lastCollisionIndex = -1;
-			return false;
-		}
-
-		//brute force
-		for(var k:number = 0; k < len; k += indexDim) {
-			id2 = indices[k];
-
-			if(k == index) continue;
-
-			id1 = indices[k+1];
-			id0 = indices[k+2];
-
-			ax = positions[id0 * posStride];
-			ay = positions[id0 * posStride + 1];
-			bx = positions[id1 * posStride];
-			by = positions[id1 * posStride + 1];
-			cx = positions[id2 * posStride];
-			cy = positions[id2 * posStride + 1];
-
-			//console.log(ax, ay, bx, by, cx, cy);
-
-			//from a to p
-			var dx:number = ax - x;
-			var dy:number = ay - y;
-
-			//edge normal (a-b)
-			var nx:number = by - ay;
-			var ny:number = -(bx - ax);
-
-			//console.log(ax,ay,bx,by,cx,cy);
-
-			var dot:number = (dx * nx) + (dy * ny);
-
-			if (dot > 0)
-				continue;
-
-			dx = bx - x;
-			dy = by - y;
-			nx = cy - by;
-			ny = -(cx - bx);
-
-			dot = (dx * nx) + (dy * ny);
-
-			if (dot > 0)
-				continue;
-
-			dx = cx - x;
-			dy = cy - y;
-			nx = ay - cy;
-			ny = -(ax - cx);
-
-			dot = (dx * nx) + (dy * ny);
-
-			if (dot > 0)
-				continue;
-
 			hitTestCache.lastCollisionIndex = k;
 			return true;
 		}
@@ -1142,9 +915,9 @@ export class ElementsUtils
 		return false;
 	}
 
-	public static getTriangleGraphicsBoxBoundsIndices(positionAttributes:AttributesView, indexAttributes:Short2Attributes, output:Box, idx_count:number, idx_offset:number = 0):Box
+	public static getTriangleGraphicsBoxBounds(positionAttributes:AttributesView, indexAttributes:Short2Attributes, output:Box, count:number, offset:number = 0):Box
 	{
-		var positions:ArrayBufferView = positionAttributes.get(positionAttributes.count);
+		var positions:ArrayBufferView;
 		var posDim:number = positionAttributes.dimensions;
 		var posStride:number = positionAttributes.stride;
 
@@ -1152,14 +925,21 @@ export class ElementsUtils
 		var minX:number = 0, minY:number = 0, minZ:number = 0;
 		var maxX:number = 0, maxY:number = 0, maxZ:number = 0;
 
-
-		var indices:Uint16Array = indexAttributes.get(idx_count, idx_offset);
-		var indexDim:number = indexAttributes.dimensions;
+		var indices:Uint16Array;
+		var len:number;
+		if (indexAttributes) {
+			len = count*indexAttributes.dimensions;
+			indices = indexAttributes.get(count, offset);
+			positions = positionAttributes.get(positionAttributes.count);
+		} else {
+			len = count;
+			positions = positionAttributes.get(count, offset);
+		}
 
 		var index:number;
-		var len:number = idx_count*indexDim;
 		for (var i:number = 0; i < len; i++) {
-			index = indices[i] * posStride;
+			index = (indices)? indices[i]*posStride : i*posStride;
+
 			if (i == 0) {
 				maxX = minX = positions[index];
 				maxY = minY = positions[index + 1];
@@ -1180,60 +960,6 @@ export class ElementsUtils
 
 				if (posDim == 3) {
 					pos = positions[index + 2];
-
-					if (pos < minZ)
-						minZ = pos;
-					else if (pos > maxZ)
-						maxZ = pos;
-				}
-			}
-		}
-
-		if (output == null)
-			output = new Box();
-
-		output.x = minX;
-		output.y = minY;
-		output.z = minZ;
-		output.right = maxX;
-		output.bottom = maxY;
-		output.back = maxZ;
-
-		return output;
-
-	}
-	public static getTriangleGraphicsBoxBounds(positionAttributes:AttributesView, output:Box, count:number, offset:number = 0):Box
-	{
-		var positions:ArrayBufferView = positionAttributes.get(count, offset);
-		var posDim:number = positionAttributes.dimensions;
-		var posStride:number = positionAttributes.stride;
-
-		var pos:number;
-		var minX:number = 0, minY:number = 0, minZ:number = 0;
-		var maxX:number = 0, maxY:number = 0, maxZ:number = 0;
-
-		var len:number = count*posStride;
-		for (var i:number = 0; i < len; i += posStride) {
-			if (i == 0) {
-				maxX = minX = positions[i];
-				maxY = minY = positions[i + 1];
-				maxZ = minZ = (posDim == 3)? positions[i + 2] : 0;
-			} else {
-				pos = positions[i];
-				if (pos < minX)
-					minX = pos;
-				else if (pos > maxX)
-					maxX = pos;
-
-				pos = positions[i + 1];
-
-				if (pos < minY)
-					minY = pos;
-				else if (pos > maxY)
-					maxY = pos;
-
-				if (posDim == 3) {
-					pos = positions[i + 2];
 
 					if (pos < minZ)
 						minZ = pos;

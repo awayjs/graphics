@@ -9,7 +9,7 @@ import {GraphicsFactoryHelper}				from "../draw/GraphicsFactoryHelper";
 import {TriangleElements}				from "../elements/TriangleElements";
 import {MaterialBase}					from "../materials/MaterialBase";
 import {Graphics}					from "../Graphics";
-import {Graphic}					from "../Graphic";
+import {Shape}					from "../base/Shape";
 import {GraphicsPath}				from "../draw/GraphicsPath";
 import {GraphicsPathCommand}		from "../draw/GraphicsPathCommand";
 import {DefaultMaterialManager}	from "../managers/DefaultMaterialManager";
@@ -31,11 +31,11 @@ import {DefaultMaterialManager}	from "../managers/DefaultMaterialManager";
 export class GraphicsFactoryFills
 {
 
-	public static draw_pathes(targetGraphic:Graphics) {
-		var len=targetGraphic.queued_fill_pathes.length;
+	public static draw_pathes(targetGraphics:Graphics) {
+		var len=targetGraphics.queued_fill_pathes.length;
 		var cp=0;
 		for(cp=0; cp<len; cp++){
-			var one_path:GraphicsPath = targetGraphic.queued_fill_pathes[cp];
+			var one_path:GraphicsPath = targetGraphics.queued_fill_pathes[cp];
 			//one_path.finalizeContour();
 			var contour_commands:Array<Array<number> > = one_path.commands;
 			var contour_data:Array<Array<number> > = one_path.data;
@@ -317,8 +317,8 @@ export class GraphicsFactoryFills
 			material.bothSides = true;
 			material.useColorTransform = true;
 			material.curves = true;
-			var thisGraphic:Graphic=targetGraphic.addGraphic(elements, material);
+			var thisShape:Shape=targetGraphics.addShape(elements, material);
 		}
-		targetGraphic.queued_fill_pathes.length=0;
+		targetGraphics.queued_fill_pathes.length=0;
 	}
 }

@@ -17,7 +17,7 @@ import {ElementsBase}					from "./ElementsBase";
  */
 export class TriangleElements extends ElementsBase
 {
-	public static traverseName:string = TraverserBase.addRenderableName("applyTriangleGraphic");
+	public static traverseName:string = TraverserBase.addRenderableName("applyTriangleShape");
 	public static assetType:string = "[asset TriangleElements]";
 	
 	private _faceNormalsDirty:boolean = true;
@@ -212,12 +212,9 @@ export class TriangleElements extends ElementsBase
 		return this._condensedIndexLookUp;
 	}
 
-	public getBoxBounds(target:Box = null, count:number = 0, offset:number = 0, idx_count:number = 0, idx_offset:number = 0 ):Box
+	public getBoxBounds(target:Box = null, count:number = 0, offset:number = 0):Box
 	{
-		if(this.indices){
-			return ElementsUtils.getTriangleGraphicsBoxBoundsIndices(this.positions, this.indices, target, idx_count/3 || this.numElements, idx_offset/3);
-		}
-		return ElementsUtils.getTriangleGraphicsBoxBounds(this.positions, target, count || this._numVertices, offset);
+		return ElementsUtils.getTriangleGraphicsBoxBounds(this.positions, this.indices, target, count || this._numElements || this._numVertices, offset);
 	}
 
 	public getSphereBounds(center:Vector3D, target:Sphere = null, count:number = 0, offset:number = 0):Sphere
@@ -227,10 +224,7 @@ export class TriangleElements extends ElementsBase
 
 	public hitTestPoint(x:number, y:number, z:number, box:Box, count:number = 0, offset:number = 0, idx_count:number = 0, idx_offset:number = 0):boolean
 	{
-		if(this.indices){
-			return ElementsUtils.hitTestTriangleElementsIndices(x, y, 0, box, this, idx_count/3 || this.numElements, idx_offset/3);
-		}
-		return ElementsUtils.hitTestTriangleElements(x, y, 0, box, this, count || this._numVertices, offset);
+		return ElementsUtils.hitTestTriangleElements(x, y, 0, box, this, count || this._numElements || this._numVertices, offset);
 	}
 
 	/**
