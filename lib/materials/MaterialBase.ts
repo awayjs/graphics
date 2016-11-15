@@ -7,7 +7,7 @@ import {ImageBase}					from "../image/ImageBase";
 import {IAnimationSet}				from "../animators/IAnimationSet";
 import {IAnimator}					from "../animators/IAnimator";
 import {IMaterial}						from "../base/IMaterial";
-import {IRenderable}					from "../base/IRenderable";
+import {IEntity}					from "../base/IEntity";
 import {MaterialEvent}					from "../events/MaterialEvent";
 import {TextureBase}					from "../textures/TextureBase";
 import {Style}						from "../base/Style";
@@ -59,7 +59,7 @@ export class MaterialBase extends AssetBase implements IMaterial
 	/**
 	 * A list of material owners, renderables or custom Entities.
 	 */
-	private _owners:Array<IRenderable> = new Array<IRenderable>();
+	private _owners:Array<IEntity> = new Array<IEntity>();
 
 	private _alphaPremultiplied:boolean;
 
@@ -353,15 +353,15 @@ export class MaterialBase extends AssetBase implements IMaterial
 	// MATERIAL MANAGEMENT
 	//
 	/**
-	 * Mark an IRenderable as owner of this material.
+	 * Mark an IEntity as owner of this material.
 	 * Assures we're not using the same material across renderables with different animations, since the
 	 * Programs depend on animation. This method needs to be called when a material is assigned.
 	 *
-	 * @param owner The IRenderable that had this material assigned
+	 * @param owner The IEntity that had this material assigned
 	 *
 	 * @internal
 	 */
-	public iAddOwner(owner:IRenderable):void
+	public iAddOwner(owner:IEntity):void
 	{
 		this._owners.push(owner);
 
@@ -383,17 +383,15 @@ export class MaterialBase extends AssetBase implements IMaterial
 				}
 			}
 		}
-
-		owner.invalidateSurface();
 	}
 
 	/**
-	 * Removes an IRenderable as owner.
+	 * Removes an IEntity as owner.
 	 * @param owner
 	 *
 	 * @internal
 	 */
-	public iRemoveOwner(owner:IRenderable):void
+	public iRemoveOwner(owner:IEntity):void
 	{
 		this._owners.splice(this._owners.indexOf(owner), 1);
 
@@ -402,16 +400,14 @@ export class MaterialBase extends AssetBase implements IMaterial
 
 			this.invalidateAnimation();
 		}
-
-		owner.invalidateSurface();
 	}
 
 	/**
-	 * A list of the IRenderables that use this material
+	 * A list of the IEntities that use this material
 	 *
 	 * @private
 	 */
-	public get iOwners():Array<IRenderable>
+	public get iOwners():Array<IEntity>
 	{
 		return this._owners;
 	}
@@ -441,11 +437,11 @@ export class MaterialBase extends AssetBase implements IMaterial
 		this.dispatchEvent(new MaterialEvent(MaterialEvent.INVALIDATE_ANIMATION, this));
 	}
 
-	public invalidateSurfaces():void
+	public invalidateMaterials():void
 	{
 		var len:number = this._owners.length;
 		for (var i:number = 0; i < len; i++)
-			this._owners[i].invalidateSurface();
+			this._owners[i].invalidateMaterial();
 	}
 
 	public invalidateTexture():void
@@ -495,7 +491,7 @@ export class MaterialBase extends AssetBase implements IMaterial
 		this.invalidatePasses();
 
 		//invalidate renderables for number of images getter (in case it has changed)
-		this.invalidateSurfaces();
+		this.invalidateMaterials();
 	}
 
 	private _onInvalidateProperties(event:StyleEvent):void

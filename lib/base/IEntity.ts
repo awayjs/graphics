@@ -5,6 +5,9 @@ import {Matrix3D}						from "@awayjs/core/lib/geom/Matrix3D";
 import {Vector3D}						from "@awayjs/core/lib/geom/Vector3D";
 import {IAsset}						from "@awayjs/core/lib/library/IAsset";
 
+import {IMaterial}					from "../base/IMaterial";
+import {Style}					from "../base/Style";
+import {IAnimator}					from "../animators/IAnimator";
 import {PickingCollision}				from "../pick/PickingCollision";
 
 import {TraverserBase}					from "./TraverserBase";
@@ -13,6 +16,15 @@ import {Transform} from "./Transform";
 
 export interface IEntity extends IAsset
 {
+	/**
+	 * The animation used by the material owner to assemble the vertex code.
+	 */
+	animator:IAnimator;
+
+	style:Style;
+	
+	material:IMaterial;
+	
 	parent:IEntity;
 
 	_depthID:number;
@@ -107,4 +119,8 @@ export interface IEntity extends IAsset
 	_acceptTraverser(traverser:TraverserBase);
 
 	hitTestPoint(x:number, y:number, shapeFlag?:boolean, masksFlag?:boolean):boolean;
+
+	invalidateMaterial();
+
+	invalidateElements();
 }

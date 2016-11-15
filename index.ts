@@ -35,6 +35,7 @@ export {TriangleCulling}					from "./lib/draw/TriangleCulling";
 export {ElementsEvent}					from "./lib/events/ElementsEvent";
 export {MaterialEvent}					from "./lib/events/MaterialEvent";
 export {RenderableEvent}				from "./lib/events/RenderableEvent";
+export {ShapeEvent}						from "./lib/events/ShapeEvent";
 export {StyleEvent}						from "./lib/events/StyleEvent";
 export {TransformEvent}					from "./lib/events/TransformEvent";
 

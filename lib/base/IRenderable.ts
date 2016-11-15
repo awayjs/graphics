@@ -1,6 +1,6 @@
 import {IAsset}						from "@awayjs/core/lib/library/IAsset";
 
-import {IAnimator}					from "../animators/IAnimator";
+import {IMaterial}					from "../base/IMaterial";
 import {Style}						from "../base/Style";
 
 /**
@@ -10,28 +10,14 @@ import {Style}						from "../base/Style";
  */
 export interface IRenderable extends IAsset
 {
-	/**
-	 * The animation used by the material owner to assemble the vertex code.
-	 */
-	animator:IAnimator;
+	material:IMaterial;
 
 	/**
 	 *
 	 */
 	style:Style;
 
-	invalidateSurface();
+	invalidateMaterial();
 
 	invalidateElements();
-
-	/**
-	 * //TODO
-	 *
-	 * @param shortestCollisionDistance
-	 * @param findClosest
-	 * @returns {boolean}
-	 *
-	 * @internal
-	 */
-	//_iTestCollision(pickingCollision:PickingCollision, pickingCollider:IPickingCollider):boolean;
 }

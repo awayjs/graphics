@@ -23,7 +23,7 @@ import {GraphicsStrokeStyle}	from "../draw/GraphicsStrokeStyle";
 
 import {PartialImplementationError}	from "@awayjs/core/lib/errors/PartialImplementationError";
 import {TriangleElements}			from "../elements/TriangleElements";
-import {MaterialBase}				from "../materials/MaterialBase";
+
 /**
  * The Graphics class contains a set of methods that you can use to create a
  * vector shape. Display objects that support drawing include Sprite and Shape
