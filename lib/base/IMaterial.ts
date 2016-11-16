@@ -3,7 +3,7 @@ import {IAsset}						from "@awayjs/core/lib/library/IAsset";
 import {IAnimationSet}				from "../animators/IAnimationSet";
 import {TextureBase}					from "../textures/TextureBase";
 
-import {IRenderable}					from "./IRenderable";
+import {IEntity}					from "./IEntity";
 import {Style}						from "./Style";
 
 /**
@@ -13,6 +13,8 @@ import {Style}						from "./Style";
  */
 export interface IMaterial extends IAsset
 {
+	bothSides:boolean;
+
 	alphaThreshold:number;
 
 	style:Style;
@@ -21,11 +23,13 @@ export interface IMaterial extends IAsset
 
 	imageRect:boolean;
 
+	animateUVs:boolean;
+
 	blendMode:string;
 
 	animationSet:IAnimationSet;
 
-	iOwners:Array<IRenderable>;
+	iOwners:Array<IEntity>;
 
 	getNumTextures():number;
 
@@ -34,4 +38,8 @@ export interface IMaterial extends IAsset
 	addTexture(texture:TextureBase);
 
 	removeTexture(texture:TextureBase);
+
+	iAddOwner(owner:IEntity);
+
+	iRemoveOwner(owner:IEntity);
 }

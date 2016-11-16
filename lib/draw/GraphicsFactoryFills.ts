@@ -317,7 +317,7 @@ export class GraphicsFactoryFills
 			material.bothSides = true;
 			material.useColorTransform = true;
 			material.curves = true;
-			var thisShape:Shape=targetGraphics.addShape(elements, material);
+			var thisShape:Shape=targetGraphics.addShape(Shape.getShape(elements, material));
 		}
 		targetGraphics.queued_fill_pathes.length=0;
 	}

@@ -1,7 +1,7 @@
 import {IAsset}					from "@awayjs/core/lib/library/IAsset";
 
 import {IAnimationSet}			from "../animators/IAnimationSet";
-import {Graphics}					from "../Graphics";
+import {IEntity}					from "../base/IEntity";
 
 /**
  * Provides an interface for animator classes that control animation output from a data set subtype of <code>AnimationSetBase</code>.
@@ -30,12 +30,12 @@ export interface IAnimator extends IAsset
 	 *
 	 * @private
 	 */
-	addOwner(graphics:Graphics);
+	addOwner(entity:IEntity);
 
 	/**
 	 * Used by the graphics object from which the animator is removed, unregisters the owner for internal use.
 	 *
 	 * @private
 	 */
-	removeOwner(graphics:Graphics);
+	removeOwner(entity:IEntity);
 }

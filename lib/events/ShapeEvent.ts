@@ -1,45 +1,45 @@
 import {EventBase}					from "@awayjs/core/lib/events/EventBase";
 
-import {IRenderable}						from "../base/IRenderable";
+import {Shape}						from "../base/Shape";
 
 /**
  * Dispatched to notify changes in a sub geometry object's state.
  *
- * @class away.events.RenderableEvent
+ * @class away.events.ShapeEvent
  * @see away.core.base.Graphics
  */
-export class RenderableEvent extends EventBase
+export class ShapeEvent extends EventBase
 {
 	/**
 	 * Dispatched when a Renderable has been updated.
 	 */
-	public static INVALIDATE_MATERIAL:string = "invalidateMaterial";
-
+	public static ADD_MATERIAL:string = "addMaterial";
+	
 	/**
-	 *
+	 * Dispatched when a Renderable has been updated.
 	 */
-	public static INVALIDATE_ELEMENTS:string = "invalidateElements";
+	public static REMOVE_MATERIAL:string = "removeMaterial";
 
-	private _renderable:IRenderable;
+	private _shape:Shape;
 
 	/**
 	 * Create a new GraphicsEvent
 	 * @param type The event type.
 	 * @param dataType An optional data type of the vertex data being updated.
 	 */
-	constructor(type:string, renderable:IRenderable)
+	constructor(type:string, shape:Shape)
 	{
 		super(type);
 
-		this._renderable = renderable;
+		this._shape = shape;
 	}
 
 	/**
 	 * The renderobject owner of the renderable owner.
 	 */
-	public get renderable():IRenderable
+	public get shape():Shape
 	{
-		return this._renderable;
+		return this._shape;
 	}
 
 	/**
@@ -47,8 +47,8 @@ export class RenderableEvent extends EventBase
 	 *
 	 * @return An exact duplicate of the current object.
 	 */
-	public clone():RenderableEvent
+	public clone():ShapeEvent
 	{
-		return new RenderableEvent(this.type, this._renderable);
+		return new ShapeEvent(this.type, this._shape);
 	}
 }

@@ -10,7 +10,6 @@ import {Vector3D}						from "@awayjs/core/lib/geom/Vector3D";
 import {AssetBase}					from "@awayjs/core/lib/library/AssetBase";
 
 import {ElementsEvent}				from "../events/ElementsEvent";
-import {MaterialBase}					from "../materials/MaterialBase";
 
 /**
  * @class away.base.TriangleElements

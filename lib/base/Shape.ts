@@ -4,11 +4,11 @@ import {Sphere}						from "@awayjs/core/lib/geom/Sphere";
 import {Vector3D}						from "@awayjs/core/lib/geom/Vector3D";
 import {AssetBase}					from "@awayjs/core/lib/library/AssetBase";
 
-import {IAnimator}					from "../animators/IAnimator";
+import {IMaterial}					from "../base/IMaterial";
 import {RenderableEvent}				from "../events/RenderableEvent";
-import {MaterialBase}					from "../materials/MaterialBase";
 import {StyleEvent}					from "../events/StyleEvent";
 import {ElementsEvent}				from "../events/ElementsEvent";
+import {ShapeEvent}				from "../events/ShapeEvent";
 import {ElementsBase}					from "../elements/ElementsBase";
 import {TriangleElements}				from "../elements/TriangleElements";
 import {Graphics}						from "../Graphics";
@@ -27,27 +27,51 @@ import {IRenderable}					from "./IRenderable";
  */
 export class Shape extends AssetBase implements IRenderable
 {
-	public static _available:Array<Shape> = new Array<Shape>();
+	private static _pool:Array<Shape> = new Array<Shape>();
 
-	public static assetType:string = "[asset Graphic]";
+	public static getShape(elements:ElementsBase, material:IMaterial = null, style:Style = null, count:number = 0, offset:number = 0):Shape
+	{
+		if (Shape._pool.length) {
+			var shape:Shape = Shape._pool.pop();
+			shape.elements = elements;
+			shape.material = material;
+			shape.style = style;
+			shape.count = count;
+			shape.offset = offset;
+			return shape;
+		}
 
-	public _iIndex:number = 0;
+		return new Shape(elements, material, style, count, offset);
+	}
+
+	public static storeShape(shape:Shape)
+	{
+		shape.elements = null;
+		shape.material = null;
+		shape.style = null;
+		shape.clear();
+
+		Shape._pool.push(shape);
+	}
+
+	public static assetType:string = "[asset Shape]";
 
 	private _boxBounds:Box;
 	private _boxBoundsInvalid:boolean = true;
 	private _sphereBounds:Sphere;
 	private _sphereBoundsInvalid = true;
-	private _style:Style;
-	private _material:MaterialBase;
-	private _elements:ElementsBase;
 	private _onInvalidatePropertiesDelegate:(event:StyleEvent) => void;
 	private _onInvalidateVerticesDelegate:(event:ElementsEvent) => void;
+
+	private _elements:ElementsBase;
+	private _material:IMaterial;
+	private _style:Style;
 
 	public count:number;
 
 	public offset:number;
-	
-	public parent:Graphics;
+
+	public _owners:Array<Graphics>;
 
 	/**
 	 * The Elements object which provides the geometry data for this Shape.
@@ -75,39 +99,28 @@ export class Shape extends AssetBase implements IRenderable
 		return Shape.assetType;
 	}
 
-
 	/**
-	 *
+	 * The material used to render the current Shape. If set to null, the containing Graphics's material will be used instead.
 	 */
-	public get animator():IAnimator
+	public get material():IMaterial
 	{
-		return this.parent.animator;
+		return this._material;
 	}
 
-	//TODO test shader picking
-//		public get shaderPickingDetails():boolean
-//		{
-//
-//			return this.sourceEntity.shaderPickingDetails;
-//		}
-
-	/**
-	 * The material used to render the current Shape. If set to null, its parent Sprite's material will be used instead.
-	 */
-	public get material():MaterialBase
+	public set material(value:IMaterial)
 	{
-		return this._material || this.parent.material;
-	}
+		if (this._material == value)
+			return;
 
-	public set material(value:MaterialBase)
-	{
-		if (this.material)
-			this.material.iRemoveOwner(this);
+		if (this._material)
+			this.dispatchEvent(new ShapeEvent(ShapeEvent.REMOVE_MATERIAL, this));
 
 		this._material = value;
 
-		if (this.material)
-			this.material.iAddOwner(this);
+		if (this._material)
+			this.dispatchEvent(new ShapeEvent(ShapeEvent.ADD_MATERIAL, this));
+
+		this.invalidateMaterial();
 	}
 
 	/**
@@ -115,7 +128,7 @@ export class Shape extends AssetBase implements IRenderable
 	 */
 	public get style():Style
 	{
-		return this._style || this.parent.style;
+		return this._style;
 	}
 
 	public set style(value:Style)
@@ -131,25 +144,27 @@ export class Shape extends AssetBase implements IRenderable
 		if (this._style)
 			this._style.addEventListener(StyleEvent.INVALIDATE_PROPERTIES, this._onInvalidatePropertiesDelegate);
 
-		this.invalidateSurface();
+		this.invalidateMaterial();
 	}
 
 
 	/**
 	 * Creates a new Shape object
 	 */
-	constructor(index:number, parent:Graphics, elements:ElementsBase, material:MaterialBase = null, style:Style = null, count:number = 0, offset:number = 0)
+	constructor(elements:ElementsBase, material:IMaterial = null, style:Style = null, count:number = 0, offset:number = 0)
 	{
 		super();
 
 		this._onInvalidatePropertiesDelegate = (event:StyleEvent) => this._onInvalidateProperties(event);
 		this._onInvalidateVerticesDelegate = (event:ElementsEvent) => this._onInvalidateVertices(event);
-		
-		this._iIndex = index;
-		this.parent = parent;
-		this.elements = elements;
-		this.material = material;
-		this.style = style;
+
+		this._elements = elements;
+		this._material = material;
+		this._style = style;
+
+		if (this._style)
+			this._style.addEventListener(StyleEvent.INVALIDATE_PROPERTIES, this._onInvalidatePropertiesDelegate);
+
 		this.count = count;
 		this.offset = offset;
 	}
@@ -160,11 +175,6 @@ export class Shape extends AssetBase implements IRenderable
 	public dispose():void
 	{
 		super.dispose();
-
-		this.parent.removeShape(this);
-		this.parent = null;
-
-		Shape._available.push(this);
 	}
 
 	public invalidate():void
@@ -183,24 +193,14 @@ export class Shape extends AssetBase implements IRenderable
 		this._sphereBoundsInvalid = true;
 	}
 
-	public invalidateSurface():void
+	public invalidateMaterial():void
 	{
-		this.dispatchEvent(new RenderableEvent(RenderableEvent.INVALIDATE_SURFACE, this));
-	}
-
-	public _iGetExplicitMaterial():MaterialBase
-	{
-		return this._material;
-	}
-
-	public _iGetExplicitStyle():Style
-	{
-		return this._style;
+		this.dispatchEvent(new RenderableEvent(RenderableEvent.INVALIDATE_MATERIAL, this));
 	}
 
 	private _onInvalidateProperties(event:StyleEvent):void
 	{
-		this.invalidateSurface();
+		this.invalidateMaterial();
 	}
 
 	private _onInvalidateVertices(event:ElementsEvent):void
@@ -212,7 +212,7 @@ export class Shape extends AssetBase implements IRenderable
 		
 		this.dispatchEvent(event);
 	}
-	
+
 	/**
 	 * //TODO
 	 *
