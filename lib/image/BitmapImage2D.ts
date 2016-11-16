@@ -9,6 +9,7 @@ import {BlendMode}				from "../image/BlendMode";
 import {BitmapImageUtils}			from "../utils/BitmapImageUtils";
 import {IImageCanvas}				from "../image/IImageCanvas";
 import {CPUCanvas}				from "../image/CPUCanvas";
+
 /**
  * The BitmapImage2D export class lets you work with the data(pixels) of a Bitmap
  * object. You can use the methods of the BitmapImage2D export class to create

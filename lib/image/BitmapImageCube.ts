@@ -9,6 +9,8 @@ import {BitmapImage2D}			from "../image/BitmapImage2D";
 import {ImageCube}				from "../image/ImageCube";
 import {BlendMode}				from "../image/BlendMode";
 import {BitmapImageUtils}			from "../utils/BitmapImageUtils";
+import {IImageCanvas}				from "../image/IImageCanvas";
+import {CPUCanvas}				from "../image/CPUCanvas";
 
 /**
  * The BitmapImage2D export class lets you work with the data(pixels) of a Bitmap
@@ -78,7 +80,7 @@ export class BitmapImageCube extends ImageCube
 	public static posZ:number = 4;
 	public static negZ:number = 5;
 
-	private _imageCanvas:Array<HTMLCanvasElement> = new Array<HTMLCanvasElement>(6);
+	private _imageCanvas:Array<IImageCanvas> = new Array<IImageCanvas>(6);
 	private _context:Array<CanvasRenderingContext2D> = new Array<CanvasRenderingContext2D>(6);
 	private _imageData:Array<ImageData> = new Array<ImageData>(6);
 	private _transparent:boolean;
@@ -146,7 +148,11 @@ export class BitmapImageCube extends ImageCube
 		this._transparent = transparent;
 
 		for (var i:number = 0; i < 6; i++) {
-			this._imageCanvas[i] = <HTMLCanvasElement> document.createElement("canvas");
+			if(typeof document !== "undefined") {
+				this._imageCanvas[i] = <IImageCanvas> document.createElement("canvas");
+			}else {
+				this._imageCanvas[i] = new CPUCanvas();
+			}
 			this._imageCanvas[i].width = size;
 			this._imageCanvas[i].height = size;
 			this._context[i] = this._imageCanvas[i].getContext("2d");
@@ -852,7 +858,7 @@ export class BitmapImageCube extends ImageCube
 	 */
 	public getCanvas(side:number):HTMLCanvasElement
 	{
-		return this._imageCanvas[side];
+		return this._imageCanvas[side] as HTMLCanvasElement;
 	}
 
 	/**
