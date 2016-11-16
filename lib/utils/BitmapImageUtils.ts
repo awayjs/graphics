@@ -31,8 +31,6 @@ export class BitmapImageUtils
 
 	public static _draw(context:CanvasRenderingContext2D, source:any, matrix:Matrix, colorTransform:ColorTransform, blendMode:BlendMode, clipRect:Rectangle, smoothing:boolean):void
 	{
-		console.log("BitmapImageUtils - _draw() - source: " + (typeof source));
-
 		context.save();
 
 		if (matrix != null)
