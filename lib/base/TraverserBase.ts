@@ -1,8 +1,8 @@
-import {EventDispatcher}				from "@awayjs/core/lib/events/EventDispatcher";
+import {EventDispatcher} from "@awayjs/core";
 
-import {IEntity}						from "./IEntity";
-import {IRenderable}					from "./IRenderable";
-import {INode}						from "./INode";
+import {IEntity} from "./IEntity";
+import {IRenderable} from "./IRenderable";
+import {INode} from "./INode";
 
 /**
  * Picks a 3d object from a view or scene by 3D raycast calculations.

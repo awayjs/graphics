@@ -1,6 +1,6 @@
-import {IGraphicsData}		from "../draw/IGraphicsData";
-import {JointStyle}		    from "../draw/JointStyle";
-import {CapsStyle}		    from "../draw/CapsStyle";
+import {IGraphicsData} from "../draw/IGraphicsData";
+import {JointStyle} from "../draw/JointStyle";
+import {CapsStyle} from "../draw/CapsStyle";
 
 export class GraphicsStrokeStyle implements IGraphicsData
 {

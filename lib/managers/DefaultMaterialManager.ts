@@ -1,14 +1,14 @@
-import {IRenderable}					from "../base/IRenderable";
-import {LineElements}					from "../elements/LineElements";
-import {Sampler2D}					from "../image/Sampler2D";
-import {BitmapImage2D}				from "../image/BitmapImage2D";
-import {BitmapImageCube}				from "../image/BitmapImageCube";
-import {MaterialBase}					from "../materials/MaterialBase";
-import {BasicMaterial}				from "../materials/BasicMaterial";
-import {Single2DTexture}				from "../textures/Single2DTexture";
-import {SingleCubeTexture}			from "../textures/SingleCubeTexture";
-import {TextureBase}					from "../textures/TextureBase";
-import {Shape}						from "../base/Shape";
+import {IRenderable} from "../base/IRenderable";
+import {LineElements} from "../elements/LineElements";
+import {Sampler2D} from "../image/Sampler2D";
+import {BitmapImage2D} from "../image/BitmapImage2D";
+import {BitmapImageCube} from "../image/BitmapImageCube";
+import {MaterialBase} from "../materials/MaterialBase";
+import {BasicMaterial} from "../materials/BasicMaterial";
+import {Single2DTexture} from "../textures/Single2DTexture";
+import {SingleCubeTexture} from "../textures/SingleCubeTexture";
+import {TextureBase} from "../textures/TextureBase";
+import {Shape} from "../base/Shape";
 
 export class DefaultMaterialManager
 {

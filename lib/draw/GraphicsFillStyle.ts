@@ -1,4 +1,4 @@
-import {IGraphicsData}		from "../draw/IGraphicsData";
+import {IGraphicsData} from "../draw/IGraphicsData";
 
 
 export class GraphicsFillStyle implements IGraphicsData

@@ -1,15 +1,9 @@
-import {AttributesBuffer}				from "@awayjs/core/lib/attributes/AttributesBuffer";
-import {AttributesView}				from "@awayjs/core/lib/attributes/AttributesView";
-import {Byte4Attributes}				from "@awayjs/core/lib/attributes/Byte4Attributes";
-import {Float1Attributes}				from "@awayjs/core/lib/attributes/Float1Attributes";
-import {Box}							from "@awayjs/core/lib/geom/Box";
-import {Sphere}						from "@awayjs/core/lib/geom/Sphere";
-import {Vector3D}						from "@awayjs/core/lib/geom/Vector3D";
+import {AttributesBuffer, AttributesView, Byte4Attributes, Float1Attributes, Box, Sphere, Vector3D} from "@awayjs/core";
 
-import {TraverserBase}					from "../base/TraverserBase";
-import {ElementsUtils}				from "../utils/ElementsUtils";
+import {TraverserBase} from "../base/TraverserBase";
+import {ElementsUtils} from "../utils/ElementsUtils";
 
-import {ElementsBase}					from "./ElementsBase";
+import {ElementsBase} from "./ElementsBase";
 
 /**
  * @class LineElements

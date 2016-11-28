@@ -1,9 +1,8 @@
-import {Matrix}						from "@awayjs/core/lib/geom/Matrix";
-import {Point}						from "@awayjs/core/lib/geom/Point";
+import {Matrix, Point} from "@awayjs/core";
 
-import {ImageData}					from "../image/ImageData";
-import {CPUCanvas}					from "../image/CPUCanvas";
-import {BitmapImage2D}				from "../image/BitmapImage2D";
+import {ImageData} from "../image/ImageData";
+import {CPUCanvas} from "../image/CPUCanvas";
+import {BitmapImage2D} from "../image/BitmapImage2D";
 
 //TODO: implement all methods
 export class CPURenderingContext2D implements CanvasRenderingContext2D

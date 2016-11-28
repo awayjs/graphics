@@ -1,5 +1,5 @@
-import {BitmapImage2D}					from "../image/BitmapImage2D";
-import {Image2D}						from "../image/Image2D";
+import {BitmapImage2D} from "../image/BitmapImage2D";
+import {Image2D} from "../image/Image2D";
 
 export class ImageUtils
 {

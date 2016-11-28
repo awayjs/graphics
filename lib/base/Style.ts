@@ -1,10 +1,9 @@
-import {Matrix}						from "@awayjs/core/lib/geom/Matrix";
-import {EventDispatcher}				from "@awayjs/core/lib/events/EventDispatcher";
+import {Matrix, EventDispatcher} from "@awayjs/core";
 
-import {ImageBase}					from "../image/ImageBase";
-import {SamplerBase}					from "../image/SamplerBase";
-import {StyleEvent}					from "../events/StyleEvent";
-import {TextureBase}					from "../textures/TextureBase";
+import {ImageBase} from "../image/ImageBase";
+import {SamplerBase} from "../image/SamplerBase";
+import {StyleEvent} from "../events/StyleEvent";
+import {TextureBase} from "../textures/TextureBase";
 
 /**
  *

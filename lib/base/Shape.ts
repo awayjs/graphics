@@ -1,20 +1,16 @@
-import {Box}							from "@awayjs/core/lib/geom/Box";
-import {Matrix3D}						from "@awayjs/core/lib/geom/Matrix3D";
-import {Sphere}						from "@awayjs/core/lib/geom/Sphere";
-import {Vector3D}						from "@awayjs/core/lib/geom/Vector3D";
-import {AssetBase}					from "@awayjs/core/lib/library/AssetBase";
+import {Box, Matrix3D, Sphere, Vector3D, AssetBase} from "@awayjs/core";
 
-import {IMaterial}					from "../base/IMaterial";
-import {RenderableEvent}				from "../events/RenderableEvent";
-import {StyleEvent}					from "../events/StyleEvent";
-import {ElementsEvent}				from "../events/ElementsEvent";
-import {ShapeEvent}				from "../events/ShapeEvent";
-import {ElementsBase}					from "../elements/ElementsBase";
-import {TriangleElements}				from "../elements/TriangleElements";
-import {Graphics}						from "../Graphics";
+import {IMaterial} from "../base/IMaterial";
+import {RenderableEvent} from "../events/RenderableEvent";
+import {StyleEvent} from "../events/StyleEvent";
+import {ElementsEvent} from "../events/ElementsEvent";
+import {ShapeEvent} from "../events/ShapeEvent";
+import {ElementsBase} from "../elements/ElementsBase";
+import {TriangleElements} from "../elements/TriangleElements";
+import {Graphics} from "../Graphics";
 
-import {Style}						from "./Style";
-import {IRenderable}					from "./IRenderable";
+import {Style} from "./Style";
+import {IRenderable} from "./IRenderable";
 
 /**
  * Graphic wraps a Elements as a scene graph instantiation. A Graphic is owned by a Sprite object.

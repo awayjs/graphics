@@ -1,10 +1,11 @@
-import {GraphicsPathWinding}		from "../draw/GraphicsPathWinding";
-import {GraphicsPathCommand}		from "../draw/GraphicsPathCommand";
-import {IGraphicsData}		    from "../draw/IGraphicsData";
-import {GraphicsFillStyle}		from "../draw/GraphicsFillStyle";
-import {GraphicsStrokeStyle}		from "../draw/GraphicsStrokeStyle";
+import {Point} from "@awayjs/core";
 
-import {Point}					from "@awayjs/core/lib/geom/Point";
+import {GraphicsPathWinding} from "../draw/GraphicsPathWinding";
+import {GraphicsPathCommand} from "../draw/GraphicsPathCommand";
+import {IGraphicsData} from "../draw/IGraphicsData";
+import {GraphicsFillStyle} from "../draw/GraphicsFillStyle";
+import {GraphicsStrokeStyle} from "../draw/GraphicsStrokeStyle";
+
 /**
 
  * Defines the values to use for specifying path-drawing commands.

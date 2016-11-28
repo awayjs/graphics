@@ -1,6 +1,6 @@
-import {IImageCanvas}					from "../image/IImageCanvas";
-import {CPURenderingContext2D}		from "../image/CPURenderingContext2D";
-import {ImageData}					from "../image/ImageData";
+import {IImageCanvas} from "../image/IImageCanvas";
+import {CPURenderingContext2D} from "../image/CPURenderingContext2D";
+import {ImageData} from "../image/ImageData";
 
 export class CPUCanvas implements IImageCanvas {
 	public width:number = 1;

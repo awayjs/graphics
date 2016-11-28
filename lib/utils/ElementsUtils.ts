@@ -1,18 +1,8 @@
-import {AttributesBuffer}			from "@awayjs/core/lib/attributes/AttributesBuffer";
-import {AttributesView}			from "@awayjs/core/lib/attributes/AttributesView";
-import {Short2Attributes}			from "@awayjs/core/lib/attributes/Short2Attributes";
-import {Short3Attributes}			from "@awayjs/core/lib/attributes/Short3Attributes";
-import {Float3Attributes}			from "@awayjs/core/lib/attributes/Float3Attributes";
-import {Float4Attributes}			from "@awayjs/core/lib/attributes/Float4Attributes";
-import {Byte4Attributes}			from "@awayjs/core/lib/attributes/Byte4Attributes";
-import {Matrix3D}					from "@awayjs/core/lib/geom/Matrix3D";
-import {Vector3D}					from "@awayjs/core/lib/geom/Vector3D";
-import {Box}						from "@awayjs/core/lib/geom/Box";
-import {Sphere}					from "@awayjs/core/lib/geom/Sphere";
+import {AttributesBuffer, AttributesView, Short2Attributes, Short3Attributes, Float3Attributes, Float4Attributes, Byte4Attributes, Matrix3D, Vector3D, Box, Sphere} from "@awayjs/core";
 
-import {TriangleElements}			from "../elements/TriangleElements";
+import {TriangleElements} from "../elements/TriangleElements";
 
-import {HitTestCache}			from "./HitTestCache";
+import {HitTestCache} from "./HitTestCache";
 
 export class ElementsUtils
 {

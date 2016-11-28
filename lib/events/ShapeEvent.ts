@@ -1,6 +1,6 @@
-import {EventBase}					from "@awayjs/core/lib/events/EventBase";
+import {EventBase} from "@awayjs/core";
 
-import {Shape}						from "../base/Shape";
+import {Shape} from "../base/Shape";
 
 /**
  * Dispatched to notify changes in a sub geometry object's state.

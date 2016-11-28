@@ -1,11 +1,10 @@
-import {Point}						from "@awayjs/core/lib/geom/Point";
-import {Vector3D}						from "@awayjs/core/lib/geom/Vector3D";
+import {Point, Vector3D} from "@awayjs/core";
 
-import {IEntity}						from "../base/IEntity";
-import {IRenderable}					from "../base/IRenderable";
+import {IEntity} from "../base/IEntity";
+import {IRenderable} from "../base/IRenderable";
 
 /**
- * Value object for a picking collision returned by a picking collider. Created as unique objects on display objects
+ * Value object ___ for a picking collision returned by a picking collider. Created as unique objects on display objects
  *
  * @see away.base.DisplayObject#pickingCollision
  * @see away.core.pick.IPickingCollider

@@ -1,4 +1,4 @@
-import {AssetBase}					from "@awayjs/core/lib/library/AssetBase";
+import {AssetBase} from "@awayjs/core";
 
 export class ImageBase extends AssetBase
 {

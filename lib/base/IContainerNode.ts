@@ -1,4 +1,4 @@
-import {INode}						from "./INode";
+import {INode} from "./INode";
 
 /**
  * IDisplayObjectNode is an interface for the constructable class definition EntityNode that is used to

@@ -59,6 +59,7 @@ export {Sampler2D}						from "./lib/image/Sampler2D";
 export {SamplerBase}					from "./lib/image/SamplerBase";
 export {SamplerCube}					from "./lib/image/SamplerCube";
 export {SpecularImage2D}				from "./lib/image/SpecularImage2D";
+//export {VideoSourceImage2D}				from "./lib/image/VideoSourceImage2D";
 
 export {DefaultMaterialManager}			from "./lib/managers/DefaultMaterialManager";
 

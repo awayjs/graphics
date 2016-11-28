@@ -1,11 +1,7 @@
-import {IAsset}					from "@awayjs/core/lib/library/IAsset";
-import {URLLoaderDataFormat}		from "@awayjs/core/lib/net/URLLoaderDataFormat";
-import {ParserBase}				from "@awayjs/core/lib/parsers/ParserBase";
-import {ParserUtils}				from "@awayjs/core/lib/parsers/ParserUtils";
-import {ByteArray}				from "@awayjs/core/lib/utils/ByteArray";
+import {IAsset, URLLoaderDataFormat, ParserBase, ParserUtils, ByteArray} from "@awayjs/core";
 
-import {BitmapImage2D}			from "../image/BitmapImage2D";
-import {ImageUtils}				from "../utils/ImageUtils";
+import {BitmapImage2D} from "../image/BitmapImage2D";
+import {ImageUtils} from "../utils/ImageUtils";
 
 /**
  * Image2DParser provides a "parser" for natively supported image types (jpg, png). While it simply loads bytes into
@@ -146,7 +142,7 @@ export class Image2DParser extends ParserBase
 			return ParserBase.MORE_TO_PARSE;
 		}
 
-		if (sizeError == true) // Generate new Checkerboard texture material
+		if (sizeError) // Generate new Checkerboard texture material
 		{
 //				asset = new BitmapTexture(DefaultMaterialManager.createCheckeredBitmapData(), false);
 //				this._pFinalizeAsset(<IAsset> asset, this._iFileName);

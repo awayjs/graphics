@@ -1,6 +1,6 @@
-import {CapsStyle}				from "../draw/CapsStyle";
-import {Point}					from "@awayjs/core/lib/geom/Point";
-import {MathConsts}				from "@awayjs/core/lib/geom/MathConsts";
+import {Point, MathConsts} from "@awayjs/core";
+
+import {CapsStyle} from "../draw/CapsStyle";
 
 export class GraphicsFactoryHelper
 {

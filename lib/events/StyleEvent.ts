@@ -1,6 +1,6 @@
-import {EventBase}					from "@awayjs/core/lib/events/EventBase";
+import {EventBase} from "@awayjs/core";
 
-import {Style}						from "../base/Style";
+import {Style} from "../base/Style";
 
 export class StyleEvent extends EventBase
 {

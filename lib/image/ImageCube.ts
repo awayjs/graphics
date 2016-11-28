@@ -1,5 +1,5 @@
-import {ImageBase}				from "../image/ImageBase";
-import {ImageUtils}				from "../utils/ImageUtils";
+import {ImageBase} from "../image/ImageBase";
+import {ImageUtils} from "../utils/ImageUtils";
 
 export class ImageCube extends ImageBase
 {

@@ -1,52 +1,34 @@
-import {AttributesBuffer}				from "@awayjs/core/lib/attributes/AttributesBuffer";
-import {AttributesView}					from "@awayjs/core/lib/attributes/AttributesView";
-import {Byte4Attributes}				from "@awayjs/core/lib/attributes/Byte4Attributes";
-import {Float2Attributes}				from "@awayjs/core/lib/attributes/Float2Attributes";
-import {ArgumentError}					from "@awayjs/core/lib/errors/ArgumentError";
-import {RangeError}						from "@awayjs/core/lib/errors/RangeError";
-import {PartialImplementationError}		from "@awayjs/core/lib/errors/PartialImplementationError";
-import {Point}							from "@awayjs/core/lib/geom/Point";
-import {Box}							from "@awayjs/core/lib/geom/Box";
-import {Vector3D}						from "@awayjs/core/lib/geom/Vector3D";
-import {Sphere}							from "@awayjs/core/lib/geom/Sphere";
-import {Matrix}							from "@awayjs/core/lib/geom/Matrix";
-import {Matrix3D}						from "@awayjs/core/lib/geom/Matrix3D";
-import {AssetBase}						from "@awayjs/core/lib/library/AssetBase";
+import {AttributesBuffer, AttributesView, Byte4Attributes, Float2Attributes, ArgumentError, RangeError, PartialImplementationError, Point, Box, Vector3D, Sphere, Matrix, Matrix3D, AssetBase} from "@awayjs/core";
 
-
-import {BitmapImage2D}			 		from "./image/BitmapImage2D";
-import {Sampler2D}						from "./image/Sampler2D";
-
-import {TriangleElements}				from "./elements/TriangleElements";
-import {IEntity}						from "./base/IEntity";
-import {Style}							from "./base/Style";
-import {Shape}							from "./base/Shape";
-import {TraverserBase}						from "./base/TraverserBase";
-import {MaterialBase}					from "./materials/MaterialBase";
-import {IMaterial}					from "./base/IMaterial";
-import {IAnimator}						from "./animators/IAnimator";
-import {ElementsEvent}					from "./events/ElementsEvent";
-import {ShapeEvent}						from "./events/ShapeEvent";
-import {StyleEvent}						from "./events/StyleEvent";
-import {ParticleData}					from "./animators/data/ParticleData";
-
-import {GraphicsPath}					from "./draw/GraphicsPath";
-import {GraphicsPathCommand}			from "./draw/GraphicsPathCommand";
-import {GraphicsFactoryFills}			from "./draw/GraphicsFactoryFills";
-import {GraphicsFactoryStrokes}			from "./draw/GraphicsFactoryStrokes";
-import {InterpolationMethod}			from "./draw/InterpolationMethod";
-import {JointStyle}						from "./draw/JointStyle";
-import {LineScaleMode}					from "./draw/LineScaleMode";
-import {TriangleCulling}				from "./draw/TriangleCulling";
-import {SpreadMethod}					from "./draw/SpreadMethod";
-import {CapsStyle}						from "./draw/CapsStyle";
-import {GradientType}					from "./draw/GradientType";
-import {GraphicsPathWinding}			from "./draw/GraphicsPathWinding";
-import {IGraphicsData}					from "./draw/IGraphicsData";
-import {GraphicsStrokeStyle}			from "./draw/GraphicsStrokeStyle";
-import {GraphicsFillStyle}				from "./draw/GraphicsFillStyle";
-
-import {DefaultMaterialManager}			from "./managers/DefaultMaterialManager";
+import {IAnimator} from "./animators/IAnimator";
+import {ParticleData} from "./animators/data/ParticleData";
+import {IEntity} from "./base/IEntity";
+import {IMaterial} from "./base/IMaterial";
+import {Style} from "./base/Style";
+import {Shape} from "./base/Shape";
+import {TraverserBase} from "./base/TraverserBase";
+import {GraphicsPath} from "./draw/GraphicsPath";
+import {GraphicsFactoryFills} from "./draw/GraphicsFactoryFills";
+import {GraphicsFactoryStrokes} from "./draw/GraphicsFactoryStrokes";
+import {InterpolationMethod} from "./draw/InterpolationMethod";
+import {JointStyle} from "./draw/JointStyle";
+import {LineScaleMode} from "./draw/LineScaleMode";
+import {TriangleCulling} from "./draw/TriangleCulling";
+import {SpreadMethod} from "./draw/SpreadMethod";
+import {CapsStyle} from "./draw/CapsStyle";
+import {GradientType} from "./draw/GradientType";
+import {GraphicsPathWinding} from "./draw/GraphicsPathWinding";
+import {IGraphicsData} from "./draw/IGraphicsData";
+import {GraphicsStrokeStyle} from "./draw/GraphicsStrokeStyle";
+import {GraphicsFillStyle} from "./draw/GraphicsFillStyle";
+import {TriangleElements} from "./elements/TriangleElements";
+import {ElementsEvent} from "./events/ElementsEvent";
+import {ShapeEvent} from "./events/ShapeEvent";
+import {StyleEvent} from "./events/StyleEvent";
+import {BitmapImage2D} from "./image/BitmapImage2D";
+import {Sampler2D} from "./image/Sampler2D";
+import {MaterialBase} from "./materials/MaterialBase";
+import {DefaultMaterialManager} from "./managers/DefaultMaterialManager";
 
 /**
  *

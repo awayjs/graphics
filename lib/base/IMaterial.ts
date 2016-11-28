@@ -1,10 +1,10 @@
-import {IAsset}						from "@awayjs/core/lib/library/IAsset";
+import {IAsset} from "@awayjs/core";
 
-import {IAnimationSet}				from "../animators/IAnimationSet";
-import {TextureBase}					from "../textures/TextureBase";
+import {IAnimationSet} from "../animators/IAnimationSet";
+import {TextureBase} from "../textures/TextureBase";
 
-import {IEntity}					from "./IEntity";
-import {Style}						from "./Style";
+import {IEntity} from "./IEntity";
+import {Style} from "./Style";
 
 /**
  * ISurface provides an interface for objects that define the properties of a renderable's surface.

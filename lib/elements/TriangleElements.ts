@@ -1,17 +1,9 @@
-import {AttributesView}				from "@awayjs/core/lib/attributes/AttributesView";
-import {Float4Attributes}				from "@awayjs/core/lib/attributes/Float4Attributes";
-import {Float3Attributes}				from "@awayjs/core/lib/attributes/Float3Attributes";
-import {Float2Attributes}				from "@awayjs/core/lib/attributes/Float2Attributes";
-import {Short3Attributes}				from "@awayjs/core/lib/attributes/Short3Attributes";
-import {Box}							from "@awayjs/core/lib/geom/Box";
-import {Sphere}						from "@awayjs/core/lib/geom/Sphere";
-import {Matrix3D}						from "@awayjs/core/lib/geom/Matrix3D";
-import {Vector3D}						from "@awayjs/core/lib/geom/Vector3D";
+import {AttributesView, Float4Attributes, Float3Attributes, Float2Attributes, Short3Attributes, Box, Sphere, Matrix3D, Vector3D} from "@awayjs/core";
 
-import {TraverserBase}					from "../base/TraverserBase";
-import {ElementsUtils}				from "../utils/ElementsUtils";
+import {TraverserBase} from "../base/TraverserBase";
+import {ElementsUtils} from "../utils/ElementsUtils";
 
-import {ElementsBase}					from "./ElementsBase";
+import {ElementsBase} from "./ElementsBase";
 /**
  * @class away.base.TriangleElements
  */

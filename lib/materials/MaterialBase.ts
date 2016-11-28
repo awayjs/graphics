@@ -1,17 +1,15 @@
-import {ColorTransform}				from "@awayjs/core/lib/geom/ColorTransform";
-import {AssetEvent}					from "@awayjs/core/lib/events/AssetEvent";
-import {AssetBase}					from "@awayjs/core/lib/library/AssetBase";
+import {ColorTransform, AssetEvent, AssetBase} from "@awayjs/core";
 
-import {BlendMode}					from "../image/BlendMode";
-import {ImageBase}					from "../image/ImageBase";
-import {IAnimationSet}				from "../animators/IAnimationSet";
-import {IAnimator}					from "../animators/IAnimator";
-import {IMaterial}						from "../base/IMaterial";
-import {IEntity}					from "../base/IEntity";
-import {MaterialEvent}					from "../events/MaterialEvent";
-import {TextureBase}					from "../textures/TextureBase";
-import {Style}						from "../base/Style";
-import {StyleEvent}					from "../events/StyleEvent";
+import {BlendMode} from "../image/BlendMode";
+import {ImageBase} from "../image/ImageBase";
+import {IAnimationSet} from "../animators/IAnimationSet";
+import {IAnimator} from "../animators/IAnimator";
+import {IMaterial} from "../base/IMaterial";
+import {IEntity} from "../base/IEntity";
+import {MaterialEvent} from "../events/MaterialEvent";
+import {TextureBase} from "../textures/TextureBase";
+import {Style} from "../base/Style";
+import {StyleEvent} from "../events/StyleEvent";
 
 /**
  * MaterialBase forms an abstract base class for any material.

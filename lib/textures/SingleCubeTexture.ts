@@ -1,7 +1,7 @@
-import {SamplerCube}				from "../image/SamplerCube";
-import {ImageCube}				from "../image/ImageCube";
+import {SamplerCube} from "../image/SamplerCube";
+import {ImageCube} from "../image/ImageCube";
 
-import {TextureBase}				from "./TextureBase";
+import {TextureBase} from "./TextureBase";
 
 
 export class SingleCubeTexture extends TextureBase

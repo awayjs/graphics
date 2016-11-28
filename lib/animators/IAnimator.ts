@@ -1,7 +1,7 @@
-import {IAsset}					from "@awayjs/core/lib/library/IAsset";
+import {IAsset} from "@awayjs/core";
 
-import {IAnimationSet}			from "../animators/IAnimationSet";
-import {IEntity}					from "../base/IEntity";
+import {IAnimationSet} from "../animators/IAnimationSet";
+import {IEntity} from "../base/IEntity";
 
 /**
  * Provides an interface for animator classes that control animation output from a data set subtype of <code>AnimationSetBase</code>.

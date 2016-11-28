@@ -1,6 +1,6 @@
-import {Rectangle}				from "@awayjs/core/lib/geom/Rectangle";
+import {Rectangle} from "@awayjs/core";
 
-import {SamplerBase}				from "../image/SamplerBase";
+import {SamplerBase} from "../image/SamplerBase";
 
 /**
  * The Sampler2D export class represents display objects that represent bitmap images.

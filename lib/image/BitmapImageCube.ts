@@ -1,17 +1,11 @@
-import {ColorTransform}			from "@awayjs/core/lib/geom/ColorTransform";
-import {Matrix}					from "@awayjs/core/lib/geom/Matrix";
-import {Rectangle}				from "@awayjs/core/lib/geom/Rectangle";
-import {Point}					from "@awayjs/core/lib/geom/Point";
-import {ByteArray}				from "@awayjs/core/lib/utils/ByteArray";
-import {ColorUtils}				from "@awayjs/core/lib/utils/ColorUtils";
+import {ColorTransform, Matrix, Rectangle, Point, ByteArray, ColorUtils} from "@awayjs/core";
 
-import {BitmapImage2D}			from "../image/BitmapImage2D";
-import {ImageCube}				from "../image/ImageCube";
-import {BlendMode}				from "../image/BlendMode";
-import {BitmapImageUtils}			from "../utils/BitmapImageUtils";
+import {BitmapImage2D} from "../image/BitmapImage2D";
+import {ImageCube} from "../image/ImageCube";
+import {BlendMode} from "../image/BlendMode";
+import {BitmapImageUtils} from "../utils/BitmapImageUtils";
 import {IImageCanvas}				from "../image/IImageCanvas";
 import {CPUCanvas}				from "../image/CPUCanvas";
-
 /**
  * The BitmapImage2D export class lets you work with the data(pixels) of a Bitmap
  * object. You can use the methods of the BitmapImage2D export class to create

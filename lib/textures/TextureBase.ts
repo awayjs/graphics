@@ -1,7 +1,7 @@
-import {AssetBase}					from "@awayjs/core/lib/library/AssetBase";
+import {AssetBase} from "@awayjs/core";
 
-import {ImageBase}					from "../image/ImageBase";
-import {SamplerBase}					from "../image/SamplerBase";
+import {ImageBase} from "../image/ImageBase";
+import {SamplerBase} from "../image/SamplerBase";
 
 /**
  *

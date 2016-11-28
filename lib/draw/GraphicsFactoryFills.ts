@@ -1,18 +1,14 @@
-import {Point}					from "@awayjs/core/lib/geom/Point";
-import {AttributesBuffer}			from "@awayjs/core/lib/attributes/AttributesBuffer";
-import {AttributesView}			from "@awayjs/core/lib/attributes/AttributesView";
-import {Float3Attributes}			from "@awayjs/core/lib/attributes/Float3Attributes";
-import {Float2Attributes}			from "@awayjs/core/lib/attributes/Float2Attributes";
-import {MathConsts}				from "@awayjs/core/lib/geom/MathConsts";
-import {GraphicsFactoryHelper}				from "../draw/GraphicsFactoryHelper";
+import {Point, AttributesBuffer, AttributesView, Float3Attributes, Float2Attributes,MathConsts} from "@awayjs/core";
 
-import {TriangleElements}				from "../elements/TriangleElements";
-import {MaterialBase}					from "../materials/MaterialBase";
-import {Graphics}					from "../Graphics";
-import {Shape}					from "../base/Shape";
-import {GraphicsPath}				from "../draw/GraphicsPath";
-import {GraphicsPathCommand}		from "../draw/GraphicsPathCommand";
+import {GraphicsFactoryHelper} from "../draw/GraphicsFactoryHelper";
+import {TriangleElements} from "../elements/TriangleElements";
+import {MaterialBase} from "../materials/MaterialBase";
+import {Shape} from "../base/Shape";
+import {GraphicsPath} from "../draw/GraphicsPath";
+import {GraphicsPathCommand} from "../draw/GraphicsPathCommand";
 import {DefaultMaterialManager}	from "../managers/DefaultMaterialManager";
+
+import {Graphics} from "../Graphics";
 
 /**
  * The Graphics class contains a set of methods that you can use to create a
@@ -151,7 +147,7 @@ export class GraphicsFactoryFills
 							if(curve_direction<-180){
 								curve_direction+=360;
 							}
-							if((curve_direction==0)&&(curve_direction==180)&&(curve_direction==-180)){
+							if((curve_direction==<number>0)&&(curve_direction==<number>180)&&(curve_direction==<number>-180)){
 								lastPoint.x = end_x;
 								lastPoint.y = end_y;
 								contours_vertices[contours_vertices.length - 1][vert_cnt++] = lastPoint.x;

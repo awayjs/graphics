@@ -1,9 +1,9 @@
-import {Matrix}						from "@awayjs/core/lib/geom/Matrix";
-import {Rectangle}					from "@awayjs/core/lib/geom/Rectangle";
+import {Matrix, Rectangle} from "@awayjs/core";
 
-import {BitmapImage2D}				from "../image/BitmapImage2D";
+import {BitmapImage2D} from "../image/BitmapImage2D";
 
-export class MipmapGenerator {
+export class MipmapGenerator
+{
 	private static _mipMaps = [];
 	private static _mipMapUses = [];
 

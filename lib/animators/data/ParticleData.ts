@@ -1,4 +1,4 @@
-import {TriangleElements}				from "../../elements/TriangleElements";
+import {TriangleElements} from "../../elements/TriangleElements";
 
 export class ParticleData
 {

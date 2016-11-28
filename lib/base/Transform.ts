@@ -1,12 +1,6 @@
-import {EventDispatcher}				from "@awayjs/core/lib/events/EventDispatcher";
-import {ColorTransform}				from "@awayjs/core/lib/geom/ColorTransform";
-import {Matrix}						from "@awayjs/core/lib/geom/Matrix";
-import {Matrix3D}						from "@awayjs/core/lib/geom/Matrix3D";
-import {Rectangle}					from "@awayjs/core/lib/geom/Rectangle";
-import {Vector3D}						from "@awayjs/core/lib/geom/Vector3D";
-import {PerspectiveProjection}		from "@awayjs/core/lib/projections/PerspectiveProjection";
+import {EventDispatcher, ColorTransform, Matrix, Matrix3D, Rectangle, Vector3D, PerspectiveProjection} from "@awayjs/core";
 
-import {TransformEvent}				from "../events/TransformEvent";
+import {TransformEvent} from "../events/TransformEvent";
 
 /**
  * The Transform class provides access to color adjustment properties and two-

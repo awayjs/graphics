@@ -1,28 +1,10 @@
-import {Matrix}					from "@awayjs/core/lib/geom/Matrix";
-import {MathConsts}				from "@awayjs/core/lib/geom/MathConsts";
+import {Matrix, MathConsts, Point} from "@awayjs/core";
 
-import {BitmapImage2D}			from "../image/BitmapImage2D";
-import {CapsStyle}				from "../draw/CapsStyle";
-import {GradientType}			from "../draw/GradientType";
-import {GraphicsPathWinding}	from "../draw/GraphicsPathWinding";
-import {IGraphicsData}			from "../draw/IGraphicsData";
-import {InterpolationMethod}	from "../draw/InterpolationMethod";
-import {JointStyle}				from "../draw/JointStyle";
-import {LineScaleMode}			from "../draw/LineScaleMode";
-import {TriangleCulling}		from "../draw/TriangleCulling";
-import {SpreadMethod}			from "../draw/SpreadMethod";
-
-import {Graphics}				from "../Graphics";
-import {GraphicsPath}			from "../draw/GraphicsPath";
-import {GraphicsPathCommand}	from "../draw/GraphicsPathCommand";
-
-import {Point}					from "@awayjs/core/lib/geom/Point";
-
-import {GraphicsFactoryHelper}	from "../draw/GraphicsFactoryHelper";
-import {GraphicsStrokeStyle}	from "../draw/GraphicsStrokeStyle";
-
-import {PartialImplementationError}	from "@awayjs/core/lib/errors/PartialImplementationError";
-import {TriangleElements}			from "../elements/TriangleElements";
+import {JointStyle}	 from "../draw/JointStyle";
+import {GraphicsPath} from "../draw/GraphicsPath";
+import {GraphicsPathCommand} from "../draw/GraphicsPathCommand";
+import {GraphicsFactoryHelper} from "../draw/GraphicsFactoryHelper";
+import {GraphicsStrokeStyle} from "../draw/GraphicsStrokeStyle";
 
 /**
  * The Graphics class contains a set of methods that you can use to create a

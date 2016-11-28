@@ -1,9 +1,8 @@
-import {Plane3D}						from "@awayjs/core/lib/geom/Plane3D";
-import {Vector3D}						from "@awayjs/core/lib/geom/Vector3D";
+import {Plane3D, Vector3D} from "@awayjs/core";
 
-import {TraverserBase}					from "./TraverserBase";
-import {IContainerNode}				from "../base/IContainerNode";
-//	import {BoundingVolumeBase}			from "../bounds/BoundingVolumeBase";
+import {IContainerNode} from "../base/IContainerNode";
+
+import {TraverserBase} from "./TraverserBase";
 
 /**
  * IDisplayObjectNode is an interface for the constructable class definition EntityNode that is used to

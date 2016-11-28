@@ -1,10 +1,11 @@
-﻿import {ErrorBase}				from "@awayjs/core/lib/errors/ErrorBase";
+﻿import {ErrorBase} from "@awayjs/core";
 
-import {Sampler2D}				from "../image/Sampler2D";
-import {Image2D}					from "../image/Image2D";
-import {ImageUtils}				from "../utils/ImageUtils";
-import {MappingMode}				from "./MappingMode";
-import {TextureBase}				from "./TextureBase";
+import {Sampler2D} from "../image/Sampler2D";
+import {Image2D} from "../image/Image2D";
+import {ImageUtils} from "../utils/ImageUtils";
+
+import {MappingMode} from "./MappingMode";
+import {TextureBase} from "./TextureBase";
 
 export class Single2DTexture extends TextureBase
 {

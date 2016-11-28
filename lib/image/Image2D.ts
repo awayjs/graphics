@@ -1,7 +1,7 @@
-import {Rectangle}				from "@awayjs/core/lib/geom/Rectangle";
+import {Rectangle} from "@awayjs/core";
 
-import {ImageBase}				from "../image/ImageBase";
-import {ImageUtils}				from "../utils/ImageUtils";
+import {ImageBase} from "../image/ImageBase";
+import {ImageUtils} from "../utils/ImageUtils";
 
 export class Image2D extends ImageBase
 {

@@ -1,6 +1,6 @@
-import {EventBase}					from "@awayjs/core/lib/events/EventBase";
+import {EventBase} from "@awayjs/core";
 
-import {IMaterial}						from "../base/IMaterial";
+import {IMaterial} from "../base/IMaterial";
 
 export class MaterialEvent extends EventBase
 {

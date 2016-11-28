@@ -1,4 +1,4 @@
-import {SamplerBase}				from "../image/SamplerBase";
+import {SamplerBase} from "../image/SamplerBase";
 
 /**
  * The Bitmap export class represents display objects that represent bitmap images.

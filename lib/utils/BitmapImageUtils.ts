@@ -1,10 +1,6 @@
-import {ColorTransform}			from "@awayjs/core/lib/geom/ColorTransform";
-import {Matrix}					from "@awayjs/core/lib/geom/Matrix";
-import {Rectangle}				from "@awayjs/core/lib/geom/Rectangle";
-import {ColorUtils}				from "@awayjs/core/lib/utils/ColorUtils";
+import {ColorTransform, Matrix, Rectangle, ColorUtils} from "@awayjs/core";
 
-import {BitmapImage2D}			from "../image/BitmapImage2D";
-import {BlendMode}				from "../image/BlendMode";
+import {BlendMode} from "../image/BlendMode";
 
 export class BitmapImageUtils
 {

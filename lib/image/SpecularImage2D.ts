@@ -1,8 +1,8 @@
-import {Point}					from "@awayjs/core/lib/geom/Point";
+import {Point} from "@awayjs/core";
 
-import {BitmapImage2D}			from "../image/BitmapImage2D";
-import {BitmapImageChannel}		from "../image/BitmapImageChannel";
-import {Image2D}					from "../image/Image2D";
+import {BitmapImage2D} from "../image/BitmapImage2D";
+import {BitmapImageChannel} from "../image/BitmapImageChannel";
+import {Image2D} from "../image/Image2D";
 
 /**
  *
