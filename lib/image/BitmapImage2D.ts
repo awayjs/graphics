@@ -776,9 +776,10 @@ export class BitmapImage2D extends Image2D
 			this._imageData = this._context.getImageData(0, 0, this._rect.width, this._rect.height);
 
 		var i:number;
-		var w:number = this._imageData.width;
+		var imageWidth:number = this._rect.width;
+		var inputWidth:number = rect.width;
 		for (i = 0; i < rect.height; ++i)
-			this._imageData.data.set(input.subarray(i*w*4, (i + 1)*w*4), (rect.x + (i + rect.y)*w)*4);
+			this._imageData.data.set(input.subarray(i*inputWidth*4, (i + 1)*inputWidth*4), (rect.x + (i + rect.y)*imageWidth)*4);
 
 
 		if (!this._locked)
