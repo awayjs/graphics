@@ -1,4 +1,4 @@
-import {Rectangle} from "@awayjs/core";
+import {Rectangle, AbstractMethodError} from "@awayjs/core";
 
 import {ImageBase} from "../image/ImageBase";
 import {ImageUtils} from "../utils/ImageUtils";
@@ -105,13 +105,25 @@ export class Image2D extends ImageBase
 	 * Enable POT texture size validation
 	 * @returns {boolean}
 	 */
-	public get powerOfTwo():boolean {
+	public get powerOfTwo():boolean
+	{
 		return this._powerOfTwo;
 	}
 
-	public set powerOfTwo(value:boolean) {
+	public set powerOfTwo(value:boolean)
+	{
 		if(this._powerOfTwo == value) return;
 		this._powerOfTwo = value;
 		this._testDimensions();
+	}
+
+
+	/**
+	 *
+	 * @returns {ImageData}
+	 */
+	public getImageData():ImageData
+	{
+		throw new AbstractMethodError();
 	}
 }

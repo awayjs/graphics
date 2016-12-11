@@ -1,3 +1,5 @@
+import {AbstractMethodError} from "@awayjs/core";
+
 import {ImageBase} from "../image/ImageBase";
 import {ImageUtils} from "../utils/ImageUtils";
 
@@ -42,6 +44,15 @@ export class ImageCube extends ImageBase
 		this._size = size;
 
 		this._testDimensions();
+	}
+
+	/**
+	 *
+	 * @returns {ImageData}
+	 */
+	public getImageData(side:number):ImageData
+	{
+		throw new AbstractMethodError();
 	}
 
 	/**
