@@ -606,7 +606,7 @@ export class BitmapImage2D extends Image2D
 		this._imageData.data[index + 0] = imagePixel[0];
 		this._imageData.data[index + 1] = imagePixel[1];
 		this._imageData.data[index + 2] = imagePixel[2];
-		this._imageData.data[index + 3] = imagePixel[3];
+		this._imageData.data[index + 3] = this._transparent? imagePixel[3] : 0xFF;
 		
 		this.invalidate();
 	}
@@ -653,7 +653,7 @@ export class BitmapImage2D extends Image2D
 				this._imageData.data[index + 0] = argb[1];
 				this._imageData.data[index + 1] = argb[2];
 				this._imageData.data[index + 2] = argb[3];
-				this._imageData.data[index + 3] = argb[0];
+				this._imageData.data[index + 3] = this._transparent? argb[0] : 0xFF;
 			}
 		}
 
@@ -743,7 +743,7 @@ export class BitmapImage2D extends Image2D
 		this._imageData.data[index + 0] = argb[1];
 		this._imageData.data[index + 1] = argb[2];
 		this._imageData.data[index + 2] = argb[3];
-		this._imageData.data[index + 3] = argb[0];
+		this._imageData.data[index + 3] = this._transparent? argb[0] : 0xFF;
 
 		if (!this._locked)
 			this._context.putImageData(this._imageData, 0, 0);
