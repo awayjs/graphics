@@ -168,15 +168,15 @@ export class CPURenderingContext2D implements CanvasRenderingContext2D
 		if (x < 0 || x >= target.width || y >= target.height || y < 0) return;
 		var index:number = (x + y * target.width) * 4;
 		//var alpha:number = color[3] / 255;
-		target.data[index] += color[0];
-		target.data[index + 1] += color[1];
-		target.data[index + 2] += color[2];
-		target.data[index + 3] += color[3];
+		// target.data[index] += color[0];
+		// target.data[index + 1] += color[1];
+		// target.data[index + 2] += color[2];
+		// target.data[index + 3] += color[3];
 
-		//target.data[index] = color[0];
-		//target.data[index + 1] = color[1];
-		//target.data[index + 2] = color[2];
-		//target.data[index + 3] = color[3];
+		target.data[index] = color[0];
+		target.data[index + 1] = color[1];
+		target.data[index + 2] = color[2];
+		target.data[index + 3] = color[3];
 
 		target.data[index] = target.data[index] & 0xFF;
 		target.data[index + 1] = target.data[index + 1] & 0xFF;
