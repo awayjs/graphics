@@ -50,6 +50,7 @@ export {BitmapImageCube}				from "./lib/image/BitmapImageCube";
 export {BlendMode}						from "./lib/image/BlendMode";
 export {CPUCanvas}						from "./lib/image/CPUCanvas";
 export {CPURenderingContext2D}			from "./lib/image/CPURenderingContext2D";
+export {ExternalImage2D}				from "./lib/image/ExternalImage2D";
 export {IImageCanvas}					from "./lib/image/IImageCanvas";
 export {Image2D}						from "./lib/image/Image2D";
 export {ImageBase}						from "./lib/image/ImageBase";

@@ -1,6 +1,7 @@
-import {IAsset, URLLoaderDataFormat, ParserBase, ParserUtils, ByteArray} from "@awayjs/core";
+import {IAsset, URLLoaderDataFormat, ParserBase, ParserUtils, ByteArray, URLRequest} from "@awayjs/core";
 
-import {BitmapImage2D} from "../image/BitmapImage2D";
+import {Image2D} from "../image/Image2D";
+import {ExternalImage2D} from "../image/ExternalImage2D";
 import {ImageUtils} from "../utils/ImageUtils";
 
 /**
@@ -84,7 +85,7 @@ export class Image2DParser extends ParserBase
 	public _pProceedParsing():boolean
 	{
 
-		var asset:BitmapImage2D;
+		var asset:Image2D;
 		var sizeError:boolean = false;
 
 		if (this._loadingImage) {
@@ -140,6 +141,9 @@ export class Image2DParser extends ParserBase
 			this._loadingImage = true;
 
 			return ParserBase.MORE_TO_PARSE;
+		} else if (this.data instanceof URLRequest) { // Parse a URLRequest
+			asset = new ExternalImage2D(<URLRequest> this.data);
+			this._pFinalizeAsset(<IAsset> asset, this._iFileName);
 		}
 
 		if (sizeError) // Generate new Checkerboard texture material
