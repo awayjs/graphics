@@ -4,4 +4,4 @@ node_js:
 script: bash ./deploy.sh
 env:
   global:
-  - ENCRYPTION_LABEL: 15094503a9ff
+  - ENCRYPTION_LABEL: 2780c8e2c769
