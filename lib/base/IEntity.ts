@@ -1,4 +1,4 @@
-import {Box, ColorTransform, Sphere, Matrix3D, Vector3D, IAsset} from "@awayjs/core";
+import {Transform, Box, ColorTransform, Sphere, Matrix3D, Vector3D, IAsset} from "@awayjs/core";
 
 import {IMaterial} from "../base/IMaterial";
 import {Style} from "../base/Style";
@@ -6,7 +6,6 @@ import {IAnimator} from "../animators/IAnimator";
 import {PickingCollision} from "../pick/PickingCollision";
 
 import {TraverserBase} from "./TraverserBase";
-import {Transform} from "./Transform";
 
 export interface IEntity extends IAsset
 {
@@ -71,17 +70,7 @@ export interface IEntity extends IAsset
 	/**
 	 *
 	 */
-	inverseSceneTransform:Matrix3D;
-
-	/**
-	 *
-	 */
 	scenePosition:Vector3D;
-
-	/**
-	 *
-	 */
-	sceneTransform:Matrix3D;
 
 	/**
 	 *

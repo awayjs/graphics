@@ -7,10 +7,9 @@ export {IContainerNode}					from "./lib/base/IContainerNode";
 export {IEntity}						from "./lib/base/IEntity";
 export {IMaterial}						from "./lib/base/IMaterial";
 export {INode}							from "./lib/base/INode";
-export {IRenderable}						from "./lib/base/IRenderable";
-export {Shape}						from "./lib/base/Shape";
+export {IRenderable}					from "./lib/base/IRenderable";
+export {Shape}							from "./lib/base/Shape";
 export {Style}							from "./lib/base/Style";
-export {Transform}						from "./lib/base/Transform";
 export {TraverserBase}					from "./lib/base/TraverserBase";
 
 export {CapsStyle}						from "./lib/draw/CapsStyle";
@@ -37,7 +36,6 @@ export {MaterialEvent}					from "./lib/events/MaterialEvent";
 export {RenderableEvent}				from "./lib/events/RenderableEvent";
 export {ShapeEvent}						from "./lib/events/ShapeEvent";
 export {StyleEvent}						from "./lib/events/StyleEvent";
-export {TransformEvent}					from "./lib/events/TransformEvent";
 
 export {ElementsBase}					from "./lib/elements/ElementsBase";
 export {ElementsType}					from "./lib/elements/ElementsType";
