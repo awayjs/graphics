@@ -1,8 +1,8 @@
-# Awayjs Graphics
+# AwayJS Graphics
 
-Dependency for Awayjs applications requiring graphical output: contains data structures for shapes and textures, and interface descriptions for additional APIs such as material and animator data.
+Dependency for AwayJS applications requiring graphical output: contains data structures for shapes and textures, and interface descriptions for additional APIs such as material and animator data.
 
-## Awayjs Dependencies
+## AwayJS Dependencies
 
 * core
 
