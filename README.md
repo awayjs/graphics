@@ -1,4 +1,5 @@
 # AwayJS Graphics
+[![Build Status](https://travis-ci.org/awayjs/graphics.svg?branch=dev)](https://travis-ci.org/awayjs/graphics)
 
 Dependency for AwayJS applications requiring graphical output: contains data structures for shapes and textures, and interface descriptions for additional APIs such as material and animator data.
 
