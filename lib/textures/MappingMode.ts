@@ -1,21 +1,20 @@
 /**
-
-
+ *
  */
-export class MappingMode
+export enum MappingMode
 {
 	/**
 	 *
 	 */
-	public static NORMAL:string = "normal";
+	CUBE,
 
 	/**
 	 *
 	 */
-	public static LINEAR_GRADIENT:string = "linearGradient";
+	LINEAR,
 
 	/**
 	 *
 	 */
-	public static RADIAL_GRADIENT:string = "radialGradient";
+	 RADIAL
 }

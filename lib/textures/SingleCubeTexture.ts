@@ -1,6 +1,7 @@
 import {SamplerCube} from "../image/SamplerCube";
 import {ImageCube} from "../image/ImageCube";
 
+import {MappingMode} from "./MappingMode";
 import {TextureBase} from "./TextureBase";
 
 
@@ -55,6 +56,8 @@ export class SingleCubeTexture extends TextureBase
 	constructor(imageCube:ImageCube = null)
 	{
 		super();
+
+		this._mappingMode = MappingMode.CUBE;
 
 		this.setNumImages(1);
 

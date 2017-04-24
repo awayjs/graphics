@@ -9,8 +9,6 @@ import {TextureBase} from "./TextureBase";
 
 export class Single2DTexture extends TextureBase
 {
-	private _mappingMode:string;
-
 	public static assetType:string = "[texture Single2DTexture]";
 
 	/**
@@ -20,19 +18,6 @@ export class Single2DTexture extends TextureBase
 	public get assetType():string
 	{
 		return Single2DTexture.assetType;
-	}
-
-	public get mappingMode():string
-	{
-		return this._mappingMode;
-	}
-
-	public set mappingMode(value:string)
-	{
-		if (this._mappingMode == value)
-			return;
-
-		this._mappingMode = value;
 	}
 
 	/**
@@ -76,10 +61,10 @@ export class Single2DTexture extends TextureBase
 	{
 		super();
 
+		this._mappingMode = MappingMode.LINEAR;
+
 		this.setNumImages(1);
 
 		this.image2D = image2D;
-
-		this._mappingMode = MappingMode.NORMAL;
 	}
 }

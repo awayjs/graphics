@@ -1,5 +1,6 @@
 import {AssetBase} from "@awayjs/core";
 
+import {MappingMode} from "./MappingMode";
 import {ImageBase} from "../image/ImageBase";
 import {SamplerBase} from "../image/SamplerBase";
 
@@ -8,9 +9,24 @@ import {SamplerBase} from "../image/SamplerBase";
  */
 export class TextureBase extends AssetBase
 {
+	protected _mappingMode:MappingMode;
+
 	public _numImages:number = 0;
 	public _images:Array<ImageBase> = new Array<ImageBase>();
 	public _samplers:Array<SamplerBase> = new Array<SamplerBase>();
+
+	public get mappingMode():MappingMode
+	{
+		return this._mappingMode;
+	}
+
+	public set mappingMode(value:MappingMode)
+	{
+		if (this._mappingMode == value)
+			return;
+
+		this._mappingMode = value;
+	}
 
 	/**
 	 *
