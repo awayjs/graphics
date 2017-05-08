@@ -1197,7 +1197,7 @@ export class Graphics extends AssetBase
 
 			GraphicsFactoryHelper.addTriangle(x+bl, y+h+t, x+w-br, y+h+t, x+bl, y+h-t, 0, this._active_stroke_path.verts, false);
 			GraphicsFactoryHelper.addTriangle(x+bl, y+h-t, x+w-br, y+h+t, x+w-br, y+h-t, 0, this._active_stroke_path.verts, false);
- 
+
 			GraphicsFactoryHelper.drawElipseStrokes(x+tl,y+tl, tl, tl, this._active_stroke_path.verts, 180, 270, 5, t, false);
 			GraphicsFactoryHelper.drawElipseStrokes(x+w-tr,y+tr, tr, tr, this._active_stroke_path.verts, 270, 360, 5, t, false);
 			GraphicsFactoryHelper.drawElipseStrokes(x+w-br,y+h-br, br, br, this._active_stroke_path.verts, 0, 90, 5, t, false);
