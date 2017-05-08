@@ -25,6 +25,10 @@ export class GraphicsPath implements IGraphicsData
     private _data:Array<Array<number>>;
 
     /**
+     * The Vector of Numbers containing the parameters used with the drawing commands.
+     */
+    public verts:number[];
+    /**
      * Specifies the winding rule using a value defined in the GraphicsPathWinding class.
      */
     private _winding_rule:string;
@@ -43,6 +47,7 @@ export class GraphicsPath implements IGraphicsData
         this._data=[];
         this._commands=[];
         this._style = null;
+        this.verts=[];
 
         if(commands!=null && data!=null){
             this._data[0]=data;

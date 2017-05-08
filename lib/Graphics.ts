@@ -10,6 +10,8 @@ import {TraverserBase} from "./base/TraverserBase";
 import {GraphicsPath} from "./draw/GraphicsPath";
 import {GraphicsFactoryFills} from "./draw/GraphicsFactoryFills";
 import {GraphicsFactoryStrokes} from "./draw/GraphicsFactoryStrokes";
+import {GraphicsFactoryHelper} from "./draw/GraphicsFactoryHelper";
+
 import {InterpolationMethod} from "./draw/InterpolationMethod";
 import {JointStyle} from "./draw/JointStyle";
 import {LineScaleMode} from "./draw/LineScaleMode";
@@ -45,6 +47,10 @@ import {DefaultMaterialManager} from "./managers/DefaultMaterialManager";
 export class Graphics extends AssetBase
 {
 	private static _pool:Array<Graphics> = new Array<Graphics>();
+
+	public static get_material_for_color:Function=function(color:number):MaterialBase{
+		return DefaultMaterialManager.getDefaultMaterial();
+	};
 
 	public static getGraphics(entity:IEntity):Graphics
 	{
@@ -456,9 +462,6 @@ export class Graphics extends AssetBase
 		this.invalidate();
 	}
 
-	public draw_fills() {
-		GraphicsFactoryFills.draw_pathes(this);
-	}
 
 	
 	private _onAddMaterial(event:ShapeEvent):void
@@ -477,35 +480,31 @@ export class Graphics extends AssetBase
 			material.iRemoveOwner(this._entity);
 	}
 
+	public draw_fills() {
+		GraphicsFactoryFills.draw_pathes(this);
+	}
 	public draw_strokes(){
-		var final_vert_list:Array<number>=[];
-		GraphicsFactoryStrokes.draw_pathes(this.queued_stroke_pathes, final_vert_list);
-		this.queued_stroke_pathes.length=0;
-		var attributesView:AttributesView = new AttributesView(Float32Array, 3);
-		attributesView.set(final_vert_list);
-		var attributesBuffer:AttributesBuffer = attributesView.attributesBuffer;
-		attributesView.dispose();
-		var elements:TriangleElements = new TriangleElements(attributesBuffer);
-		elements.setPositions(new Float2Attributes(attributesBuffer));
-		elements.setCustomAttributes("curves", new Byte4Attributes(attributesBuffer, false));
-		//elements.setUVs(new Float2Attributes(attributesBuffer));
-		//curve_sub_geom.setUVs(new Float2Attributes(attributesBuffer));
 
-		var material:MaterialBase = DefaultMaterialManager.getDefaultMaterial();
-		material.bothSides = true;
-		material.useColorTransform = true;
-		material.curves = true;
+		var i=0;
+		for(i=0; i<this.queued_stroke_pathes.length; i++){
 
-		var sampler:Sampler2D = new Sampler2D();
-		var shape:Shape = this.addShape(Shape.getShape(elements, material));
-		if(shape) {
-			shape.style = new Style();
-			shape.style.addSamplerAt(sampler, shape.material.getTextureAt(0));
-			//sampler.imageRect = new Rectangle(0, 0, 0.5, 0.5);
-			shape.style.uvMatrix = new Matrix(0, 0, 0, 0, 0.126, 0);
-			shape.material.animateUVs = true;
-			//shape.material.imageRect = true;
+			var material:MaterialBase = Graphics.get_material_for_color((<GraphicsStrokeStyle>this.queued_stroke_pathes[i].style).color);
+			material.bothSides = true;
+			var final_vert_list:Array<number>=[];
+			GraphicsFactoryStrokes.draw_pathes([this.queued_stroke_pathes[i]], final_vert_list, material.curves);
+			final_vert_list=final_vert_list.concat(this.queued_stroke_pathes[i].verts);
+			var attributesView:AttributesView = new AttributesView(Float32Array, material.curves?3:2);
+			attributesView.set(final_vert_list);
+			var attributesBuffer:AttributesBuffer = attributesView.attributesBuffer;
+			attributesView.dispose();
+			var elements:TriangleElements = new TriangleElements(attributesBuffer);
+			elements.setPositions(new Float2Attributes(attributesBuffer));
+			if(material.curves)
+				elements.setCustomAttributes("curves", new Byte4Attributes(attributesBuffer, false));
+			material.alpha=(<GraphicsStrokeStyle>this.queued_stroke_pathes[i].style).alpha;
+			this.addShape(Shape.getShape(elements, material));
 		}
+		this.queued_stroke_pathes.length=0;
 	}
 	/**
 	 * Fills a drawing area with a bitmap image. The bitmap can be repeated or
@@ -824,24 +823,34 @@ export class Graphics extends AssetBase
 	 */
 	public drawCircle(x:number, y:number, radius:number):void
 	{
-		// todo: directly create triangles instead of draw commands ?
-		var radius2=radius*1.065;
+		//var radius2=radius*1.065;
 		if(this._active_fill_path!=null){
-			this._active_fill_path.moveTo(x-radius, y);
+			this._active_fill_path.moveTo(x, y);
+			/*
 			for(var i=8; i>=0;i--){
 
 				var degree = (i) *(360/8)*Math.PI/180;
 				var degree2 = degree + ((360/16)*Math.PI/180);
 				this._active_fill_path.curveTo(x-(Math.cos(degree2)*radius2), y+(Math.sin(degree2)*radius2),x-(Math.cos(degree)*radius), y+(Math.sin(degree)*radius));
+			}*/
+			var r=radius;
+			if(this._active_stroke_path!=null) {
+				r-=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness/2;
 			}
+			GraphicsFactoryHelper.drawElipse(x, y, r, r, this._active_fill_path.verts, 0, 360, 5, false);
+
 		}
 		if(this._active_stroke_path!=null){
-			this._active_stroke_path.moveTo(x, y+radius);
+			this._active_stroke_path.moveTo(x, y);
+/*
 			var radius2=radius*0.93;
 			this._active_stroke_path.curveTo(x-(radius2), y+(radius2), x-radius, y);
 			this._active_stroke_path.curveTo(x-(radius2), y-(radius2), x, y-radius);
 			this._active_stroke_path.curveTo(x+(radius2), y-(radius2), x+radius, y);
 			this._active_stroke_path.curveTo(x+(radius2), y+(radius2), x, y+radius);
+			*/
+			GraphicsFactoryHelper.drawElipseStrokes(x,y, radius, radius, this._active_stroke_path.verts, 0, 360, 5, (<GraphicsStrokeStyle>this._active_stroke_path.style).thickness/2, false);
+
 		}
 	}
 
@@ -863,22 +872,39 @@ export class Graphics extends AssetBase
 	 */
 	public drawEllipse(x:number, y:number, width:number, height:number):void
 	{
-		width/=2;
-		height/=2;
+		//var radius2=radius*1.065;
 		if(this._active_fill_path!=null){
+			this._active_fill_path.moveTo(x, y);
+			/*
+			 for(var i=8; i>=0;i--){
 
-			this._active_fill_path.moveTo(x, y+height);
-			this._active_fill_path.curveTo(x-(width), y+(height), x-width, y);
-			this._active_fill_path.curveTo(x-(width), y-(height), x, y-height);
-			this._active_fill_path.curveTo(x+(width), y-(height), x+width, y);
-			this._active_fill_path.curveTo(x+(width), y+(height), x, y+height);
+			 var degree = (i) *(360/8)*Math.PI/180;
+			 var degree2 = degree + ((360/16)*Math.PI/180);
+			 this._active_fill_path.curveTo(x-(Math.cos(degree2)*radius2), y+(Math.sin(degree2)*radius2),x-(Math.cos(degree)*radius), y+(Math.sin(degree)*radius));
+			 }*/
+
+			var w=width;
+			var h=height;
+			if(this._active_stroke_path!=null) {
+				w-=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness/2;
+				h-=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness/2;
+			}
+			GraphicsFactoryHelper.drawElipse(x, y, w, h, this._active_fill_path.verts, 0, 360, 5, false);
+
+
 		}
 		if(this._active_stroke_path!=null){
-			this._active_stroke_path.moveTo(x, y+height);
-			this._active_stroke_path.curveTo(x-(width), y+(height), x-width, y);
-			this._active_stroke_path.curveTo(x-(width), y-(height), x, y-height);
-			this._active_stroke_path.curveTo(x+(width), y-(height), x+width, y);
-			this._active_stroke_path.curveTo(x+(width), y+(height), x, y+height);
+			this._active_stroke_path.moveTo(x, y);
+
+			GraphicsFactoryHelper.drawElipseStrokes(x,y, width, height, this._active_stroke_path.verts, 0, 360, 5, (<GraphicsStrokeStyle>this._active_stroke_path.style).thickness/2, false);
+
+			/*
+			 var radius2=radius*0.93;
+			 this._active_stroke_path.curveTo(x-(radius2), y+(radius2), x-radius, y);
+			 this._active_stroke_path.curveTo(x-(radius2), y-(radius2), x, y-radius);
+			 this._active_stroke_path.curveTo(x+(radius2), y-(radius2), x+radius, y);
+			 this._active_stroke_path.curveTo(x+(radius2), y+(radius2), x, y+radius);
+			 */
 		}
 
 	}
@@ -999,20 +1025,49 @@ export class Graphics extends AssetBase
 	 */
 	public drawRect(x:number, y:number, width:number, height:number):void
 	{
-		//todo: directly create triangles instead of drawing commands ?
 		if(this._active_fill_path!=null){
 			this._active_fill_path.moveTo(x, y);
+			/*
 			this._active_fill_path.lineTo(x+width, y);
 			this._active_fill_path.lineTo(x+width, y+height);
 			this._active_fill_path.lineTo(x, y+height);
 			this._active_fill_path.lineTo(x, y);
+			*/
+			var w:number=width;
+			var h:number=height;
+			var t:number=0;
+			if(this._active_stroke_path!=null) {
+				t=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness/2;
+				w-=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness;
+				h-=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness;
+			}
+			GraphicsFactoryHelper.addTriangle(x+t,y+h+t,x+t,y+t, x+w+t, y+t, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+t,y+h+t,x+t+w,y+t, x+w+t, y+h+t, 0, this._active_fill_path.verts, false);
+
 		}
 		if(this._active_stroke_path!=null){
 			this._active_stroke_path.moveTo(x, y);
+			var t:number=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness/2;
+			
+			// todo: respect Jointstyle here (?)
+			
+			GraphicsFactoryHelper.addTriangle(x-t, y+height+t, x-t, y-t, x+t, y+t, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x-t, y+height+t, x+t, y+height-t, x+t, y+t, 0, this._active_stroke_path.verts, false);
+
+			GraphicsFactoryHelper.addTriangle(x-t, y-t, x+width+t, y-t, x+t, y+t, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+t, y+t, x+width+t, y-t, x+width-t, y+t, 0, this._active_stroke_path.verts, false);
+
+			GraphicsFactoryHelper.addTriangle(x+width-t, y+height-t, x+width-t, y+t, x+width+t, y+height+t, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+width+t, y+height+t, x+width+t, y-t, x+width-t, y+t, 0, this._active_stroke_path.verts, false);
+
+			GraphicsFactoryHelper.addTriangle(x-t, y+height+t, x+width+t, y+height+t, x+t, y+height-t, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+t, y+height-t, x+width+t, y+height+t, x+width-t, y+height-t, 0, this._active_stroke_path.verts, false);
+			/*
 			this._active_stroke_path.lineTo(x+width, y);
 			this._active_stroke_path.lineTo(x+width, y+height);
 			this._active_stroke_path.lineTo(x, y+height);
 			this._active_stroke_path.lineTo(x, y);
+			*/
 		}
 	}
 
@@ -1044,31 +1099,51 @@ export class Graphics extends AssetBase
 	 */
 	public drawRoundRect(x:number, y:number, width:number, height:number, ellipseWidth:number, ellipseHeight:number = NaN):void
 	{
-		//todo: directly create triangles instead of drawing commands ?
-		if(!ellipseHeight){
-			ellipseHeight=ellipseWidth;
-		}
+		var w:number=width;
+		var h:number=height;
+		var ew:number=ellipseWidth;
+		var eh:number=ellipseHeight;
+		var t:number=0;
 		if(this._active_fill_path!=null){
-			this._active_fill_path.moveTo(x+ellipseWidth, y);
-			this._active_fill_path.lineTo(x+width-ellipseWidth, y);
-			this._active_fill_path.curveTo(x+width, y, x+width, y+ellipseHeight);
-			this._active_fill_path.lineTo(x+width, y+height-ellipseHeight);
-			this._active_fill_path.curveTo(x+width, y+height, x+width-ellipseWidth, y+height);
-			this._active_fill_path.lineTo(x+ellipseWidth, y+height);
-			this._active_fill_path.curveTo(x, y+height, x, y+height-ellipseHeight);
-			this._active_fill_path.lineTo(x, y+ellipseHeight);
-			this._active_fill_path.curveTo(x, y, x+ellipseWidth, y);
+			this._active_fill_path.moveTo(x, y);
+			if(this._active_stroke_path!=null) {
+				t=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness/2;
+				w-=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness;
+				h-=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness;
+			}
+			GraphicsFactoryHelper.addTriangle(x+t,y+h-eh,x+t,y+eh, x+w-t, y+eh, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+t,y+h-eh,x+w-t,y+eh, x+w-t, y+h-eh, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+ew,y+t,x+ew,y+eh, x+w-ew, y+eh, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+ew,y+t,x+w-ew,y+eh, x+w-ew, y+t, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+ew,y+h-eh,x+ew,y+h-t, x+w-ew, y+h-t, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+ew,y+h-eh,x+w-ew,y+h-t, x+w-ew, y+h-eh, 0, this._active_fill_path.verts, false);
+
+			GraphicsFactoryHelper.drawElipse(x+ew,y+eh, ew-t, eh-t, this._active_fill_path.verts, 180, 270, 5, false);
+			GraphicsFactoryHelper.drawElipse(x+w-ew,y+eh, ew-t, eh-t, this._active_fill_path.verts, 270, 360, 5, false);
+			GraphicsFactoryHelper.drawElipse(x+w-ew,y+h-eh, ew-t, eh-t, this._active_fill_path.verts, 0, 90, 5, false);
+			GraphicsFactoryHelper.drawElipse(x+ew,y+h-eh, ew-t, eh-t, this._active_fill_path.verts, 90, 180, 5, false);
 		}
 		if(this._active_stroke_path!=null){
-			this._active_stroke_path.moveTo(x+ellipseWidth, y);
-			this._active_stroke_path.lineTo(x+width-ellipseWidth, y);
-			this._active_stroke_path.curveTo(x+width, y, x+width, y+ellipseHeight);
-			this._active_stroke_path.lineTo(x+width, y+height-ellipseHeight);
-			this._active_stroke_path.curveTo(x+width, y+height, x+width-ellipseWidth, y+height);
-			this._active_stroke_path.lineTo(x+ellipseWidth, y+height);
-			this._active_stroke_path.curveTo(x, y+height, x, y+height-ellipseHeight);
-			this._active_stroke_path.lineTo(x, y+ellipseHeight);
-			this._active_stroke_path.curveTo(x, y, x+ellipseWidth, y);
+			this._active_stroke_path.moveTo(x, y);
+			t=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness/2;
+
+			GraphicsFactoryHelper.addTriangle(x-t, y+h-eh, x-t, y+eh, x+t, y+eh, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x-t, y+h-eh, x+t, y+h-eh, x+t, y+eh, 0, this._active_stroke_path.verts, false);
+
+			GraphicsFactoryHelper.addTriangle(x+ew, y-t, x+w-ew, y-t, x+ew, y+t, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+ew, y+t, x+w-ew, y-t, x+w-ew, y+t, 0, this._active_stroke_path.verts, false);
+
+			GraphicsFactoryHelper.addTriangle(x+w-t, y+h-eh, x+w-t, y+eh, x+w+t, y+h-eh, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+w+t, y+h-eh, x+w+t, y+eh, x+w-t, y+eh, 0, this._active_stroke_path.verts, false);
+
+			GraphicsFactoryHelper.addTriangle(x+ew, y+h+t, x+w-ew, y+h+t, x+ew, y+h-t, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+ew, y+h-t, x+w-ew, y+h+t, x+w-ew, y+h-t, 0, this._active_stroke_path.verts, false);
+
+			GraphicsFactoryHelper.drawElipseStrokes(x+ew,y+eh, ew, eh, this._active_stroke_path.verts, 180, 270, 5, t, false);
+			GraphicsFactoryHelper.drawElipseStrokes(x+w-ew,y+eh, ew, eh, this._active_stroke_path.verts, 270, 360, 5, t, false);
+			GraphicsFactoryHelper.drawElipseStrokes(x+w-ew,y+h-eh, ew, eh, this._active_stroke_path.verts, 0, 90, 5, t, false);
+			GraphicsFactoryHelper.drawElipseStrokes(x+ew,y+h-eh, ew, eh, this._active_stroke_path.verts, 90, 180, 5, t, false);
+
 		}
 	}
 
@@ -1120,6 +1195,7 @@ export class Graphics extends AssetBase
 		this.draw_fills();
 		this._active_fill_path=null;
 		this._active_stroke_path=null;
+		this.invalidate();
 
 	}
 

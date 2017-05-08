@@ -22,7 +22,7 @@ import {GraphicsStrokeStyle} from "../draw/GraphicsStrokeStyle";
  */
 export class GraphicsFactoryStrokes
 {
-	public static draw_pathes(graphic_pathes:Array<GraphicsPath>, final_vert_list:Array<number>){
+	public static draw_pathes(graphic_pathes:Array<GraphicsPath>, final_vert_list:Array<number>, curves:boolean){
 		var len=graphic_pathes.length;
 		var contour_commands:Array<Array<number> >;
 		var contour_data:Array<Array<number> >;
@@ -484,31 +484,31 @@ export class GraphicsFactoryStrokes
 							for (var sc:number = 0; sc < subdivided.length / 6; sc++) {
 								// right curved
 								// concave curves:
-								GraphicsFactoryHelper.addTriangle(subdivided[sc * 6], subdivided[sc * 6 + 1], subdivided[sc * 6 + 2], subdivided[sc * 6 + 3], subdivided[sc * 6 + 4], subdivided[sc * 6 + 5], -128, final_vert_list);
+								GraphicsFactoryHelper.addTriangle(subdivided[sc * 6], subdivided[sc * 6 + 1], subdivided[sc * 6 + 2], subdivided[sc * 6 + 3], subdivided[sc * 6 + 4], subdivided[sc * 6 + 5], -128, final_vert_list, curves);
 
 								// fills
-								GraphicsFactoryHelper.addTriangle(subdivided2[sc * 6], subdivided2[sc * 6 + 1], subdivided[sc * 6], subdivided[sc * 6 + 1], subdivided[sc * 6 + 2], subdivided[sc * 6 + 3], 0, final_vert_list);
-								GraphicsFactoryHelper.addTriangle(subdivided2[sc * 6], subdivided2[sc * 6 + 1], subdivided2[sc * 6 + 4], subdivided2[sc * 6 + 5], subdivided[sc * 6 + 2], subdivided[sc * 6 + 3], 0, final_vert_list);
-								GraphicsFactoryHelper.addTriangle(subdivided2[sc * 6 + 4], subdivided2[sc * 6 + 5], subdivided[sc * 6 + 2], subdivided[sc * 6 + 3], subdivided[sc * 6 + 4], subdivided[sc * 6 + 5], 0, final_vert_list);
+								GraphicsFactoryHelper.addTriangle(subdivided2[sc * 6], subdivided2[sc * 6 + 1], subdivided[sc * 6], subdivided[sc * 6 + 1], subdivided[sc * 6 + 2], subdivided[sc * 6 + 3], 0, final_vert_list, curves);
+								GraphicsFactoryHelper.addTriangle(subdivided2[sc * 6], subdivided2[sc * 6 + 1], subdivided2[sc * 6 + 4], subdivided2[sc * 6 + 5], subdivided[sc * 6 + 2], subdivided[sc * 6 + 3], 0, final_vert_list, curves);
+								GraphicsFactoryHelper.addTriangle(subdivided2[sc * 6 + 4], subdivided2[sc * 6 + 5], subdivided[sc * 6 + 2], subdivided[sc * 6 + 3], subdivided[sc * 6 + 4], subdivided[sc * 6 + 5], 0, final_vert_list, curves);
 
 								// convex curves:
-								GraphicsFactoryHelper.addTriangle(subdivided2[sc * 6], subdivided2[sc * 6 + 1], subdivided2[sc * 6 + 2], subdivided2[sc * 6 + 3], subdivided2[sc * 6 + 4], subdivided2[sc * 6 + 5], 127, final_vert_list);
+								GraphicsFactoryHelper.addTriangle(subdivided2[sc * 6], subdivided2[sc * 6 + 1], subdivided2[sc * 6 + 2], subdivided2[sc * 6 + 3], subdivided2[sc * 6 + 4], subdivided2[sc * 6 + 5], 127, final_vert_list, curves);
 							}
 						}
 						else {
 							for (var sc:number = 0; sc < subdivided.length / 6; sc++) {
 								// left curved
 								// convex curves:
-								GraphicsFactoryHelper.addTriangle(subdivided[sc * 6], subdivided[sc * 6 + 1], subdivided[sc * 6 + 2], subdivided[sc * 6 + 3], subdivided[sc * 6 + 4], subdivided[sc * 6 + 5], 127, final_vert_list);
+								GraphicsFactoryHelper.addTriangle(subdivided[sc * 6], subdivided[sc * 6 + 1], subdivided[sc * 6 + 2], subdivided[sc * 6 + 3], subdivided[sc * 6 + 4], subdivided[sc * 6 + 5], 127, final_vert_list, curves);
 
 								// fills
-								GraphicsFactoryHelper.addTriangle(subdivided[sc * 6], subdivided[sc * 6 + 1], subdivided2[sc * 6], subdivided2[sc * 6 + 1], subdivided2[sc * 6 + 2], subdivided2[sc * 6 + 3], 0, final_vert_list);
-								GraphicsFactoryHelper.addTriangle(subdivided[sc * 6], subdivided[sc * 6 + 1], subdivided[sc * 6 + 4], subdivided[sc * 6 + 5], subdivided2[sc * 6 + 2], subdivided2[sc * 6 + 3], 0, final_vert_list);
-								GraphicsFactoryHelper.addTriangle(subdivided[sc * 6 + 4], subdivided[sc * 6 + 5], subdivided2[sc * 6 + 2], subdivided2[sc * 6 + 3], subdivided2[sc * 6 + 4], subdivided2[sc * 6 + 5], 0, final_vert_list);
+								GraphicsFactoryHelper.addTriangle(subdivided[sc * 6], subdivided[sc * 6 + 1], subdivided2[sc * 6], subdivided2[sc * 6 + 1], subdivided2[sc * 6 + 2], subdivided2[sc * 6 + 3], 0, final_vert_list, curves);
+								GraphicsFactoryHelper.addTriangle(subdivided[sc * 6], subdivided[sc * 6 + 1], subdivided[sc * 6 + 4], subdivided[sc * 6 + 5], subdivided2[sc * 6 + 2], subdivided2[sc * 6 + 3], 0, final_vert_list, curves);
+								GraphicsFactoryHelper.addTriangle(subdivided[sc * 6 + 4], subdivided[sc * 6 + 5], subdivided2[sc * 6 + 2], subdivided2[sc * 6 + 3], subdivided2[sc * 6 + 4], subdivided2[sc * 6 + 5], 0, final_vert_list, curves);
 
 
 								// concave curves:
-								GraphicsFactoryHelper.addTriangle(subdivided2[sc * 6], subdivided2[sc * 6 + 1], subdivided2[sc * 6 + 2], subdivided2[sc * 6 + 3], subdivided2[sc * 6 + 4], subdivided2[sc * 6 + 5], -128, final_vert_list);
+								GraphicsFactoryHelper.addTriangle(subdivided2[sc * 6], subdivided2[sc * 6 + 1], subdivided2[sc * 6 + 2], subdivided2[sc * 6 + 3], subdivided2[sc * 6 + 4], subdivided2[sc * 6 + 5], -128, final_vert_list, curves);
 							}
 						}
 
@@ -521,7 +521,7 @@ export class GraphicsFactoryStrokes
 							end_left = new_pnts[new_pnts_cnt++];// concave curves:
 							start_right = new_pnts[new_pnts_cnt++];
 							start_left = new_pnts[new_pnts_cnt++];
-							GraphicsFactoryHelper.addTriangle(start_right.x, start_right.y,  end_left.x, end_left.y,start_left.x, start_left.y, -1, final_vert_list);
+							GraphicsFactoryHelper.addTriangle(start_right.x, start_right.y,  end_left.x, end_left.y,start_left.x, start_left.y, -1, final_vert_list, curves);
 
 						}
 					}
@@ -537,8 +537,8 @@ export class GraphicsFactoryStrokes
 						start_left = new_pnts[new_pnts_cnt++];
 						end_right = new_pnts[new_pnts_cnt];
 						end_left = new_pnts[new_pnts_cnt+1];
-						GraphicsFactoryHelper.addTriangle(start_right.x,  start_right.y,  start_left.x,  start_left.y,  end_right.x,  end_right.y, 0, final_vert_list);
-						GraphicsFactoryHelper.addTriangle(start_left.x,  start_left.y,  end_left.x,  end_left.y,  end_right.x,  end_right.y, 0, final_vert_list);
+						GraphicsFactoryHelper.addTriangle(start_right.x,  start_right.y,  start_left.x,  start_left.y,  end_right.x,  end_right.y, 0, final_vert_list, curves);
+						GraphicsFactoryHelper.addTriangle(start_left.x,  start_left.y,  end_left.x,  end_left.y,  end_right.x,  end_right.y, 0, final_vert_list, curves);
 
 					}
 					else if(new_cmds[i]==GraphicsPathCommand.CURVE_TO){
@@ -549,7 +549,7 @@ export class GraphicsFactoryStrokes
 						end_right = new_pnts[new_pnts_cnt++];
 						start_right = new_pnts[new_pnts_cnt++];
 						start_left = new_pnts[new_pnts_cnt++];
-						GraphicsFactoryHelper.addTriangle(start_right.x,  start_right.y,  start_left.x,  start_left.y,  end_right.x,  end_right.y, 0, final_vert_list);
+						GraphicsFactoryHelper.addTriangle(start_right.x,  start_right.y,  start_left.x,  start_left.y,  end_right.x,  end_right.y, 0, final_vert_list, curves);
 						if(new_cmds[i]==GraphicsPathCommand.BUILD_ROUND_JOINT) {
 							new_pnts_cnt+=3;
 						}
@@ -559,12 +559,12 @@ export class GraphicsFactoryStrokes
 					last_dir_vec.x = data[2] - data[0];
 					last_dir_vec.y = data[3] - data[1];
 					last_dir_vec.normalize();
-					GraphicsFactoryHelper.createCap(data[0], data[1], new_pnts[0], new_pnts[1], last_dir_vec, strokeStyle.capstyle, -128, strokeStyle.half_thickness, final_vert_list);
+					GraphicsFactoryHelper.createCap(data[0], data[1], new_pnts[0], new_pnts[1], last_dir_vec, strokeStyle.capstyle, -128, strokeStyle.half_thickness, final_vert_list, curves);
 
 					last_dir_vec.x = data[data.length-2] - data[data.length-4];
 					last_dir_vec.y = data[data.length-1] - data[data.length-3];
 					last_dir_vec.normalize();
-					GraphicsFactoryHelper.createCap(data[data.length-2], data[data.length-1], new_pnts[new_pnts.length-2], new_pnts[new_pnts.length-1], last_dir_vec, strokeStyle.capstyle, 127, strokeStyle.half_thickness, final_vert_list);
+					GraphicsFactoryHelper.createCap(data[data.length-2], data[data.length-1], new_pnts[new_pnts.length-2], new_pnts[new_pnts.length-1], last_dir_vec, strokeStyle.capstyle, 127, strokeStyle.half_thickness, final_vert_list, curves);
 
 					/*
 					 last_dir_vec.x = data[data.length-2] - data[data.length-4];

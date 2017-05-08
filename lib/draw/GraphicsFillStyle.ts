@@ -7,12 +7,12 @@ export class GraphicsFillStyle implements IGraphicsData
     /**
      * The Vector of drawing commands as integers representing the path.
      */
-    private _color:number;
+    public color:number;
     private _alpha:number;
 
     constructor(color:number = 0xffffff, alpha:number = 1)
     {
-        this._color=color;
+        this.color=color;
         this._alpha=alpha;
     }
 

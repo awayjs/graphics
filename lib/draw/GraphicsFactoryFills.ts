@@ -1,11 +1,12 @@
 import {Point, AttributesBuffer, AttributesView, Float3Attributes, Float2Attributes,MathConsts} from "@awayjs/core";
 
-import {GraphicsFactoryHelper} from "../draw/GraphicsFactoryHelper";
+import {GraphicsFillStyle} from "./GraphicsFillStyle";
+import {GraphicsFactoryHelper} from "./GraphicsFactoryHelper";
 import {TriangleElements} from "../elements/TriangleElements";
 import {MaterialBase} from "../materials/MaterialBase";
 import {Shape} from "../base/Shape";
 import {GraphicsPath} from "../draw/GraphicsPath";
-import {GraphicsPathCommand} from "../draw/GraphicsPathCommand";
+import {GraphicsPathCommand} from "./GraphicsPathCommand";
 import {DefaultMaterialManager}	from "../managers/DefaultMaterialManager";
 
 import {Graphics} from "../Graphics";
@@ -64,8 +65,8 @@ export class GraphicsFactoryFills
 
 				var tmp_dir_point:Point=new Point();
 				if((data[0] != data[data.length-2]) || (data[1] != data[data.length-1])){
-					data[data.length]==data[0];
-					data[data.length]==data[1];
+					data[data.length]=data[0];
+					data[data.length]=data[1];
 				}
 
 				lastPoint.x = data[0];
@@ -181,48 +182,61 @@ export class GraphicsFactoryFills
 							if (GraphicsFactoryHelper.isClockWiseXY(end_x, end_y, control_x, control_y, lastPoint.x, lastPoint.y)) {
 								final_vert_list[final_vert_cnt++] = end_x;
 								final_vert_list[final_vert_cnt++] = end_y;
+								/*
 								final_vert_list[final_vert_cnt++] = curve_attr_1;
 								final_vert_list[final_vert_cnt++] = 1.0;
 								final_vert_list[final_vert_cnt++] = 1.0;
 								final_vert_list[final_vert_cnt++] = 1.0;
 								final_vert_list[final_vert_cnt++] = 0.0;
+								*/
 								final_vert_list[final_vert_cnt++] = control_x;
 								final_vert_list[final_vert_cnt++] = control_y;
+
+								/*
 								final_vert_list[final_vert_cnt++] = curve_attr_1;
 								final_vert_list[final_vert_cnt++] = 0.5;
 								final_vert_list[final_vert_cnt++] = 0.0;
 								final_vert_list[final_vert_cnt++] = 1.0;
 								final_vert_list[final_vert_cnt++] = 0.0;
+								 */
 								final_vert_list[final_vert_cnt++] = lastPoint.x;
 								final_vert_list[final_vert_cnt++] = lastPoint.y;
+								/*
 								final_vert_list[final_vert_cnt++] = curve_attr_1;
 								final_vert_list[final_vert_cnt++] = 0.0;
 								final_vert_list[final_vert_cnt++] = 0.0;
 								final_vert_list[final_vert_cnt++] = 1.0;
 								final_vert_list[final_vert_cnt++] = 0.0;
+								 */
 							}
 							else {
 								final_vert_list[final_vert_cnt++] = lastPoint.x;
 								final_vert_list[final_vert_cnt++] = lastPoint.y;
+								/*
 								final_vert_list[final_vert_cnt++] = curve_attr_1;
 								final_vert_list[final_vert_cnt++] = 1.0;
 								final_vert_list[final_vert_cnt++] = 1.0;
 								final_vert_list[final_vert_cnt++] = 1.0;
 								final_vert_list[final_vert_cnt++] = 0.0;
+								 */
 								final_vert_list[final_vert_cnt++] = control_x;
 								final_vert_list[final_vert_cnt++] = control_y;
+								/*
 								final_vert_list[final_vert_cnt++] = curve_attr_1;
 								final_vert_list[final_vert_cnt++] = 0.5;
 								final_vert_list[final_vert_cnt++] = 0.0;
 								final_vert_list[final_vert_cnt++] = 1.0;
 								final_vert_list[final_vert_cnt++] = 0.0;
+								 */
 								final_vert_list[final_vert_cnt++] = end_x;
 								final_vert_list[final_vert_cnt++] = end_y;
+								 /*
 								final_vert_list[final_vert_cnt++] = curve_attr_1;
 								final_vert_list[final_vert_cnt++] = 0.0;
 								final_vert_list[final_vert_cnt++] = 0.0;
 								final_vert_list[final_vert_cnt++] = 1.0;
 								final_vert_list[final_vert_cnt++] = 0.0;
+								  */
 
 							}
 							lastPoint.x = end_x;
@@ -237,7 +251,6 @@ export class GraphicsFactoryFills
 			}
 			var verts:Array<number> = [];
 			var all_verts:Array<Point> = [];
-			var vertIndicess:Array<number> = [];
 			var elems:Array<number> = [];
 			for (k = 0; k < contours_vertices.length; k++) {
 				var vertices = contours_vertices[k];
@@ -252,68 +265,77 @@ export class GraphicsFactoryFills
 				//console.log("in vertices", vertices);
 				//var tess = new TESS();
 				if (GraphicsFactoryHelper._tess_obj == null) {
-					console.log("No libtess2 tesselator available.\nMake it available using Graphics._tess_obj=new TESS();");
-					return;
+					//console.log("No libtess2 tesselator available.\nMake it available using Graphics._tess_obj=new TESS();");
 				}
-				GraphicsFactoryHelper._tess_obj.addContour(verticesF32, 2, 8, vertices.length / 2);
+				else{
+					GraphicsFactoryHelper._tess_obj.addContour(verticesF32, 2, 8, vertices.length / 2);
+				}
 
 			}
-			GraphicsFactoryHelper._tess_obj.tesselate(0/*TESS.WINDING_ODD*/, 0/*TESS.ELEMENT_POLYGONS*/, 3, 2, null);
+			if (GraphicsFactoryHelper._tess_obj != null) {
+				GraphicsFactoryHelper._tess_obj.tesselate(0/*TESS.WINDING_ODD*/, 0/*TESS.ELEMENT_POLYGONS*/, 3, 2, null);
 
-			//console.log("out vertices", Graphics._tess_obj.getVertices());
-			verts = GraphicsFactoryHelper._tess_obj.getVertices();
-			elems = GraphicsFactoryHelper._tess_obj.getElements();
-			//console.log("out elements", Graphics._tess_obj.getElements());
+				//console.log("out vertices", Graphics._tess_obj.getVertices());
+				verts = GraphicsFactoryHelper._tess_obj.getVertices();
+				elems = GraphicsFactoryHelper._tess_obj.getElements();
+				//console.log("out elements", Graphics._tess_obj.getElements());
 
 
-			var numVerts:number = verts.length / 2;
-			var numElems:number = elems.length / 3;
-			for (i = 0; i < numVerts; ++i)
-				all_verts.push(new Point(verts[i * 2], verts[i * 2 + 1]));
+				var numVerts:number = verts.length / 2;
+				var numElems:number = elems.length / 3;
+				for (i = 0; i < numVerts; ++i)
+					all_verts.push(new Point(verts[i * 2], verts[i * 2 + 1]));
 
-			for (i = 0; i < numElems; ++i) {
-				var p1 = elems[i * 3];
-				var p2 = elems[i * 3 + 1];
-				var p3 = elems[i * 3 + 2];
+				for (i = 0; i < numElems; ++i) {
+					var p1 = elems[i * 3];
+					var p2 = elems[i * 3 + 1];
+					var p3 = elems[i * 3 + 2];
 
-				final_vert_list[final_vert_cnt++] = all_verts[p3].x;
-				final_vert_list[final_vert_cnt++] = all_verts[p3].y;
-				final_vert_list[final_vert_cnt++] = 1;
-				final_vert_list[final_vert_cnt++] = 2.0;
-				final_vert_list[final_vert_cnt++] = 0.0;
-				final_vert_list[final_vert_cnt++] = 1.0;
-				final_vert_list[final_vert_cnt++] = 0.0;
-				final_vert_list[final_vert_cnt++] = all_verts[p2].x;
-				final_vert_list[final_vert_cnt++] = all_verts[p2].y;
-				final_vert_list[final_vert_cnt++] = 1;
-				final_vert_list[final_vert_cnt++] = 2.0;
-				final_vert_list[final_vert_cnt++] = 0.0;
-				final_vert_list[final_vert_cnt++] = 1.0;
-				final_vert_list[final_vert_cnt++] = 0.0;
-				final_vert_list[final_vert_cnt++] = all_verts[p1].x;
-				final_vert_list[final_vert_cnt++] = all_verts[p1].y;
-				final_vert_list[final_vert_cnt++] = 1;
-				final_vert_list[final_vert_cnt++] = 2.0;
-				final_vert_list[final_vert_cnt++] = 0.0;
-				final_vert_list[final_vert_cnt++] = 1.0;
-				final_vert_list[final_vert_cnt++] = 0.0;
+					final_vert_list[final_vert_cnt++] = all_verts[p3].x;
+					final_vert_list[final_vert_cnt++] = all_verts[p3].y;
+					/*
+					 final_vert_list[final_vert_cnt++] = 1;
+					 final_vert_list[final_vert_cnt++] = 2.0;
+					 final_vert_list[final_vert_cnt++] = 0.0;
+					 final_vert_list[final_vert_cnt++] = 1.0;
+					 final_vert_list[final_vert_cnt++] = 0.0;
+					 */
+					final_vert_list[final_vert_cnt++] = all_verts[p2].x;
+					final_vert_list[final_vert_cnt++] = all_verts[p2].y;
+					/*
+					 final_vert_list[final_vert_cnt++] = 1;
+					 final_vert_list[final_vert_cnt++] = 2.0;
+					 final_vert_list[final_vert_cnt++] = 0.0;
+					 final_vert_list[final_vert_cnt++] = 1.0;
+					 final_vert_list[final_vert_cnt++] = 0.0;
+					 */
+					final_vert_list[final_vert_cnt++] = all_verts[p1].x;
+					final_vert_list[final_vert_cnt++] = all_verts[p1].y;
+					/*
+					 final_vert_list[final_vert_cnt++] = 1;
+					 final_vert_list[final_vert_cnt++] = 2.0;
+					 final_vert_list[final_vert_cnt++] = 0.0;
+					 final_vert_list[final_vert_cnt++] = 1.0;
+					 final_vert_list[final_vert_cnt++] = 0.0;
+					 */
 
+				}
 			}
+			final_vert_list=final_vert_list.concat(targetGraphics.queued_fill_pathes[cp].verts);
 			//for (i = 0; i < final_vert_list.length/7; ++i)
 			//	console.log("final verts "+i+" = "+final_vert_list[i*7]+" / "+final_vert_list[i*7+1]);
-			var attributesView:AttributesView = new AttributesView(Float32Array, 7);
+			var attributesView:AttributesView = new AttributesView(Float32Array, 2);
 			attributesView.set(final_vert_list);
 			var attributesBuffer:AttributesBuffer = attributesView.attributesBuffer;
 			attributesView.dispose();
 			var elements:TriangleElements = new TriangleElements(attributesBuffer);
 			elements.setPositions(new Float2Attributes(attributesBuffer));
-			elements.setCustomAttributes("curves", new Float3Attributes(attributesBuffer));
-			elements.setUVs(new Float2Attributes(attributesBuffer));
-			var material:MaterialBase = DefaultMaterialManager.getDefaultMaterial();
+			//elements.setCustomAttributes("curves", new Float3Attributes(attributesBuffer));
+			//elements.setUVs(new Float2Attributes(attributesBuffer));
+			var material:MaterialBase = Graphics.get_material_for_color((<GraphicsFillStyle>targetGraphics.queued_fill_pathes[cp].style).color);
 			material.bothSides = true;
-			material.useColorTransform = true;
-			material.curves = true;
-			var thisShape:Shape=targetGraphics.addShape(Shape.getShape(elements, material));
+			material.alpha=0.5;
+			targetGraphics.addShape(Shape.getShape(elements, material));
 		}
 		targetGraphics.queued_fill_pathes.length=0;
 	}

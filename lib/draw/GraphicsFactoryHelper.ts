@@ -33,49 +33,97 @@ export class GraphicsFactoryHelper
 	{
 		return c;
 	}
-	public static drawPoint(startX:number,startY:number, vertices:Array<number>):void
+	public static drawPoint(startX:number,startY:number, vertices:Array<number>, curves:boolean):void
 	{
-		GraphicsFactoryHelper.addTriangle(startX-2, startY-2, startX+2, startY-2, startX+2, startY+2, 0, vertices);
-		GraphicsFactoryHelper.addTriangle(startX-2, startY-2, startX-2, startY+2, startX+2, startY+2, 0, vertices);
+		GraphicsFactoryHelper.addTriangle(startX-2, startY-2, startX+2, startY-2, startX+2, startY+2, 0, vertices, curves);
+		GraphicsFactoryHelper.addTriangle(startX-2, startY-2, startX-2, startY+2, startX+2, startY+2, 0, vertices, curves);
 	}
-	public static addTriangle(startX:number,startY:number, controlX:number, controlY:number, endX:number, endY:number, tri_type:number, vertices:Array<number>):void
+	public static drawElipse(x:number,y:number,width:number, height:number, vertices:Array<number>, startAngle:number, endAngle:number, stepAngle:number, curves:boolean):void
+	{
+
+		// todo: validate input / check edge cases
+		var degreeTotal:number=endAngle-startAngle;
+		var steps:number=degreeTotal/stepAngle;
+		var x_last = x + width * Math.cos(startAngle* (Math.PI/180));
+		var y_last = y + height * Math.sin(startAngle* (Math.PI/180));
+		for(var i=1; i<=steps;i++){
+			var x_tmp = x + width * Math.cos((startAngle+i*stepAngle)* (Math.PI/180));
+			var y_tmp = y + height * Math.sin((startAngle+i*stepAngle)* (Math.PI/180));
+			GraphicsFactoryHelper.addTriangle(x,y,x_tmp,y_tmp, x_last, y_last, 0, vertices, curves);
+			x_last=x_tmp;
+			y_last=y_tmp;
+		}
+	}
+	public static drawElipseStrokes(x:number,y:number,width:number, height:number, vertices:Array<number>, startAngle:number, endAngle:number, stepAngle:number, thickness:number, curves:boolean):void
+	{
+
+		// todo: validate input / check edge cases
+		var degreeTotal:number=endAngle-startAngle;
+		var steps:number=degreeTotal/stepAngle;
+		var x_last = x + (width + thickness) * Math.cos(startAngle* (Math.PI/180));
+		var y_last = y + (height + thickness)* Math.sin(startAngle* (Math.PI/180));
+		var x_last2 = x + (width - thickness) * Math.cos(startAngle* (Math.PI/180));
+		var y_last2 = y + (height - thickness)* Math.sin(startAngle* (Math.PI/180));
+		for(var i=1; i<=steps;i++){
+			var x_tmp = x + (width+thickness) * Math.cos((startAngle+i*stepAngle)* (Math.PI/180));
+			var y_tmp = y + (height+thickness) * Math.sin((startAngle+i*stepAngle)* (Math.PI/180));
+			var x_tmp2 = x + (width-thickness) * Math.cos((startAngle+i*stepAngle)* (Math.PI/180));
+			var y_tmp2 = y + (height-thickness) * Math.sin((startAngle+i*stepAngle)* (Math.PI/180));
+			GraphicsFactoryHelper.addTriangle(x_tmp, y_tmp, x_tmp2, y_tmp2, x_last, y_last, 0, vertices, curves);
+			GraphicsFactoryHelper.addTriangle(x_last2, y_last2, x_tmp2, y_tmp2, x_last, y_last, 0, vertices, curves);
+			x_last=x_tmp;
+			y_last=y_tmp;
+			x_last2=x_tmp2;
+			y_last2=y_tmp2;
+		}
+	}
+	public static addTriangle(startX:number,startY:number, controlX:number, controlY:number, endX:number, endY:number, tri_type:number, vertices:Array<number>, curves:boolean):void
 	{
 		var final_vert_cnt:number = vertices.length;
 		if(tri_type==0){
 			vertices[final_vert_cnt++] = startX;
 			vertices[final_vert_cnt++] = startY;
-			vertices[final_vert_cnt++] = 4.5736980577097704e-41;// ((127<<24)+(127<<16)+0+0)
+			if(curves)
+				vertices[final_vert_cnt++] = 4.5736980577097704e-41;// ((127<<24)+(127<<16)+0+0)
 			vertices[final_vert_cnt++] = controlX;
 			vertices[final_vert_cnt++] = controlY;
-			vertices[final_vert_cnt++] = 4.5736980577097704e-41;// ((127<<24)+(127<<16)+0+0)
+			if(curves)
+				vertices[final_vert_cnt++] = 4.5736980577097704e-41;// ((127<<24)+(127<<16)+0+0)
 			vertices[final_vert_cnt++] = endX;
 			vertices[final_vert_cnt++] = endY;
-			vertices[final_vert_cnt++] = 4.5736980577097704e-41;// ((127<<24)+(127<<16)+0+0)
+			if(curves)
+				vertices[final_vert_cnt++] = 4.5736980577097704e-41;// ((127<<24)+(127<<16)+0+0)
 		}
 		else if(tri_type<0){
 			vertices[final_vert_cnt++] = startX;
 			vertices[final_vert_cnt++] = startY;
-			vertices[final_vert_cnt++] = 1.1708844992641982e-38;// ((127<<24)+(127<<16)+0+0)
+			if(curves)
+				vertices[final_vert_cnt++] = 1.1708844992641982e-38;// ((127<<24)+(127<<16)+0+0)
 			vertices[final_vert_cnt++] = controlX;
 			vertices[final_vert_cnt++] = controlY;
-			vertices[final_vert_cnt++] = 2.2778106537599901e-41;// ((127<<24)+(63<<16)+0+0)
+			if(curves)
+				vertices[final_vert_cnt++] = 2.2778106537599901e-41;// ((127<<24)+(63<<16)+0+0)
 			vertices[final_vert_cnt++] = endX;
 			vertices[final_vert_cnt++] = endY;
-			vertices[final_vert_cnt++] = 1.7796490496925177e-43;// ((127<<24)+0+0+0)
+			if(curves)
+				vertices[final_vert_cnt++] = 1.7796490496925177e-43;// ((127<<24)+0+0+0)
 		}
 		else if(tri_type>0){
 			vertices[final_vert_cnt++] = startX;
 			vertices[final_vert_cnt++] = startY;
-			vertices[final_vert_cnt++] = 1.1708846393940446e-38;// ((-128<<24)+(127<<16)+0+0)
+			if(curves)
+				vertices[final_vert_cnt++] = 1.1708846393940446e-38;// ((-128<<24)+(127<<16)+0+0)
 			vertices[final_vert_cnt++] = controlX;
 			vertices[final_vert_cnt++] = controlY;
-			vertices[final_vert_cnt++] = 2.2779507836064226e-41;// ((-128<<24)+(63<<16)+0+0)
+			if(curves)
+				vertices[final_vert_cnt++] = 2.2779507836064226e-41;// ((-128<<24)+(63<<16)+0+0)
 			vertices[final_vert_cnt++] = endX;
 			vertices[final_vert_cnt++] = endY;
-			vertices[final_vert_cnt++] = 1.793662034335766e-43;// ((-128<<24)+0+0+0)
+			if(curves)
+				vertices[final_vert_cnt++] = 1.793662034335766e-43;// ((-128<<24)+0+0+0)
 		}
 	}
-	public static createCap(startX:number, startY:number, start_le:Point, start_ri:Point, dir_vec:Point, capstyle:number, cap_position:number, thickness:number, vertices:Array<number>):void
+	public static createCap(startX:number, startY:number, start_le:Point, start_ri:Point, dir_vec:Point, capstyle:number, cap_position:number, thickness:number, vertices:Array<number>, curves:boolean):void
 	{
 		if (capstyle == CapsStyle.ROUND) {
 			//console.log("add round cap");
@@ -83,7 +131,7 @@ export class GraphicsFactoryHelper
 			var tmp1_y:number = startY + (cap_position * (dir_vec.y * thickness));
 			tmp1_x = tmp1_x * 2 - start_le.x/2 - start_ri.x/2;
 			tmp1_y = tmp1_y * 2 - start_le.y/2 - start_ri.y/2;
-			GraphicsFactoryHelper.addTriangle(start_le.x, start_le.y, tmp1_x, tmp1_y, start_ri.x, start_ri.y, -1, vertices);
+			GraphicsFactoryHelper.addTriangle(start_le.x, start_le.y, tmp1_x, tmp1_y, start_ri.x, start_ri.y, -1, vertices, curves);
 		}
 		else if (capstyle == CapsStyle.SQUARE) {
 			//console.log("add square cap");
@@ -92,8 +140,8 @@ export class GraphicsFactoryHelper
 			var tmp2_x:number = start_ri.x + (cap_position * (dir_vec.x * thickness));
 			var tmp2_y:number = start_ri.y + (cap_position * (dir_vec.y * thickness));
 
-			GraphicsFactoryHelper.addTriangle(tmp2_x,tmp2_y, tmp1_x, tmp1_y, start_le.x, start_le.y, 0, vertices);
-			GraphicsFactoryHelper.addTriangle(tmp2_x,tmp2_y, start_le.x, start_le.y, start_ri.x, start_ri.y, 0, vertices);
+			GraphicsFactoryHelper.addTriangle(tmp2_x,tmp2_y, tmp1_x, tmp1_y, start_le.x, start_le.y, 0, vertices, curves);
+			GraphicsFactoryHelper.addTriangle(tmp2_x,tmp2_y, start_le.x, start_le.y, start_ri.x, start_ri.y, 0, vertices, curves);
 		}
 	}
 	public static getLineFormularData(a:Point, b:Point):Point
