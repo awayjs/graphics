@@ -1147,7 +1147,64 @@ export class Graphics extends AssetBase
 		}
 	}
 
-	//public drawRoundRectComplex(x:Float, y:Float, width:Float, height:Float, topLeftRadius:Float, topRightRadius:Float, bottomLeftRadius:Float, bottomRightRadius:Float):Void;
+	public drawRoundRectComplex(x:number, y:number, width:number, height:number, topLeftRadius:number, topRightRadius:number, bottomLeftRadius:number, bottomRightRadius:number){
+		var w:number=width;
+		var h:number=height;
+		var tl:number=topLeftRadius;
+		var tr:number=topRightRadius;
+		var bl:number=bottomLeftRadius;
+		var br:number=bottomRightRadius;
+		var t:number=0;
+		if(this._active_fill_path!=null){
+			this._active_fill_path.moveTo(x, y);
+			if(this._active_stroke_path!=null) {
+				t=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness/2;
+				w-=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness;
+				h-=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness;
+			}
+			GraphicsFactoryHelper.addTriangle(x+tl,y+tl,x+w-tr,y+tr, x+w-br,y+h-br, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+tl,y+tl, x+bl,y+h-bl,  x+w-br,y+h-br, 0, this._active_fill_path.verts, false);
+
+			GraphicsFactoryHelper.addTriangle(x+t,y+tl,x+tl,y+tl, x+t,y+h-bl, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+tl,y+tl, x+t,y+h-bl,  x+bl,y+h-bl, 0, this._active_fill_path.verts, false);
+
+			GraphicsFactoryHelper.addTriangle(x+tl,y+t,x+tl,y+tl, x+w-tr,y+t, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+tl,y+tl, x+w-tr,y+tr,  x+w-tr,y+t, 0, this._active_fill_path.verts, false);
+
+			GraphicsFactoryHelper.addTriangle(x+w-t,y+tr,x+w-tr,y+tr, x+w-t,y+h-br, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+w-tr,y+tr, x+w-t,y+h-br,  x+w-br,y+h-br, 0, this._active_fill_path.verts, false);
+
+			GraphicsFactoryHelper.addTriangle(x+bl,y+h-t,x+bl,y+h-bl, x+w-br,y+h-t, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+bl,y+h-bl, x+w-br,y+h-br,  x+w-br,y+h-t, 0, this._active_fill_path.verts, false);
+
+			GraphicsFactoryHelper.drawElipse(x+tl,y+tl, tl-t, tl-t, this._active_fill_path.verts, 180, 270, 5, false);
+			GraphicsFactoryHelper.drawElipse(x+w-tr,y+tr, tr-t, tr-t, this._active_fill_path.verts, 270, 360, 5, false);
+			GraphicsFactoryHelper.drawElipse(x+w-br,y+h-br, br-t, br-t, this._active_fill_path.verts, 0, 90, 5, false);
+			GraphicsFactoryHelper.drawElipse(x+bl,y+h-bl, bl-t, bl-t, this._active_fill_path.verts, 90, 180, 5, false);
+		}
+		if(this._active_stroke_path!=null){
+			this._active_stroke_path.moveTo(x, y);
+			t=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness/2;
+
+			GraphicsFactoryHelper.addTriangle(x-t, y+h-bl, x-t, y+tl, x+t, y+tl, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x-t, y+h-bl, x+t, y+h-bl, x+t, y+tl, 0, this._active_stroke_path.verts, false);
+
+			GraphicsFactoryHelper.addTriangle(x+tl, y-t, x+w-tr, y-t, x+tr, y+t, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+tl, y+t, x+w-tr, y-t, x+w-tr, y+t, 0, this._active_stroke_path.verts, false);
+
+			GraphicsFactoryHelper.addTriangle(x+w-t, y+h-br, x+w-t, y+tr, x+w+t, y+h-br, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+w+t, y+h-br, x+w+t, y+tr, x+w-t, y+tr, 0, this._active_stroke_path.verts, false);
+
+			GraphicsFactoryHelper.addTriangle(x+bl, y+h+t, x+w-br, y+h+t, x+bl, y+h-t, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+bl, y+h-t, x+w-br, y+h+t, x+w-br, y+h-t, 0, this._active_stroke_path.verts, false);
+ 
+			GraphicsFactoryHelper.drawElipseStrokes(x+tl,y+tl, tl, tl, this._active_stroke_path.verts, 180, 270, 5, t, false);
+			GraphicsFactoryHelper.drawElipseStrokes(x+w-tr,y+tr, tr, tr, this._active_stroke_path.verts, 270, 360, 5, t, false);
+			GraphicsFactoryHelper.drawElipseStrokes(x+w-br,y+h-br, br, br, this._active_stroke_path.verts, 0, 90, 5, t, false);
+			GraphicsFactoryHelper.drawElipseStrokes(x+bl,y+h-bl, bl, bl, this._active_stroke_path.verts, 90, 180, 5, t, false);
+
+		}
+	}
 
 	/**
 	 * Renders a set of triangles, typically to distort bitmaps and give them a
