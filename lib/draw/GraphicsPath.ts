@@ -125,7 +125,7 @@ export class GraphicsPath implements IGraphicsData
         }
         // if controlpoint and anchor are same as current point
         if(((this._cur_point.x==anchorX)&&(this._cur_point.y==anchorY))&&((this._cur_point.x==controlX)&&(this._cur_point.y==controlY))){
-            console.log("curveTo command not added because startpoint and endpoint are the same.");
+            //console.log("curveTo command not added because startpoint and endpoint are the same.");
             this.lineTo(anchorX, anchorY);
             return;
         }
@@ -149,7 +149,7 @@ export class GraphicsPath implements IGraphicsData
     {
         console.log("cubicCurveTo not yet fully supported.");
         if((this._cur_point.x==anchorX)&&(this._cur_point.y==anchorY)){
-            console.log("curveTo command not added because startpoint and endpoint are the same.");
+            //console.log("curveTo command not added because startpoint and endpoint are the same.");
             return;
         }
         if(this._commands[this._commands.length-1].length==0){
@@ -170,7 +170,7 @@ export class GraphicsPath implements IGraphicsData
     public lineTo(x:number, y:number)
     {
         if((this._cur_point.x==x)&&(this._cur_point.y==y)){
-            console.log("lineTo command not added because startpoint and endpoint are the same.");
+            //console.log("lineTo command not added because startpoint and endpoint are the same.");
             return;
         }
         if(this._commands[this._commands.length-1].length==0){
@@ -191,7 +191,7 @@ export class GraphicsPath implements IGraphicsData
     public moveTo(x:number, y:number)
     {
         if((this._cur_point.x==x)&&(this._cur_point.y==y)){
-            console.log("moveTo command not added because startpoint and endpoint are the same.");
+            //console.log("moveTo command not added because startpoint and endpoint are the same.");
             return;
         }
         // whenever a moveTo command apears, we start a new contour
