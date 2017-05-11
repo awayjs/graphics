@@ -338,7 +338,7 @@ export class GraphicsFactoryFills
 				//elements.setUVs(new Float2Attributes(attributesBuffer));
 				var material:MaterialBase = Graphics.get_material_for_color((<GraphicsFillStyle>targetGraphics.queued_fill_pathes[cp].style).color);
 				material.bothSides = true;
-				material.alpha = 0.5;
+				material.alpha=(<GraphicsFillStyle>targetGraphics.queued_fill_pathes[cp].style).color;
 				targetGraphics.addShape(Shape.getShape(elements, material));
 			}
 		}
