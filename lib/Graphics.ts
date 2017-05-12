@@ -1372,6 +1372,7 @@ export class Graphics extends AssetBase
 	{
 		// start a new stroke path
 		this._active_stroke_path=new GraphicsPath();
+		this._active_stroke_path.style = new  GraphicsStrokeStyle(colors[0], alphas[0], 1);//, jointstyle, capstyle, miterLimit);
 		if(this._current_position.x!=0 || this._current_position.y!=0)
 			this._active_stroke_path.moveTo(this._current_position.x, this._current_position.y);
 		this._queued_stroke_pathes.push(this._active_stroke_path);
@@ -1552,7 +1553,7 @@ export class Graphics extends AssetBase
 	public lineStyle(thickness:number = 0, color:number /*int*/ = 0, alpha:number = 1, pixelHinting:boolean = false, scaleMode:LineScaleMode = null, capstyle:number = CapsStyle.NONE, jointstyle:number = JointStyle.MITER, miterLimit:number = 100):void
 	{
 		if(thickness==0){
-			thickness=0.5;
+			thickness=0.3;
 		}
 		if(color==0){
 			color=0x010101;
