@@ -571,6 +571,9 @@ export class Graphics extends AssetBase
 	 */
 	public beginFill(color:number /*int*/, alpha:number = 1):void
 	{
+		if(color==0){
+			color=0x010101;
+		}
 		this.draw_fills();
 		// start a new fill path
 		this._active_fill_path=new GraphicsPath();
@@ -1548,6 +1551,12 @@ export class Graphics extends AssetBase
 	 */
 	public lineStyle(thickness:number = 0, color:number /*int*/ = 0, alpha:number = 1, pixelHinting:boolean = false, scaleMode:LineScaleMode = null, capstyle:number = CapsStyle.NONE, jointstyle:number = JointStyle.MITER, miterLimit:number = 100):void
 	{
+		if(thickness==0){
+			thickness=0.5;
+		}
+		if(color==0){
+			color=0x010101;
+		}
 		// start a new stroke path
 		this._active_stroke_path=new GraphicsPath();
 		this._active_stroke_path.style = new  GraphicsStrokeStyle(color, alpha, thickness, jointstyle, capstyle, miterLimit);
