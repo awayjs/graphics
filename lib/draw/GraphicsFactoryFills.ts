@@ -336,9 +336,7 @@ export class GraphicsFactoryFills
 				elements.setPositions(new Float2Attributes(attributesBuffer));
 				//elements.setCustomAttributes("curves", new Float3Attributes(attributesBuffer));
 				//elements.setUVs(new Float2Attributes(attributesBuffer));
-				var material:MaterialBase = Graphics.get_material_for_color((<GraphicsFillStyle>targetGraphics.queued_fill_pathes[cp].style).color);
-				material.bothSides = true;
-				material.alpha=(<GraphicsFillStyle>targetGraphics.queued_fill_pathes[cp].style).alpha;
+				var material:MaterialBase = Graphics.get_material_for_color((<GraphicsFillStyle>targetGraphics.queued_fill_pathes[cp].style).color,(<GraphicsFillStyle>targetGraphics.queued_fill_pathes[cp].style).alpha);
 				targetGraphics.addShape(Shape.getShape(elements, material));
 			}
 		}

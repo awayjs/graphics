@@ -48,7 +48,7 @@ export class Graphics extends AssetBase
 {
 	private static _pool:Array<Graphics> = new Array<Graphics>();
 
-	public static get_material_for_color:Function=function(color:number):MaterialBase{
+	public static get_material_for_color:Function=function(color:number, alpha:number):MaterialBase{
 		return DefaultMaterialManager.getDefaultMaterial();
 	};
 
@@ -488,8 +488,7 @@ export class Graphics extends AssetBase
 		var i=0;
 		for(i=0; i<this.queued_stroke_pathes.length; i++){
 
-			var material:MaterialBase = Graphics.get_material_for_color((<GraphicsStrokeStyle>this.queued_stroke_pathes[i].style).color);
-			material.bothSides = true;
+			var material:MaterialBase = Graphics.get_material_for_color((<GraphicsStrokeStyle>this.queued_stroke_pathes[i].style).color, (<GraphicsStrokeStyle>this.queued_stroke_pathes[i].style).alpha);
 			var final_vert_list:Array<number>=[];
 			GraphicsFactoryStrokes.draw_pathes([this.queued_stroke_pathes[i]], final_vert_list, material.curves);
 			final_vert_list=final_vert_list.concat(this.queued_stroke_pathes[i].verts);
