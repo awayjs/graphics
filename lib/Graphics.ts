@@ -342,12 +342,24 @@ export class Graphics extends AssetBase
 
 	public clear():void
 	{
+
 		for (var i:number = this._shapes.length - 1; i>=0; i--){
 			this._shapes[i].clear();
 			//this._shapes[i].dispose();
 		}
+		//this.invalidateElements();
 	}
 
+	public clearDrawing():void
+	{
+		/*
+		 for (var i:number = this._shapes.length - 1; i>=0; i--){
+		 this._shapes[i].clear();
+		 //this._shapes[i].dispose();
+		 }*/
+		this.removeAllShapes();
+		//this.invalidateElements();
+	}
 	/**
 	 * Clears all resources used by the Graphics object, including SubGeometries.
 	 */
