@@ -358,6 +358,8 @@ export class Graphics extends AssetBase
 		 //this._shapes[i].dispose();
 		 }*/
 		this.removeAllShapes();
+		this._active_fill_path=null;
+		this._active_stroke_path=null;
 		//this.invalidateElements();
 	}
 	/**
@@ -456,8 +458,14 @@ export class Graphics extends AssetBase
 	public acceptTraverser(traverser:TraverserBase):void
 	{
 		var len:number = this._shapes.length;
+/*
 		for (var i:number = 0; i < len; i++)
 			traverser[this._shapes[i].elements.traverseName](this._shapes[i]);
+		*/
+		while(len>0){
+			len--;
+			traverser[this._shapes[len].elements.traverseName](this._shapes[len]);
+		}
 	}
 
 	private _onInvalidateProperties(event:StyleEvent):void
@@ -1266,7 +1274,7 @@ export class Graphics extends AssetBase
 		this.draw_fills();
 		this._active_fill_path=null;
 		this._active_stroke_path=null;
-		this.invalidate();
+		//this.invalidate();
 
 	}
 
