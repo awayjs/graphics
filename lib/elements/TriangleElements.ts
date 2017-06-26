@@ -1,4 +1,4 @@
-import {AttributesView, Float4Attributes, Float3Attributes, Float2Attributes, Short3Attributes, Box, Sphere, Matrix3D, Vector3D} from "@awayjs/core";
+import {AttributesView, Float4Attributes, Float3Attributes, Float2Attributes, Short3Attributes, Rectangle, Box, Sphere, Matrix3D, Vector3D} from "@awayjs/core";
 
 import {TraverserBase} from "../base/TraverserBase";
 import {ElementsUtils} from "../utils/ElementsUtils";
@@ -36,6 +36,15 @@ export class TriangleElements extends ElementsBase
 	//used for hittesting geometry
 	public hitTestCache:Object = new Object();
 
+	public originalSlice9Size:Rectangle;
+	public slice9offsets:Rectangle;
+	public slice9Indices:number[];
+	public initialSlice9Positions:number[];
+
+	public updateSlice9(width:number, height:number){
+
+	}
+	
 	public get assetType():string
 	{
 		return TriangleElements.assetType;
@@ -540,6 +549,13 @@ export class TriangleElements extends ElementsBase
 		//return auto derives to cloned values
 		elements.autoDeriveNormals = this._autoDeriveNormals = autoDeriveNormals;
 		elements.autoDeriveTangents = this._autoDeriveTangents = autoDeriveTangents;
+
+		if(this.slice9Indices){
+			elements.originalSlice9Size = this.originalSlice9Size;
+			elements.slice9offsets = this.slice9offsets;
+			elements.slice9Indices = this.slice9Indices;
+			elements.initialSlice9Positions = this.initialSlice9Positions;
+		}
 	}
 
 	/**

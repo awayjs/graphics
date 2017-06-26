@@ -11,6 +11,7 @@ import {GraphicsPath} from "./draw/GraphicsPath";
 import {GraphicsFactoryFills} from "./draw/GraphicsFactoryFills";
 import {GraphicsFactoryStrokes} from "./draw/GraphicsFactoryStrokes";
 import {GraphicsFactoryHelper} from "./draw/GraphicsFactoryHelper";
+import {ElementsUtils} from "./utils/ElementsUtils";
 
 import {InterpolationMethod} from "./draw/InterpolationMethod";
 import {JointStyle} from "./draw/JointStyle";
@@ -23,6 +24,7 @@ import {GraphicsPathWinding} from "./draw/GraphicsPathWinding";
 import {IGraphicsData} from "./draw/IGraphicsData";
 import {GraphicsStrokeStyle} from "./draw/GraphicsStrokeStyle";
 import {GraphicsFillStyle} from "./draw/GraphicsFillStyle";
+import {GradientFillStyle} from "./draw/GradientFillStyle";
 import {TriangleElements} from "./elements/TriangleElements";
 import {ElementsEvent} from "./events/ElementsEvent";
 import {ShapeEvent} from "./events/ShapeEvent";
@@ -31,7 +33,7 @@ import {BitmapImage2D} from "./image/BitmapImage2D";
 import {Sampler2D} from "./image/Sampler2D";
 import {MaterialBase} from "./materials/MaterialBase";
 import {DefaultMaterialManager} from "./managers/DefaultMaterialManager";
-
+import {Rectangle} from "@awayjs/core"
 /**
  *
  * Graphics is a collection of Shapes, each of which contain the actual geometrical data such as vertices,
@@ -49,6 +51,9 @@ export class Graphics extends AssetBase
 	private static _pool:Array<Graphics> = new Array<Graphics>();
 
 	public static get_material_for_color:Function=function(color:number, alpha:number):MaterialBase{
+		return DefaultMaterialManager.getDefaultMaterial();
+	};
+	public static get_material_for_gradient:Function=function(gradient:GradientFillStyle):MaterialBase{
 		return DefaultMaterialManager.getDefaultMaterial();
 	};
 
@@ -96,7 +101,34 @@ export class Graphics extends AssetBase
 	private _current_position:Point=new Point();
 
 	private _entity:IEntity;
+	public slice9Rectangle:Rectangle;
+	public originalSlice9Size:Rectangle;
+	public minSlice9Width:number;
+	public minSlice9Height:number;
 
+	public updateSlice9(width:number, height:number){
+
+		if(width<this.minSlice9Width){
+			width=this.minSlice9Width;
+		}
+		if(height<this.minSlice9Height){
+			height=this.minSlice9Height;
+		}
+		if(width==this.slice9Rectangle.width && height == this.slice9Rectangle.height){
+			return;
+		}
+		this.slice9Rectangle.width=width;//+this.minSlice9Width;
+		this.slice9Rectangle.height=height;//+this.minSlice9Height;
+
+		this.slice9Rectangle.x= this.originalSlice9Size.x-((width-this.originalSlice9Size.width)/2);
+		this.slice9Rectangle.y= this.originalSlice9Size.y-((height-this.originalSlice9Size.height)/2);
+
+		var len:number = this._shapes.length;
+		for (var i:number = 0; i < len; i++) {
+			ElementsUtils.updateTriangleGraphicsSlice9((<TriangleElements>this._shapes[i].elements), this.slice9Rectangle);
+		}
+	}
+	
 	public get assetType():string
 	{
 		return Graphics.assetType;
@@ -322,6 +354,15 @@ export class Graphics extends AssetBase
 		graphics.style = this._style;
 		graphics.particles = this.particles;
 		graphics.numParticles = this.numParticles;
+		if(this.slice9Rectangle){
+			graphics.slice9Rectangle=new Rectangle();
+			graphics.slice9Rectangle.copyFrom(this.slice9Rectangle);
+			graphics.originalSlice9Size=new Rectangle();
+			graphics.originalSlice9Size.copyFrom(this.originalSlice9Size);
+			graphics.minSlice9Width = this.minSlice9Width;
+			graphics.minSlice9Height = this.minSlice9Height;
+
+		}
 
 		graphics._addShapes(this._shapes);
 
@@ -686,13 +727,15 @@ export class Graphics extends AssetBase
 	 *                            a <code>focalPointRatio</code> set to 0.75:
 	 * @throws ArgumentError If the <code>type</code> parameter is not valid.
 	 */
-	public beginGradientFill(type:GradientType, colors:Array<number /*int*/>, alphas:Array<number>, ratios:Array<number /*int*/>, matrix:Matrix = null, spreadMethod:string = "pad", interpolationMethod:string = "rgb", focalPointRatio:number = 0):void
+	public beginGradientFill(type:GradientType, colors:number[], alphas:number[], ratios:number[], matrix:Matrix = null, spreadMethod:string = "pad", interpolationMethod:string = "rgb", focalPointRatio:number = 0):void
 	{
 		this.draw_fills();
 		// start a new fill path
 		this._active_fill_path=new GraphicsPath();
 		// todo: create gradient fill style
-		this._active_fill_path.style=new GraphicsFillStyle(colors[0], alphas[0]);
+		this._active_fill_path.style=new GraphicsFillStyle(colors[0], alphas[0]);//, ratios, matrix, spreadMethod, interpolationMethod, focalPointRatio);
+
+		//this._active_fill_path.style=new GradientFillStyle(type, colors, alphas, ratios, matrix, spreadMethod, interpolationMethod, focalPointRatio);
 		if(this._current_position.x!=0 || this._current_position.y!=0)
 			this._active_fill_path.moveTo(this._current_position.x, this._current_position.y);
 		this._queued_fill_pathes.push(this._active_fill_path);
@@ -1643,6 +1686,13 @@ export class Graphics extends AssetBase
 		var len:number = shapes.length;
 		for (var i:number = 0; i < len; i++) {
 			shape = shapes[i];
+			if(this.slice9Rectangle){
+				// todo: this is a dirty workaround to get the slice9-shapes cloned:
+				var new_shape:Shape=new Shape(ElementsUtils.updateTriangleGraphicsSlice9((<TriangleElements>shape.elements), this.originalSlice9Size, false, true));
+				new_shape.material=shape.material;
+				new_shape.style=shape.style;
+				shape=new_shape;
+			}
 			shape.addEventListener(ElementsEvent.INVALIDATE_VERTICES, this._onInvalidateVerticesDelegate);
 			shape.addEventListener(ShapeEvent.ADD_MATERIAL, this._onAddMaterialDelegate);
 			shape.addEventListener(ShapeEvent.REMOVE_MATERIAL, this._onRemoveMaterialDelegate);

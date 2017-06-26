@@ -1,4 +1,4 @@
-import {AttributesBuffer, AttributesView, Short2Attributes, Short3Attributes, Float3Attributes, Float4Attributes, Byte4Attributes, Matrix3D, Vector3D, Box, Sphere} from "@awayjs/core";
+import {AttributesBuffer, AttributesView, Short2Attributes, Short3Attributes, Float2Attributes, Float3Attributes, Float4Attributes, Byte4Attributes, Matrix3D, Vector3D, Box, Sphere, Rectangle, Point} from "@awayjs/core";
 
 import {TriangleElements} from "../elements/TriangleElements";
 
@@ -1006,4 +1006,152 @@ export class ElementsUtils
 		return output;
 	}
 
+	public static updateTriangleGraphicsSlice9(triangleElements:TriangleElements, rect:Rectangle, init:boolean=false, copy:boolean=false):TriangleElements
+	{
+		// todo: for now this only works for Float2Attributes.
+
+		if(triangleElements.slice9Indices.length!=9){
+			throw("ElementUtils: Error - triangleElement does not provide valid slice9Indices!");
+		}
+
+		var s_len=triangleElements.slice9Indices.length;
+
+		var innerWidth:number=rect.width-triangleElements.slice9offsets.x-triangleElements.slice9offsets.width;
+
+		var innerHeight:number=rect.height-triangleElements.slice9offsets.y-triangleElements.slice9offsets.height;
+
+		var newElem:TriangleElements;
+		var positions:ArrayBufferView;
+		if(copy){
+
+			var newverts:Uint8Array = new Uint8Array(triangleElements.positions.count*8);
+			while (v < triangleElements.positions.count*2) {
+				newverts[v] = positions[v++];
+				newverts[v] = positions[v++];
+			}
+			var vertexBuffer:AttributesBuffer = new AttributesBuffer(8, triangleElements.positions.count);
+			vertexBuffer.bufferView = newverts;
+			var newElem:TriangleElements=new TriangleElements(vertexBuffer);
+			newElem.setPositions(new Float2Attributes(vertexBuffer));
+			newElem.slice9offsets=triangleElements.slice9offsets;
+			newElem.initialSlice9Positions=triangleElements.initialSlice9Positions;
+			newElem.slice9Indices=triangleElements.slice9Indices;
+
+			positions=newElem.positions.get(newElem.positions.count);
+
+			v=0;
+		}
+		else{
+
+			positions=triangleElements.positions.get(triangleElements.positions.count);
+
+		}
+
+		// todo: i had trouble when just cloning the positions 
+		//	for now i just create the initialSlice9Positions by iterating the positions
+
+		var v:number=0;
+
+		var init_positions:number[];
+		if(init){
+			init_positions=[];
+			init_positions.length=triangleElements.positions.count*2;
+			while (v < triangleElements.positions.count*2) {
+				init_positions[v] = positions[v++];
+				init_positions[v] = positions[v++];
+			}
+			triangleElements.initialSlice9Positions=init_positions;
+		}
+		else{
+			init_positions=triangleElements.initialSlice9Positions;
+		}
+
+		var slice9Indices:number[]=triangleElements.slice9Indices;
+
+		var s:number=0;
+		v=0;
+
+		var slice9Offsets_x:number[]=[];
+		slice9Offsets_x.length=3;
+		var slice9Offsets_y:number[]=[];
+		slice9Offsets_y.length=3;
+
+		slice9Offsets_x[0]=rect.x;
+		slice9Offsets_x[1]=rect.x+triangleElements.slice9offsets.x;
+		slice9Offsets_x[2]=rect.x+triangleElements.slice9offsets.x+innerWidth;
+
+		slice9Offsets_y[0]=rect.y;
+		slice9Offsets_y[1]=rect.y+triangleElements.slice9offsets.y;
+		slice9Offsets_y[2]=rect.y+triangleElements.slice9offsets.y+innerHeight;
+
+		//console.log("slice9Offsets_x",slice9Offsets_x);
+		//console.log("slice9Offsets_y",slice9Offsets_x);
+
+		var row_cnt:number=-1;
+		var col_cnt:number=0;
+		var scalex:number=0;
+		var scaley:number=0;
+		var offsetx:number=0;
+		var offsety:number=0;
+
+		// iterating over the 9 chunks - keep in mind that we are constructing a 3x3 grid:
+		for(s=0;s<s_len;s++){
+
+			// keep track of column and row index
+			if(row_cnt==2){
+				col_cnt++;
+				row_cnt=-1;
+			}
+			row_cnt++;
+
+			// only need to x-scale if this is the middle column
+			// if the innerWidth<=0 we can skip this complete column
+			scalex=1;
+			if(col_cnt==1){
+				if(innerWidth<=0){
+					innerWidth=0;
+					//s=5;
+					//v=slice9Indices[s];
+					//continue;
+				}
+				scalex=innerWidth;
+			}
+
+			// only need to y-scale if this is the middle row
+			// if the innerHeight<=0 we can skip this complete row
+			scaley=1;
+			if(row_cnt==1){
+				if(innerHeight<=0){
+					innerHeight=0;
+					//todo: why does the skipping not work ?
+					//v=slice9Indices[s];
+					//continue;
+				}
+				scaley=innerHeight;
+			}
+
+			// offsetx is different for each column
+			offsetx=slice9Offsets_x[col_cnt];
+
+			// offsety is different for each row
+			offsety=slice9Offsets_y[row_cnt];
+
+
+			// iterate the verts and apply the translation / scale
+			while (v < slice9Indices[s]) {
+
+				positions[v] = offsetx + (init_positions[v++] * scalex);
+				positions[v] = offsety + (init_positions[v++] * scaley);
+
+			}
+
+		}
+		//console.log("positions",positions);
+		if(copy){
+			newElem.positions.invalidate();
+			return newElem;
+		}
+		triangleElements.positions.invalidate();
+		return triangleElements;
+	}
 }

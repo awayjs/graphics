@@ -1,6 +1,8 @@
-import {Point, AttributesBuffer, AttributesView, Float3Attributes, Float2Attributes,MathConsts} from "@awayjs/core";
+import {Point, AttributesBuffer, AttributesView, Float3Attributes, Float2Attributes, MathConsts, Matrix} from "@awayjs/core";
 
 import {GraphicsFillStyle} from "./GraphicsFillStyle";
+import {GradientFillStyle} from "./GradientFillStyle";
+import {GradientType} from "./GradientType";
 import {GraphicsFactoryHelper} from "./GraphicsFactoryHelper";
 import {TriangleElements} from "../elements/TriangleElements";
 import {MaterialBase} from "../materials/MaterialBase";
@@ -8,6 +10,9 @@ import {Shape} from "../base/Shape";
 import {GraphicsPath} from "../draw/GraphicsPath";
 import {GraphicsPathCommand} from "./GraphicsPathCommand";
 import {DefaultMaterialManager}	from "../managers/DefaultMaterialManager";
+
+import {Style} from "../base/Style";
+import {Sampler2D} from "../image/Sampler2D";
 
 import {Graphics} from "../Graphics";
 
@@ -336,8 +341,40 @@ export class GraphicsFactoryFills
 				elements.setPositions(new Float2Attributes(attributesBuffer));
 				//elements.setCustomAttributes("curves", new Float3Attributes(attributesBuffer));
 				//elements.setUVs(new Float2Attributes(attributesBuffer));
-				var material:MaterialBase = Graphics.get_material_for_color((<GraphicsFillStyle>targetGraphics.queued_fill_pathes[cp].style).color,(<GraphicsFillStyle>targetGraphics.queued_fill_pathes[cp].style).alpha);
-				targetGraphics.addShape(Shape.getShape(elements, material));
+
+				var sampler:Sampler2D;
+				var style:Style;
+				var material:MaterialBase;
+				if(targetGraphics.queued_fill_pathes[cp].style.data_type==GraphicsFillStyle.data_type){
+					material = Graphics.get_material_for_color((<GraphicsFillStyle>targetGraphics.queued_fill_pathes[cp].style).color,(<GraphicsFillStyle>targetGraphics.queued_fill_pathes[cp].style).alpha);
+				}
+				else if(targetGraphics.queued_fill_pathes[cp].style.data_type==GradientFillStyle.data_type){
+					var gradientStyle:GradientFillStyle=(<GradientFillStyle>targetGraphics.queued_fill_pathes[cp].style);
+					material = Graphics.get_material_for_gradient(gradientStyle);
+					style = new Style();
+					sampler = new Sampler2D();
+					style.addSamplerAt(sampler, material.getTextureAt(0));
+					material.animateUVs=true;
+					style.uvMatrix = gradientStyle.getUVMatrix();
+					if(gradientStyle.type==GradientType.LINEAR){
+
+					}
+					else if(gradientStyle.type==GradientType.RADIAL){
+
+						sampler.imageRect = gradientStyle.uvRectangle;
+						material.imageRect = true;
+
+					}
+					style.uvMatrix = gradientStyle.getUVMatrix();
+
+
+				}
+				var shape:Shape=Shape.getShape(elements, material);
+				if(shape){
+					shape.style=style;
+				}
+
+				targetGraphics.addShape(shape);
 			}
 		}
 		targetGraphics.queued_fill_pathes.length=0;
