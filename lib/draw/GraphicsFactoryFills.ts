@@ -1,4 +1,4 @@
-import {Point, AttributesBuffer, AttributesView, Float3Attributes, Float2Attributes, MathConsts, Matrix} from "@awayjs/core";
+import {Point, AttributesBuffer, AttributesView, Float3Attributes, Float2Attributes, MathConsts, Rectangle, Matrix} from "@awayjs/core";
 
 import {GraphicsFillStyle} from "./GraphicsFillStyle";
 import {GradientFillStyle} from "./GradientFillStyle";
@@ -15,6 +15,7 @@ import {Style} from "../base/Style";
 import {Sampler2D} from "../image/Sampler2D";
 
 import {Graphics} from "../Graphics";
+import {MappingMode} from "../textures/MappingMode";
 
 /**
  * The Graphics class contains a set of methods that you can use to create a
@@ -347,34 +348,27 @@ export class GraphicsFactoryFills
 				var material:MaterialBase;
 				if(targetGraphics.queued_fill_pathes[cp].style.data_type==GraphicsFillStyle.data_type){
 					material = Graphics.get_material_for_color((<GraphicsFillStyle>targetGraphics.queued_fill_pathes[cp].style).color,(<GraphicsFillStyle>targetGraphics.queued_fill_pathes[cp].style).alpha);
+
+					targetGraphics.addShape(Shape.getShape(elements, material));
 				}
 				else if(targetGraphics.queued_fill_pathes[cp].style.data_type==GradientFillStyle.data_type){
 					var gradientStyle:GradientFillStyle=(<GradientFillStyle>targetGraphics.queued_fill_pathes[cp].style);
-					material = Graphics.get_material_for_gradient(gradientStyle);
-					style = new Style();
+					var obj= Graphics.get_material_for_gradient(gradientStyle);
+					material = obj.material;
+
+					var shape:Shape=targetGraphics.addShape(Shape.getShape(elements, material));
+					shape.style = new Style();
 					sampler = new Sampler2D();
-					style.addSamplerAt(sampler, material.getTextureAt(0));
+					shape.style.addSamplerAt(sampler, material.getTextureAt(0));
 					material.animateUVs=true;
-					style.uvMatrix = gradientStyle.getUVMatrix();
-					if(gradientStyle.type==GradientType.LINEAR){
-
-					}
-					else if(gradientStyle.type==GradientType.RADIAL){
-
-						sampler.imageRect = gradientStyle.uvRectangle;
-						material.imageRect = true;
-
-					}
-					style.uvMatrix = gradientStyle.getUVMatrix();
-
-
-				}
-				var shape:Shape=Shape.getShape(elements, material);
-				if(shape){
-					shape.style=style;
+					shape.style.uvMatrix = gradientStyle.getUVMatrix();
+					
+					// todo: always use mappingmode = Radial ?
+					sampler.imageRect = gradientStyle.uvRectangle;
+					material.imageRect = true;
+					material.getTextureAt(0).mappingMode = MappingMode.RADIAL;
 				}
 
-				targetGraphics.addShape(shape);
 			}
 		}
 		targetGraphics.queued_fill_pathes.length=0;

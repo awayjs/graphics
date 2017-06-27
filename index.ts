@@ -19,6 +19,7 @@ export {GraphicsFactoryFills} 			from "./lib/draw/GraphicsFactoryFills";
 export {GraphicsFactoryHelper} 			from "./lib/draw/GraphicsFactoryHelper";
 export {GraphicsFactoryStrokes} 			from "./lib/draw/GraphicsFactoryStrokes";
 export {GraphicsFillStyle} 			    from "./lib/draw/GraphicsFillStyle";
+export {GradientFillStyle} 			    from "./lib/draw/GradientFillStyle";
 export {GraphicsStrokeStyle}			    from "./lib/draw/GraphicsStrokeStyle";
 export {GraphicsPath}					from "./lib/draw/GraphicsPath";
 export {GraphicsPathCommand}				from "./lib/draw/GraphicsPathCommand";
@@ -61,6 +62,7 @@ export {SpecularImage2D}				from "./lib/image/SpecularImage2D";
 //export {VideoSourceImage2D}				from "./lib/image/VideoSourceImage2D";
 
 export {DefaultMaterialManager}			from "./lib/managers/DefaultMaterialManager";
+export {TextureAtlas}					from "./lib/managers/TextureAtlas";
 
 export {BasicMaterial}					from "./lib/materials/BasicMaterial";
 export {MaterialBase}					from "./lib/materials/MaterialBase";

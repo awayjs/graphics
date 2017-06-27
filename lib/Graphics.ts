@@ -727,18 +727,20 @@ export class Graphics extends AssetBase
 	 *                            a <code>focalPointRatio</code> set to 0.75:
 	 * @throws ArgumentError If the <code>type</code> parameter is not valid.
 	 */
-	public beginGradientFill(type:GradientType, colors:number[], alphas:number[], ratios:number[], matrix:Matrix = null, spreadMethod:string = "pad", interpolationMethod:string = "rgb", focalPointRatio:number = 0):void
+	public beginGradientFill(type:string, colors:number[], alphas:number[], ratios:number[], matrix:Matrix = null, spreadMethod:string = "pad", interpolationMethod:string = "rgb", focalPointRatio:number = 0):void
 	{
 		this.draw_fills();
 		// start a new fill path
 		this._active_fill_path=new GraphicsPath();
 		// todo: create gradient fill style
-		this._active_fill_path.style=new GraphicsFillStyle(colors[0], alphas[0]);//, ratios, matrix, spreadMethod, interpolationMethod, focalPointRatio);
+		//this._active_fill_path.style=new GraphicsFillStyle(colors[0], alphas[0]);//, ratios, matrix, spreadMethod, interpolationMethod, focalPointRatio);
 
-		//this._active_fill_path.style=new GradientFillStyle(type, colors, alphas, ratios, matrix, spreadMethod, interpolationMethod, focalPointRatio);
+		this._active_fill_path.style= new GradientFillStyle(type, colors, alphas, ratios, matrix, spreadMethod, interpolationMethod, focalPointRatio);
 		if(this._current_position.x!=0 || this._current_position.y!=0)
 			this._active_fill_path.moveTo(this._current_position.x, this._current_position.y);
 		this._queued_fill_pathes.push(this._active_fill_path);
+
+		
 
 	}
 

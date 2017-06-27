@@ -692,7 +692,29 @@ export class BitmapImage2D extends Image2D
 		this._imageData.data[index + 0] = argb[1];
 		this._imageData.data[index + 1] = argb[2];
 		this._imageData.data[index + 2] = argb[3];
-		this._imageData.data[index + 3] = 0xFF;
+		this._imageData.data[index + 3] = argb[0]*0xFF;
+		/*console.log(argb[0]);
+		console.log(argb[1]);
+		console.log(argb[2]);
+		console.log(argb[3]);*/
+
+		if (!this._locked)
+			this._context.putImageData(this._imageData, 0, 0);
+
+		this.invalidate();
+	}
+	public setPixelFromArray(x:number, y:number, colors:number[]):void
+	{
+		if (!this._imageData)
+			this._imageData = this._context.getImageData(0, 0, this._rect.width, this._rect.height);
+
+		var index:number = (x + y*this._imageData.width)*4;
+
+		this._imageData.data[index + 0] = colors[1];
+		this._imageData.data[index + 1] = colors[2];
+		this._imageData.data[index + 2] = colors[3];
+		this._imageData.data[index + 3] = colors[0]*0xff;
+		//console.log(colors[0], colors[1], colors[2], colors[3]);
 
 		if (!this._locked)
 			this._context.putImageData(this._imageData, 0, 0);
