@@ -1174,11 +1174,15 @@ export class Graphics extends AssetBase
 	 */
 	public drawRoundRect(x:number, y:number, width:number, height:number, ellipseWidth:number, ellipseHeight:number = NaN):void
 	{
+		if(isNaN(ellipseHeight)){
+			ellipseHeight=ellipseWidth;
+		}
 		var w:number=width;
 		var h:number=height;
 		var ew:number=ellipseWidth;
 		var eh:number=ellipseHeight;
 		var t:number=0;
+
 		if(this._active_fill_path!=null){
 			this._active_fill_path.moveTo(x, y);
 			if(this._active_stroke_path!=null) {
