@@ -82,7 +82,7 @@ export class MaterialBase extends AssetBase implements IMaterial
 
 		if (imageColor instanceof ImageBase)
 			this._style.image = <ImageBase> imageColor;
-		else if (imageColor)
+		else if (!isNaN(imageColor))
 			this._style.color = Number(imageColor);
 
 		this.alpha = alpha;
