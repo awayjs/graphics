@@ -862,7 +862,7 @@ export class BitmapImage2D extends Image2D
 	 */
 	public _setSize(width:number, height:number):void
 	{
-		if (this._locked)
+		if (this._imageData)
 			this._context.putImageData(this._imageData, 0, 0);
 
 		if(this._imageCanvas) {
