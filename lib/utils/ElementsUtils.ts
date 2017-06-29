@@ -1006,7 +1006,7 @@ export class ElementsUtils
 		return output;
 	}
 
-	public static updateTriangleGraphicsSlice9(triangleElements:TriangleElements, rect:Rectangle, init:boolean=false, copy:boolean=false):TriangleElements
+	public static updateTriangleGraphicsSlice9(triangleElements:TriangleElements, originalRect:Rectangle, scaleX, scaleY, init:boolean=false, copy:boolean=false):TriangleElements
 	{
 		// todo: for now this only works for Float2Attributes.
 
@@ -1016,9 +1016,15 @@ export class ElementsUtils
 
 		var s_len=triangleElements.slice9Indices.length;
 
-		var innerWidth:number=rect.width-triangleElements.slice9offsets.x-triangleElements.slice9offsets.width;
+		var innerWidth:number=originalRect.width-triangleElements.slice9offsets.x/scaleX-triangleElements.slice9offsets.width/scaleX;
 
-		var innerHeight:number=rect.height-triangleElements.slice9offsets.y-triangleElements.slice9offsets.height;
+		var innerHeight:number=originalRect.height-triangleElements.slice9offsets.y/scaleY-triangleElements.slice9offsets.height/scaleY;
+
+		if (innerWidth < 0)
+			innerWidth = 0;
+
+		if (innerHeight < 0)
+			innerHeight = 0;
 
 		var newElem:TriangleElements;
 		var positions:ArrayBufferView;
@@ -1076,13 +1082,13 @@ export class ElementsUtils
 		var slice9Offsets_y:number[]=[];
 		slice9Offsets_y.length=3;
 
-		slice9Offsets_x[0]=rect.x;
-		slice9Offsets_x[1]=rect.x+triangleElements.slice9offsets.x;
-		slice9Offsets_x[2]=rect.x+triangleElements.slice9offsets.x+innerWidth;
+		slice9Offsets_x[0]=originalRect.x;
+		slice9Offsets_x[1]=originalRect.x+triangleElements.slice9offsets.x/scaleX;
+		slice9Offsets_x[2]=originalRect.x+triangleElements.slice9offsets.x/scaleX+innerWidth;
 
-		slice9Offsets_y[0]=rect.y;
-		slice9Offsets_y[1]=rect.y+triangleElements.slice9offsets.y;
-		slice9Offsets_y[2]=rect.y+triangleElements.slice9offsets.y+innerHeight;
+		slice9Offsets_y[0]=originalRect.y;
+		slice9Offsets_y[1]=originalRect.y+triangleElements.slice9offsets.y/scaleY;
+		slice9Offsets_y[2]=originalRect.y+triangleElements.slice9offsets.y/scaleY+innerHeight;
 
 		//console.log("slice9Offsets_x",slice9Offsets_x);
 		//console.log("slice9Offsets_y",slice9Offsets_x);
@@ -1106,28 +1112,18 @@ export class ElementsUtils
 
 			// only need to x-scale if this is the middle column
 			// if the innerWidth<=0 we can skip this complete column
-			scalex=1;
 			if(col_cnt==1){
-				if(innerWidth<=0){
-					innerWidth=0;
-					//s=5;
-					//v=slice9Indices[s];
-					//continue;
-				}
 				scalex=innerWidth;
+			} else {
+				scalex=1/scaleX;
 			}
 
 			// only need to y-scale if this is the middle row
 			// if the innerHeight<=0 we can skip this complete row
-			scaley=1;
 			if(row_cnt==1){
-				if(innerHeight<=0){
-					innerHeight=0;
-					//todo: why does the skipping not work ?
-					//v=slice9Indices[s];
-					//continue;
-				}
 				scaley=innerHeight;
+			} else {
+				scaley=1/scaleY;
 			}
 
 			// offsetx is different for each column

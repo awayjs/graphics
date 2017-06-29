@@ -105,27 +105,35 @@ export class Graphics extends AssetBase
 	public originalSlice9Size:Rectangle;
 	public minSlice9Width:number;
 	public minSlice9Height:number;
+	public slice9ScaleX:number = 1;
+	public slice9ScaleY:number = 1;
 
-	public updateSlice9(width:number, height:number){
-
-		if(width<this.minSlice9Width){
-			width=this.minSlice9Width;
-		}
-		if(height<this.minSlice9Height){
-			height=this.minSlice9Height;
-		}
-		if(width==this.slice9Rectangle.width && height == this.slice9Rectangle.height){
+	public updateSlice9(scaleX:number, scaleY:number)
+	{
+		if (this.slice9ScaleX == scaleX && this.slice9ScaleY == scaleY)
 			return;
-		}
-		this.slice9Rectangle.width=width;//+this.minSlice9Width;
-		this.slice9Rectangle.height=height;//+this.minSlice9Height;
 
-		this.slice9Rectangle.x= this.originalSlice9Size.x-((width-this.originalSlice9Size.width)/2);
-		this.slice9Rectangle.y= this.originalSlice9Size.y-((height-this.originalSlice9Size.height)/2);
+		this.slice9ScaleX = scaleX;
+		this.slice9ScaleY = scaleY;
+
+		// if(width<this.minSlice9Width){
+		// 	width=this.minSlice9Width;
+		// }
+		// if(height<this.minSlice9Height){
+		// 	height=this.minSlice9Height;
+		// }
+		// if(width==this.slice9Rectangle.width && height == this.slice9Rectangle.height){
+		// 	return;
+		// }
+		// this.slice9Rectangle.width=width;//+this.minSlice9Width;
+		// this.slice9Rectangle.height=height;//+this.minSlice9Height;
+		//
+		// this.slice9Rectangle.x= this.originalSlice9Size.x-((width-this.originalSlice9Size.width)/2);
+		// this.slice9Rectangle.y= this.originalSlice9Size.y-((height-this.originalSlice9Size.height)/2);
 
 		var len:number = this._shapes.length;
 		for (var i:number = 0; i < len; i++) {
-			ElementsUtils.updateTriangleGraphicsSlice9((<TriangleElements>this._shapes[i].elements), this.slice9Rectangle);
+			ElementsUtils.updateTriangleGraphicsSlice9((<TriangleElements>this._shapes[i].elements), this.originalSlice9Size, scaleX, scaleY);
 		}
 	}
 	
@@ -1690,7 +1698,7 @@ export class Graphics extends AssetBase
 			shape = shapes[i];
 			if(this.slice9Rectangle){
 				// todo: this is a dirty workaround to get the slice9-shapes cloned:
-				var new_shape:Shape=new Shape(ElementsUtils.updateTriangleGraphicsSlice9((<TriangleElements>shape.elements), this.originalSlice9Size, false, true));
+				var new_shape:Shape=new Shape(ElementsUtils.updateTriangleGraphicsSlice9((<TriangleElements>shape.elements), this.originalSlice9Size, 1, 1, false, true));
 				new_shape.material=shape.material;
 				new_shape.style=shape.style;
 				shape=new_shape;
