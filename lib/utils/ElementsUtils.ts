@@ -1016,15 +1016,23 @@ export class ElementsUtils
 
 		var s_len=triangleElements.slice9Indices.length;
 
-		var innerWidth:number=originalRect.width-triangleElements.slice9offsets.x/scaleX-triangleElements.slice9offsets.width/scaleX;
+		var innerWidth:number=originalRect.width - (triangleElements.slice9offsets.x + triangleElements.slice9offsets.width)/scaleX;
 
-		var innerHeight:number=originalRect.height-triangleElements.slice9offsets.y/scaleY-triangleElements.slice9offsets.height/scaleY;
+		var innerHeight:number=originalRect.height - (triangleElements.slice9offsets.y + triangleElements.slice9offsets.height)/scaleY;
 
-		if (innerWidth < 0)
+		if (innerWidth < 0) {
 			innerWidth = 0;
 
-		if (innerHeight < 0)
+			scaleX = (triangleElements.slice9offsets.x + triangleElements.slice9offsets.width)/originalRect.width;
+		}
+
+
+		if (innerHeight < 0) {
 			innerHeight = 0;
+
+			scaleY = (triangleElements.slice9offsets.y + triangleElements.slice9offsets.height)/originalRect.height;
+		}
+
 
 		var newElem:TriangleElements;
 		var positions:ArrayBufferView;
