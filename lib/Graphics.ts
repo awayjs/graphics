@@ -1179,8 +1179,8 @@ export class Graphics extends AssetBase
 		}
 		var w:number=width;
 		var h:number=height;
-		var ew:number=ellipseWidth;
-		var eh:number=ellipseHeight;
+		var ew:number=ellipseWidth-4;
+		var eh:number=ellipseHeight-4;
 		var t:number=0;
 
 		if(this._active_fill_path!=null){
