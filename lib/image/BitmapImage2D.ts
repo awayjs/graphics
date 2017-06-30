@@ -69,7 +69,6 @@ export class BitmapImage2D extends Image2D
 	private _imageCanvas:IImageCanvas;
 	private _context:CanvasRenderingContext2D;
 	private _imageData:ImageData;
-	private _imageDataDirty:boolean;
 	private _transparent:boolean;
 	private _locked:boolean = false;
 
@@ -144,15 +143,6 @@ export class BitmapImage2D extends Image2D
 
 		if (fillColor != null)
 			this.fillRect(this._rect, fillColor);
-	}
-
-	public invalidate():void
-	{
-		if (!this._imageDataDirty) {
-			this._imageDataDirty = true;
-
-			super.invalidate();
-		}
 	}
 
 	/**
