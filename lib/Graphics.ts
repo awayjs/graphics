@@ -108,6 +108,8 @@ export class Graphics extends AssetBase
 	public slice9ScaleX:number = 1;
 	public slice9ScaleY:number = 1;
 
+	private _drawingDirty:boolean = false;
+
 	public updateSlice9(scaleX:number, scaleY:number)
 	{
 		if (this.slice9ScaleX == scaleX && this.slice9ScaleY == scaleY)
@@ -264,7 +266,8 @@ export class Graphics extends AssetBase
 
 		//store associated entity object, otherwise assign itself as entity
 		this._entity = entity;
-		
+
+		this._drawingDirty=false;
 		this._current_position=new Point();
 		this._queued_fill_pathes=[];
 		this._queued_stroke_pathes=[];
@@ -409,6 +412,7 @@ export class Graphics extends AssetBase
 		this.removeAllShapes();
 		this._active_fill_path=null;
 		this._active_stroke_path=null;
+		this._drawingDirty=false;
 		//this.invalidateElements();
 	}
 	/**
@@ -439,6 +443,9 @@ export class Graphics extends AssetBase
 
 	public getBoxBounds():Box
 	{
+		if(this._drawingDirty){
+			this.endFill();
+		}
 		if (this._boxBoundsInvalid) {
 			this._boxBoundsInvalid = false;
 
@@ -506,6 +513,9 @@ export class Graphics extends AssetBase
 
 	public acceptTraverser(traverser:TraverserBase):void
 	{
+		if(this._drawingDirty){
+			this.endFill();
+		}
 		var len:number = this._shapes.length;
 /*
 		for (var i:number = 0; i < len; i++)
@@ -614,6 +624,7 @@ export class Graphics extends AssetBase
 	public beginBitmapFill(bitmap:BitmapImage2D, matrix:Matrix = null, repeat:boolean = true, smooth:boolean = false):void
 	{
 		this.draw_fills();
+		this._drawingDirty=true;
 		// start a new fill path
 		this._active_fill_path=new GraphicsPath();
 		// todo: create bitmap fill style
@@ -643,6 +654,7 @@ export class Graphics extends AssetBase
 			color=0x010101;
 		}
 		this.draw_fills();
+		this._drawingDirty=true;
 		// start a new fill path
 		this._active_fill_path=new GraphicsPath();
 		this._active_fill_path.style=new GraphicsFillStyle(color, alpha);
@@ -739,6 +751,7 @@ export class Graphics extends AssetBase
 	{
 		this.draw_fills();
 		// start a new fill path
+		this._drawingDirty=true;
 		this._active_fill_path=new GraphicsPath();
 		// todo: create gradient fill style
 		//this._active_fill_path.style=new GraphicsFillStyle(colors[0], alphas[0]);//, ratios, matrix, spreadMethod, interpolationMethod, focalPointRatio);
@@ -871,6 +884,7 @@ export class Graphics extends AssetBase
 	public curveTo(controlX:number, controlY:number, anchorX:number, anchorY:number):void
 	{
 
+		this._drawingDirty=true;
 		if(this._active_fill_path!=null){
 			this._active_fill_path.curveTo(controlX, controlY, anchorX, anchorY);
 		}
@@ -898,6 +912,7 @@ export class Graphics extends AssetBase
 	 */
 	public drawCircle(x:number, y:number, radius:number):void
 	{
+		this._drawingDirty=true;
 		//var radius2=radius*1.065;
 		if(this._active_fill_path!=null){
 			this._active_fill_path.moveTo(x, y);
@@ -947,6 +962,7 @@ export class Graphics extends AssetBase
 	 */
 	public drawEllipse(x:number, y:number, width:number, height:number):void
 	{
+		this._drawingDirty=true;
 		//var radius2=radius*1.065;
 		if(this._active_fill_path!=null){
 			this._active_fill_path.moveTo(x, y);
@@ -1100,6 +1116,7 @@ export class Graphics extends AssetBase
 	 */
 	public drawRect(x:number, y:number, width:number, height:number):void
 	{
+		this._drawingDirty=true;
 		if(this._active_fill_path!=null){
 			this._active_fill_path.moveTo(x, y);
 			/*
@@ -1174,6 +1191,7 @@ export class Graphics extends AssetBase
 	 */
 	public drawRoundRect(x:number, y:number, width:number, height:number, ellipseWidth:number, ellipseHeight:number = NaN):void
 	{
+		this._drawingDirty=true;
 		if(isNaN(ellipseHeight)){
 			ellipseHeight=ellipseWidth;
 		}
@@ -1233,6 +1251,7 @@ export class Graphics extends AssetBase
 		var tr:number=topRightRadius;
 		var bl:number=bottomLeftRadius;
 		var br:number=bottomRightRadius;
+		this._drawingDirty=true;
 		var t:number=0;
 		if(this._active_fill_path!=null){
 			this._active_fill_path.moveTo(x, y);
@@ -1305,6 +1324,7 @@ export class Graphics extends AssetBase
 	 */
 	public drawTriangles(vertices:Array<number>, indices:Array<number /*int*/> = null, uvtData:Array<number> = null, culling:TriangleCulling = null):void
 	{
+		this._drawingDirty=true;
 		if(this._active_fill_path!=null){
 			//todo
 		}
@@ -1331,6 +1351,7 @@ export class Graphics extends AssetBase
 		this.draw_fills();
 		this._active_fill_path=null;
 		this._active_stroke_path=null;
+		this._drawingDirty=false;
 		//this.invalidate();
 
 	}
@@ -1366,6 +1387,7 @@ export class Graphics extends AssetBase
 	 */
 	public lineBitmapStyle(bitmap:BitmapImage2D, matrix:Matrix = null, repeat:boolean = true, smooth:boolean = false):void
 	{
+		this._drawingDirty=true;
 		// start a new stroke path
 		this._active_stroke_path=new GraphicsPath();
 		if(this._current_position.x!=0 || this._current_position.y!=0)
@@ -1446,6 +1468,7 @@ export class Graphics extends AssetBase
 	 */
 	public lineGradientStyle(type:GradientType, colors:Array<number /*int*/>, alphas:Array<number>, ratios:Array<number>, matrix:Matrix = null, spreadMethod:SpreadMethod = null, interpolationMethod:InterpolationMethod = null, focalPointRatio:number = 0):void
 	{
+		this._drawingDirty=true;
 		// start a new stroke path
 		this._active_stroke_path=new GraphicsPath();
 		this._active_stroke_path.style = new  GraphicsStrokeStyle(colors[0], alphas[0], 1);//, jointstyle, capstyle, miterLimit);
@@ -1628,6 +1651,7 @@ export class Graphics extends AssetBase
 	 */
 	public lineStyle(thickness:number = 0, color:number /*int*/ = 0, alpha:number = 1, pixelHinting:boolean = false, scaleMode:LineScaleMode = null, capstyle:number = CapsStyle.NONE, jointstyle:number = JointStyle.MITER, miterLimit:number = 100):void
 	{
+		this._drawingDirty=true;
 		if(thickness==0){
 			thickness=0.3;
 		}
@@ -1660,6 +1684,7 @@ export class Graphics extends AssetBase
 	 */
 	public lineTo(x:number, y:number):void
 	{
+		this._drawingDirty=true;
 		if(this._active_fill_path!=null){
 			this._active_fill_path.lineTo(x, y);
 		}
@@ -1683,6 +1708,7 @@ export class Graphics extends AssetBase
 	 */
 	public moveTo(x:number, y:number):void
 	{
+		this._drawingDirty=true;
 
 		if(this._active_fill_path!=null){
 			this._active_fill_path.moveTo(x, y);
