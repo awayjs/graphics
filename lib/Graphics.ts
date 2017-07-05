@@ -452,14 +452,26 @@ export class Graphics extends AssetBase
 			if (!this._boxBounds)
 				this._boxBounds = new Box();
 
-			if (this._shapes.length) {
-				this._boxBounds.setBoundIdentity();
-				var len:number = this._shapes.length;
-				for (var i:number = 0; i < len; i++){
-					this._boxBounds = this._boxBounds.union(this._shapes[i].getBoxBounds(), this._boxBounds);
+			this._boxBounds.setEmpty();
+
+			var numShapes:number = this._shapes.length;
+
+			if (numShapes) {
+				var shapeBox:Box;
+				var first:boolean = true;
+				for (var i:number = 0; i < numShapes; i++){
+					shapeBox = this._shapes[i].getBoxBounds();
+
+					if (shapeBox.isEmpty())
+						continue;
+
+					if (first) {
+						first = false;
+						this._boxBounds.copyFrom(shapeBox);
+					} else {
+						this._boxBounds = this._boxBounds.union(shapeBox, this._boxBounds);
+					}
 				}
-			} else {
-				this._boxBounds.setEmpty();
 			}
 		}
 
