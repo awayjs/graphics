@@ -50,11 +50,11 @@ export class Graphics extends AssetBase
 {
 	private static _pool:Array<Graphics> = new Array<Graphics>();
 
-	public static get_material_for_color:Function=function(color:number, alpha:number):MaterialBase{
-		return DefaultMaterialManager.getDefaultMaterial();
+	public static get_material_for_color:Function=function(color:number, alpha:number):any{
+		return {material:DefaultMaterialManager.getDefaultMaterial()};
 	};
-	public static get_material_for_gradient:Function=function(gradient:GradientFillStyle):MaterialBase{
-		return DefaultMaterialManager.getDefaultMaterial();
+	public static get_material_for_gradient:Function=function(gradient:GradientFillStyle):any{
+		return {material:DefaultMaterialManager.getDefaultMaterial()};
 	};
 
 	public static getGraphics(entity:IEntity):Graphics
@@ -579,7 +579,9 @@ export class Graphics extends AssetBase
 		var i=0;
 		for(i=0; i<this.queued_stroke_pathes.length; i++){
 
-			var material:MaterialBase = Graphics.get_material_for_color((<GraphicsStrokeStyle>this.queued_stroke_pathes[i].style).color, (<GraphicsStrokeStyle>this.queued_stroke_pathes[i].style).alpha);
+			var obj:any = Graphics.get_material_for_color((<GraphicsStrokeStyle>this.queued_stroke_pathes[i].style).color, (<GraphicsStrokeStyle>this.queued_stroke_pathes[i].style).alpha);
+			var material:MaterialBase=obj.material;
+
 			var final_vert_list:Array<number>=[];
 			GraphicsFactoryStrokes.draw_pathes([this.queued_stroke_pathes[i]], final_vert_list, material.curves);
 			final_vert_list=final_vert_list.concat(this.queued_stroke_pathes[i].verts);
@@ -589,10 +591,18 @@ export class Graphics extends AssetBase
 			attributesView.dispose();
 			var elements:TriangleElements = new TriangleElements(attributesBuffer);
 			elements.setPositions(new Float2Attributes(attributesBuffer));
-			if(material.curves)
-				elements.setCustomAttributes("curves", new Byte4Attributes(attributesBuffer, false));
-			material.alpha=(<GraphicsStrokeStyle>this.queued_stroke_pathes[i].style).alpha;
-			this.addShape(Shape.getShape(elements, material));
+		//	if(material.curves)
+		//		elements.setCustomAttributes("curves", new Byte4Attributes(attributesBuffer, false));
+		//	material.alpha=(<GraphicsStrokeStyle>this.queued_stroke_pathes[i].style).alpha;
+			var shape:Shape=this.addShape(Shape.getShape(elements, material));
+			if(obj.colorPos){
+				 shape.style = new Style();
+				 var sampler:Sampler2D = new Sampler2D();
+				 material.animateUVs=true;
+				 shape.style.addSamplerAt(sampler, material.getTextureAt(0));
+
+				 shape.style.uvMatrix = new Matrix(0, 0, 0, 0, obj.colorPos.x, obj.colorPos.y);
+			}
 		}
 		this.queued_stroke_pathes.length=0;
 	}

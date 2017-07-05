@@ -347,9 +347,18 @@ export class GraphicsFactoryFills
 				var style:Style;
 				var material:MaterialBase;
 				if(targetGraphics.queued_fill_pathes[cp].style.data_type==GraphicsFillStyle.data_type){
-					material = Graphics.get_material_for_color((<GraphicsFillStyle>targetGraphics.queued_fill_pathes[cp].style).color,(<GraphicsFillStyle>targetGraphics.queued_fill_pathes[cp].style).alpha);
+					var obj= Graphics.get_material_for_color((<GraphicsFillStyle>targetGraphics.queued_fill_pathes[cp].style).color,(<GraphicsFillStyle>targetGraphics.queued_fill_pathes[cp].style).alpha);
+					material=obj.material;
+					var shape:Shape=targetGraphics.addShape(Shape.getShape(elements, material));
+					if(obj.colorPos){
+						shape.style = new Style();
+						sampler = new Sampler2D();
+						material.animateUVs=true;
+						shape.style.addSamplerAt(sampler, material.getTextureAt(0));
 
-					targetGraphics.addShape(Shape.getShape(elements, material));
+						shape.style.uvMatrix = new Matrix(0, 0, 0, 0, obj.colorPos.x, obj.colorPos.y);
+
+					}
 				}
 				else if(targetGraphics.queued_fill_pathes[cp].style.data_type==GradientFillStyle.data_type){
 					var gradientStyle:GradientFillStyle=(<GradientFillStyle>targetGraphics.queued_fill_pathes[cp].style);
@@ -357,6 +366,7 @@ export class GraphicsFactoryFills
 					material = obj.material;
 
 					var shape:Shape=targetGraphics.addShape(Shape.getShape(elements, material));
+
 					shape.style = new Style();
 					sampler = new Sampler2D();
 					shape.style.addSamplerAt(sampler, material.getTextureAt(0));
@@ -367,6 +377,8 @@ export class GraphicsFactoryFills
 					sampler.imageRect = gradientStyle.uvRectangle;
 					material.imageRect = true;
 					material.getTextureAt(0).mappingMode = MappingMode.RADIAL;
+
+
 				}
 
 			}
