@@ -145,6 +145,7 @@ export class TextureAtlas
 		var argb:number[] = ColorUtils.float32ColorToARGB(color);
 		argb[0]=alpha;
 		this.bitmap.setPixelFromArray(this.color_position, this.color_row, argb);
+		this.bitmap.invalidate();
 		
 		return new Point( 1/512 + this.color_position/256, 1/512+this.color_row/256);
 	}

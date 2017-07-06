@@ -118,25 +118,11 @@ export class Graphics extends AssetBase
 		this.slice9ScaleX = scaleX;
 		this.slice9ScaleY = scaleY;
 
-		// if(width<this.minSlice9Width){
-		// 	width=this.minSlice9Width;
-		// }
-		// if(height<this.minSlice9Height){
-		// 	height=this.minSlice9Height;
-		// }
-		// if(width==this.slice9Rectangle.width && height == this.slice9Rectangle.height){
-		// 	return;
-		// }
-		// this.slice9Rectangle.width=width;//+this.minSlice9Width;
-		// this.slice9Rectangle.height=height;//+this.minSlice9Height;
-		//
-		// this.slice9Rectangle.x= this.originalSlice9Size.x-((width-this.originalSlice9Size.width)/2);
-		// this.slice9Rectangle.y= this.originalSlice9Size.y-((height-this.originalSlice9Size.height)/2);
-
 		var len:number = this._shapes.length;
 		for (var i:number = 0; i < len; i++) {
 			ElementsUtils.updateTriangleGraphicsSlice9((<TriangleElements>this._shapes[i].elements), this.originalSlice9Size, scaleX, scaleY);
 		}
+		this.invalidate();
 	}
 	
 	public get assetType():string
@@ -1374,7 +1360,7 @@ export class Graphics extends AssetBase
 		this._active_fill_path=null;
 		this._active_stroke_path=null;
 		this._drawingDirty=false;
-		//this.invalidate();
+		this.invalidate();
 
 	}
 
