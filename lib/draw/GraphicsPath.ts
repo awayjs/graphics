@@ -280,7 +280,7 @@ export class GraphicsPath implements IGraphicsData
             
             // if the path is closed, we init the prevDirection with the last segments direction
             if(closed){
-                console.log("path is closed");
+                //console.log("path is closed");
                 prev_dir_vec.x = data[data.length-2]-data[data.length-4];
                 prev_dir_vec.y = data[data.length-1]-data[data.length-3];
                 prev_dir_vec.normalize();
@@ -288,7 +288,7 @@ export class GraphicsPath implements IGraphicsData
             }
             else{
 
-                console.log("path is not closed");
+                //console.log("path is not closed");
             }
             var data_cnt:number=0;
             prev_point.x=data[data_cnt++];
@@ -306,7 +306,7 @@ export class GraphicsPath implements IGraphicsData
                         break;
                     case GraphicsPathCommand.LINE_TO:
                         end_point = new Point(data[data_cnt++], data[data_cnt++]);
-                        console.log("LINE_TO ", i, end_point.x, end_point.y);
+                       // console.log("LINE_TO ", i, end_point.x, end_point.y);
                         this._positions[c].push(end_point.x);
                         this._positions[c].push(end_point.y);
                         this._newCommands[c].push(GraphicsPathCommand.LINE_TO);
@@ -323,7 +323,7 @@ export class GraphicsPath implements IGraphicsData
                         var k=0;
                         for (k=0; k<k_len; k+=2){
                             var newPoint = new Point(curve_verts[k], curve_verts[k+1]);
-                            console.log("tesselated curve to ", k, newPoint.x, newPoint.y);
+                           // console.log("tesselated curve to ", k, newPoint.x, newPoint.y);
                             this._newCommands[c].push(GraphicsPathCommand.LINE_TO);
                             this._positions[c].push(newPoint.x);
                             this._positions[c].push(newPoint.y);

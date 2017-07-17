@@ -236,7 +236,7 @@ export class GraphicsFactoryHelper
 		var diff_x=endx-startx;
 		var diff_y=endy-starty;
 		var len:number=Math.sqrt(diff_x*diff_x + diff_y*diff_y);
-		console.log("len", len, "angle_delta", angle_delta);
+		//console.log("len", len, "angle_delta", angle_delta);
 		// if the curve angle is smaller than threshold_ang_2 and the len is smaller than threshold_len, we just early out. we will not use the ctr-point at all
 		
 		// todo: find best constants / checks to test if a curve need more subdividing

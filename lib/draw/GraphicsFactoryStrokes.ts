@@ -120,7 +120,6 @@ export class GraphicsFactoryStrokes
 		var closed:boolean=false;
 		var last_dir_vec:Point=new Point();
 		var cp=0;
-		var half_thickness:number=strokeStyle.half_thickness*scale;
 		for(cp=0; cp<len; cp++){
 
 			one_path = graphic_pathes[cp];
@@ -128,6 +127,7 @@ export class GraphicsFactoryStrokes
 			contour_data = one_path._positions;
 			strokeStyle = one_path.stroke();
 
+			var half_thickness:number=strokeStyle.half_thickness*scale;
 
 			for(k=0; k<contour_commands.length; k++) {
 				commands = contour_commands[k];
@@ -648,8 +648,8 @@ export class GraphicsFactoryStrokes
 						//GraphicsFactoryHelper.drawPoint(start_left.x,start_left.y, final_vert_list, false);
 						//GraphicsFactoryHelper.drawPoint(end_right.x,end_right.y, final_vert_list, false);
 						//GraphicsFactoryHelper.drawPoint(end_left.x,end_left.y, final_vert_list, false);
-						GraphicsFactoryHelper.addTriangle(start_right.x,  start_right.y,  start_left.x,  start_left.y,  end_right.x,  end_right.y, 0, final_vert_list, curves);
-						GraphicsFactoryHelper.addTriangle(start_left.x,  start_left.y,  end_left.x,  end_left.y,  end_right.x,  end_right.y, 0, final_vert_list, curves);
+						GraphicsFactoryHelper.addTriangle(start_right.x,  start_right.y,    end_right.x,  end_right.y, start_left.x,  start_left.y, 0, final_vert_list, curves);
+						GraphicsFactoryHelper.addTriangle(start_left.x,  start_left.y,  end_right.x,  end_right.y, end_left.x,  end_left.y,  0, final_vert_list, curves);
 
 					}
 					else if(new_cmds[i]==GraphicsPathCommand.CURVE_TO){
