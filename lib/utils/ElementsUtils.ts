@@ -586,8 +586,6 @@ export class ElementsUtils
 				cx = positions[id2*posStride];
 				cy = positions[id2*posStride + 1];
 
-				//console.log(ax, ay, bx, by, cx, cy);
-
 				//from a to p
 				var dx:number = ax - x;
 				var dy:number = ay - y;
@@ -595,8 +593,6 @@ export class ElementsUtils
 				//edge normal (a-b)
 				var nx:number = by - ay;
 				var ny:number = -(bx - ax);
-
-				//console.log(ax,ay,bx,by,cx,cy);
 
 				var dot:number = (dx*nx) + (dy*ny);
 
@@ -681,7 +677,7 @@ export class ElementsUtils
 					} else {
 						id0 = k + 2;
 						id1 = k + 1;
-						id2 = k + 0;
+						id2 = k;
 					}
 
 					ax = positions[id0*posStride];
@@ -701,11 +697,11 @@ export class ElementsUtils
 
 					for (var i:number = min_index_x; i <= max_index_x; i++) {
 						for (var j:number = min_index_y; j <= max_index_y; j++) {
-							var index:number = i + j*divisions;
-							var nodes:Array<number> = cells[index] || (cells[index] = new Array<number>());
+							var c:number = i + j*divisions;
+							var nodes:Array<number> = cells[c] || (cells[c] = new Array<number>());
 
 							//push in the triangle ids
-							nodes.push(id0, id1, id2);
+							nodes.push(k);
 						}
 					}
 				}
@@ -713,23 +709,32 @@ export class ElementsUtils
 
 			var index_x:number = Math.floor((x - minx)*conversionX);
 			var index_y:number = Math.floor((y - miny)*conversionY);
-
-			if ((index_x < 0 || index_x > divisions || index_y < 0 || index_y > divisions))
-				return false;
-
 			var nodes:Array<number> = cells[index_x + index_y*divisions];
 
-			if (nodes == null)
+			if (nodes == null) {
+				hitTestCache.lastCollisionIndex = -1;
 				return false;
+			}
 
 			var nodeCount:number = nodes.length;
-			for (var k:number = 0; k < nodeCount; k += 3) {
-				id2 = nodes[k + 2];
+			for (var n:number = 0; n < nodeCount; n++) {
+				var k:number = nodes[n];
+
+				if (indices) {
+					id2 = indices[k];
+				} else {
+					id2 = k;
+				}
 
 				if (id2 == index) continue;
 
-				id1 = nodes[k + 1];
-				id0 = nodes[k];
+				if (indices) {
+					id0 = indices[k + 2];
+					id1 = indices[k + 1];
+				} else {
+					id0 = k + 2;
+					id1 = k + 1;
+				}
 
 				ax = positions[id0*posStride];
 				ay = positions[id0*posStride + 1];
@@ -792,14 +797,16 @@ export class ElementsUtils
 						var vv:number = w;
 
 						var d:number = uu*uu - vv;
-						var az:number = curves[id0*curveStride];
 
-						if (d > 0 && az == -128)
-							continue; else if (d < 0 && az == 127)
+						var az:number = curves[id0*curveStride];
+						if (d > 0 && az == -128) {
 							continue;
+						} else if (d < 0 && az == 127) {
+							continue;
+						}
 					}
 				}
-				hitTestCache.lastCollisionIndex = id2;
+				hitTestCache.lastCollisionIndex = k;
 				return true;
 			}
 			hitTestCache.lastCollisionIndex = -1;
@@ -831,8 +838,6 @@ export class ElementsUtils
 			cx = positions[id2*posStride];
 			cy = positions[id2*posStride + 1];
 
-			//console.log(ax, ay, bx, by, cx, cy);
-
 			//from a to p
 			var dx:number = ax - x;
 			var dy:number = ay - y;
@@ -840,8 +845,6 @@ export class ElementsUtils
 			//edge normal (a-b)
 			var nx:number = by - ay;
 			var ny:number = -(bx - ax);
-
-			//console.log(ax,ay,bx,by,cx,cy);
 
 			var dot:number = (dx*nx) + (dy*ny);
 
