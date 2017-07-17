@@ -1130,8 +1130,8 @@ export class Graphics extends AssetBase
 				w-=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness;
 				h-=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness;
 			}
-			GraphicsFactoryHelper.addTriangle(x+t, y+h+t, x+w+t, y+t, x+t, y+t, 0, this._active_fill_path.verts, false);
-			GraphicsFactoryHelper.addTriangle(x+t, y+h+t, x+w+t, y+h+t, x+t+w, y+t, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+t,y+h+t,x+t,y+t, x+w+t, y+t, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+t,y+h+t,x+t+w,y+t, x+w+t, y+h+t, 0, this._active_fill_path.verts, false);
 
 		}
 		if(this._active_stroke_path!=null){
@@ -1258,8 +1258,8 @@ export class Graphics extends AssetBase
 				w-=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness;
 				h-=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness;
 			}
-			GraphicsFactoryHelper.addTriangle(x+tl,y+tl, x+w-br, y+h-br, x+w-tr, y+tr, 0, this._active_fill_path.verts, false);
-			GraphicsFactoryHelper.addTriangle(x+tl,y+tl, x+bl, y+h-bl,  x+w-br, y+h-br, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+tl,y+tl, x+w-tr, y+tr, x+w-br, y+h-br, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+tl,y+tl,  x+w-br, y+h-br, x+bl, y+h-bl, 0, this._active_fill_path.verts, false);
 
 			GraphicsFactoryHelper.addTriangle(x+t,y+tl,x+tl,y+tl, x+t,y+h-bl, 0, this._active_fill_path.verts, false);
 			GraphicsFactoryHelper.addTriangle(x+tl,y+tl, x+t,y+h-bl,  x+bl,y+h-bl, 0, this._active_fill_path.verts, false);
