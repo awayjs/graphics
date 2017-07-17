@@ -105,18 +105,35 @@ export class Graphics extends AssetBase
 	public originalSlice9Size:Rectangle;
 	public minSlice9Width:number;
 	public minSlice9Height:number;
-	public slice9ScaleX:number = 1;
-	public slice9ScaleY:number = 1;
+	private _scaleX:number = 1;
+	private _scaleY:number = 1;
 
 	private _drawingDirty:boolean = false;
 
+	public updateScale(scaleX:number, scaleY:number)
+	{
+
+		if (this._scaleX == scaleX && this._scaleY == scaleY)
+			return;
+		var len:number = this._shapes.length;
+		var doInvalid:boolean=false;
+		for (var i:number = 0; i < len; i++) {
+			if(this._shapes[i].isStroke){
+				doInvalid=true;
+				GraphicsFactoryStrokes.updateStrokesForShape(this._shapes[i], this._scaleX);
+			}
+		}
+		if(doInvalid){
+			this.invalidate();
+		}
+	}
 	public updateSlice9(scaleX:number, scaleY:number)
 	{
-		if (this.slice9ScaleX == scaleX && this.slice9ScaleY == scaleY)
+		if (this._scaleX == scaleX && this._scaleY == scaleY)
 			return;
 
-		this.slice9ScaleX = scaleX;
-		this.slice9ScaleY = scaleY;
+		this._scaleX = scaleX;
+		this._scaleY = scaleY;
 
 		var len:number = this._shapes.length;
 		for (var i:number = 0; i < len; i++) {
@@ -561,36 +578,8 @@ export class Graphics extends AssetBase
 		GraphicsFactoryFills.draw_pathes(this);
 	}
 	public draw_strokes(){
+		GraphicsFactoryStrokes.draw_pathes(this);
 
-		var i=0;
-		for(i=0; i<this.queued_stroke_pathes.length; i++){
-
-			var obj:any = Graphics.get_material_for_color((<GraphicsStrokeStyle>this.queued_stroke_pathes[i].style).color, (<GraphicsStrokeStyle>this.queued_stroke_pathes[i].style).alpha);
-			var material:MaterialBase=obj.material;
-
-			var final_vert_list:Array<number>=[];
-			GraphicsFactoryStrokes.draw_pathes([this.queued_stroke_pathes[i]], final_vert_list, material.curves);
-			final_vert_list=final_vert_list.concat(this.queued_stroke_pathes[i].verts);
-			var attributesView:AttributesView = new AttributesView(Float32Array, material.curves?3:2);
-			attributesView.set(final_vert_list);
-			var attributesBuffer:AttributesBuffer = attributesView.attributesBuffer;
-			attributesView.dispose();
-			var elements:TriangleElements = new TriangleElements(attributesBuffer);
-			elements.setPositions(new Float2Attributes(attributesBuffer));
-		//	if(material.curves)
-		//		elements.setCustomAttributes("curves", new Byte4Attributes(attributesBuffer, false));
-		//	material.alpha=(<GraphicsStrokeStyle>this.queued_stroke_pathes[i].style).alpha;
-			var shape:Shape=this.addShape(Shape.getShape(elements, material));
-			if(obj.colorPos){
-				 shape.style = new Style();
-				 var sampler:Sampler2D = new Sampler2D();
-				 material.animateUVs=true;
-				 shape.style.addSamplerAt(sampler, material.getTextureAt(0));
-
-				 shape.style.uvMatrix = new Matrix(0, 0, 0, 0, obj.colorPos.x, obj.colorPos.y);
-			}
-		}
-		this.queued_stroke_pathes.length=0;
 	}
 	/**
 	 * Fills a drawing area with a bitmap image. The bitmap can be repeated or
@@ -1141,8 +1130,8 @@ export class Graphics extends AssetBase
 				w-=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness;
 				h-=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness;
 			}
-			GraphicsFactoryHelper.addTriangle(x+t,y+h+t,x+t,y+t, x+w+t, y+t, 0, this._active_fill_path.verts, false);
-			GraphicsFactoryHelper.addTriangle(x+t,y+h+t,x+t+w,y+t, x+w+t, y+h+t, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+t, y+h+t, x+w+t, y+t, x+t, y+t, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+t, y+h+t, x+w+t, y+h+t, x+t+w, y+t, 0, this._active_fill_path.verts, false);
 
 		}
 		if(this._active_stroke_path!=null){
@@ -1205,8 +1194,8 @@ export class Graphics extends AssetBase
 		}
 		var w:number=width;
 		var h:number=height;
-		var ew:number=ellipseWidth-4;
-		var eh:number=ellipseHeight-4;
+		var ew:number=ellipseWidth/2;
+		var eh:number=ellipseHeight/2;
 		var t:number=0;
 
 		if(this._active_fill_path!=null){
@@ -1216,8 +1205,9 @@ export class Graphics extends AssetBase
 				w-=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness;
 				h-=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness;
 			}
-			GraphicsFactoryHelper.addTriangle(x+t,y+h-eh,x+t,y+eh, x+w-t, y+eh, 0, this._active_fill_path.verts, false);
-			GraphicsFactoryHelper.addTriangle(x+t,y+h-eh,x+w-t,y+eh, x+w-t, y+h-eh, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+t,y+h-eh,x+w-t, y+eh, x+t,y+eh, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+t,y+h-eh, x+w-t, y+h-eh, x+w-t,y+eh, 0, this._active_fill_path.verts, false);
+
 			GraphicsFactoryHelper.addTriangle(x+ew,y+t,x+ew,y+eh, x+w-ew, y+eh, 0, this._active_fill_path.verts, false);
 			GraphicsFactoryHelper.addTriangle(x+ew,y+t,x+w-ew,y+eh, x+w-ew, y+t, 0, this._active_fill_path.verts, false);
 			GraphicsFactoryHelper.addTriangle(x+ew,y+h-eh,x+ew,y+h-t, x+w-ew, y+h-t, 0, this._active_fill_path.verts, false);
@@ -1268,8 +1258,8 @@ export class Graphics extends AssetBase
 				w-=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness;
 				h-=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness;
 			}
-			GraphicsFactoryHelper.addTriangle(x+tl,y+tl,x+w-tr,y+tr, x+w-br,y+h-br, 0, this._active_fill_path.verts, false);
-			GraphicsFactoryHelper.addTriangle(x+tl,y+tl, x+bl,y+h-bl,  x+w-br,y+h-br, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+tl,y+tl, x+w-br, y+h-br, x+w-tr, y+tr, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+tl,y+tl, x+bl, y+h-bl,  x+w-br, y+h-br, 0, this._active_fill_path.verts, false);
 
 			GraphicsFactoryHelper.addTriangle(x+t,y+tl,x+tl,y+tl, x+t,y+h-bl, 0, this._active_fill_path.verts, false);
 			GraphicsFactoryHelper.addTriangle(x+tl,y+tl, x+t,y+h-bl,  x+bl,y+h-bl, 0, this._active_fill_path.verts, false);
@@ -1278,10 +1268,10 @@ export class Graphics extends AssetBase
 			GraphicsFactoryHelper.addTriangle(x+tl,y+tl, x+w-tr,y+tr,  x+w-tr,y+t, 0, this._active_fill_path.verts, false);
 
 			GraphicsFactoryHelper.addTriangle(x+w-t,y+tr,x+w-tr,y+tr, x+w-t,y+h-br, 0, this._active_fill_path.verts, false);
-			GraphicsFactoryHelper.addTriangle(x+w-tr,y+tr, x+w-t,y+h-br,  x+w-br,y+h-br, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+w-tr,y+tr,  x+w-br,y+h-br, x+w-t,y+h-br, 0, this._active_fill_path.verts, false);
 
-			GraphicsFactoryHelper.addTriangle(x+bl,y+h-t,x+bl,y+h-bl, x+w-br,y+h-t, 0, this._active_fill_path.verts, false);
-			GraphicsFactoryHelper.addTriangle(x+bl,y+h-bl, x+w-br,y+h-br,  x+w-br,y+h-t, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+bl,y+h-t, x+w-br,y+h-t,x+bl,y+h-bl, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+bl,y+h-bl,  x+w-br,y+h-t, x+w-br,y+h-br, 0, this._active_fill_path.verts, false);
 
 			GraphicsFactoryHelper.drawElipse(x+tl,y+tl, tl-t, tl-t, this._active_fill_path.verts, 180, 270, 5, false);
 			GraphicsFactoryHelper.drawElipse(x+w-tr,y+tr, tr-t, tr-t, this._active_fill_path.verts, 270, 360, 5, false);
@@ -1361,6 +1351,7 @@ export class Graphics extends AssetBase
 		this._active_stroke_path=null;
 		this._drawingDirty=false;
 		this.invalidate();
+		this.invalidateElements();
 
 	}
 

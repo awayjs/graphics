@@ -219,4 +219,49 @@ export class GraphicsFactoryHelper
 		GraphicsFactoryHelper.subdivideCurve(ax, ay, c2x, c2y, endx, endy, ax2, ay2, c2x2, c2y2, endx2, endy2, array_out, array2_out);
 
 	}
+	public static tesselateCurve(startx:number, starty:number, cx:number, cy:number, endx:number, endy:number, array_out:Array<number>):void
+	{
+		var angle_1:number=Math.atan2(cy - starty, cx - startx) * MathConsts.RADIANS_TO_DEGREES;
+		var angle_2:number=Math.atan2(endy - cy, endx - cx) * MathConsts.RADIANS_TO_DEGREES;
+		var angle_delta:number=angle_2 - angle_1;
+		//console.log("angle_delta "+angle_delta);
+
+		while(angle_delta>180){
+			angle_delta-=360;
+		}
+		while(angle_delta<-180){
+			angle_delta+=360;
+		}
+
+		var diff_x=endx-startx;
+		var diff_y=endy-starty;
+		var len:number=Math.sqrt(diff_x*diff_x + diff_y*diff_y);
+		console.log("len", len, "angle_delta", angle_delta);
+		// if the curve angle is smaller than threshold_ang_2 and the len is smaller than threshold_len, we just early out. we will not use the ctr-point at all
+		
+		// todo: find best constants / checks to test if a curve need more subdividing
+		
+		/*if(Math.abs(angle_delta)>=150 && len <=3){
+			array_out.push(endx, endy);
+			return;			
+		}*/
+		if(Math.abs(angle_delta)<=2 || len<=10 ){
+			array_out.push(endx, endy);
+			return;
+		}
+
+
+		// curve needs to be subdivided:
+		
+		var c1x = startx + (cx - startx) * 0.5;// new controlpoint 1
+		var c1y = starty + (cy - starty) * 0.5;
+		var c2x = cx + (endx - cx) * 0.5;// new controlpoint 2
+		var c2y = cy + (endy - cy) * 0.5;
+		var ax = c1x + (c2x - c1x) * 0.5;// new middlepoint 1
+		var ay = c1y + (c2y - c1y) * 0.5;
+
+		GraphicsFactoryHelper.tesselateCurve(startx, starty, c1x, c1y, ax, ay, array_out);
+		GraphicsFactoryHelper.tesselateCurve(ax, ay, c2x, c2y, endx, endy, array_out);
+
+	}
 }

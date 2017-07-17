@@ -8,6 +8,7 @@ import {ShapeEvent} from "../events/ShapeEvent";
 import {ElementsBase} from "../elements/ElementsBase";
 import {TriangleElements} from "../elements/TriangleElements";
 import {Graphics} from "../Graphics";
+import {GraphicsPath} from "../draw/GraphicsPath";
 
 import {Style} from "./Style";
 import {IRenderable} from "./IRenderable";
@@ -63,11 +64,42 @@ export class Shape extends AssetBase implements IRenderable
 	private _material:IMaterial;
 	private _style:Style;
 
+	private _isStroke:boolean;
+	private _strokePath:GraphicsPath;
+
 	public count:number;
 
 	public offset:number;
 
 	public _owners:Array<Graphics>;
+
+
+	/*
+	 * _strokePath provides the original stroke-path that was used to create this shape
+	 * when the strokepath is set, it should already be prepared so that its faster to update stroke for new thickness
+	 */
+	public get strokePath():GraphicsPath
+	{
+		return this._strokePath;
+	}
+
+	public set strokePath(value:GraphicsPath)
+	{
+		this._strokePath = value;
+	}
+
+	/*
+		* true if this shape was created for a stroke
+	 */
+	public get isStroke():boolean
+	{
+		return this._isStroke;
+	}
+
+	public set isStroke(value:boolean)
+	{
+		this._isStroke = value;
+	}
 
 	/**
 	 * The Elements object which provides the geometry data for this Shape.
