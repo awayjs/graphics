@@ -131,8 +131,10 @@ export class GraphicsFactoryStrokes
 
 			var half_thickness:number=strokeStyle.half_thickness;
 			if(scaleMode==LineScaleMode.NORMAL){
-				if((half_thickness*scale)<6){
-					half_thickness=6*(1/scale);
+				if(scale<1){
+					if((half_thickness*scale)<0.5){
+						half_thickness=0.5*(1/scale);
+					}
 				}
 			}
 			else if(scaleMode==LineScaleMode.NONE){

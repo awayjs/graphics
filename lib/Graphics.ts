@@ -374,6 +374,7 @@ export class Graphics extends AssetBase
 		graphics.style = this._style;
 		graphics.particles = this.particles;
 		graphics.numParticles = this.numParticles;
+		graphics.scaleStrokes = this.scaleStrokes;
 		if(this.slice9Rectangle){
 			graphics.slice9Rectangle=new Rectangle();
 			graphics.slice9Rectangle.copyFrom(this.slice9Rectangle);
