@@ -7,6 +7,7 @@ import {GraphicsPath} from "../draw/GraphicsPath";
 import {GraphicsPathCommand} from "../draw/GraphicsPathCommand";
 import {GraphicsFactoryHelper} from "../draw/GraphicsFactoryHelper";
 import {GraphicsStrokeStyle} from "../draw/GraphicsStrokeStyle";
+import {LineScaleMode} from "../draw/LineScaleMode";
 import {Shape} from "../base/Shape";
 import {Graphics} from "../Graphics";
 import {MaterialBase} from "../materials/MaterialBase";
@@ -54,6 +55,7 @@ export class GraphicsFactoryStrokes
 			//	material.alpha=(<GraphicsStrokeStyle>this.queued_stroke_pathes[i].style).alpha;
 			var shape:Shape=targetGraphics.addShape(Shape.getShape(elements, material));
 			shape.isStroke=true;
+			shape.strokePath=strokePath;
 			if(obj.colorPos){
 				shape.style = new Style();
 				var sampler:Sampler2D = new Sampler2D();
@@ -84,13 +86,13 @@ export class GraphicsFactoryStrokes
 
 		var graphicsPath = shape.strokePath;
 		var final_vert_list:Array<number>=[];
-		GraphicsFactoryStrokes.draw_path([graphicsPath], final_vert_list, false, scale);
+		GraphicsFactoryStrokes.draw_path([graphicsPath], final_vert_list, false, scale, LineScaleMode.NORMAL);
 		var elements:TriangleElements=<TriangleElements> shape.elements;
 		elements.setPositions(final_vert_list);
 		elements.invalidate();
 
 	}
-	public static draw_path(graphic_pathes:Array<GraphicsPath>, final_vert_list:Array<number>, curves:boolean, scale:number=1){
+	public static draw_path(graphic_pathes:Array<GraphicsPath>, final_vert_list:Array<number>, curves:boolean, scale:number=1, scaleMode:string=LineScaleMode.NORMAL){
 		var len=graphic_pathes.length;
 		var contour_commands:Array<Array<number> >;
 		var contour_data:Array<Array<number> >;
@@ -127,7 +129,15 @@ export class GraphicsFactoryStrokes
 			contour_data = one_path._positions;
 			strokeStyle = one_path.stroke();
 
-			var half_thickness:number=strokeStyle.half_thickness*scale;
+			var half_thickness:number=strokeStyle.half_thickness;
+			if(scaleMode==LineScaleMode.NORMAL){
+				if((half_thickness*scale)<6){
+					half_thickness=6*(1/scale);
+				}
+			}
+			else if(scaleMode==LineScaleMode.NONE){
+				half_thickness*=(1/scale);
+			}
 
 			for(k=0; k<contour_commands.length; k++) {
 				commands = contour_commands[k];

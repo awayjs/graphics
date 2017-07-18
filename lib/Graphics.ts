@@ -108,6 +108,9 @@ export class Graphics extends AssetBase
 	private _scaleX:number = 1;
 	private _scaleY:number = 1;
 
+	// todo: this is a temp workarpound to prevent strokes from getting scaled, if they are not coming from awd
+	public scaleStrokes:boolean=false;
+
 	private _drawingDirty:boolean = false;
 
 	public updateScale(scaleX:number, scaleY:number)
@@ -115,6 +118,9 @@ export class Graphics extends AssetBase
 
 		if (this._scaleX == scaleX && this._scaleY == scaleY)
 			return;
+
+		this._scaleX = scaleX;
+		this._scaleY = scaleY;
 		var len:number = this._shapes.length;
 		var doInvalid:boolean=false;
 		for (var i:number = 0; i < len; i++) {
