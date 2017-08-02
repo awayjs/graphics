@@ -159,7 +159,7 @@ export class Graphics extends AssetBase
 
 	public get count():number
 	{
-		return this._shapes.length;
+		return (this._shapes.length + this._queued_stroke_pathes.length + this._queued_fill_pathes.length);
 	}
 	
 	/**
@@ -305,7 +305,8 @@ export class Graphics extends AssetBase
 		this._shapes.push(shape);
 
 		shape.addEventListener(ElementsEvent.INVALIDATE_VERTICES, this._onInvalidateVerticesDelegate);
-
+		//shape.addEventListener(ShapeEvent.ADD_MATERIAL, this._onAddMaterialDelegate);
+		//shape.addEventListener(ShapeEvent.REMOVE_MATERIAL, this._onRemoveMaterialDelegate);
 
 		this.invalidate();
 
@@ -327,7 +328,11 @@ export class Graphics extends AssetBase
 		if (index < 0 || index >= this._shapes.length)
 			throw new RangeError("Index is out of range");
 
-		this._shapes.splice(index, 1)[0].removeEventListener(ElementsEvent.INVALIDATE_VERTICES, this._onInvalidateVerticesDelegate);
+		var shape:Shape = this._shapes.splice(index, 1)[0]
+
+		shape.removeEventListener(ElementsEvent.INVALIDATE_VERTICES, this._onInvalidateVerticesDelegate);
+		//shape.removeEventListener(ShapeEvent.ADD_MATERIAL, this._onAddMaterialDelegate);
+		//shape.removeEventListener(ShapeEvent.REMOVE_MATERIAL, this._onRemoveMaterialDelegate);
 
 		this.invalidate();
 	}
@@ -539,14 +544,10 @@ export class Graphics extends AssetBase
 			this.endFill();
 		}
 		var len:number = this._shapes.length;
-/*
-		for (var i:number = 0; i < len; i++)
+
+		for (var i:number = len - 1; i >= 0; i--)
 			traverser[this._shapes[i].elements.traverseName](this._shapes[i]);
-		*/
-		while(len>0){
-			len--;
-			traverser[this._shapes[len].elements.traverseName](this._shapes[len]);
-		}
+
 	}
 
 	private _onInvalidateProperties(event:StyleEvent):void
@@ -636,6 +637,7 @@ export class Graphics extends AssetBase
 		if(this._current_position.x!=0 || this._current_position.y!=0)
 			this._active_fill_path.moveTo(this._current_position.x, this._current_position.y);
 		this._queued_fill_pathes.push(this._active_fill_path);
+		this.invalidate();
 	}
 
 	/**
@@ -665,7 +667,7 @@ export class Graphics extends AssetBase
 		if(this._current_position.x!=0 || this._current_position.y!=0)
 			this._active_fill_path.moveTo(this._current_position.x, this._current_position.y);
 		this._queued_fill_pathes.push(this._active_fill_path);
-
+		this.invalidate();
 	}
 
 	/**
@@ -765,8 +767,8 @@ export class Graphics extends AssetBase
 			this._active_fill_path.moveTo(this._current_position.x, this._current_position.y);
 		this._queued_fill_pathes.push(this._active_fill_path);
 
-		
 
+		this.invalidate();
 	}
 
 	/**
@@ -1352,11 +1354,11 @@ export class Graphics extends AssetBase
 	 */
 	public endFill():void
 	{
+		this._drawingDirty=false;
 		this.draw_strokes();
 		this.draw_fills();
 		this._active_fill_path=null;
 		this._active_stroke_path=null;
-		this._drawingDirty=false;
 		this.invalidate();
 		this.invalidateElements();
 
