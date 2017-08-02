@@ -71,6 +71,8 @@ export class Shape extends AssetBase implements IRenderable
 
 	public offset:number;
 
+	public persistent:boolean = true;
+
 	public _owners:Array<Graphics>;
 
 

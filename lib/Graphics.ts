@@ -410,26 +410,23 @@ export class Graphics extends AssetBase
 	public clear():void
 	{
 
-		for (var i:number = this._shapes.length - 1; i>=0; i--){
-			this._shapes[i].clear();
-			//this._shapes[i].dispose();
+		var shape:Shape;
+		for (var i:number = this._shapes.length - 1; i>=0; i--) {
+			shape = this._shapes[i]
+			if (shape.persistent) {
+				shape.clear();
+			} else {
+				this.removeShapeAt(i);
+				shape.dispose();
+			}
 		}
 		//this.invalidateElements();
-	}
 
-	public clearDrawing():void
-	{
-		/*
-		 for (var i:number = this._shapes.length - 1; i>=0; i--){
-		 this._shapes[i].clear();
-		 //this._shapes[i].dispose();
-		 }*/
-		this.removeAllShapes();
 		this._active_fill_path=null;
 		this._active_stroke_path=null;
 		this._drawingDirty=false;
-		//this.invalidateElements();
 	}
+
 	/**
 	 * Clears all resources used by the Graphics object, including SubGeometries.
 	 */
@@ -1734,6 +1731,10 @@ export class Graphics extends AssetBase
 		var len:number = shapes.length;
 		for (var i:number = 0; i < len; i++) {
 			shape = shapes[i];
+
+			if (!shape.persistent)
+				continue;
+
 			if(this.slice9Rectangle){
 				// todo: this is a dirty workaround to get the slice9-shapes cloned:
 				var new_shape:Shape=new Shape(ElementsUtils.updateTriangleGraphicsSlice9((<TriangleElements>shape.elements), this.originalSlice9Size, 1, 1, false, true));
