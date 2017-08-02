@@ -350,7 +350,6 @@ export class GraphicsFactoryFills
 					var obj= Graphics.get_material_for_color((<GraphicsFillStyle>targetGraphics.queued_fill_pathes[cp].style).color,(<GraphicsFillStyle>targetGraphics.queued_fill_pathes[cp].style).alpha);
 					material=obj.material;
 					var shape:Shape=targetGraphics.addShape(Shape.getShape(elements, material));
-					shape.persistent = false;
 					if(obj.colorPos){
 						shape.style = new Style();
 						sampler = new Sampler2D();
@@ -368,7 +367,6 @@ export class GraphicsFactoryFills
 
 					var shape:Shape=targetGraphics.addShape(Shape.getShape(elements, material));
 
-					shape.persistent = false;
 					shape.style = new Style();
 					sampler = new Sampler2D();
 					shape.style.addSamplerAt(sampler, material.getTextureAt(0));

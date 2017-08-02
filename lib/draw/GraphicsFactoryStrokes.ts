@@ -54,7 +54,6 @@ export class GraphicsFactoryStrokes
 			//		elements.setCustomAttributes("curves", new Byte4Attributes(attributesBuffer, false));
 			//	material.alpha=(<GraphicsStrokeStyle>this.queued_stroke_pathes[i].style).alpha;
 			var shape:Shape=targetGraphics.addShape(Shape.getShape(elements, material));
-			shape.persistent = false;
 			shape.isStroke=true;
 			shape.strokePath=strokePath;
 			if(obj.colorPos){
@@ -133,8 +132,8 @@ export class GraphicsFactoryStrokes
 			var half_thickness:number=strokeStyle.half_thickness;
 			if(scaleMode==LineScaleMode.NORMAL){
 				if(scale<1){
-					if((half_thickness*scale)<0.25){
-						half_thickness=0.25*(1/scale);
+					if((half_thickness*scale)<0.5){
+						half_thickness=0.5*(1/scale);
 					}
 				}
 			}
