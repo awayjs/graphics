@@ -316,7 +316,7 @@ export class GraphicsPath implements IGraphicsData
                     case GraphicsPathCommand.CURVE_TO:
                         end_point = new Point(data[data_cnt++], data[data_cnt++]);
                         ctr_point = new Point(data[data_cnt++], data[data_cnt++]);
-                        console.log("CURVE_TO ", i, ctr_point.x, ctr_point.y, end_point.x, end_point.y);
+                        //console.log("CURVE_TO ", i, ctr_point.x, ctr_point.y, end_point.x, end_point.y);
                         var curve_verts:number[]=[];
                         GraphicsFactoryHelper.tesselateCurve(prev_x, prev_y, ctr_point.x,ctr_point.y,end_point.x,end_point.y,curve_verts);
                         var k_len:number=curve_verts.length;
