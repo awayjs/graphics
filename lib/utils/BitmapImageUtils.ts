@@ -1,4 +1,4 @@
-import {ColorTransform, Matrix, Rectangle, ColorUtils} from "@awayjs/core";
+import {ColorTransform, Matrix, Rectangle, Point, ColorUtils} from "@awayjs/core";
 
 import {BlendMode} from "../image/BlendMode";
 
@@ -20,9 +20,9 @@ export class BitmapImageUtils
 		}
 	}
 
-	public static _copyPixels(context:CanvasRenderingContext2D, bmpd:HTMLImageElement | HTMLCanvasElement | HTMLVideoElement, sourceRect:Rectangle, destRect:Rectangle):void
+	public static _copyPixels(context:CanvasRenderingContext2D, bmpd:HTMLImageElement | HTMLCanvasElement | HTMLVideoElement, sourceRect:Rectangle, destPoint:Point):void
 	{
-		context.drawImage(bmpd, sourceRect.x, sourceRect.y, sourceRect.width, sourceRect.height, destRect.x, destRect.y, destRect.width, destRect.height);
+		context.drawImage(bmpd, sourceRect.x, sourceRect.y, sourceRect.width, sourceRect.height, destPoint.x, destPoint.y, sourceRect.width, sourceRect.height);
 	}
 
 	public static _draw(context:CanvasRenderingContext2D, source:any, matrix:Matrix, colorTransform:ColorTransform, blendMode:BlendMode, clipRect:Rectangle, smoothing:boolean):void

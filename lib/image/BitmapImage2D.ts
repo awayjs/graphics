@@ -70,7 +70,7 @@ export class BitmapImage2D extends Image2D
 	private _context:CanvasRenderingContext2D;
 	private _imageData:ImageData;
 	private _transparent:boolean;
-	private _locked:boolean = false;
+	private _locked:boolean = true;
 
 	/**
 	 *
@@ -305,9 +305,9 @@ export class BitmapImage2D extends Image2D
 	 *                         channel, set the value to <code>false</code>.
 	 * @throws TypeError The sourceBitmapImage2D, sourceRect, destPoint are null.
 	 */
-	public copyPixels(source:BitmapImage2D, sourceRect:Rectangle, destRect:Rectangle);
-	public copyPixels(source:HTMLElement, sourceRect:Rectangle, destRect:Rectangle);
-	public copyPixels(source:any, sourceRect:Rectangle, destRect:Rectangle):void
+	public copyPixels(source:BitmapImage2D, sourceRect:Rectangle, destPoint:Point);
+	public copyPixels(source:HTMLElement, sourceRect:Rectangle, destPoint:Point);
+	public copyPixels(source:any, sourceRect:Rectangle, destPoint:Point):void
 	{
 		if (source instanceof BitmapImage2D)
 			source = source.getCanvas();
@@ -315,7 +315,7 @@ export class BitmapImage2D extends Image2D
 		if (this._locked && this._imageData)
 			this._context.putImageData(this._imageData, 0, 0); // at coords 0,0
 
-		BitmapImageUtils._copyPixels(this._context, source, sourceRect, destRect);
+		BitmapImageUtils._copyPixels(this._context, source, sourceRect, destPoint);
 
 		this._imageData = null;
 
@@ -682,7 +682,7 @@ export class BitmapImage2D extends Image2D
 		this._imageData.data[index + 0] = argb[1];
 		this._imageData.data[index + 1] = argb[2];
 		this._imageData.data[index + 2] = argb[3];
-		this._imageData.data[index + 3] = argb[0]*0xFF;
+		//this._imageData.data[index + 3] = 0xFF;
 		/*console.log(argb[0]);
 		console.log(argb[1]);
 		console.log(argb[2]);
