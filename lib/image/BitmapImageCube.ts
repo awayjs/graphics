@@ -323,9 +323,9 @@ export class BitmapImageCube extends ImageCube
 	 *                         channel, set the value to <code>false</code>.
 	 * @throws TypeError The sourceBitmapImage2D, sourceRect, destPoint are null.
 	 */
-	public copyPixels(side:number, source:BitmapImage2D, sourceRect:Rectangle, destRect:Rectangle);
-	public copyPixels(side:number, source:HTMLImageElement, sourceRect:Rectangle, destRect:Rectangle);
-	public copyPixels(side:number, source:any, sourceRect:Rectangle, destRect:Rectangle):void
+	public copyPixels(side:number, source:BitmapImage2D, sourceRect:Rectangle, destPoint:Point);
+	public copyPixels(side:number, source:HTMLImageElement, sourceRect:Rectangle, destPoint:Point);
+	public copyPixels(side:number, source:any, sourceRect:Rectangle, destPoint:Point):void
 	{
 		if (source instanceof BitmapImage2D)
 			source = source.getCanvas();
@@ -339,11 +339,11 @@ export class BitmapImageCube extends ImageCube
 			//      3) read _imageData back out
 
 			this._context[side].putImageData(this._imageData[side], 0, 0); // at coords 0,0
-			BitmapImageUtils._copyPixels(this._context[side], source, sourceRect, destRect);
+			BitmapImageUtils._copyPixels(this._context[side], source, sourceRect, destPoint);
 			this._imageData[side] = this._context[side].getImageData(0, 0, this._size, this._size);
 
 		} else {
-			BitmapImageUtils._copyPixels(this._context[side], source, sourceRect, destRect);
+			BitmapImageUtils._copyPixels(this._context[side], source, sourceRect, destPoint);
 		}
 
 		this.invalidate();
