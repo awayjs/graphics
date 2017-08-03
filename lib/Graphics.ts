@@ -1351,8 +1351,8 @@ export class Graphics extends AssetBase
 		this.draw_strokes();
 		this._active_fill_path=null;
 		this._active_stroke_path=null;
-		this.invalidate();
-		this.invalidateElements();
+		//this.invalidate();
+		//this.invalidateElements();
 
 	}
 
@@ -1394,6 +1394,7 @@ export class Graphics extends AssetBase
 			this._active_stroke_path.moveTo(this._current_position.x, this._current_position.y);
 		this._queued_stroke_pathes.push(this._active_stroke_path);
 
+		this.invalidate();
 	}
 
 	/**
@@ -1476,6 +1477,7 @@ export class Graphics extends AssetBase
 			this._active_stroke_path.moveTo(this._current_position.x, this._current_position.y);
 		this._queued_stroke_pathes.push(this._active_stroke_path);
 
+		this.invalidate();
 	}
 
 	/**
@@ -1664,6 +1666,8 @@ export class Graphics extends AssetBase
 		if(this._current_position.x!=0 || this._current_position.y!=0)
 			this._active_stroke_path.moveTo(this._current_position.x, this._current_position.y);
 		this._queued_stroke_pathes.push(this._active_stroke_path);
+
+		this.invalidate();
 	}
 
 	/**
