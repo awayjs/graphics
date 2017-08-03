@@ -137,8 +137,8 @@ export class BitmapImage2D extends Image2D
 		}else {
 			this._imageCanvas = new CPUCanvas();
 		}
-		this._imageCanvas.width = width;
-		this._imageCanvas.height = height;
+		this._imageCanvas.width = this._rect.width;
+		this._imageCanvas.height = this._rect.height;
 		this._context = this._imageCanvas.getContext("2d");
 
 		if (fillColor != null)

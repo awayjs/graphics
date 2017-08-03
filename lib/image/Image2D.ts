@@ -30,9 +30,6 @@ export class Image2D extends ImageBase
 
 	public set height(value:number)
 	{
-		if (this._rect.height == value)
-			return;
-
 		this._setSize(this._rect.width, value);
 	}
 
@@ -56,9 +53,6 @@ export class Image2D extends ImageBase
 
 	public set width(value:number)
 	{
-		if (this._rect.width == value)
-			return;
-
 		this._setSize(value, this._rect.height);
 	}
 
@@ -69,7 +63,7 @@ export class Image2D extends ImageBase
 	{
 		super();
 
-		this._rect = new Rectangle(0, 0, width, height);
+		this._rect = new Rectangle(0, 0, Math.round(width), Math.round(height));
 		this._powerOfTwo = powerOfTwo;
 		this._testDimensions();
 	}
@@ -82,8 +76,13 @@ export class Image2D extends ImageBase
 	 */
 	public _setSize(width:number, height:number):void
 	{
-		if (this._rect.width != width || this._rect.height != height)
-			this.clear();
+		width = Math.round(width);
+		height = Math.round(height);
+
+		if (this._rect.width == width && this._rect.height == height)
+			return;
+
+		this.clear();
 
 		this._rect.width = width;
 		this._rect.height = height;
