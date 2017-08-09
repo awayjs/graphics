@@ -69,8 +69,8 @@ export class BitmapImage2D extends Image2D
 	private _imageCanvas:IImageCanvas;
 	private _context:CanvasRenderingContext2D;
 	private _imageData:ImageData;
-	private _transparent:boolean;
-	private _locked:boolean = true;
+	protected _transparent:boolean;
+	protected _locked:boolean = false;
 
 	/**
 	 *
@@ -154,7 +154,7 @@ export class BitmapImage2D extends Image2D
 	public clone():BitmapImage2D
 	{
 		var t:BitmapImage2D = new BitmapImage2D(this.width, this.height, this.transparent, null, this.powerOfTwo);
-		t.draw(this);
+		t.copyPixels(this, this.rect, new Point());
 		return t;
 	}
 
@@ -189,9 +189,7 @@ export class BitmapImage2D extends Image2D
 		}
 
 		if (!this._locked)
-			this._context.putImageData(this._imageData, 0, 0);
-
-		this.invalidate();
+			this.invalidate();
 	}
 
 	/**
@@ -261,9 +259,7 @@ export class BitmapImage2D extends Image2D
 		}
 
 		if (!this._locked)
-			this._context.putImageData(this._imageData, 0, 0);
-
-		this.invalidate();
+			this.invalidate();
 	}
 
 	/**
@@ -312,14 +308,15 @@ export class BitmapImage2D extends Image2D
 		if (source instanceof BitmapImage2D)
 			source = source.getCanvas();
 
-		if (this._locked && this._imageData)
+		if (this._imageData)
 			this._context.putImageData(this._imageData, 0, 0); // at coords 0,0
 
 		BitmapImageUtils._copyPixels(this._context, source, sourceRect, destPoint);
 
 		this._imageData = null;
 
-		this.invalidate();
+		if (!this._locked)
+			this.invalidate();
 	}
 
 	public merge(source:BitmapImage2D, sourceRect:Rectangle, destPoint:Point, redMultiplier:number, greenMultiplier:number, blueMultiplier:number, alphaMultiplier:number)
@@ -330,27 +327,25 @@ export class BitmapImage2D extends Image2D
 		var dest:Uint8ClampedArray = this._imageData.data;
 		var src:Uint8ClampedArray = source.getImageData().data;
 
-		redMultiplier = Math.floor(redMultiplier);
-		greenMultiplier = Math.floor(greenMultiplier);
-		blueMultiplier = Math.floor(blueMultiplier);
-		alphaMultiplier = Math.floor(alphaMultiplier);
+		redMultiplier = ~~redMultiplier;
+		greenMultiplier = ~~greenMultiplier;
+		blueMultiplier = ~~blueMultiplier;
+		alphaMultiplier = ~~alphaMultiplier;
 
 		var i:number, j:number, index:number;
 		for (i = 0; i < sourceRect.width; ++i) {
 			for (j = 0; j < sourceRect.height; ++j) {
 				index = (i + sourceRect.x + (j + sourceRect.y)*this.width)*4;
 
-				dest[index] = Math.floor((src[index]*redMultiplier + dest[index]*(0x100 - redMultiplier))/0x100);
-				dest[index + 1] = Math.floor((src[index + 1]*greenMultiplier + dest[index + 1]*(0x100 - greenMultiplier))/0x100);
-				dest[index + 2] = Math.floor((src[index + 2]*blueMultiplier + dest[index + 2]*(0x100 - blueMultiplier))/0x100);
-				dest[index + 3] = Math.floor((src[index + 3]*alphaMultiplier + dest[index + 3]*(0x100 - alphaMultiplier))/0x100);
+				dest[index] = ~~((src[index]*redMultiplier + dest[index]*(0x100 - redMultiplier))/0x100);
+				dest[index + 1] = ~~((src[index + 1]*greenMultiplier + dest[index + 1]*(0x100 - greenMultiplier))/0x100);
+				dest[index + 2] = ~~((src[index + 2]*blueMultiplier + dest[index + 2]*(0x100 - blueMultiplier))/0x100);
+				dest[index + 3] = ~~((src[index + 3]*alphaMultiplier + dest[index + 3]*(0x100 - alphaMultiplier))/0x100);
 			}
 		}
 
 		if (!this._locked)
-			this._context.putImageData(this._imageData, 0, 0);
-
-		this.invalidate();
+			this.invalidate();
 	}
 
 	/**
@@ -464,14 +459,15 @@ export class BitmapImage2D extends Image2D
 		if (source instanceof BitmapImage2D && source.getCanvas())
 			source = source.getCanvas();
 
-		if (this._locked && this._imageData)
+		if (this._imageData)
 			this._context.putImageData(this._imageData, 0, 0); // at coords 0,0
 
 		BitmapImageUtils._draw(this._context, source, matrix, colorTransform, blendMode, clipRect, smoothing);
 
 		this._imageData = null;
 
-		this.invalidate();
+		if (!this._locked)
+			this.invalidate();
 	}
 
 	/**
@@ -485,14 +481,15 @@ export class BitmapImage2D extends Image2D
 	 */
 	public fillRect(rect:Rectangle, color:number):void
 	{
-		if (this._locked && this._imageData)
+		if (this._imageData)
 			this._context.putImageData(this._imageData, 0, 0); // at coords 0,0
 
 		BitmapImageUtils._fillRect(this._context, rect, color, this._transparent);
 
 		this._imageData = null;
 
-		this.invalidate();
+		if (!this._locked)
+			this.invalidate();
 	}
 
 	/**
@@ -525,7 +522,7 @@ export class BitmapImage2D extends Image2D
 		var b:number;
 		var a:number;
 
-		if (!this._locked) {
+		if (!this._imageData) {
 			var pixelData:ImageData = this._context.getImageData(x, y, 1, 1);
 
 			r = pixelData.data[0];
@@ -534,9 +531,6 @@ export class BitmapImage2D extends Image2D
 			a = pixelData.data[3];
 
 		} else {
-			if (!this._imageData)
-				this._imageData = this._context.getImageData(0, 0, this._rect.width, this._rect.height);
-
 			var index:number = (x + y*this._imageData.width)*4;
 
 			r = this._imageData.data[index + 0];
@@ -581,7 +575,7 @@ export class BitmapImage2D extends Image2D
 		var b:number;
 		var a:number;
 
-		if (!this._locked) {
+		if (!this._imageData) {
 			var pixelData:ImageData = this._context.getImageData(x, y, 1, 1);
 
 			r = pixelData.data[0];
@@ -590,9 +584,6 @@ export class BitmapImage2D extends Image2D
 			a = pixelData.data[3];
 
 		} else {
-			if (!this._imageData)
-				this._imageData = this._context.getImageData(0, 0, this._rect.width, this._rect.height);
-
 			var index:number = (x + y*this._imageData.width)*4;
 
 			r = this._imageData.data[index + 0];
@@ -628,8 +619,9 @@ export class BitmapImage2D extends Image2D
 		this._imageData.data[index + 1] = imagePixel[1];
 		this._imageData.data[index + 2] = imagePixel[2];
 		this._imageData.data[index + 3] = this._transparent? imagePixel[3] : 0xFF;
-		
-		this.invalidate();
+
+		if (!this._locked)
+			this.invalidate();
 	}
 	
 	/**
@@ -679,9 +671,7 @@ export class BitmapImage2D extends Image2D
 		}
 
 		if (!this._locked)
-			this._context.putImageData(this._imageData, 0, 0);
-
-		this.invalidate();
+			this.invalidate();
 	}
 
 	/**
@@ -713,16 +703,9 @@ export class BitmapImage2D extends Image2D
 		this._imageData.data[index + 0] = argb[1];
 		this._imageData.data[index + 1] = argb[2];
 		this._imageData.data[index + 2] = argb[3];
-		//this._imageData.data[index + 3] = 0xFF;
-		/*console.log(argb[0]);
-		console.log(argb[1]);
-		console.log(argb[2]);
-		console.log(argb[3]);*/
 
 		if (!this._locked)
-			this._context.putImageData(this._imageData, 0, 0);
-
-		this.invalidate();
+			this.invalidate();
 	}
 	public setPixelFromArray(x:number, y:number, colors:number[]):void
 	{
@@ -735,12 +718,9 @@ export class BitmapImage2D extends Image2D
 		this._imageData.data[index + 1] = colors[2];
 		this._imageData.data[index + 2] = colors[3];
 		this._imageData.data[index + 3] = colors[0]*0xff;
-		//console.log(colors[0], colors[1], colors[2], colors[3]);
 
 		if (!this._locked)
-			this._context.putImageData(this._imageData, 0, 0);
-
-		this.invalidate();
+			this.invalidate();
 	}
 
 	/**
@@ -781,7 +761,7 @@ export class BitmapImage2D extends Image2D
 		if (!this._imageData)
 			this._imageData = this._context.getImageData(0, 0, this._rect.width, this._rect.height);
 
-		var index:number = (x + y*this._imageData.width)*4;
+		var index:number = (~~x + ~~y*this._imageData.width)*4;
 
 		this._imageData.data[index + 0] = argb[1];
 		this._imageData.data[index + 1] = argb[2];
@@ -789,9 +769,7 @@ export class BitmapImage2D extends Image2D
 		this._imageData.data[index + 3] = this._transparent? argb[0] : 0xFF;
 
 		if (!this._locked)
-			this._context.putImageData(this._imageData, 0, 0);
-
-		this.invalidate();
+			this.invalidate();
 	}
 
 	/**
@@ -815,20 +793,22 @@ export class BitmapImage2D extends Image2D
 	 */
 	public setPixels(rect:Rectangle, input:Uint8ClampedArray):void
 	{
-		if (!this._imageData)
-			this._imageData = this._context.getImageData(0, 0, this._rect.width, this._rect.height);
+		//fast path for full imageData
+		if (rect.equals(this._rect)) {
+			this._imageData = new ImageData(input, this._rect.width, this._rect.height);
+		} else {
+			if (!this._imageData)
+				this._imageData = this._context.getImageData(0, 0, this._rect.width, this._rect.height);
 
-		var i:number;
-		var imageWidth:number = this._rect.width;
-		var inputWidth:number = rect.width;
-		for (i = 0; i < rect.height; ++i)
-			this._imageData.data.set(input.subarray(i*inputWidth*4, (i + 1)*inputWidth*4), (rect.x + (i + rect.y)*imageWidth)*4);
-
+			var i:number;
+			var imageWidth:number = this._rect.width;
+			var inputWidth:number = rect.width;
+			for (i = 0; i < rect.height; ++i)
+				this._imageData.data.set(input.subarray(i*inputWidth*4, (i + 1)*inputWidth*4), (rect.x + (i + rect.y)*imageWidth)*4);
+		}
 
 		if (!this._locked)
-			this._context.putImageData(this._imageData, 0, 0);
-
-		this.invalidate();
+			this.invalidate();
 	}
 
 	/**
@@ -850,8 +830,7 @@ export class BitmapImage2D extends Image2D
 
 		this._locked = false;
 
-		if (this._imageData)
-			this._context.putImageData(this._imageData, 0, 0); // at coords 0,0
+		this.invalidate();
 	}
 
 	/**
@@ -898,7 +877,6 @@ export class BitmapImage2D extends Image2D
 		
 		super._setSize(width, height);
 
-		if (this._locked)
-			this._imageData = this._context.getImageData(0, 0, this._rect.width, this._rect.height);
+		this._imageData = null;
 	}
 }

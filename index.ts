@@ -33,6 +33,7 @@ export {SpreadMethod}					from "./lib/draw/SpreadMethod";
 export {TriangleCulling}					from "./lib/draw/TriangleCulling";
 
 export {ElementsEvent}					from "./lib/events/ElementsEvent";
+export {ImageEvent}						from "./lib/events/ImageEvent";
 export {MaterialEvent}					from "./lib/events/MaterialEvent";
 export {RenderableEvent}				from "./lib/events/RenderableEvent";
 export {ShapeEvent}						from "./lib/events/ShapeEvent";
