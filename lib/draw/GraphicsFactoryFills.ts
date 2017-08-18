@@ -31,10 +31,20 @@ import {MappingMode} from "../textures/MappingMode";
  *
  * <p>The Graphics class is final; it cannot be subclassed.</p>
  */
+
+declare const TESS:any;
 export class GraphicsFactoryFills
 {
 
 	public static draw_pathes(targetGraphics:Graphics) {
+
+
+		if (typeof window["TESS"] != 'undefined') {
+			if(GraphicsFactoryHelper._tess_obj==null){
+				GraphicsFactoryHelper._tess_obj=new TESS();
+			}
+		}
+
 		var len=targetGraphics.queued_fill_pathes.length;
 		var cp=0;
 		for(cp=0; cp<len; cp++){
@@ -55,8 +65,11 @@ export class GraphicsFactoryFills
 			var lastPoint:Point = new Point();
 			var last_dir_vec:Point=new Point();
 			var end_point:Point=new Point();
-			if(contour_commands.length>1){
+			if(contour_commands.length>0 && contour_commands[0].length>0){
 
+				if (GraphicsFactoryHelper._tess_obj != null) {
+					GraphicsFactoryHelper._tess_obj.newTess(1024 * 512);
+				}
 				for (k = 0; k < contour_commands.length; k++) {
 					contours_vertices.push([]);
 					vert_cnt = 0;
@@ -328,6 +341,7 @@ export class GraphicsFactoryFills
 						 */
 
 					}
+					GraphicsFactoryHelper._tess_obj.deleteTess();
 				}
 			}
 			final_vert_list=final_vert_list.concat(targetGraphics.queued_fill_pathes[cp].verts);
