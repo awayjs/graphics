@@ -356,7 +356,7 @@ export class Graphics extends AssetBase
 		}
 	}
 
-	public copyTo(graphics:Graphics):void
+	public copyTo(graphics:Graphics, cloneShapes:boolean = false):void
 	{
 		graphics.material = this._material;
 		graphics.style = this._style;
@@ -373,7 +373,7 @@ export class Graphics extends AssetBase
 
 		}
 
-		graphics._addShapes(this._shapes);
+		graphics._addShapes(this._shapes, cloneShapes);
 
 		if (this._animator)
 			graphics.animator = this._animator.clone();
@@ -1724,19 +1724,17 @@ export class Graphics extends AssetBase
 		this._current_position.y=y;
 	}
 
-	private _addShapes(shapes:Array<Shape>):void
+	private _addShapes(shapes:Array<Shape>, cloneShapes:boolean = false):void
 	{
 		var shape:Shape;
 		var len:number = shapes.length;
 		for (var i:number = 0; i < len; i++) {
 			shape = shapes[i];
-			if(this.slice9Rectangle){
-				// todo: this is a dirty workaround to get the slice9-shapes cloned:
-				var new_shape:Shape=new Shape(ElementsUtils.updateTriangleGraphicsSlice9((<TriangleElements>shape.elements), this.originalSlice9Size, 1, 1, false, true));
-				new_shape.material=shape.material;
-				new_shape.style=shape.style;
-				shape=new_shape;
-			}
+			if(this.slice9Rectangle) // todo: this is a dirty workaround to get the slice9-shapes cloned:
+				shape = Shape.getShape(ElementsUtils.updateTriangleGraphicsSlice9(<TriangleElements> shape.elements, this.originalSlice9Size, 1, 1, false, true), shape.material, shape.style);
+			else if (cloneShapes)
+				shape = Shape.getShape(shape.elements, shape.material, shape.style, shape.count, shape.offset);
+
 			shape.addEventListener(ElementsEvent.INVALIDATE_VERTICES, this._onInvalidateVerticesDelegate);
 			shape.addEventListener(ShapeEvent.ADD_MATERIAL, this._onAddMaterialDelegate);
 			shape.addEventListener(ShapeEvent.REMOVE_MATERIAL, this._onRemoveMaterialDelegate);
