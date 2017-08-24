@@ -3,6 +3,8 @@ import {IAsset, URLLoaderDataFormat, ParserBase, ParserUtils, ByteArray, URLRequ
 import {Image2D} from "../image/Image2D";
 import {ExternalImage2D} from "../image/ExternalImage2D";
 import {ImageUtils} from "../utils/ImageUtils";
+import {DefaultGraphicsFactory} from "../factories/DefaultGraphicsFactory";
+import {IGraphicsFactory} from "../factories/IGraphicsFactory";
 
 /**
  * Image2DParser provides a "parser" for natively supported image types (jpg, png). While it simply loads bytes into
@@ -11,6 +13,7 @@ import {ImageUtils} from "../utils/ImageUtils";
  */
 export class Image2DParser extends ParserBase
 {
+	private _factory:IGraphicsFactory;
 	private _startedParsing:boolean;
 	private _doneParsing:boolean;
 	private _loadingImage:boolean;
@@ -21,9 +24,10 @@ export class Image2DParser extends ParserBase
 	 * @param uri The url or id of the data or file to be parsed.
 	 * @param extra The holder for extra contextual data that the parser might need.
 	 */
-	constructor()
+	constructor(factory:IGraphicsFactory = null)
 	{
 		super(URLLoaderDataFormat.BLOB);
+		this._factory = factory || new DefaultGraphicsFactory();
 	}
 
 	/**
@@ -92,14 +96,14 @@ export class Image2DParser extends ParserBase
 			return ParserBase.MORE_TO_PARSE;
 		} else if (this._htmlImageElement) {
 			//if (ImageUtils.isHTMLImageElementValid(this._htmlImageElement)) {
-				asset = ImageUtils.imageToBitmapImage2D(this._htmlImageElement, false);
+				asset = ImageUtils.imageToBitmapImage2D(this._htmlImageElement, false, this._factory);
 				this._pFinalizeAsset(<IAsset> asset, this._iFileName);
 			//}
 		} else if (this.data instanceof HTMLImageElement) {// Parse HTMLImageElement
 			var htmlImageElement:HTMLImageElement = <HTMLImageElement> this.data;
 			//if (ImageUtils.isHTMLImageElementValid(htmlImageElement)) {
 
-				asset = ImageUtils.imageToBitmapImage2D(htmlImageElement, false);
+				asset = ImageUtils.imageToBitmapImage2D(htmlImageElement, false, this._factory);
 				this._pFinalizeAsset(<IAsset> asset, this._iFileName);
 			//} else {
 			//	sizeError = true;
@@ -119,7 +123,7 @@ export class Image2DParser extends ParserBase
 			}
 
 			//if (ImageUtils.isHTMLImageElementValid(this._htmlImageElement)) {
-				asset = ImageUtils.imageToBitmapImage2D(this._htmlImageElement, false);
+				asset = ImageUtils.imageToBitmapImage2D(this._htmlImageElement, false, this._factory);
 				this._pFinalizeAsset(<IAsset> asset, this._iFileName);
 			//} else {
 			//	sizeError = true;
@@ -130,7 +134,7 @@ export class Image2DParser extends ParserBase
 
 			this._htmlImageElement = ParserUtils.arrayBufferToImage(this.data);
 
-			asset = ImageUtils.imageToBitmapImage2D(this._htmlImageElement, false);
+			asset = ImageUtils.imageToBitmapImage2D(this._htmlImageElement, false, this._factory);
 			this._pFinalizeAsset(<IAsset> asset, this._iFileName);
 
 		} else if (this.data instanceof Blob) { // Parse a Blob

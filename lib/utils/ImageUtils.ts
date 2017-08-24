@@ -1,5 +1,6 @@
 import {BitmapImage2D} from "../image/BitmapImage2D";
 import {Image2D} from "../image/Image2D";
+import {IGraphicsFactory} from "../factories/IGraphicsFactory";
 
 export class ImageUtils
 {
@@ -8,12 +9,12 @@ export class ImageUtils
 	/**
 	 *
 	 */
-	public static imageToBitmapImage2D(img:HTMLImageElement, powerOfTwo:boolean = true):BitmapImage2D
+	public static imageToBitmapImage2D(img:HTMLImageElement, powerOfTwo:boolean = true, factory:IGraphicsFactory):BitmapImage2D
 	{
-		var bitmapData:BitmapImage2D = new BitmapImage2D(img.width, img.height, true, null, powerOfTwo);
-		bitmapData.draw(img);
+		var image2D:BitmapImage2D = <BitmapImage2D> factory.createImage2D(img.width, img.height, true, null, powerOfTwo);
+		image2D.draw(img);
 
-		return bitmapData;
+		return image2D;
 	}
 	
 	public static isImage2DValid(image2D:Image2D):boolean

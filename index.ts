@@ -44,6 +44,9 @@ export {ElementsType}					from "./lib/elements/ElementsType";
 export {LineElements}					from "./lib/elements/LineElements";
 export {TriangleElements}				from "./lib/elements/TriangleElements";
 
+export {DefaultGraphicsFactory}			from "./lib/factories/DefaultGraphicsFactory";
+export {IGraphicsFactory}				from "./lib/factories/IGraphicsFactory";
+
 export {BitmapImage2D}					from "./lib/image/BitmapImage2D";
 export {BitmapImageChannel}				from "./lib/image/BitmapImageChannel";
 export {BitmapImageCube}				from "./lib/image/BitmapImageCube";
