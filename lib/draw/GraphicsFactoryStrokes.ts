@@ -617,7 +617,7 @@ export class GraphicsFactoryStrokes
 							var c_cnt:number=curve_verts.length;
 							while (c_cnt>0){
 								c_cnt-=2;
-								GraphicsFactoryHelper.drawPoint(curve_verts[c_cnt],curve_verts[c_cnt+1], final_vert_list, false);
+								//GraphicsFactoryHelper.drawPoint(curve_verts[c_cnt],curve_verts[c_cnt+1], final_vert_list, false);
 
 							}
 

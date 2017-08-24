@@ -172,7 +172,7 @@ export class GraphicsFactoryHelper
 		if(angle_delta<-180){
 			angle_delta+=360;
 		}
-		if(Math.abs(angle_delta)>=150){
+		if(Math.abs(angle_delta)>=175){
 			array_out.push(startx, starty, cx, cy,  endx, endy);
 			array2_out.push(startx2, starty2, cx2, cy2, endx2, endy2);
 			return;
@@ -245,7 +245,7 @@ export class GraphicsFactoryHelper
 			array_out.push(endx, endy);
 			return;			
 		}*/
-		if(Math.abs(angle_delta)<=2 || len<=10 ){
+		if(Math.abs(angle_delta)<=2 || len<=5 ){
 			array_out.push(endx, endy);
 			return;
 		}
