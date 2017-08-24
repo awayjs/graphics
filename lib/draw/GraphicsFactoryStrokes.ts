@@ -82,11 +82,11 @@ export class GraphicsFactoryStrokes
 		*/
 
 	}
-	public static updateStrokesForShape(shape:Shape, scale:number=1){
+	public static updateStrokesForShape(shape:Shape, scale:number, scaleMode:string ){
 
 		var graphicsPath = shape.strokePath;
 		var final_vert_list:Array<number>=[];
-		GraphicsFactoryStrokes.draw_path([graphicsPath], final_vert_list, false, scale, LineScaleMode.NORMAL);
+		GraphicsFactoryStrokes.draw_path([graphicsPath], final_vert_list, false, scale, scaleMode);
 		var elements:TriangleElements=<TriangleElements> shape.elements;
 		elements.setPositions(final_vert_list);
 		elements.invalidate();

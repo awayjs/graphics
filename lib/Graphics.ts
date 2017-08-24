@@ -109,7 +109,7 @@ export class Graphics extends AssetBase
 	private _scaleY:number = 1;
 
 	// todo: this is a temp workarpound to prevent strokes from getting scaled, if they are not coming from awd
-	public scaleStrokes:boolean=false;
+	public scaleStrokes:string=LineScaleMode.NONE;
 
 	private _drawingDirty:boolean = false;
 
@@ -126,7 +126,7 @@ export class Graphics extends AssetBase
 		for (var i:number = 0; i < len; i++) {
 			if(this._shapes[i].isStroke){
 				doInvalid=true;
-				GraphicsFactoryStrokes.updateStrokesForShape(this._shapes[i], this._scaleX);
+				GraphicsFactoryStrokes.updateStrokesForShape(this._shapes[i], this._scaleX, this.scaleStrokes);
 			}
 		}
 		if(doInvalid){
@@ -1137,10 +1137,10 @@ export class Graphics extends AssetBase
 		}
 		if(this._active_stroke_path!=null){
 			this._active_stroke_path.moveTo(x, y);
-			var t:number=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness/2;
+			//var t:number=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness/2;
 			
 			// todo: respect Jointstyle here (?)
-			
+			/*
 			GraphicsFactoryHelper.addTriangle(x-t, y+height+t, x-t, y-t, x+t, y+t, 0, this._active_stroke_path.verts, false);
 			GraphicsFactoryHelper.addTriangle(x-t, y+height+t, x+t, y+height-t, x+t, y+t, 0, this._active_stroke_path.verts, false);
 
@@ -1152,12 +1152,13 @@ export class Graphics extends AssetBase
 
 			GraphicsFactoryHelper.addTriangle(x-t, y+height+t, x+width+t, y+height+t, x+t, y+height-t, 0, this._active_stroke_path.verts, false);
 			GraphicsFactoryHelper.addTriangle(x+t, y+height-t, x+width+t, y+height+t, x+width-t, y+height-t, 0, this._active_stroke_path.verts, false);
-			/*
+			*/
+
 			this._active_stroke_path.lineTo(x+width, y);
 			this._active_stroke_path.lineTo(x+width, y+height);
 			this._active_stroke_path.lineTo(x, y+height);
 			this._active_stroke_path.lineTo(x, y);
-			*/
+			
 		}
 	}
 
