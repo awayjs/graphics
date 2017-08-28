@@ -698,11 +698,12 @@ export class BitmapImage2D extends Image2D
 		if (!this._imageData)
 			this._imageData = this._context.getImageData(0, 0, this._rect.width, this._rect.height);
 
-		var index:number = (x + y*this._imageData.width)*4;
+		var index:number = ~~(x + y*this._imageData.width)*4;
 
 		this._imageData.data[index + 0] = argb[1];
 		this._imageData.data[index + 1] = argb[2];
 		this._imageData.data[index + 2] = argb[3];
+		this._imageData.data[index + 3] = 0xff;
 
 		if (!this._locked)
 			this.invalidate();
