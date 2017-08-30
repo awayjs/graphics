@@ -242,17 +242,22 @@ export class BitmapImage2D extends Image2D
 		if (!this._imageData)
 			this._imageData = this._context.getImageData(0, 0, this._rect.width, this._rect.height);
 
-		var sourceData:Uint8ClampedArray = sourceBitmap.getImageData().data;
+		var sourceData:Uint8ClampedArray = imageData.data;
 		var destData:Uint8ClampedArray = this._imageData.data;
 
 		var sourceOffset:number = Math.round(Math.log(sourceChannel)/Math.log(2));
 		var destOffset:number = Math.round(Math.log(destChannel)/Math.log(2));
 
+		var sourceX:number = Math.round(sourceRect.x);
+		var sourceY:number = Math.round(sourceRect.y);
+		var destX:number = Math.round(destPoint.x);
+		var destY:number = Math.round(destPoint.y);
+
 		var i:number, j:number, sourceIndex:number, destIndex:number;
 		for (i = 0; i < sourceRect.width; ++i) {
 			for (j = 0; j < sourceRect.height; ++j) {
-				sourceIndex = (i + sourceRect.x + (j + sourceRect.y)*sourceBitmap.width)*4;
-				destIndex = (i + destPoint.x + (j + destPoint.y)*this.width)*4;
+				sourceIndex = (i + sourceX + (j + sourceY)*imageData.width)*4;
+				destIndex = (i + destX + (j + destY)*this._rect.width)*4;
 
 				destData[destIndex + destOffset] = sourceData[sourceIndex + sourceOffset];
 			}
