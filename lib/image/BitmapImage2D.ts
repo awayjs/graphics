@@ -581,7 +581,7 @@ export class BitmapImage2D extends Image2D
 		var a:number;
 
 		if (!this._imageData) {
-			var pixelData:ImageData = this._context.getImageData(x, y, 1, 1);
+			var pixelData:ImageData = this._context.getImageData(~~x, ~~y, 1, 1);
 
 			r = pixelData.data[0];
 			g = pixelData.data[1];
@@ -589,7 +589,7 @@ export class BitmapImage2D extends Image2D
 			a = pixelData.data[3];
 
 		} else {
-			var index:number = (x + y*this._imageData.width)*4;
+			var index:number = (~~x + ~~y*this._imageData.width)*4;
 
 			r = this._imageData.data[index + 0];
 			g = this._imageData.data[index + 1];
