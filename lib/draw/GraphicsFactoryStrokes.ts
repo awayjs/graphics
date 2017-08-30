@@ -131,12 +131,14 @@ export class GraphicsFactoryStrokes
 
 			var half_thickness:number=strokeStyle.half_thickness;
 			if(scaleMode==LineScaleMode.NORMAL){
-				var minScale:number=0.5;
-				if(scale<1){
-					minScale=0.25;
-				}
-				if((half_thickness*scale)<minScale){
-					half_thickness=minScale*(1/scale);
+				if(half_thickness!=0.15){
+					var minScale:number=0.5;
+					if(scale<1){
+						minScale=0.25;
+					}
+					if((half_thickness*scale)<minScale){
+						half_thickness=minScale*(1/scale);
+					}
 				}
 			}
 			else if(scaleMode==LineScaleMode.NONE){
