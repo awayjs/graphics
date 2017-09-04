@@ -50,12 +50,14 @@ export class GraphicsFactoryStrokes
 			attributesView.dispose();
 			var elements:TriangleElements = new TriangleElements(attributesBuffer);
 			elements.setPositions(new Float2Attributes(attributesBuffer));
+			elements.halfStrokeThickness=strokeStyle.half_thickness;
 			//	if(material.curves)
 			//		elements.setCustomAttributes("curves", new Byte4Attributes(attributesBuffer, false));
 			//	material.alpha=(<GraphicsStrokeStyle>this.queued_stroke_pathes[i].style).alpha;
 			var shape:Shape=targetGraphics.addShape(Shape.getShape(elements, material));
 			shape.isStroke=true;
 			shape.strokePath=strokePath;
+			shape.elements
 			if(obj.colorPos){
 				shape.style = new Style();
 				var sampler:Sampler2D = new Sampler2D();

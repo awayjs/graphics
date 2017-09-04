@@ -36,6 +36,9 @@ export class TriangleElements extends ElementsBase
 	//used for hittesting geometry
 	public hitTestCache:Object = new Object();
 
+
+	public halfStrokeThickness:number=0;
+
 	public originalSlice9Size:Rectangle;
 	public slice9offsets:Rectangle;
 	public slice9Indices:number[];
@@ -215,7 +218,7 @@ export class TriangleElements extends ElementsBase
 
 	public getBoxBounds(target:Box = null, count:number = 0, offset:number = 0):Box
 	{
-		return ElementsUtils.getTriangleGraphicsBoxBounds(this.positions, this.indices, target, count || this._numElements || this._numVertices, offset);
+		return ElementsUtils.getTriangleGraphicsBoxBounds(this.positions, this.indices, target, count || this._numElements || this._numVertices, offset, this.halfStrokeThickness);
 	}
 
 	public getSphereBounds(center:Vector3D, target:Sphere = null, count:number = 0, offset:number = 0):Sphere

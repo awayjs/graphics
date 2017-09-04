@@ -908,7 +908,7 @@ export class ElementsUtils
 		return false;
 	}
 
-	public static getTriangleGraphicsBoxBounds(positionAttributes:AttributesView, indexAttributes:Short2Attributes, output:Box, count:number, offset:number = 0):Box
+	public static getTriangleGraphicsBoxBounds(positionAttributes:AttributesView, indexAttributes:Short2Attributes, output:Box, count:number, offset:number = 0, halfThickness:number=0):Box
 	{
 		var positions:ArrayBufferView;
 		var posDim:number = positionAttributes.dimensions;
@@ -965,11 +965,11 @@ export class ElementsUtils
 		if (output == null)
 			output = new Box();
 
-		output.x = minX;
-		output.y = minY;
+		output.x = minX+halfThickness;
+		output.y = minY+halfThickness;
 		output.z = minZ;
-		output.right = maxX;
-		output.bottom = maxY;
+		output.right = maxX-halfThickness;
+		output.bottom = maxY-halfThickness;
 		output.back = maxZ;
 
 		return output;
