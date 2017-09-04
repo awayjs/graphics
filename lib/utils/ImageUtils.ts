@@ -1,4 +1,5 @@
 import {BitmapImage2D} from "../image/BitmapImage2D";
+import {DefaultGraphicsFactory} from "../factories/DefaultGraphicsFactory";
 import {Image2D} from "../image/Image2D";
 import {IGraphicsFactory} from "../factories/IGraphicsFactory";
 
@@ -9,8 +10,10 @@ export class ImageUtils
 	/**
 	 *
 	 */
-	public static imageToBitmapImage2D(img:HTMLImageElement, powerOfTwo:boolean = true, factory:IGraphicsFactory):BitmapImage2D
+	public static imageToBitmapImage2D(img:HTMLImageElement, powerOfTwo:boolean = true, factory:IGraphicsFactory = null):BitmapImage2D
 	{
+		if (!factory)
+			factory = new DefaultGraphicsFactory();
 		var image2D:BitmapImage2D = <BitmapImage2D> factory.createImage2D(img.width, img.height, true, null, powerOfTwo);
 		image2D.draw(img);
 
