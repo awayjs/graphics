@@ -44,7 +44,7 @@ export class TextureAtlas
 		}
 		var newColorObj:any={};
 		newColorObj.colorPos=textureAtlas.draw_color(color, alpha);
-		newColorObj.texture=textureAtlas.colorTexture;
+		newColorObj.bitmap=textureAtlas.bitmap;
 
 		TextureAtlas._allColors[colorString]=newColorObj;
 		return newColorObj;
@@ -77,7 +77,7 @@ export class TextureAtlas
 		
 		newColorObj.uvRectangle.copyFrom(gradient.uvRectangle);
 
-		newColorObj.texture=textureAtlas.gradientTexture;
+		newColorObj.bitmap=textureAtlas.bitmap;
 
 		TextureAtlas._allGradients[gradientStr]=newColorObj;
 		return newColorObj;
@@ -86,8 +86,6 @@ export class TextureAtlas
 	
 	constructor(){
 		this.bitmap = new BitmapImage2D(256, 256, false, 0xff0000);
-		this.colorTexture = new Single2DTexture(this.bitmap);
-		this.gradientTexture = new Single2DTexture(this.bitmap);
 		this.availableRows=256;
 		this.availableColors=0;
 	}
@@ -99,8 +97,6 @@ export class TextureAtlas
 	public availableGradients:number=256;
 	public availableColors:number=0;
 	public bitmap:BitmapImage2D;
-	public colorTexture:Single2DTexture;
-	public gradientTexture:Single2DTexture;
 
 	public fit_gradient():boolean{
 		return (this.availableRows>0);		
