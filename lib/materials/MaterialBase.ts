@@ -73,7 +73,7 @@ export class MaterialBase extends AssetBase implements IMaterial
 	 */
 	constructor(image?:ImageBase, alpha?:number);
 	constructor(color?:number, alpha?:number);
-	constructor(imageColor:any = null, alpha:number = 1)
+	constructor(imageColor:any = 0xFFFFFF, alpha:number = 1)
 	{
 		super();
 
@@ -82,7 +82,7 @@ export class MaterialBase extends AssetBase implements IMaterial
 
 		if (imageColor instanceof ImageBase)
 			this._style.image = <ImageBase> imageColor;
-		else if (!isNaN(imageColor))
+		else
 			this._style.color = Number(imageColor);
 
 		this.alpha = alpha;
