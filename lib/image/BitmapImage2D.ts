@@ -489,10 +489,10 @@ export class BitmapImage2D extends Image2D
 		if (this._imageData)
 			this._context.putImageData(this._imageData, 0, 0); // at coords 0,0
 
-		rect.x=~~rect.x;
-		rect.y=~~rect.y;
-		rect.width=~~rect.width;
-		rect.height=~~rect.height;
+		rect.x=Math.ceil(rect.x);
+		rect.y=Math.ceil(rect.y);
+		rect.width=Math.ceil(rect.width);
+		rect.height=Math.ceil(rect.height);
 		BitmapImageUtils._fillRect(this._context, rect, color, this._transparent);
 
 		this._imageData = null;
