@@ -21,7 +21,8 @@ export class BitmapImageUtils
 
 	public static _copyPixels(context:CanvasRenderingContext2D, bmpd:HTMLImageElement | HTMLCanvasElement | HTMLVideoElement, sourceRect:Rectangle, destPoint:Point):void
 	{
-		context.drawImage(bmpd, sourceRect.x, sourceRect.y, sourceRect.width, sourceRect.height, destPoint.x, destPoint.y, sourceRect.width, sourceRect.height);
+		if (sourceRect.width > 0 && sourceRect.height > 0)
+			context.drawImage(bmpd, sourceRect.x, sourceRect.y, sourceRect.width, sourceRect.height, destPoint.x, destPoint.y, sourceRect.width, sourceRect.height);
 	}
 
 	public static _draw(context:CanvasRenderingContext2D, source:any, matrix:Matrix, colorTransform:ColorTransform, blendMode:BlendMode, clipRect:Rectangle, smoothing:boolean):void
