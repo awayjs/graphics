@@ -248,7 +248,7 @@ export class GraphicsFactoryStrokes
 									add_segment=true;
 								}
 							}
-							if (Math.abs(dir_delta)==180){
+							if (Math.abs(dir_delta) >= 179.9997 && Math.abs(dir_delta) <= 180.0003 ) {
 								add_segment=true;
 								//todo: edgecase - path goes straight back. we can just add the contour points (?)
 								//console.log("path goes straight back (180)!")
