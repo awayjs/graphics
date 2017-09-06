@@ -803,13 +803,13 @@ export class BitmapImage2D extends Image2D
 	 */
 	public setPixels(rect:Rectangle, input:Uint8ClampedArray):void
 	{
+		if (!this._imageData)
+			this._imageData = this._context.getImageData(0, 0, this._rect.width, this._rect.height);
+
 		//fast path for full imageData
 		if (rect.equals(this._rect)) {
-			this._imageData = new ImageData(input, this._rect.width, this._rect.height);
+			this._imageData.data.set(input);
 		} else {
-			if (!this._imageData)
-				this._imageData = this._context.getImageData(0, 0, this._rect.width, this._rect.height);
-
 			var i:number;
 			var imageWidth:number = this._rect.width;
 			var inputWidth:number = rect.width;

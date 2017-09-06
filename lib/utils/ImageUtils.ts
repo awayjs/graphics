@@ -14,7 +14,7 @@ export class ImageUtils
 	{
 		if (!factory)
 			factory = new DefaultGraphicsFactory();
-		var image2D:BitmapImage2D = <BitmapImage2D> factory.createImage2D(img.width, img.height, true, null, powerOfTwo);
+		var image2D:BitmapImage2D = <BitmapImage2D> factory.createImage2D(img.naturalWidth, img.naturalHeight, true, null, powerOfTwo);
 		image2D.draw(img);
 
 		return image2D;
