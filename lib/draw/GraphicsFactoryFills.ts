@@ -17,6 +17,8 @@ import {Sampler2D} from "../image/Sampler2D";
 import {Graphics} from "../Graphics";
 import {MappingMode} from "../textures/MappingMode";
 
+declare var require: any
+var Tess2 = require('tess2');
 /**
  * The Graphics class contains a set of methods that you can use to create a
  * vector shape. Display objects that support drawing include Sprite and Shape
@@ -32,18 +34,10 @@ import {MappingMode} from "../textures/MappingMode";
  * <p>The Graphics class is final; it cannot be subclassed.</p>
  */
 
-declare const TESS:any;
 export class GraphicsFactoryFills
 {
 
 	public static draw_pathes(targetGraphics:Graphics) {
-
-
-		if (typeof window["TESS"] != 'undefined') {
-			if(GraphicsFactoryHelper._tess_obj==null){
-				GraphicsFactoryHelper._tess_obj=new TESS();
-			}
-		}
 
 		var len=targetGraphics.queued_fill_pathes.length;
 		var cp=0;
@@ -67,9 +61,6 @@ export class GraphicsFactoryFills
 			var end_point:Point=new Point();
 			if(contour_commands.length>0 && contour_commands[0].length>0){
 
-				if (GraphicsFactoryHelper._tess_obj != null) {
-					GraphicsFactoryHelper._tess_obj.newTess(1024 * 512);
-				}
 				for (k = 0; k < contour_commands.length; k++) {
 					contours_vertices.push([]);
 					vert_cnt = 0;
@@ -273,47 +264,26 @@ export class GraphicsFactoryFills
 				var verts:Array<number> = [];
 				var all_verts:Array<Point> = [];
 				var elems:Array<number> = [];
-				for (k = 0; k < contours_vertices.length; k++) {
-					var vertices = contours_vertices[k];
 
-					//for (i = 0; i < vertices.length / 2; ++i)
-					//console.log("vert collected" + i + " = " + vertices[i * 2] + " / " + vertices[i * 2 + 1]);
+					var res = Tess2.tesselate({
+						contours: contours_vertices,
+						windingRule: Tess2.WINDING_ODD,
+						elementType: Tess2.POLYGONS,
+						polySize: 3,
+						vertexSize: 2
+					});
 
-
-
-					var verticesF32 = new Float32Array(vertices);
-					//var verticesF32 = new Float32Array([0,0, 100,0, 100,100, 0,100]);
-					//console.log("in vertices", vertices);
-					//var tess = new TESS();
-					if (GraphicsFactoryHelper._tess_obj == null) {
-						//console.log("No libtess2 tesselator available.\nMake it available using Graphics._tess_obj=new TESS();");
-					}
-					else{
-						GraphicsFactoryHelper._tess_obj.addContour(verticesF32, 2, 8, vertices.length / 2);
-					}
-
-				}
-				if (GraphicsFactoryHelper._tess_obj != null) {
-					GraphicsFactoryHelper._tess_obj.tesselate(0/*TESS.WINDING_ODD*/, 0/*TESS.ELEMENT_POLYGONS*/, 3, 2, null);
-
-					//console.log("out vertices", Graphics._tess_obj.getVertices());
-					verts = GraphicsFactoryHelper._tess_obj.getVertices();
-					elems = GraphicsFactoryHelper._tess_obj.getElements();
-					//console.log("out elements", Graphics._tess_obj.getElements());
-
-
-					var numVerts:number = verts.length / 2;
-					var numElems:number = elems.length / 3;
-					for (i = 0; i < numVerts; ++i)
-						all_verts.push(new Point(verts[i * 2], verts[i * 2 + 1]));
-
+					var numElems:number =  res.elements.length / 3;
+					var p1:number=0;
+					var p2:number=0;
+					var p3:number=0;
 					for (i = 0; i < numElems; ++i) {
-						var p1 = elems[i * 3];
-						var p2 = elems[i * 3 + 1];
-						var p3 = elems[i * 3 + 2];
+						p1 = res.elements[i * 3];
+						p2 = res.elements[i * 3 + 1];
+						p3 = res.elements[i * 3 + 2];
 
-						final_vert_list[final_vert_cnt++] = all_verts[p3].x;
-						final_vert_list[final_vert_cnt++] = all_verts[p3].y;
+						final_vert_list[final_vert_cnt++] = res.vertices[p3*2];
+						final_vert_list[final_vert_cnt++] = res.vertices[p3*2+1];
 						/*
 						 final_vert_list[final_vert_cnt++] = 1;
 						 final_vert_list[final_vert_cnt++] = 2.0;
@@ -321,8 +291,8 @@ export class GraphicsFactoryFills
 						 final_vert_list[final_vert_cnt++] = 1.0;
 						 final_vert_list[final_vert_cnt++] = 0.0;
 						 */
-						final_vert_list[final_vert_cnt++] = all_verts[p2].x;
-						final_vert_list[final_vert_cnt++] = all_verts[p2].y;
+						final_vert_list[final_vert_cnt++] = res.vertices[p2*2];
+						final_vert_list[final_vert_cnt++] = res.vertices[p2*2+1];
 						/*
 						 final_vert_list[final_vert_cnt++] = 1;
 						 final_vert_list[final_vert_cnt++] = 2.0;
@@ -330,8 +300,8 @@ export class GraphicsFactoryFills
 						 final_vert_list[final_vert_cnt++] = 1.0;
 						 final_vert_list[final_vert_cnt++] = 0.0;
 						 */
-						final_vert_list[final_vert_cnt++] = all_verts[p1].x;
-						final_vert_list[final_vert_cnt++] = all_verts[p1].y;
+						final_vert_list[final_vert_cnt++] = res.vertices[p1*2];
+						final_vert_list[final_vert_cnt++] = res.vertices[p1*2+1];
 						/*
 						 final_vert_list[final_vert_cnt++] = 1;
 						 final_vert_list[final_vert_cnt++] = 2.0;
@@ -341,8 +311,7 @@ export class GraphicsFactoryFills
 						 */
 
 					}
-					GraphicsFactoryHelper._tess_obj.deleteTess();
-				}
+
 			}
 			final_vert_list=final_vert_list.concat(targetGraphics.queued_fill_pathes[cp].verts);
 			if(final_vert_list.length>0) {

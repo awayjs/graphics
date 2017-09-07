@@ -37,6 +37,7 @@
   "homepage": "https://github.com/awayjs/graphics#readme",
   "dependencies": {
     "@awayjs/core": "^0.6.0",
+    "tess2": "^1.0.0",
     "tslib": "github:microsoft/tslib"
   },
   "devDependencies": {
