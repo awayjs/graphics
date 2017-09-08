@@ -1131,8 +1131,8 @@ export class Graphics extends AssetBase
 				w-=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness;
 				h-=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness;
 			}
-			GraphicsFactoryHelper.addTriangle(x+t,y+h+t,x+t,y+t, x+w+t, y+t, 0, this._active_fill_path.verts, false);
-			GraphicsFactoryHelper.addTriangle(x+t,y+h+t,x+t+w,y+t, x+w+t, y+h+t, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+t,y+h+t,  x+t,y+t,x+w+t, y+t, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+t,y+h+t, x+t+w,y+t, x+w+t, y+h+t,0, this._active_fill_path.verts, false);
 
 		}
 		if(this._active_stroke_path!=null){
@@ -1207,13 +1207,13 @@ export class Graphics extends AssetBase
 				w-=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness;
 				h-=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness;
 			}
-			GraphicsFactoryHelper.addTriangle(x+t,y+h-eh,x+w-t, y+eh, x+t,y+eh, 0, this._active_fill_path.verts, false);
-			GraphicsFactoryHelper.addTriangle(x+t,y+h-eh, x+w-t, y+h-eh, x+w-t,y+eh, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+t,y+h-eh, x+t,y+eh, x+w-t, y+eh,0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+t,y+h-eh,  x+w-t,y+eh,x+w-t, y+h-eh, 0, this._active_fill_path.verts, false);
 
-			GraphicsFactoryHelper.addTriangle(x+ew,y+t,x+ew,y+eh, x+w-ew, y+eh, 0, this._active_fill_path.verts, false);
-			GraphicsFactoryHelper.addTriangle(x+ew,y+t,x+w-ew,y+eh, x+w-ew, y+t, 0, this._active_fill_path.verts, false);
-			GraphicsFactoryHelper.addTriangle(x+ew,y+h-eh,x+ew,y+h-t, x+w-ew, y+h-t, 0, this._active_fill_path.verts, false);
-			GraphicsFactoryHelper.addTriangle(x+ew,y+h-eh,x+w-ew,y+h-t, x+w-ew, y+h-eh, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+ew,y+t, x+w-ew, y+eh,x+ew,y+eh, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+ew,y+t, x+w-ew, y+t, x+w-ew,y+eh,0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+ew,y+h-eh, x+w-ew, y+h-t,x+ew,y+h-t, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+ew,y+h-eh, x+w-ew, y+h-eh, x+w-ew,y+h-t,0, this._active_fill_path.verts, false);
 
 			GraphicsFactoryHelper.drawElipse(x+ew,y+eh, ew-t, eh-t, this._active_fill_path.verts, 180, 270, 5, false);
 			GraphicsFactoryHelper.drawElipse(x+w-ew,y+eh, ew-t, eh-t, this._active_fill_path.verts, 270, 360, 5, false);
