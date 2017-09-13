@@ -115,7 +115,7 @@ export class Image2DParser extends ParserBase
 			ba.position = 0;
 			this._htmlImageElement = ParserUtils.byteArrayToImage(this.data);
 
-			if (!this._htmlImageElement.complete) {
+			if (!this._htmlImageElement.naturalWidth) {
 				this._htmlImageElement.onload = (event) => this.onLoadComplete(event);
 				this._loadingImage = true;
 
