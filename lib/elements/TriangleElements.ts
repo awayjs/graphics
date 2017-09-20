@@ -1,4 +1,4 @@
-import {AttributesView, Float4Attributes, Float3Attributes, Float2Attributes, Short3Attributes, Rectangle, Box, Sphere, Matrix3D, Vector3D} from "@awayjs/core";
+import {AttributesBuffer, AttributesView, Float4Attributes, Float3Attributes, Float2Attributes, Short3Attributes, Rectangle, Box, Sphere, Matrix3D, Vector3D} from "@awayjs/core";
 
 import {TraverserBase} from "../base/TraverserBase";
 import {ElementsUtils} from "../utils/ElementsUtils";
@@ -9,6 +9,8 @@ import {ElementsBase} from "./ElementsBase";
  */
 export class TriangleElements extends ElementsBase
 {
+	private static isIE:boolean=!!navigator.userAgent.match(/Trident/g) || !!navigator.userAgent.match(/MSIE/g);
+
 	public static traverseName:string = TraverserBase.addRenderableName("applyTriangleShape");
 	public static assetType:string = "[asset TriangleElements]";
 	
@@ -192,6 +194,14 @@ export class TriangleElements extends ElementsBase
 	 */
 	public get uvs():AttributesView
 	{
+		if(!this._uvs && TriangleElements.isIE){
+			var attributesView2:AttributesView = new AttributesView(Float32Array, 2);
+			attributesView2.set(this._positions.get(this._positions.count));
+			var attributesBuffer2:AttributesBuffer = attributesView2.attributesBuffer;
+			attributesView2.dispose();
+			this._uvs=new Float2Attributes(attributesBuffer2);
+		}
+
 		return this._uvs;
 	}
 

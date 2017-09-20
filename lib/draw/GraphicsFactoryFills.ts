@@ -323,6 +323,7 @@ export class GraphicsFactoryFills
 				attributesView.dispose();
 				var elements:TriangleElements = new TriangleElements(attributesBuffer);
 				elements.setPositions(new Float2Attributes(attributesBuffer));
+
 				//elements.setCustomAttributes("curves", new Float3Attributes(attributesBuffer));
 				//elements.setUVs(new Float2Attributes(attributesBuffer));
 
