@@ -1133,6 +1133,8 @@ export class Graphics extends AssetBase
 			}
 			GraphicsFactoryHelper.addTriangle(x+t,y+h+t,  x+t,y+t,x+w+t, y+t, 0, this._active_fill_path.verts, false);
 			GraphicsFactoryHelper.addTriangle(x+t,y+h+t, x+t+w,y+t, x+w+t, y+h+t,0, this._active_fill_path.verts, false);
+				
+
 
 		}
 		if(this._active_stroke_path!=null){
@@ -1658,9 +1660,7 @@ export class Graphics extends AssetBase
 		if(thickness==0){
 			thickness=0.3;
 		}
-		if(color==0){
-			color=0x010101;
-		}
+		
 		// start a new stroke path
 		this._active_stroke_path=new GraphicsPath();
 		this._active_stroke_path.style = new  GraphicsStrokeStyle(color, alpha, thickness, jointstyle, capstyle, miterLimit);

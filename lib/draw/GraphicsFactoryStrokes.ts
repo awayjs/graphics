@@ -136,6 +136,9 @@ export class GraphicsFactoryStrokes
 				if(half_thickness!=0.15){
 					var minScale:number=0.5;
 
+					if(scale<1){
+						minScale=0.5;
+					}
 					if((half_thickness*scale)<minScale){
 						half_thickness=minScale*(1/scale);
 					}

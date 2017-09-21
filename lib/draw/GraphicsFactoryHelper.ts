@@ -79,6 +79,20 @@ export class GraphicsFactoryHelper
 	}
 	public static addTriangle(startX:number,startY:number, controlX:number, controlY:number, endX:number, endY:number, tri_type:number, vertices:Array<number>, curves:boolean):void
 	{
+		var x1=startX;
+		var y1=startY;
+		var x2=controlX;
+		var y2=controlY;
+		var x3=endX;
+		var y3=endY;
+		if(GraphicsFactoryHelper.isClockWiseXY(x1, y1, x2, y2, x3, y3)){
+			startX=x3;
+			startY=y3;
+			controlX=x2;
+			controlY=y2;
+			endX=x1;
+			endY=y1;
+		}
 		var final_vert_cnt:number = vertices.length;
 		if(tri_type==0){
 			vertices[final_vert_cnt++] = startX;
