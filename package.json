@@ -1,6 +1,6 @@
 {
   "name": "@awayjs/graphics",
-  "version": "0.1.84",
+  "version": "0.2.0",
   "description": "AwayJS graphics classes",
   "main": "bundle/awayjs-graphics.umd.js",
   "types": "dist/index.d.ts",
@@ -36,7 +36,7 @@
   },
   "homepage": "https://github.com/awayjs/graphics#readme",
   "dependencies": {
-    "@awayjs/core": "^0.6.0",
+    "@awayjs/core": "^0.7.0",
     "tess2": "^1.0.0",
     "tslib": "github:microsoft/tslib"
   },
