@@ -235,7 +235,7 @@ export class GraphicsPath implements IGraphicsData
     }
 
     public forceClose:boolean=false;
-    public prepare(){
+    public prepare(scale:number=1){
 
         var new_dir:number;
         var dir_delta:number;
@@ -318,12 +318,11 @@ export class GraphicsPath implements IGraphicsData
                         ctr_point = new Point(data[data_cnt++], data[data_cnt++]);
                         //console.log("CURVE_TO ", i, ctr_point.x, ctr_point.y, end_point.x, end_point.y);
                         var curve_verts:number[]=[];
-                        GraphicsFactoryHelper.tesselateCurve(prev_x, prev_y, ctr_point.x,ctr_point.y,end_point.x,end_point.y,curve_verts);
+                        GraphicsFactoryHelper.tesselateCurve(prev_x, prev_y, ctr_point.x,ctr_point.y,end_point.x,end_point.y,curve_verts, scale);
                         var k_len:number=curve_verts.length;
                         var k=0;
                         for (k=0; k<k_len; k+=2){
                             var newPoint = new Point(curve_verts[k], curve_verts[k+1]);
-                           // console.log("tesselated curve to ", k, newPoint.x, newPoint.y);
                             this._newCommands[c].push(GraphicsPathCommand.LINE_TO);
                             this._positions[c].push(newPoint.x);
                             this._positions[c].push(newPoint.y);

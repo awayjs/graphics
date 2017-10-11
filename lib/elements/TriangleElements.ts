@@ -45,6 +45,7 @@ export class TriangleElements extends ElementsBase
 	public slice9offsets:Rectangle;
 	public slice9Indices:number[];
 	public initialSlice9Positions:number[];
+	public lastStrokeScale:number;
 
 	public updateSlice9(width:number, height:number){
 

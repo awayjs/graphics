@@ -232,8 +232,10 @@ export class GraphicsFactoryHelper
 		GraphicsFactoryHelper.subdivideCurve(startx, starty, c1x, c1y, ax, ay, startx2, starty2, c1x2, c1y2, ax2, ay2, array_out, array2_out);
 		GraphicsFactoryHelper.subdivideCurve(ax, ay, c2x, c2y, endx, endy, ax2, ay2, c2x2, c2y2, endx2, endy2, array_out, array2_out);
 
+
 	}
-	public static tesselateCurve(startx:number, starty:number, cx:number, cy:number, endx:number, endy:number, array_out:Array<number>):void
+
+	public static tesselateCurve(startx:number, starty:number, cx:number, cy:number, endx:number, endy:number, array_out:Array<number>, scale:number=1, filled:boolean=false):void
 	{
 		var angle_1:number=Math.atan2(cy - starty, cx - startx) * MathConsts.RADIANS_TO_DEGREES;
 		var angle_2:number=Math.atan2(endy - cy, endx - cx) * MathConsts.RADIANS_TO_DEGREES;
@@ -259,8 +261,9 @@ export class GraphicsFactoryHelper
 			array_out.push(endx, endy);
 			return;			
 		}*/
-		if(Math.abs(angle_delta)<=2 || len<=5 ){
-			array_out.push(endx, endy);
+		if(Math.abs(angle_delta)<=1 || len<=1 ){
+			if(!filled)
+				array_out.push(endx, endy);
 			return;
 		}
 
@@ -274,8 +277,12 @@ export class GraphicsFactoryHelper
 		var ax = c1x + (c2x - c1x) * 0.5;// new middlepoint 1
 		var ay = c1y + (c2y - c1y) * 0.5;
 
-		GraphicsFactoryHelper.tesselateCurve(startx, starty, c1x, c1y, ax, ay, array_out);
-		GraphicsFactoryHelper.tesselateCurve(ax, ay, c2x, c2y, endx, endy, array_out);
+
+		if(filled){
+			array_out.push(startx, starty, ax, ay, endx, endy);
+		}
+		GraphicsFactoryHelper.tesselateCurve(startx, starty, c1x, c1y, ax, ay, array_out, scale, filled);
+		GraphicsFactoryHelper.tesselateCurve(ax, ay, c2x, c2y, endx, endy, array_out, scale, filled);
 
 	}
 }

@@ -20,6 +20,7 @@ import {TriangleCulling} from "./draw/TriangleCulling";
 import {SpreadMethod} from "./draw/SpreadMethod";
 import {CapsStyle} from "./draw/CapsStyle";
 import {GradientType} from "./draw/GradientType";
+import {BitmapFillStyle} from "./draw/BitmapFillStyle";
 import {GraphicsPathWinding} from "./draw/GraphicsPathWinding";
 import {IGraphicsData} from "./draw/IGraphicsData";
 import {GraphicsStrokeStyle} from "./draw/GraphicsStrokeStyle";
@@ -105,7 +106,7 @@ export class Graphics extends AssetBase
 	public originalSlice9Size:Rectangle;
 	public minSlice9Width:number;
 	public minSlice9Height:number;
-	private _scaleX:number = 1;
+	public _scaleX:number = 1;
 	private _scaleY:number = 1;
 
 	// todo: this is a temp workarpound to prevent strokes from getting scaled, if they are not coming from awd
@@ -241,6 +242,16 @@ export class Graphics extends AssetBase
 	public set queued_fill_pathes(value:Array<GraphicsPath>)
 	{
 		this._queued_fill_pathes=value
+	}
+	public add_queued_path(value:GraphicsPath)
+	{
+		if(value.style) {
+			this._drawingDirty = false;
+			if (value.style.data_type == GraphicsFillStyle.data_type || value.style.data_type == GradientFillStyle.data_type || value.style.data_type == BitmapFillStyle.data_type)
+				this._queued_fill_pathes.push(value);
+			if (value.style.data_type == GraphicsStrokeStyle.data_type)
+				this._queued_stroke_pathes.push(value);
+		}
 	}
 	/**
 	 * The material with which to render the Graphics.

@@ -41,7 +41,7 @@ export class GraphicsFactoryStrokes
 			var material:MaterialBase=obj.material;
 
 			var final_vert_list:Array<number>=[];
-			strokePath.prepare();
+			strokePath.prepare(targetGraphics._scaleX);
 			GraphicsFactoryStrokes.draw_path([strokePath], final_vert_list, material.curves);
 			final_vert_list=final_vert_list.concat(strokePath.verts);
 			var attributesView:AttributesView = new AttributesView(Float32Array, material.curves?3:2);
@@ -51,13 +51,13 @@ export class GraphicsFactoryStrokes
 			var elements:TriangleElements = new TriangleElements(attributesBuffer);
 			elements.setPositions(new Float2Attributes(attributesBuffer));
 			elements.halfStrokeThickness=strokeStyle.half_thickness;
+			elements.lastStrokeScale=targetGraphics._scaleX;
 			//	if(material.curves)
 			//		elements.setCustomAttributes("curves", new Byte4Attributes(attributesBuffer, false));
 			//	material.alpha=(<GraphicsStrokeStyle>this.queued_stroke_pathes[i].style).alpha;
 			var shape:Shape=targetGraphics.addShape(Shape.getShape(elements, material));
 			shape.isStroke=true;
 			shape.strokePath=strokePath;
-			shape.elements
 			if(obj.colorPos){
 				shape.style = new Style();
 				var sampler:Sampler2D = new Sampler2D();
@@ -87,11 +87,18 @@ export class GraphicsFactoryStrokes
 	public static updateStrokesForShape(shape:Shape, scale:number, scaleMode:string ){
 
 		var graphicsPath = shape.strokePath;
+		var elements:TriangleElements=<TriangleElements> shape.elements;
+		if(elements.lastStrokeScale>(scale*2) || elements.lastStrokeScale<(scale*0.5)){
+			//graphicsPath.prepare(scale);
+			elements.lastStrokeScale=scale;
+
+		}
+		/*
 		var final_vert_list:Array<number>=[];
 		GraphicsFactoryStrokes.draw_path([graphicsPath], final_vert_list, false, scale, scaleMode);
-		var elements:TriangleElements=<TriangleElements> shape.elements;
 		elements.setPositions(final_vert_list);
 		elements.invalidate();
+		*/
 
 	}
 	public static draw_path(graphic_pathes:Array<GraphicsPath>, final_vert_list:Array<number>, curves:boolean, scale:number=1, scaleMode:string=LineScaleMode.NORMAL){
@@ -173,7 +180,7 @@ export class GraphicsFactoryStrokes
 				}
 
 				data_cnt=0;
-				lastPoint.x=data[data_cnt++];
+				lastPoint.x=data[data_cnt++]; 
 				lastPoint.y=data[data_cnt++];
 
 
@@ -619,14 +626,13 @@ export class GraphicsFactoryStrokes
 							end_right = new_pnts[new_pnts_cnt];
 							end_left = new_pnts[new_pnts_cnt+1];
 
-							var curve_verts:number[]=[];
-							GraphicsFactoryHelper.tesselateCurve(start_point.x, start_point.y, ctr_point.x,ctr_point.y,end_right.x,end_right.y,curve_verts);
-							var c_cnt:number=curve_verts.length;
+							GraphicsFactoryHelper.tesselateCurve(start_point.x, start_point.y, ctr_point.x,ctr_point.y,end_right.x,end_right.y,final_vert_list);
+							/*var c_cnt:number=curve_verts.length;
 							while (c_cnt>0){
 								c_cnt-=2;
 								//GraphicsFactoryHelper.drawPoint(curve_verts[c_cnt],curve_verts[c_cnt+1], final_vert_list, false);
 
-							}
+							}*/
 
 
 							// subdivide the middle curve
@@ -647,10 +653,10 @@ export class GraphicsFactoryStrokes
 					else if(new_cmds[i]>=GraphicsPathCommand.BUILD_JOINT) {
 						new_pnts_cnt+=3;
 						if(new_cmds[i]==GraphicsPathCommand.BUILD_ROUND_JOINT) {
-							end_left = new_pnts[new_pnts_cnt++];// concave curves:
+							end_left = new_pnts[new_pnts_cnt++];
 							start_right = new_pnts[new_pnts_cnt++];
 							start_left = new_pnts[new_pnts_cnt++];
-							GraphicsFactoryHelper.addTriangle(start_right.x, start_right.y,  end_left.x, end_left.y,start_left.x, start_left.y, -1, final_vert_list, curves);
+							GraphicsFactoryHelper.tesselateCurve(start_right.x, start_right.y, end_left.x, end_left.y, start_left.x, start_left.y, final_vert_list, 1, true);
 
 						}
 					}
