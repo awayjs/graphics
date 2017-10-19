@@ -110,13 +110,16 @@ export class Graphics extends AssetBase
 	private _scaleY:number = 1;
 
 	// todo: this is a temp workarpound to prevent strokes from getting scaled, if they are not coming from awd
-	public scaleStrokes:string=LineScaleMode.NONE;
+	public scaleStrokes:string=LineScaleMode.NORMAL;
 
 	private _drawingDirty:boolean = false;
 
 	public updateScale(scaleX:number, scaleY:number)
 	{
 
+		if(!scaleX){
+			return;
+		}
 		if (this._scaleX == scaleX && this._scaleY == scaleY)
 			return;
 
@@ -249,8 +252,11 @@ export class Graphics extends AssetBase
 			this._drawingDirty = false;
 			if (value.style.data_type == GraphicsFillStyle.data_type || value.style.data_type == GradientFillStyle.data_type || value.style.data_type == BitmapFillStyle.data_type)
 				this._queued_fill_pathes.push(value);
-			if (value.style.data_type == GraphicsStrokeStyle.data_type)
+			if (value.style.data_type == GraphicsStrokeStyle.data_type){
 				this._queued_stroke_pathes.push(value);
+				this.endFill();
+
+			}
 		}
 	}
 	/**
@@ -1668,13 +1674,15 @@ export class Graphics extends AssetBase
 	public lineStyle(thickness:number = 0, color:number /*int*/ = 0, alpha:number = 1, pixelHinting:boolean = false, scaleMode:LineScaleMode = null, capstyle:number = CapsStyle.NONE, jointstyle:number = JointStyle.MITER, miterLimit:number = 100):void
 	{
 		this._drawingDirty=true;
-		if(thickness==0){
-			thickness=0.3;
-		}
 		
 		// start a new stroke path
 		this._active_stroke_path=new GraphicsPath();
 		this._active_stroke_path.style = new  GraphicsStrokeStyle(color, alpha, thickness, jointstyle, capstyle, miterLimit);
+		if(thickness==0){
+			(<GraphicsStrokeStyle>this._active_stroke_path.style).scaleMode="HAIRLINE";
+			(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness=0.05;
+			//console.log("HAIRLINE");
+		}
 		if(this._current_position.x!=0 || this._current_position.y!=0)
 			this._active_stroke_path.moveTo(this._current_position.x, this._current_position.y);
 		this._queued_stroke_pathes.push(this._active_stroke_path);

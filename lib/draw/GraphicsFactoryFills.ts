@@ -81,11 +81,16 @@ export class GraphicsFactoryFills
 					shape.style.addSamplerAt(sampler, material.getTextureAt(0));
 					material.animateUVs=true;
 					shape.style.uvMatrix = gradientStyle.getUVMatrix();
+					//sampler.repeat=true;
 
 					// todo: always use mappingmode = Radial ?
-					sampler.imageRect = gradientStyle.uvRectangle;
-					material.imageRect = true;
-					material.getTextureAt(0).mappingMode = MappingMode.RADIAL;
+					if(gradientStyle.type==GradientType.LINEAR)
+						material.getTextureAt(0).mappingMode = MappingMode.LINEAR;
+					else if(gradientStyle.type==GradientType.RADIAL){
+						sampler.imageRect = gradientStyle.uvRectangle;
+						material.imageRect = true;
+						material.getTextureAt(0).mappingMode = MappingMode.RADIAL;
+					}
 
 
 				}
@@ -116,7 +121,7 @@ export class GraphicsFactoryFills
 	}
 
 
-	public static pathToAttributesBuffer(graphicsPath:GraphicsPath):AttributesBuffer {
+	public static pathToAttributesBuffer(graphicsPath:GraphicsPath, closePath:boolean=false):AttributesBuffer {
 
 		graphicsPath.prepare();
 		//one_path.finalizeContour();
@@ -135,6 +140,7 @@ export class GraphicsFactoryFills
 		var lastPoint:Point = new Point();
 		var last_dir_vec:Point=new Point();
 		var end_point:Point=new Point();
+		//console.log("fills:", contour_commands.length)
 		if(contour_commands.length>0 && contour_commands[0].length>0){
 
 			for (k = 0; k < contour_commands.length; k++) {
@@ -144,6 +150,7 @@ export class GraphicsFactoryFills
 				commands = contour_commands[k];
 				data = contour_data[k];
 				draw_direction = 0;
+				//console.log("fills:", commands, data)
 
 				var new_dir:number=0;
 				var new_dir_1:number=0;
@@ -152,9 +159,16 @@ export class GraphicsFactoryFills
 				var last_direction:number=0;
 
 				var tmp_dir_point:Point=new Point();
+				//console.log("unclosed path ? ", data[0], data[1], data[data.length-2], data[data.length-1]);
 				if((data[0] != data[data.length-2]) || (data[1] != data[data.length-1])){
-					data[data.length]=data[0];
-					data[data.length]=data[1];
+					//console.log("skip unclosed path");
+					if(closePath){
+						data[data.length]=data[0];
+						data[data.length]=data[1];
+					}
+					else{
+						continue;
+					}
 				}
 
 				lastPoint.x = data[0];

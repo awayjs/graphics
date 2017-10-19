@@ -137,22 +137,31 @@ export class GraphicsFactoryHelper
 				vertices[final_vert_cnt++] = 1.793662034335766e-43;// ((-128<<24)+0+0+0)
 		}
 	}
-	public static createCap(startX:number, startY:number, start_le:Point, start_ri:Point, dir_vec:Point, capstyle:number, cap_position:number, thickness:number, vertices:Array<number>, curves:boolean):void
+	public static createCap(startX:number, startY:number, start_le:Point, start_ri:Point, dir_vec:Point, capstyle:number, cap_position:number, thickness:number, vertices:Array<number>, curves:boolean, scale:number=1):void
 	{
+		dir_vec.x*=cap_position;
+		dir_vec.y*=cap_position;
 		if (capstyle == CapsStyle.ROUND) {
 			//console.log("add round cap");
-			var tmp1_x:number = startX + (cap_position * (dir_vec.x * thickness));
-			var tmp1_y:number = startY + (cap_position * (dir_vec.y * thickness));
-			tmp1_x = tmp1_x * 2 - start_le.x/2 - start_ri.x/2;
-			tmp1_y = tmp1_y * 2 - start_le.y/2 - start_ri.y/2;
-			GraphicsFactoryHelper.addTriangle(start_le.x, start_le.y, tmp1_x, tmp1_y, start_ri.x, start_ri.y, -1, vertices, curves);
+			var end_x:number = startX + ((dir_vec.x * thickness));
+			var end_y:number = startY + ((dir_vec.y * thickness));
+			//end_x = end_x * 2 - start_le.x/2 - start_ri.x/2;
+			//end_y = end_y * 2 - start_le.y/2 - start_ri.y/2;
+			var tmp1_x:number = start_le.x + ((dir_vec.x * thickness));
+			var tmp1_y:number = start_le.y + ((dir_vec.y * thickness));
+			var tmp2_x:number = start_ri.x + ((dir_vec.x * thickness));
+			var tmp2_y:number = start_ri.y + ((dir_vec.y * thickness));
+
+			GraphicsFactoryHelper.tesselateCurve(start_le.x, start_le.y, tmp1_x, tmp1_y, end_x, end_y, vertices, scale, true);
+			GraphicsFactoryHelper.tesselateCurve(end_x, end_y, tmp2_x, tmp2_y, start_ri.x, start_ri.y, vertices, scale, true);
+			GraphicsFactoryHelper.addTriangle(start_le.x, start_le.y, end_x, end_y, start_ri.x, start_ri.y, -1, vertices, curves);
 		}
 		else if (capstyle == CapsStyle.SQUARE) {
 			//console.log("add square cap");
-			var tmp1_x:number = start_le.x + (cap_position * (dir_vec.x * thickness));
-			var tmp1_y:number = start_le.y + (cap_position * (dir_vec.y * thickness));
-			var tmp2_x:number = start_ri.x + (cap_position * (dir_vec.x * thickness));
-			var tmp2_y:number = start_ri.y + (cap_position * (dir_vec.y * thickness));
+			var tmp1_x:number = start_le.x + ((dir_vec.x * thickness));
+			var tmp1_y:number = start_le.y + ((dir_vec.y * thickness));
+			var tmp2_x:number = start_ri.x + ((dir_vec.x * thickness));
+			var tmp2_y:number = start_ri.y + ((dir_vec.y * thickness));
 
 			GraphicsFactoryHelper.addTriangle(tmp2_x,tmp2_y, tmp1_x, tmp1_y, start_le.x, start_le.y, 0, vertices, curves);
 			GraphicsFactoryHelper.addTriangle(tmp2_x,tmp2_y, start_le.x, start_le.y, start_ri.x, start_ri.y, 0, vertices, curves);

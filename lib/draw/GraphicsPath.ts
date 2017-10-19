@@ -19,11 +19,11 @@ export class GraphicsPath implements IGraphicsData
     /**
      * The Vector of drawing commands as integers representing the path.
      */
-    private _commands:Array<Array<number>>;
+	public _commands:Array<Array<number>>;
     /**
      * The Vector of Numbers containing the parameters used with the drawing commands.
      */
-    private _data:Array<Array<number>>;
+	public _data:Array<Array<number>>;
     public _positions:Array<Array<number>>;
     public _newCommands:Array<Array<number>>;
 
@@ -234,7 +234,7 @@ export class GraphicsPath implements IGraphicsData
          */
     }
 
-    public forceClose:boolean=false;
+	public forceClose:boolean=false;
     public prepare(scale:number=1){
 
         var new_dir:number;
@@ -306,7 +306,7 @@ export class GraphicsPath implements IGraphicsData
                         break;
                     case GraphicsPathCommand.LINE_TO:
                         end_point = new Point(data[data_cnt++], data[data_cnt++]);
-                       // console.log("LINE_TO ", i, end_point.x, end_point.y);
+                        //console.log("LINE_TO ", i, end_point.x, end_point.y);
                         this._positions[c].push(end_point.x);
                         this._positions[c].push(end_point.y);
                         this._newCommands[c].push(GraphicsPathCommand.LINE_TO);
@@ -314,9 +314,9 @@ export class GraphicsPath implements IGraphicsData
                         prev_y=end_point.y;
                         break;
                     case GraphicsPathCommand.CURVE_TO:
+						ctr_point = new Point(data[data_cnt++], data[data_cnt++]);
                         end_point = new Point(data[data_cnt++], data[data_cnt++]);
-                        ctr_point = new Point(data[data_cnt++], data[data_cnt++]);
-                        //console.log("CURVE_TO ", i, ctr_point.x, ctr_point.y, end_point.x, end_point.y);
+                       //console.log("CURVE_TO ", i, ctr_point.x, ctr_point.y, end_point.x, end_point.y);
                         var curve_verts:number[]=[];
                         GraphicsFactoryHelper.tesselateCurve(prev_x, prev_y, ctr_point.x,ctr_point.y,end_point.x,end_point.y,curve_verts, scale);
                         var k_len:number=curve_verts.length;

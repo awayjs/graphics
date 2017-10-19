@@ -2,6 +2,8 @@ import {IGraphicsData} from "../draw/IGraphicsData";
 import {JointStyle} from "../draw/JointStyle";
 import {CapsStyle} from "../draw/CapsStyle";
 
+import{LineScaleMode} from "./LineScaleMode"
+
 export class GraphicsStrokeStyle implements IGraphicsData
 {
     public static data_type:string = "[graphicsdata StrokeStyle]";
@@ -12,8 +14,9 @@ export class GraphicsStrokeStyle implements IGraphicsData
     private _jointstyle:number;
     private _capstyle:number;
     private _miter_limit:number;
+	public scaleMode:string;
 
-    constructor(color:number = 0xffffff, alpha:number = 1, thickness:number = 10, jointstyle:number = JointStyle.ROUND, capstyle:number = CapsStyle.SQUARE, miter_limit:number=10)
+    constructor(color:number = 0xffffff, alpha:number = 1, thickness:number = 10, jointstyle:number = JointStyle.ROUND, capstyle:number = CapsStyle.SQUARE, miter_limit:number=10, scaleMode:string=LineScaleMode.NORMAL)
     {
         this._color=color;
         this._alpha=alpha;
@@ -21,6 +24,7 @@ export class GraphicsStrokeStyle implements IGraphicsData
         this._jointstyle=jointstyle;
         this._capstyle=capstyle;
         this._miter_limit=miter_limit;
+		this.scaleMode=scaleMode;
     }
 
     public get data_type():string

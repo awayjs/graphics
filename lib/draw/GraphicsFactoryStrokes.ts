@@ -88,17 +88,17 @@ export class GraphicsFactoryStrokes
 
 		var graphicsPath = shape.strokePath;
 		var elements:TriangleElements=<TriangleElements> shape.elements;
-		if(elements.lastStrokeScale>(scale*2) || elements.lastStrokeScale<(scale*0.5)){
-			//graphicsPath.prepare(scale);
+		/*if(elements.lastStrokeScale>(scale*2) || elements.lastStrokeScale<(scale*0.5)){
+			graphicsPath.prepare(scale);
 			elements.lastStrokeScale=scale;
 
-		}
-		/*
+		}*/
+
 		var final_vert_list:Array<number>=[];
 		GraphicsFactoryStrokes.draw_path([graphicsPath], final_vert_list, false, scale, scaleMode);
 		elements.setPositions(final_vert_list);
 		elements.invalidate();
-		*/
+
 
 	}
 	public static draw_path(graphic_pathes:Array<GraphicsPath>, final_vert_list:Array<number>, curves:boolean, scale:number=1, scaleMode:string=LineScaleMode.NORMAL){
@@ -139,20 +139,19 @@ export class GraphicsFactoryStrokes
 			strokeStyle = one_path.stroke();
 
 			var half_thickness:number=strokeStyle.half_thickness;
+			//console.log("scaleMode", scaleMode);
 			if(scaleMode==LineScaleMode.NORMAL){
-				if(half_thickness!=0.15){
-					var minScale:number=0.5;
-
-					if(scale<1){
-						minScale=0.5;
-					}
-					if((half_thickness*scale)<minScale){
-						half_thickness=minScale*(1/scale);
-					}
+				if((half_thickness*scale)<=0.5){
+					half_thickness=0.5*(1/scale);
 				}
 			}
 			else if(scaleMode==LineScaleMode.NONE){
 				half_thickness*=(1/scale);
+			}
+
+			if(strokeStyle.scaleMode=="HAIRLINE"){
+				//console.log("scale", scale);
+				half_thickness=0.5*(1/scale);
 			}
 
 			for(k=0; k<contour_commands.length; k++) {
@@ -698,12 +697,12 @@ export class GraphicsFactoryStrokes
 					last_dir_vec.x = data[2] - data[0];
 					last_dir_vec.y = data[3] - data[1];
 					last_dir_vec.normalize();
-					GraphicsFactoryHelper.createCap(data[0], data[1], new_pnts[0], new_pnts[1], last_dir_vec, strokeStyle.capstyle, -128, half_thickness, final_vert_list, curves);
+					GraphicsFactoryHelper.createCap(data[0], data[1], new_pnts[0], new_pnts[1], last_dir_vec, strokeStyle.capstyle, -1, half_thickness, final_vert_list, curves, scale);
 
 					last_dir_vec.x = data[data.length-2] - data[data.length-4];
 					last_dir_vec.y = data[data.length-1] - data[data.length-3];
 					last_dir_vec.normalize();
-					GraphicsFactoryHelper.createCap(data[data.length-2], data[data.length-1], new_pnts[new_pnts.length-2], new_pnts[new_pnts.length-1], last_dir_vec, strokeStyle.capstyle, 127, half_thickness, final_vert_list, curves);
+					GraphicsFactoryHelper.createCap(data[data.length-2], data[data.length-1], new_pnts[new_pnts.length-2], new_pnts[new_pnts.length-1], last_dir_vec, strokeStyle.capstyle, 1, half_thickness, final_vert_list, curves, scale);
 
 					/*
 					 last_dir_vec.x = data[data.length-2] - data[data.length-4];
