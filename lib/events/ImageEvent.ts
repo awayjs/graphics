@@ -4,6 +4,11 @@ import {ImageBase} from "../image/ImageBase";
 
 export class ImageEvent extends EventBase
 {
+    /**
+     *
+     */
+    public static INVALIDATE_MAPPER:string = "invalidateMapper";
+
 	/**
 	 *
 	 */

@@ -11,6 +11,9 @@ export {IRenderable}					from "./lib/base/IRenderable";
 export {Shape}							from "./lib/base/Shape";
 export {Style}							from "./lib/base/Style";
 export {TraverserBase}					from "./lib/base/TraverserBase";
+export {TouchPoint} from "./lib/base/TouchPoint";
+export {IRenderer} from "./lib/base/IRenderer";
+export {IView} from "./lib/base/IView";
 
 export {CapsStyle}						from "./lib/draw/CapsStyle";
 export {DrawMode}						from "./lib/draw/DrawMode";
@@ -39,6 +42,8 @@ export {MaterialEvent}					from "./lib/events/MaterialEvent";
 export {RenderableEvent}				from "./lib/events/RenderableEvent";
 export {ShapeEvent}						from "./lib/events/ShapeEvent";
 export {StyleEvent}						from "./lib/events/StyleEvent";
+export {LightEvent} from "./lib/events/LightEvent";
+export {TextureProjectorEvent} from "./lib/events/TextureProjectorEvent";
 
 export {ElementsBase}					from "./lib/elements/ElementsBase";
 export {ElementsType}					from "./lib/elements/ElementsType";
@@ -66,6 +71,12 @@ export {SamplerCube}					from "./lib/image/SamplerCube";
 export {SpecularImage2D}				from "./lib/image/SpecularImage2D";
 //export {VideoSourceImage2D}				from "./lib/image/VideoSourceImage2D";
 
+export {DirectionalLight} from "./lib/lights/DirectionalLight";
+export {LightBase} from "./lib/lights/LightBase";
+export {LightProbe} from "./lib/lights/LightProbe";
+export {PointLight} from "./lib/lights/PointLight";
+export {TextureProjector} from "./lib/lights/TextureProjector";
+
 export {DefaultMaterialManager}			from "./lib/managers/DefaultMaterialManager";
 export {TextureAtlas}					from "./lib/managers/TextureAtlas";
 
@@ -82,6 +93,17 @@ export {MappingMode}						from "./lib/textures/MappingMode";
 export {Single2DTexture}					from "./lib/textures/Single2DTexture";
 export {SingleCubeTexture}				from "./lib/textures/SingleCubeTexture";
 export {TextureBase}						from "./lib/textures/TextureBase";
+
+export {LightPickerBase} from "./lib/lightpickers/LightPickerBase";
+export {LightSources} from "./lib/lightpickers/LightSources";
+export {StaticLightPicker} from "./lib/lightpickers/StaticLightPicker";
+
+export {CascadeShadowMapper} from "./lib/mappers/CascadeShadowMapper";
+export {CubeMapShadowMapper} from "./lib/mappers/CubeMapShadowMapper";
+export {DirectionalShadowMapper} from "./lib/mappers/DirectionalShadowMapper";
+export {NearDirectionalShadowMapper} from "./lib/mappers/NearDirectionalShadowMapper";
+export {ShadowMapperBase} from "./lib/mappers/ShadowMapperBase";
+export {MapperBase} from "./lib/mappers/MapperBase";
 
 export {BitmapImageUtils}				from "./lib/utils/BitmapImageUtils";
 export {ElementsUtils}					from "./lib/utils/ElementsUtils";
