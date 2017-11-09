@@ -29,6 +29,7 @@ export class CPURenderingContext2D implements CanvasRenderingContext2D
 	public shadowBlur:number;
 	public textAlign:string;
 	public textBaseline:string;
+	public imageSmoothingEnabled:boolean;
 
 	public cpuCanvas:CPUCanvas;
 
@@ -38,6 +39,8 @@ export class CPURenderingContext2D implements CanvasRenderingContext2D
 	{
 		this.cpuCanvas = cpuCanvas;
 	}
+
+	public drawFocusIfNeeded(element: Element): void{};
 
 	public restore():void
 	{

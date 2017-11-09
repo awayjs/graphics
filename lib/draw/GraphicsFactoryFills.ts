@@ -363,52 +363,58 @@ export class GraphicsFactoryFills
 				if(contours_vertices[i].length>5)
 					endContours[endContours.length]=contours_vertices[i];
 			}
-			var res = Tess2.tesselate({
-				contours: endContours,
-				windingRule: Tess2.WINDING_ODD,
-				elementType: Tess2.POLYGONS,
-				polySize: 3,
-				vertexSize: 2
-			});
-			//console.timeEnd("time Tess2.tesselate");
+			try{
 
-			var numElems:number =  res.elements.length / 3;
-			var p1:number=0;
-			var p2:number=0;
-			var p3:number=0;
-			for (i = 0; i < numElems; ++i) {
-				p1 = res.elements[i * 3];
-				p2 = res.elements[i * 3 + 1];
-				p3 = res.elements[i * 3 + 2];
+				var res = Tess2.tesselate({
+					contours: endContours,
+					windingRule: Tess2.WINDING_ODD,
+					elementType: Tess2.POLYGONS,
+					polySize: 3,
+					vertexSize: 2
+				});
+				//console.timeEnd("time Tess2.tesselate");
 
-				final_vert_list[final_vert_cnt++] = res.vertices[p3*2];
-				final_vert_list[final_vert_cnt++] = res.vertices[p3*2+1];
-				/*
-				 final_vert_list[final_vert_cnt++] = 1;
-				 final_vert_list[final_vert_cnt++] = 2.0;
-				 final_vert_list[final_vert_cnt++] = 0.0;
-				 final_vert_list[final_vert_cnt++] = 1.0;
-				 final_vert_list[final_vert_cnt++] = 0.0;
-				 */
-				final_vert_list[final_vert_cnt++] = res.vertices[p2*2];
-				final_vert_list[final_vert_cnt++] = res.vertices[p2*2+1];
-				/*
-				 final_vert_list[final_vert_cnt++] = 1;
-				 final_vert_list[final_vert_cnt++] = 2.0;
-				 final_vert_list[final_vert_cnt++] = 0.0;
-				 final_vert_list[final_vert_cnt++] = 1.0;
-				 final_vert_list[final_vert_cnt++] = 0.0;
-				 */
-				final_vert_list[final_vert_cnt++] = res.vertices[p1*2];
-				final_vert_list[final_vert_cnt++] = res.vertices[p1*2+1];
-				/*
-				 final_vert_list[final_vert_cnt++] = 1;
-				 final_vert_list[final_vert_cnt++] = 2.0;
-				 final_vert_list[final_vert_cnt++] = 0.0;
-				 final_vert_list[final_vert_cnt++] = 1.0;
-				 final_vert_list[final_vert_cnt++] = 0.0;
-				 */
+				var numElems:number =  res.elements.length / 3;
+				var p1:number=0;
+				var p2:number=0;
+				var p3:number=0;
+				for (i = 0; i < numElems; ++i) {
+					p1 = res.elements[i * 3];
+					p2 = res.elements[i * 3 + 1];
+					p3 = res.elements[i * 3 + 2];
 
+					final_vert_list[final_vert_cnt++] = res.vertices[p3*2];
+					final_vert_list[final_vert_cnt++] = res.vertices[p3*2+1];
+					/*
+					 final_vert_list[final_vert_cnt++] = 1;
+					 final_vert_list[final_vert_cnt++] = 2.0;
+					 final_vert_list[final_vert_cnt++] = 0.0;
+					 final_vert_list[final_vert_cnt++] = 1.0;
+					 final_vert_list[final_vert_cnt++] = 0.0;
+					 */
+					final_vert_list[final_vert_cnt++] = res.vertices[p2*2];
+					final_vert_list[final_vert_cnt++] = res.vertices[p2*2+1];
+					/*
+					 final_vert_list[final_vert_cnt++] = 1;
+					 final_vert_list[final_vert_cnt++] = 2.0;
+					 final_vert_list[final_vert_cnt++] = 0.0;
+					 final_vert_list[final_vert_cnt++] = 1.0;
+					 final_vert_list[final_vert_cnt++] = 0.0;
+					 */
+					final_vert_list[final_vert_cnt++] = res.vertices[p1*2];
+					final_vert_list[final_vert_cnt++] = res.vertices[p1*2+1];
+					/*
+					 final_vert_list[final_vert_cnt++] = 1;
+					 final_vert_list[final_vert_cnt++] = 2.0;
+					 final_vert_list[final_vert_cnt++] = 0.0;
+					 final_vert_list[final_vert_cnt++] = 1.0;
+					 final_vert_list[final_vert_cnt++] = 0.0;
+					 */
+
+				}
+			}
+			catch(e){
+				console.log("error when trying to tesselate", "countours:", endContours);
 			}
 
 		}
