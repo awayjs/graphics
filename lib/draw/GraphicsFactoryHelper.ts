@@ -244,7 +244,7 @@ export class GraphicsFactoryHelper
 
 	}
 
-	public static tesselateCurve(startx:number, starty:number, cx:number, cy:number, endx:number, endy:number, array_out:Array<number>, scale:number=1, filled:boolean=false):void
+	public static tesselateCurve(startx:number, starty:number, cx:number, cy:number, endx:number, endy:number, array_out:Array<number>, scale:number=1, filled:boolean=false,iterationCnt:number=0):void
 	{
 		var angle_1:number=Math.atan2(cy - starty, cx - startx) * MathConsts.RADIANS_TO_DEGREES;
 		var angle_2:number=Math.atan2(endy - cy, endx - cx) * MathConsts.RADIANS_TO_DEGREES;
@@ -270,7 +270,7 @@ export class GraphicsFactoryHelper
 			array_out.push(endx, endy);
 			return;			
 		}*/
-		if(Math.abs(angle_delta)<=1 || len<=1 ){
+		if(iterationCnt>7 || Math.abs(angle_delta)<=1 || len<=1 ){
 			if(!filled)
 				array_out.push(endx, endy);
 			return;
@@ -286,12 +286,13 @@ export class GraphicsFactoryHelper
 		var ax = c1x + (c2x - c1x) * 0.5;// new middlepoint 1
 		var ay = c1y + (c2y - c1y) * 0.5;
 
+		iterationCnt++;
 
 		if(filled){
 			array_out.push(startx, starty, ax, ay, endx, endy);
 		}
-		GraphicsFactoryHelper.tesselateCurve(startx, starty, c1x, c1y, ax, ay, array_out, scale, filled);
-		GraphicsFactoryHelper.tesselateCurve(ax, ay, c2x, c2y, endx, endy, array_out, scale, filled);
+		GraphicsFactoryHelper.tesselateCurve(startx, starty, c1x, c1y, ax, ay, array_out, scale, filled, iterationCnt);
+		GraphicsFactoryHelper.tesselateCurve(ax, ay, c2x, c2y, endx, endy, array_out, scale, filled, iterationCnt);
 
 	}
 }
