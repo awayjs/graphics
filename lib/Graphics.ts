@@ -1,18 +1,14 @@
-import {AttributesBuffer, AttributesView, Byte4Attributes, Float2Attributes, ArgumentError, RangeError, PartialImplementationError, Point, Box, Vector3D, Sphere, Matrix, Matrix3D, AssetBase} from "@awayjs/core";
+import {ArgumentError, RangeError, PartialImplementationError, Point, Box, Vector3D, Sphere, Matrix, Matrix3D, AssetBase, Rectangle} from "@awayjs/core";
 
-import {IAnimator} from "./animators/IAnimator";
-import {ParticleData} from "./animators/data/ParticleData";
-import {IEntity} from "./base/IEntity";
-import {IMaterial} from "./base/IMaterial";
-import {Style} from "./base/Style";
+import {BitmapImage2D, AttributesBuffer, AttributesView, Byte4Attributes, Float2Attributes} from "@awayjs/stage";
+
+import {IAnimator, IEntity, IMaterial, Style, TraverserBase, StyleEvent, ElementsUtils, ElementsEvent, MaterialUtils} from "@awayjs/renderer";
+
 import {Shape} from "./base/Shape";
-import {TraverserBase} from "./base/TraverserBase";
 import {GraphicsPath} from "./draw/GraphicsPath";
 import {GraphicsFactoryFills} from "./draw/GraphicsFactoryFills";
 import {GraphicsFactoryStrokes} from "./draw/GraphicsFactoryStrokes";
 import {GraphicsFactoryHelper} from "./draw/GraphicsFactoryHelper";
-import {ElementsUtils} from "./utils/ElementsUtils";
-
 import {InterpolationMethod} from "./draw/InterpolationMethod";
 import {JointStyle} from "./draw/JointStyle";
 import {LineScaleMode} from "./draw/LineScaleMode";
@@ -27,14 +23,9 @@ import {GraphicsStrokeStyle} from "./draw/GraphicsStrokeStyle";
 import {GraphicsFillStyle} from "./draw/GraphicsFillStyle";
 import {GradientFillStyle} from "./draw/GradientFillStyle";
 import {TriangleElements} from "./elements/TriangleElements";
-import {ElementsEvent} from "./events/ElementsEvent";
 import {ShapeEvent} from "./events/ShapeEvent";
-import {StyleEvent} from "./events/StyleEvent";
-import {BitmapImage2D} from "./image/BitmapImage2D";
-import {Sampler2D} from "./image/Sampler2D";
-import {MaterialBase} from "./materials/MaterialBase";
-import {DefaultMaterialManager} from "./managers/DefaultMaterialManager";
-import {Rectangle} from "@awayjs/core"
+import {TriangleElementsUtils} from "./utils/TriangleElementsUtils";
+
 /**
  *
  * Graphics is a collection of Shapes, each of which contain the actual geometrical data such as vertices,
@@ -52,10 +43,10 @@ export class Graphics extends AssetBase
 	private static _pool:Array<Graphics> = new Array<Graphics>();
 
 	public static get_material_for_color:Function=function(color:number, alpha:number):any{
-		return {material:DefaultMaterialManager.getDefaultMaterial()};
+		return {material:MaterialUtils.getDefaultColorMaterial()};
 	};
 	public static get_material_for_gradient:Function=function(gradient:GradientFillStyle):any{
-		return {material:DefaultMaterialManager.getDefaultMaterial()};
+		return {material:MaterialUtils.getDefaultTextureMaterial()};
 	};
 
 	public static getGraphics(entity:IEntity):Graphics
@@ -147,7 +138,7 @@ export class Graphics extends AssetBase
 
 		var len:number = this._shapes.length;
 		for (var i:number = 0; i < len; i++) {
-			ElementsUtils.updateTriangleGraphicsSlice9((<TriangleElements>this._shapes[i].elements), this.originalSlice9Size, scaleX, scaleY);
+			TriangleElementsUtils.updateTriangleGraphicsSlice9((<TriangleElements>this._shapes[i].elements), this.originalSlice9Size, scaleX, scaleY);
 		}
 		this.invalidate();
 	}
@@ -156,10 +147,6 @@ export class Graphics extends AssetBase
 	{
 		return Graphics.assetType;
 	}
-
-	public particles:Array<ParticleData>;
-
-	public numParticles:number /*uint*/;
 
 	public get count():number
 	{
@@ -377,8 +364,6 @@ export class Graphics extends AssetBase
 	{
 		graphics.material = this._material;
 		graphics.style = this._style;
-		graphics.particles = this.particles;
-		graphics.numParticles = this.numParticles;
 		graphics.scaleStrokes = this.scaleStrokes;
 		if(this.slice9Rectangle){
 			graphics.slice9Rectangle=new Rectangle();
@@ -1751,11 +1736,13 @@ export class Graphics extends AssetBase
 		for (var i:number = 0; i < len; i++) {
 			shape = shapes[i];
 			if(this.slice9Rectangle) // todo: this is a dirty workaround to get the slice9-shapes cloned:
-				shape = Shape.getShape(ElementsUtils.updateTriangleGraphicsSlice9(<TriangleElements> shape.elements, this.originalSlice9Size, 1, 1, false, true), shape.material, shape.style);
+				shape = Shape.getShape(TriangleElementsUtils.updateTriangleGraphicsSlice9(<TriangleElements> shape.elements, this.originalSlice9Size, 1, 1, false, true), shape.material, shape.style);
 			else if (cloneShapes)
 				shape = Shape.getShape(shape.elements, shape.material, shape.style, shape.count, shape.offset);
 
-			shape.addEventListener(ElementsEvent.INVALIDATE_VERTICES, this._onInvalidateVerticesDelegate);
+            shape.particleCollection = shapes[i].particleCollection;
+
+            shape.addEventListener(ElementsEvent.INVALIDATE_VERTICES, this._onInvalidateVerticesDelegate);
 			shape.addEventListener(ShapeEvent.ADD_MATERIAL, this._onAddMaterialDelegate);
 			shape.addEventListener(ShapeEvent.REMOVE_MATERIAL, this._onRemoveMaterialDelegate);
 			this._shapes.push(shape);

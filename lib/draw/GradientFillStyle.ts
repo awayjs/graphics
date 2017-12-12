@@ -1,6 +1,7 @@
+import {ColorUtils, Matrix, Rectangle} from "@awayjs/core";
+
 import {GraphicsFillStyle} from "../draw/GraphicsFillStyle";
 import {GradientType} from "../draw/GradientType";
-import {ColorUtils, Matrix, Rectangle} from "@awayjs/core";
 
 export class GradientFillStyle extends GraphicsFillStyle
 {

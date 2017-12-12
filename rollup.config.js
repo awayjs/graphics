@@ -6,10 +6,15 @@ module.exports = {
 	format: 'umd',
 	moduleName: 'AwayjsGraphics',
 	external: [
-		'@awayjs/core'
+		'@awayjs/core',
+        '@awayjs/stage',
+        '@awayjs/renderer',
+        '@awayjs/materials'
 	],
 	globals: {
-		'@awayjs/core': 'AwayjsCore'
+		'@awayjs/core': 'AwayjsCore',
+        '@awayjs/stage': 'AwayjsStage',
+        '@awayjs/renderer': 'AwayjsRenderer'
 	},
 	targets: [
 		{ dest: './bundle/awayjs-graphics.umd.js'}

@@ -1,6 +1,10 @@
+import {Point, MathConsts, Rectangle, Matrix} from "@awayjs/core";
 
-import {Point, AttributesBuffer, AttributesView, Float3Attributes, Float2Attributes, MathConsts, Rectangle, Matrix} from "@awayjs/core";
+import {ImageSampler, AttributesBuffer, AttributesView, Float3Attributes, Float2Attributes} from "@awayjs/stage";
 
+import {IMaterial, Style} from "@awayjs/renderer";
+
+import {Shape} from "../base/Shape";
 import {TriangleElements} from "../elements/TriangleElements";
 import {JointStyle}	 from "../draw/JointStyle";
 import {GraphicsPath} from "../draw/GraphicsPath";
@@ -8,12 +12,8 @@ import {GraphicsPathCommand} from "../draw/GraphicsPathCommand";
 import {GraphicsFactoryHelper} from "../draw/GraphicsFactoryHelper";
 import {GraphicsStrokeStyle} from "../draw/GraphicsStrokeStyle";
 import {LineScaleMode} from "../draw/LineScaleMode";
-import {Shape} from "../base/Shape";
 import {Graphics} from "../Graphics";
-import {MaterialBase} from "../materials/MaterialBase";
 
-import {Style} from "../base/Style";
-import {Sampler2D} from "../image/Sampler2D";
 /**
  * The Graphics class contains a set of methods that you can use to create a
  * vector shape. Display objects that support drawing include Sprite and Shape
@@ -38,7 +38,7 @@ export class GraphicsFactoryStrokes
 			var strokePath:GraphicsPath=targetGraphics.queued_stroke_pathes[i];
 			var strokeStyle:GraphicsStrokeStyle=(<GraphicsStrokeStyle>strokePath.style);
 			var obj:any = Graphics.get_material_for_color(strokeStyle.color, strokeStyle.alpha);
-			var material:MaterialBase=obj.material;
+			var material:IMaterial=obj.material;
 
 			var final_vert_list:Array<number>=[];
 			strokePath.prepare(targetGraphics._scaleX);
@@ -60,7 +60,7 @@ export class GraphicsFactoryStrokes
 			shape.strokePath=strokePath;
 			if(obj.colorPos){
 				shape.style = new Style();
-				var sampler:Sampler2D = new Sampler2D();
+				var sampler:ImageSampler = new ImageSampler();
 				material.animateUVs=true;
 				shape.style.addSamplerAt(sampler, material.getTextureAt(0));
 
@@ -87,7 +87,7 @@ export class GraphicsFactoryStrokes
 	public static updateStrokesForShape(shape:Shape, scale:number, scaleMode:string ){
 
 		var graphicsPath = shape.strokePath;
-		var elements:TriangleElements=<TriangleElements> shape.elements;
+		var elements:TriangleElements = <TriangleElements> shape.elements;
 		/*if(elements.lastStrokeScale>(scale*2) || elements.lastStrokeScale<(scale*0.5)){
 			graphicsPath.prepare(scale);
 			elements.lastStrokeScale=scale;

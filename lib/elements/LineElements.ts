@@ -1,7 +1,8 @@
-import {AttributesBuffer, AttributesView, Byte4Attributes, Float1Attributes, Box, Sphere, Vector3D} from "@awayjs/core";
+import {Box, Sphere, Vector3D} from "@awayjs/core";
 
-import {TraverserBase} from "../base/TraverserBase";
-import {ElementsUtils} from "../utils/ElementsUtils";
+import {AttributesBuffer, AttributesView, Byte4Attributes, Float1Attributes} from "@awayjs/stage";
+
+import {TraverserBase, ElementsUtils} from "@awayjs/renderer";;
 
 import {ElementsBase} from "./ElementsBase";
 
@@ -281,3 +282,14 @@ export class LineElements extends ElementsBase
 	// 	return pickingCollider.testLineCollision(this, material, pickingCollision, count || this._numVertices, offset);
 	// }
 }
+
+
+import {Stage} from "@awayjs/stage";
+
+import {RenderGroup} from "@awayjs/renderer";
+
+import {LineMaterialPool} from "./LineMaterialPool";
+import {GL_LineElements} from "./GL_LineElements";
+
+RenderGroup.registerMaterialPool(LineMaterialPool, LineElements);
+Stage.registerAbstraction(GL_LineElements, LineElements);

@@ -1,17 +1,13 @@
 import {Box, Matrix3D, Sphere, Vector3D, AssetBase} from "@awayjs/core";
 
-import {IMaterial} from "../base/IMaterial";
-import {RenderableEvent} from "../events/RenderableEvent";
-import {StyleEvent} from "../events/StyleEvent";
-import {ElementsEvent} from "../events/ElementsEvent";
+import {IMaterial, RenderableEvent, StyleEvent, Style, IRenderable, ElementsEvent} from "@awayjs/renderer";
+
+import {ParticleCollection} from "../animators/data/ParticleCollection";
 import {ShapeEvent} from "../events/ShapeEvent";
 import {ElementsBase} from "../elements/ElementsBase";
 import {TriangleElements} from "../elements/TriangleElements";
 import {Graphics} from "../Graphics";
 import {GraphicsPath} from "../draw/GraphicsPath";
-
-import {Style} from "./Style";
-import {IRenderable} from "./IRenderable";
 
 /**
  * Graphic wraps a Elements as a scene graph instantiation. A Graphic is owned by a Sprite object.
@@ -46,6 +42,7 @@ export class Shape extends AssetBase implements IRenderable
 		shape.elements = null;
 		shape.material = null;
 		shape.style = null;
+        shape.particleCollection = null;
 		shape.clear();
 
 		Shape._pool.push(shape);
@@ -73,6 +70,7 @@ export class Shape extends AssetBase implements IRenderable
 
 	public _owners:Array<Graphics>;
 
+	public particleCollection:ParticleCollection;
 
 	/*
 	 * _strokePath provides the original stroke-path that was used to create this shape

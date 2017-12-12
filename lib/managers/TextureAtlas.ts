@@ -1,18 +1,8 @@
-/*import {IRenderable} from "../base/IRenderable";
-import {LineElements} from "../elements/LineElements";
-import {Sampler2D} from "../image/Sampler2D";
-import {BitmapImageCube} from "../image/BitmapImageCube";
-import {MaterialBase} from "../materials/MaterialBase";
-import {BasicMaterial} from "../materials/BasicMaterial";
-import {Single2DTexture} from "../textures/Single2DTexture";
-import {SingleCubeTexture} from "../textures/SingleCubeTexture";
-import {Shape} from "../base/Shape";
-*/
 import {Point, ColorUtils, Rectangle} from "@awayjs/core";
+
+import {BitmapImage2D} from "@awayjs/stage";
+
 import {GradientFillStyle} from "../draw/GradientFillStyle";
-import {BitmapImage2D} from "../image/BitmapImage2D";
-import {TextureBase} from "../textures/TextureBase";
-import {Single2DTexture} from "../textures/Single2DTexture";
 
 export class TextureAtlas
 {

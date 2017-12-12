@@ -1,7 +1,10 @@
-import {AttributesBuffer, AttributesView, Float4Attributes, Float3Attributes, Float2Attributes, Short3Attributes, Rectangle, Box, Sphere, Matrix3D, Vector3D} from "@awayjs/core";
+import {Rectangle, Box, Sphere, Matrix3D, Vector3D} from "@awayjs/core";
 
-import {TraverserBase} from "../base/TraverserBase";
-import {ElementsUtils} from "../utils/ElementsUtils";
+import {TraverserBase, ElementsUtils} from "@awayjs/renderer";
+
+import {AttributesBuffer, AttributesView, Float4Attributes, Float3Attributes, Float2Attributes, Short3Attributes} from "@awayjs/stage";
+
+import {TriangleElementsUtils} from "../utils/TriangleElementsUtils";
 
 import {ElementsBase} from "./ElementsBase";
 /**
@@ -24,13 +27,7 @@ export class TriangleElements extends ElementsBase
 	private _jointIndices:AttributesView;
 	private _jointWeights:AttributesView;
 
-	private _useCondensedIndices:boolean;
-	private _condensedIndexLookUp:Array<number>;
-
 	private _jointsPerVertex:number;
-
-	private _autoDeriveNormals:boolean = true;
-	private _autoDeriveTangents:boolean = true;
 
 	private _faceNormals:Float4Attributes;
 	private _faceTangents:Float3Attributes;
@@ -60,24 +57,6 @@ export class TriangleElements extends ElementsBase
 	{
 		return TriangleElements.traverseName;
 	}
-	
-	/**
-	 * Offers the option of enabling GPU accelerated animation on skeletons larger than 32 joints
-	 * by condensing the number of joint index values required per sprite. Only applicable to
-	 * skeleton animations that utilise more than one sprite object. Defaults to false.
-	 */
-	public get useCondensedIndices():boolean
-	{
-		return this._useCondensedIndices;
-	}
-
-	public set useCondensedIndices(value:boolean)
-	{
-		if (this._useCondensedIndices == value)
-			return;
-
-		this._useCondensedIndices = value;
-	}
 
 	/**
 	 *
@@ -99,40 +78,6 @@ export class TriangleElements extends ElementsBase
 
 		if (this._jointWeights)
 			this._jointWeights.dimensions = this._jointsPerVertex;
-	}
-
-	/**
-	 * True if the vertex normals should be derived from the geometry, false if the vertex normals are set
-	 * explicitly.
-	 */
-	public get autoDeriveNormals():boolean
-	{
-		return this._autoDeriveNormals;
-	}
-
-	public set autoDeriveNormals(value:boolean)
-	{
-		if (this._autoDeriveNormals == value)
-			return;
-
-		this._autoDeriveNormals = value;
-	}
-
-	/**
-	 * True if the vertex tangents should be derived from the geometry, false if the vertex normals are set
-	 * explicitly.
-	 */
-	public get autoDeriveTangents():boolean
-	{
-		return this._autoDeriveTangents;
-	}
-
-	public set autoDeriveTangents(value:boolean)
-	{
-		if (this._autoDeriveTangents == value)
-			return;
-
-		this._autoDeriveTangents = value;
 	}
 
 	/**
@@ -222,24 +167,19 @@ export class TriangleElements extends ElementsBase
 		return this._jointWeights;
 	}
 
-	public get condensedIndexLookUp():Array<number>
-	{
-		return this._condensedIndexLookUp;
-	}
-
 	public getBoxBounds(target:Box = null, count:number = 0, offset:number = 0):Box
 	{
-		return ElementsUtils.getTriangleGraphicsBoxBounds(this.positions, this.indices, target, count || this._numElements || this._numVertices, offset, this.halfStrokeThickness);
+		return TriangleElementsUtils.getTriangleGraphicsBoxBounds(this.positions, this.indices, target, count || this._numElements || this._numVertices, offset, this.halfStrokeThickness);
 	}
 
 	public getSphereBounds(center:Vector3D, target:Sphere = null, count:number = 0, offset:number = 0):Sphere
 	{
-		return ElementsUtils.getTriangleGraphicsSphereBounds(this.positions, center, target, count || this._numVertices, offset);
+		return TriangleElementsUtils.getTriangleGraphicsSphereBounds(this.positions, center, target, count || this._numVertices, offset);
 	}
 
 	public hitTestPoint(x:number, y:number, z:number, box:Box, count:number = 0, offset:number = 0, idx_count:number = 0, idx_offset:number = 0):boolean
 	{
-		return ElementsUtils.hitTestTriangleElements(x, y, 0, box, this, count || this._numElements || this._numVertices, offset);
+		return TriangleElementsUtils.hitTestTriangleElements(x, y, 0, box, this, count || this._numElements || this._numVertices, offset);
 	}
 
 	/**
@@ -630,3 +570,13 @@ export class TriangleElements extends ElementsBase
 	// 	return pickingCollider.testTriangleCollision(this, material, pickingCollision, count || this._numVertices, offset);
 	// }
 }
+
+import {Stage} from "@awayjs/stage";
+
+import {RenderGroup} from "@awayjs/renderer";
+
+import {TriangleMaterialPool} from "./TriangleMaterialPool";
+import {GL_TriangleElements} from "./GL_TriangleElements";
+
+RenderGroup.registerMaterialPool(TriangleMaterialPool, TriangleElements);
+Stage.registerAbstraction(GL_TriangleElements, TriangleElements);

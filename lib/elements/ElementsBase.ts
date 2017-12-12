@@ -1,16 +1,23 @@
-import {AttributesBuffer, AttributesView, Float3Attributes, Short3Attributes, AbstractMethodError, Box, Sphere, Matrix3D, Vector3D, AssetBase} from "@awayjs/core";
+import {AbstractMethodError, Box, Sphere, Matrix3D, Vector3D, AssetBase} from "@awayjs/core";
 
-import {ElementsEvent}				from "../events/ElementsEvent";
+import {AttributesBuffer, AttributesView, Float3Attributes, Short3Attributes} from "@awayjs/stage";
+
+import {ElementsEvent, IElements} from "@awayjs/renderer";
 
 /**
  * @class away.base.TriangleElements
  */
-export class ElementsBase extends AssetBase
+export class ElementsBase extends AssetBase implements IElements
 {
 	private _indices:Short3Attributes;
 	private _customAttributesNames:Array<string> = new Array<string>();
 	private _customAttributes:Object = new Object();
-	
+
+    protected _useCondensedIndices:boolean;
+    protected _condensedIndexLookUp:Array<number>;
+    protected _autoDeriveNormals:boolean = true;
+    protected _autoDeriveTangents:boolean = true;
+
 	public _numElements:number = 0;
 	public _numVertices:number = 0;
 	public _concatenatedBuffer:AttributesBuffer;
@@ -67,6 +74,63 @@ export class ElementsBase extends AssetBase
 	{
 		return this._numVertices;
 	}
+
+    public get condensedIndexLookUp():Array<number>
+    {
+        return this._condensedIndexLookUp;
+    }
+
+    /**
+     * True if the vertex normals should be derived from the geometry, false if the vertex normals are set
+     * explicitly.
+     */
+    public get autoDeriveNormals():boolean
+    {
+        return this._autoDeriveNormals;
+    }
+
+    public set autoDeriveNormals(value:boolean)
+    {
+        if (this._autoDeriveNormals == value)
+            return;
+
+        this._autoDeriveNormals = value;
+    }
+
+    /**
+     * True if the vertex tangents should be derived from the geometry, false if the vertex normals are set
+     * explicitly.
+     */
+    public get autoDeriveTangents():boolean
+    {
+        return this._autoDeriveTangents;
+    }
+
+    public set autoDeriveTangents(value:boolean)
+    {
+        if (this._autoDeriveTangents == value)
+            return;
+
+        this._autoDeriveTangents = value;
+    }
+
+    /**
+     * Offers the option of enabling GPU accelerated animation on skeletons larger than 32 joints
+     * by condensing the number of joint index values required per sprite. Only applicable to
+     * skeleton animations that utilise more than one sprite object. Defaults to false.
+     */
+    public get useCondensedIndices():boolean
+    {
+        return this._useCondensedIndices;
+    }
+
+    public set useCondensedIndices(value:boolean)
+    {
+        if (this._useCondensedIndices == value)
+            return;
+
+        this._useCondensedIndices = value;
+    }
 
 	/**
 	 *

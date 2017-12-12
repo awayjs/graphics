@@ -1,7 +1,8 @@
-import {IGraphicsData} from "../draw/IGraphicsData";
-import {MaterialBase} from "../materials/MaterialBase"
-import {Matrix} from "@awayjs/core"
+import {Matrix} from "@awayjs/core";
 
+import {IGraphicsData} from "./IGraphicsData";
+
+import {IMaterial} from "@awayjs/renderer";
 
 export class BitmapFillStyle implements IGraphicsData
 {
@@ -9,12 +10,12 @@ export class BitmapFillStyle implements IGraphicsData
     /**
      * The Vector of drawing commands as integers representing the path.
      */
-    public material:MaterialBase;
+    public material:IMaterial;
 	public imgWidth:number;
 	public imgHeight:number;
 	public matrix:Matrix;
 
-    constructor(material:MaterialBase, matrix:Matrix, repeat:boolean,  smooth:boolean)
+    constructor(material:IMaterial, matrix:Matrix, repeat:boolean,  smooth:boolean)
     {
         this.material=material;
         this.matrix=matrix;

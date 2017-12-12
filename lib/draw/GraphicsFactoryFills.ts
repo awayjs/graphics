@@ -1,24 +1,21 @@
-import {Point, AttributesBuffer, AttributesView, Float3Attributes, Float2Attributes, MathConsts, Rectangle, Matrix} from "@awayjs/core";
+import {Point, MathConsts, Rectangle, Matrix} from "@awayjs/core";
+
+import {ImageSampler, BitmapImage2D, AttributesBuffer, AttributesView, Float3Attributes, Float2Attributes, ImageUtils} from "@awayjs/stage";
+
+import {ITexture, MappingMode, IMaterial, Style} from "@awayjs/renderer";
+
+import {TriangleElements} from "../elements/TriangleElements";
+import {Shape} from "../base/Shape";
 
 import {GraphicsFillStyle} from "./GraphicsFillStyle";
 import {GradientFillStyle} from "./GradientFillStyle";
 import {BitmapFillStyle} from "./BitmapFillStyle";
-import {Single2DTexture} from "../textures/Single2DTexture";
-import {BitmapImage2D} from "../image/BitmapImage2D";
 import {GradientType} from "./GradientType";
 import {GraphicsFactoryHelper} from "./GraphicsFactoryHelper";
-import {TriangleElements} from "../elements/TriangleElements";
-import {MaterialBase} from "../materials/MaterialBase";
-import {Shape} from "../base/Shape";
-import {GraphicsPath} from "../draw/GraphicsPath";
+import {GraphicsPath} from "./GraphicsPath";
 import {GraphicsPathCommand} from "./GraphicsPathCommand";
-import {DefaultMaterialManager}	from "../managers/DefaultMaterialManager";
-
-import {Style} from "../base/Style";
-import {Sampler2D} from "../image/Sampler2D";
 
 import {Graphics} from "../Graphics";
-import {MappingMode} from "../textures/MappingMode";
 
 declare var require: any
 var Tess2 = require('tess2');
@@ -52,16 +49,16 @@ export class GraphicsFactoryFills
 				//elements.setCustomAttributes("curves", new Float3Attributes(attributesBuffer));
 				//elements.setUVs(new Float2Attributes(attributesBuffer));
 
-				var sampler:Sampler2D;
+				var sampler:ImageSampler;
 				var style:Style;
-				var material:MaterialBase;
+				var material:IMaterial;
 				if(targetGraphics.queued_fill_pathes[cp].style.data_type==GraphicsFillStyle.data_type){
 					var obj= Graphics.get_material_for_color((<GraphicsFillStyle>targetGraphics.queued_fill_pathes[cp].style).color,(<GraphicsFillStyle>targetGraphics.queued_fill_pathes[cp].style).alpha);
 					material=obj.material;
 					var shape:Shape=targetGraphics.addShape(Shape.getShape(elements, material));
 					if(obj.colorPos){
 						shape.style = new Style();
-						sampler = new Sampler2D();
+						sampler = new ImageSampler();
 						material.animateUVs=true;
 						shape.style.addSamplerAt(sampler, material.getTextureAt(0));
 
@@ -77,7 +74,7 @@ export class GraphicsFactoryFills
 					var shape:Shape=targetGraphics.addShape(Shape.getShape(elements, material));
 
 					shape.style = new Style();
-					sampler = new Sampler2D();
+					sampler = new ImageSampler();
 					shape.style.addSamplerAt(sampler, material.getTextureAt(0));
 					material.animateUVs=true;
 					shape.style.uvMatrix = gradientStyle.getUVMatrix();
@@ -98,11 +95,11 @@ export class GraphicsFactoryFills
 					var bitmapStyle:BitmapFillStyle=(<BitmapFillStyle>targetGraphics.queued_fill_pathes[cp].style);
 
 
-					var material  = bitmapStyle.material;//new Single2DTexture(DefaultMaterialManager.getDefaultImage2D());//bitmapStyle.texture;
+					var material  = bitmapStyle.material;//new ITexture(ImageUtils.getDefaultImage2D());//bitmapStyle.texture;
 					var shape:Shape=targetGraphics.addShape(Shape.getShape(elements, material));
 
 					shape.style = new Style();
-					sampler = new Sampler2D();
+					sampler = new ImageSampler();
 					shape.style.addSamplerAt(sampler, material.getTextureAt(0));
 					material.animateUVs=true;
 					shape.style.uvMatrix = bitmapStyle.getUVMatrix();
