@@ -79,8 +79,6 @@ export {AnimationSetBase} from "./lib/animators/AnimationSetBase";
 export {AnimatorBase} from "./lib/animators/AnimatorBase";
 export {ParticleData}					from "./lib/animators/data/ParticleData";
 
-export {Shape}							from "./lib/base/Shape";
-
 export {CapsStyle}						from "./lib/draw/CapsStyle";
 export {DrawMode}						from "./lib/draw/DrawMode";
 export {GradientType}					from "./lib/draw/GradientType";
@@ -106,19 +104,16 @@ export {ShapeEvent}						from "./lib/events/ShapeEvent";
 export {AnimatorEvent} from "./lib/events/AnimatorEvent";
 export {AnimationStateEvent}				from "./lib/events/AnimationStateEvent";
 
-export {ElementsBase}					from "./lib/elements/ElementsBase";
-export {ElementsType}					from "./lib/elements/ElementsType";
-export {LineElements}					from "./lib/elements/LineElements";
-export {TriangleElements}				from "./lib/elements/TriangleElements";
+export {ElementsBase} from "./lib/elements/ElementsBase";
+export {ElementsType} from "./lib/elements/ElementsType";
+export {LineElements, _Render_LineElements, _Stage_LineElements} from "./lib/elements/LineElements";
+export {TriangleElements, _Render_TriangleElements, _Stage_TriangleElements} from "./lib/elements/TriangleElements";
 
 export {AnimationSetError} from "./lib/errors/AnimationSetError";
 
-export {GL_TriangleElements} from "./lib/elements/GL_TriangleElements";
-export {GL_LineElements}					from "./lib/elements/GL_LineElements";
-
 export {TextureAtlas} from "./lib/managers/TextureAtlas";
 
-export {GL_ShapeRenderable} from "./lib/renderables/GL_ShapeRenderable";
+export {Shape, _Render_Shape} from "./lib/renderables/Shape";
 
 export {HitTestCache}					from "./lib/utils/HitTestCache";
 export {ParticleGraphicsHelper}			from "./lib/utils/ParticleGraphicsHelper";

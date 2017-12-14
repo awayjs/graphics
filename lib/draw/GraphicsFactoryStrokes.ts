@@ -4,7 +4,7 @@ import {ImageSampler, AttributesBuffer, AttributesView, Float3Attributes, Float2
 
 import {IMaterial, Style} from "@awayjs/renderer";
 
-import {Shape} from "../base/Shape";
+import {Shape} from "../renderables/Shape";
 import {TriangleElements} from "../elements/TriangleElements";
 import {JointStyle}	 from "../draw/JointStyle";
 import {GraphicsPath} from "../draw/GraphicsPath";

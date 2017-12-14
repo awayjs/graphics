@@ -1,11 +1,11 @@
 import {Quaternion, Vector3D, ProjectionBase} from "@awayjs/core";
 
-import {ShaderBase, RenderStateBase, ElementsStateBase, ElementsEvent, IElements} from "@awayjs/renderer";
+import {ShaderBase, _Render_RenderableBase, _Stage_ElementsBase, ElementsEvent, IElements} from "@awayjs/renderer";
 
 import {Stage} from "@awayjs/stage";
 
 import {TriangleElements} from "../elements/TriangleElements";
-import {GL_ShapeRenderable} from "../renderables/GL_ShapeRenderable";
+import {Shape} from "../renderables/Shape";
 import {AnimationStateEvent} from "../events/AnimationStateEvent";
 import {JointPose} from "./data/JointPose";
 import {Skeleton} from "./data/Skeleton";
@@ -194,13 +194,13 @@ export class SkeletonAnimator extends AnimatorBase
 	/**
 	 * @inheritDoc
 	 */
-	public setRenderState(shader:ShaderBase, renderable:RenderStateBase, stage:Stage, projection:ProjectionBase):void
+	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, stage:Stage, projection:ProjectionBase):void
 	{
 		// do on request of globalProperties
 		if (this._globalPropertiesDirty)
 			this.updateGlobalProperties();
 
-		var elements:TriangleElements = <TriangleElements> (<GL_ShapeRenderable> renderable).shape.elements;
+		var elements:TriangleElements = <TriangleElements> (<Shape> renderable.renderable).elements;
 
 		elements.useCondensedIndices = this._useCondensedIndices;
 
@@ -352,7 +352,7 @@ export class SkeletonAnimator extends AnimatorBase
 		}
 	}
 
-	public getRenderableElements(renderable:RenderStateBase, sourceElements:TriangleElements):IElements
+	public getRenderableElements(renderable:_Render_RenderableBase, sourceElements:TriangleElements):IElements
 	{
 		this._morphedElementsDirty[sourceElements.id] = true;
 
@@ -383,7 +383,7 @@ export class SkeletonAnimator extends AnimatorBase
 	 * @param subGeom The subgeometry containing the weights and joint index data per vertex.
 	 * @param pass The material pass for which we need to transform the vertices
 	 */
-	public morphElements(renderable:RenderStateBase, sourceElements:TriangleElements):void
+	public morphElements(renderable:_Render_RenderableBase, sourceElements:TriangleElements):void
 	{
 		this._morphedElementsDirty[sourceElements.id] = false;
 

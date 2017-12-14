@@ -2,7 +2,7 @@ import {Matrix3D, Orientation3D, Vector3D, MathConsts, ProjectionBase} from "@aw
 
 import {Stage} from "@awayjs/stage";
 
-import {ShaderBase, RenderStateBase, AnimationRegisterData} from "@awayjs/renderer";
+import {ShaderBase, _Render_RenderableBase, AnimationRegisterData} from "@awayjs/renderer";
 
 import {AnimationElements} from "../data/AnimationElements";
 import {ParticleBillboardNode} from "../nodes/ParticleBillboardNode";
@@ -33,7 +33,7 @@ export class ParticleBillboardState extends ParticleStateBase
 		this._billboardAxis = particleNode._iBillboardAxis;
 	}
 
-	public setRenderState(shader:ShaderBase, renderable:RenderStateBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData, projection:ProjectionBase, stage:Stage):void
+	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData, projection:ProjectionBase, stage:Stage):void
 	{
 		var comps:Array<Vector3D>;
 		if (this._billboardAxis) {

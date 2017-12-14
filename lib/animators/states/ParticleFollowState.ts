@@ -2,7 +2,7 @@ import {Vector3D, MathConsts, ProjectionBase} from "@awayjs/core";
 
 import {Stage, ContextGLVertexBufferFormat} from "@awayjs/stage";
 
-import {ShaderBase, RenderStateBase, AnimationRegisterData, IEntity} from "@awayjs/renderer";
+import {ShaderBase, _Render_RenderableBase, AnimationRegisterData, IEntity} from "@awayjs/renderer";
 
 import {ParticleAnimationData} from "../data/ParticleAnimationData";
 import {AnimationElements} from "../data/AnimationElements";
@@ -66,7 +66,7 @@ export class ParticleFollowState extends ParticleStateBase
 	/**
 	 * @inheritDoc
 	 */
-	public setRenderState(shader:ShaderBase, renderable:RenderStateBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData, projection:ProjectionBase, stage:Stage):void
+	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData, projection:ProjectionBase, stage:Stage):void
 	{
 		if (this._followTarget) {
 			if (this._particleFollowNode._iUsesPosition) {

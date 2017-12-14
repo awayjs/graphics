@@ -1,10 +1,10 @@
 import {ProjectionBase} from "@awayjs/core";
 
-import {IElements, IRenderable, IEntity, AnimationRegisterData, ShaderBase, RenderStateBase, ElementsStateBase} from "@awayjs/renderer";
+import {IElements, IRenderable, IEntity, AnimationRegisterData, ShaderBase, _Render_RenderableBase, _Stage_ElementsBase} from "@awayjs/renderer";
 
 import {Stage} from "@awayjs/stage";
 
-import {Shape} from "../base/Shape";
+import {Shape} from "../renderables/Shape";
 import {TriangleElements} from "../elements/TriangleElements";
 
 import {Graphics} from "../Graphics";
@@ -109,13 +109,13 @@ export class VertexAnimator extends AnimatorBase
 	/**
 	 * @inheritDoc
 	 */
-	public setRenderState(shader:ShaderBase, renderState:RenderStateBase, stage:Stage, projection:ProjectionBase):void
+	public setRenderState(shader:ShaderBase, renderState:_Render_RenderableBase, stage:Stage, projection:ProjectionBase):void
 	{
 		// todo: add code for when running on cpu
 		// this type of animation can only be IRenderable
 		var renderable:IRenderable = renderState.renderable;
 		var entity:IEntity = <IEntity> renderState.sourceEntity;
-		var elements:TriangleElements = <TriangleElements> renderState.elementsGL.elements;
+		var elements:TriangleElements = <TriangleElements> renderState.stageElements.elements;
 
 		// if no poses defined, set temp data
 		if (!this._poses.length) {
@@ -134,20 +134,20 @@ export class VertexAnimator extends AnimatorBase
 		else
 			i = 0;
 
-		var elementsGL:ElementsStateBase;
+		var stageElements:_Stage_ElementsBase;
 		var k:number = 0;
 		var renderableIndex:number = entity.getRenderableIndex(renderable);
 
 		for (; i < len; ++i) {
 			elements = <TriangleElements> (this._poses[i].getShapeAt(renderableIndex).elements || (<Shape> renderable).elements);
 
-			elementsGL = <ElementsStateBase> stage.getAbstraction(elements);
-			elementsGL._indexMappings = (<ElementsStateBase> stage.getAbstraction((<Shape> renderable).elements)).getIndexMappings();
+			stageElements = <_Stage_ElementsBase> stage.getAbstraction(elements);
+			stageElements._indexMappings = (<_Stage_ElementsBase> stage.getAbstraction((<Shape> renderable).elements)).getIndexMappings();
 			
-			elementsGL.activateVertexBufferVO(animationRegisterData.poseIndices[k++], elements.positions);
+			stageElements.activateVertexBufferVO(animationRegisterData.poseIndices[k++], elements.positions);
 
 			if (shader.normalDependencies > 0)
-				elementsGL.activateVertexBufferVO(animationRegisterData.poseIndices[k++], elements.normals);
+				stageElements.activateVertexBufferVO(animationRegisterData.poseIndices[k++], elements.normals);
 		}
 	}
 
@@ -157,16 +157,16 @@ export class VertexAnimator extends AnimatorBase
 		
 		shader.setVertexConstFromArray(animationRegisterData.weightsIndex, this._weights);
 
-		var elementsGL:ElementsStateBase = (<ElementsStateBase> stage.getAbstraction(elements));
+		var stageElements:_Stage_ElementsBase = (<_Stage_ElementsBase> stage.getAbstraction(elements));
 		var k:number = 0;
 		
 		if (this._vertexAnimationSet.blendMode == VertexAnimationMode.ABSOLUTE) {
 			var len:number = this._vertexAnimationSet.numPoses;
 			for (var i:number = 1; i < len; ++i) {
-				elementsGL.activateVertexBufferVO(animationRegisterData.poseIndices[k++], elements.positions);
+				stageElements.activateVertexBufferVO(animationRegisterData.poseIndices[k++], elements.positions);
 
 				if (shader.normalDependencies > 0)
-					elementsGL.activateVertexBufferVO(animationRegisterData.poseIndices[k++], elements.normals);
+					stageElements.activateVertexBufferVO(animationRegisterData.poseIndices[k++], elements.normals);
 			}
 		}
 		// todo: set temp data for additive?
@@ -180,7 +180,7 @@ export class VertexAnimator extends AnimatorBase
 	{
 	}
 
-	public getRenderableElements(renderState:RenderStateBase, sourceElements:IElements):IElements
+	public getRenderableElements(renderState:_Render_RenderableBase, sourceElements:IElements):IElements
 	{
 		if (this._vertexAnimationSet.blendMode == VertexAnimationMode.ABSOLUTE && this._poses.length)
 			return this._poses[0].getShapeAt((<IEntity> renderState.sourceEntity).getRenderableIndex(renderState.renderable)).elements || sourceElements;

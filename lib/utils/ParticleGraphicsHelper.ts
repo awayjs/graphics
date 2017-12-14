@@ -2,7 +2,7 @@ import {Matrix, Matrix3D, Point, Vector3D} from "@awayjs/core";
 
 import {AttributesBuffer} from "@awayjs/stage";
 
-import {Shape} from "../base/Shape";
+import {Shape} from "../renderables/Shape";
 import {TriangleElements} from "../elements/TriangleElements";
 import {ParticleCollection} from "../animators/data/ParticleCollection";
 import {ParticleData} from "../animators/data/ParticleData";

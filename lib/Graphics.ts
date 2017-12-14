@@ -4,7 +4,7 @@ import {BitmapImage2D, AttributesBuffer, AttributesView, Byte4Attributes, Float2
 
 import {IAnimator, IEntity, IMaterial, Style, TraverserBase, StyleEvent, ElementsUtils, ElementsEvent, MaterialUtils} from "@awayjs/renderer";
 
-import {Shape} from "./base/Shape";
+import {Shape} from "./renderables/Shape";
 import {GraphicsPath} from "./draw/GraphicsPath";
 import {GraphicsFactoryFills} from "./draw/GraphicsFactoryFills";
 import {GraphicsFactoryStrokes} from "./draw/GraphicsFactoryStrokes";

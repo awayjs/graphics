@@ -2,7 +2,7 @@ import {ProjectionBase} from "@awayjs/core";
 
 import {Stage, ContextGLVertexBufferFormat} from "@awayjs/stage";
 
-import {ShaderBase, RenderStateBase, AnimationRegisterData} from "@awayjs/renderer";
+import {ShaderBase, _Render_RenderableBase, AnimationRegisterData} from "@awayjs/renderer";
 
 import {AnimationElements} from "../data/AnimationElements";
 import {ParticlePropertiesMode} from "../data/ParticlePropertiesMode";
@@ -80,7 +80,7 @@ export class ParticleSpriteSheetState extends ParticleStateBase
 		this.updateSpriteSheetData();
 	}
 
-	public setRenderState(shader:ShaderBase, renderable:RenderStateBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData, projection:ProjectionBase, stage:Stage):void
+	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData, projection:ProjectionBase, stage:Stage):void
 	{
 		if (!shader.usesUVTransform) {
 			shader.setVertexConst(animationRegisterData.getRegisterIndex(this._pAnimationNode, ParticleSpriteSheetState.UV_INDEX_0), this._spriteSheetData[0], this._spriteSheetData[1], this._spriteSheetData[2], this._spriteSheetData[3]);

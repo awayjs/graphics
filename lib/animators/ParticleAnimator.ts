@@ -2,9 +2,9 @@ import {ProjectionBase} from "@awayjs/core";
 
 import {Stage} from "@awayjs/stage";
 
-import {IElements, ShaderBase, RenderStateBase, AnimationRegisterData, IEntity, IRenderable} from "@awayjs/renderer";
+import {IElements, ShaderBase, _Render_RenderableBase, AnimationRegisterData, IEntity, IRenderable} from "@awayjs/renderer";
 
-import {Shape} from "../base/Shape";
+import {Shape} from "../renderables/Shape";
 
 import {AnimationElements} from "./data/AnimationElements";
 import {ParticleCollection} from "./data/ParticleCollection";
@@ -75,7 +75,7 @@ export class ParticleAnimator extends AnimatorBase
 	/**
 	 * @inheritDoc
 	 */
-	public setRenderState(shader:ShaderBase, renderState:RenderStateBase, stage:Stage, projection:ProjectionBase):void
+	public setRenderState(shader:ShaderBase, renderState:_Render_RenderableBase, stage:Stage, projection:ProjectionBase):void
 	{
 		var animationRegisterData:AnimationRegisterData = this._particleAnimationSet._iAnimationRegisterData;
 

@@ -5,7 +5,7 @@ import {ImageSampler, BitmapImage2D, AttributesBuffer, AttributesView, Float3Att
 import {ITexture, MappingMode, IMaterial, Style} from "@awayjs/renderer";
 
 import {TriangleElements} from "../elements/TriangleElements";
-import {Shape} from "../base/Shape";
+import {Shape} from "../renderables/Shape";
 
 import {GraphicsFillStyle} from "./GraphicsFillStyle";
 import {GradientFillStyle} from "./GradientFillStyle";

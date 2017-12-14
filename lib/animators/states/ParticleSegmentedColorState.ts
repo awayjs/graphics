@@ -2,7 +2,7 @@ import {ColorTransform, ProjectionBase} from "@awayjs/core";
 
 import {Stage} from "@awayjs/stage";
 
-import {ShaderBase, RenderStateBase, AnimationRegisterData} from "@awayjs/renderer";
+import {ShaderBase, _Render_RenderableBase, AnimationRegisterData} from "@awayjs/renderer";
 
 import {AnimationElements} from "../data/AnimationElements";
 import {ColorSegmentPoint} from "../data/ColorSegmentPoint";
@@ -112,7 +112,7 @@ export class ParticleSegmentedColorState extends ParticleStateBase
 		this.updateColorData();
 	}
 
-	public setRenderState(shader:ShaderBase, renderable:RenderStateBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData, projection:ProjectionBase, stage:Stage):void
+	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData, projection:ProjectionBase, stage:Stage):void
 	{
 		if (shader.usesFragmentAnimation) {
 			if (this._numSegmentPoint > 0)

@@ -2,7 +2,7 @@ import {ProjectionBase} from "@awayjs/core";
 
 import {Stage, ContextGLVertexBufferFormat} from "@awayjs/stage";
 
-import {ShaderBase, RenderStateBase, AnimationRegisterData} from "@awayjs/renderer";
+import {ShaderBase, _Render_RenderableBase, AnimationRegisterData} from "@awayjs/renderer";
 
 import {AnimationElements} from "../data/AnimationElements";
 import {ParticleTimeNode} from "../nodes/ParticleTimeNode";
@@ -31,7 +31,7 @@ export class ParticleTimeState extends ParticleStateBase
 		this._particleTimeNode = particleTimeNode;
 	}
 
-	public setRenderState(shader:ShaderBase, renderable:RenderStateBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData, projection:ProjectionBase, stage:Stage):void
+	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData, projection:ProjectionBase, stage:Stage):void
 	{
 		animationElements.activateVertexBuffer(animationRegisterData.getRegisterIndex(this._pAnimationNode, ParticleTimeState.TIME_STREAM_INDEX), this._particleTimeNode._iDataOffset, stage, ContextGLVertexBufferFormat.FLOAT_4);
 

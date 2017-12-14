@@ -2,7 +2,7 @@ import {Vector3D, ProjectionBase} from "@awayjs/core";
 
 import {Stage} from "@awayjs/stage";
 
-import {ShaderBase, RenderStateBase, AnimationRegisterData} from "@awayjs/renderer";
+import {ShaderBase, _Render_RenderableBase, AnimationRegisterData} from "@awayjs/renderer";
 
 import {AnimationElements} from "../data/AnimationElements";
 import {ParticleAnimationData} from "../data/ParticleAnimationData";
@@ -39,7 +39,7 @@ export class ParticleStateBase extends AnimationStateBase
 		return this._pNeedUpdateTime;
 	}
 
-	public setRenderState(shader:ShaderBase, renderable:RenderStateBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData, projection:ProjectionBase, stage:Stage):void
+	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData, projection:ProjectionBase, stage:Stage):void
 	{
 
 	}

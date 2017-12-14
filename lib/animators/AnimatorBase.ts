@@ -2,7 +2,7 @@ import {Vector3D, AssetBase, AbstractMethodError, RequestAnimationFrame, Project
 
 import {Stage} from "@awayjs/stage";
 
-import {ShaderBase, IAnimator, AnimationNodeBase, IEntity, RenderStateBase, IElements} from "@awayjs/renderer";
+import {ShaderBase, IAnimator, AnimationNodeBase, IEntity, _Render_RenderableBase, IElements} from "@awayjs/renderer";
 
 import {AnimatorEvent} from "../events/AnimatorEvent";
 
@@ -202,7 +202,7 @@ export class AnimatorBase extends AssetBase implements IAnimator
 		this._playbackSpeed = value;
 	}
 
-	public setRenderState(shader:ShaderBase, renderable:RenderStateBase, stage:Stage, projection:ProjectionBase):void
+	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, stage:Stage, projection:ProjectionBase):void
 	{
 		throw new AbstractMethodError();
 	}
@@ -389,7 +389,7 @@ export class AnimatorBase extends AssetBase implements IAnimator
 	}
 
 
-	public getRenderableElements(renderable:RenderStateBase, sourceElements:IElements):IElements
+	public getRenderableElements(renderable:_Render_RenderableBase, sourceElements:IElements):IElements
 	{
 		//nothing to do here
 		return sourceElements;

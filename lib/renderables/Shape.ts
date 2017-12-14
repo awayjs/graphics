@@ -296,3 +296,68 @@ export class Shape extends AssetBase implements IRenderable
 		return this._elements.getSphereBounds(center, target, this.count, this.offset);
 	}
 }
+
+import {AssetEvent} from "@awayjs/core";
+
+import {_Render_RenderableBase, RenderEntity, _Stage_ElementsBase, _Render_MaterialBase, MaterialUtils} from "@awayjs/renderer";
+
+import {AnimatorBase} from "../animators/AnimatorBase";
+import {LineElements} from "../elements/LineElements";
+
+/**
+ * @class away.pool._Render_Shape
+ */
+export class _Render_Shape extends _Render_RenderableBase
+{
+    /**
+     *
+     */
+    public shape:Shape;
+
+    /**
+     * //TODO
+     *
+     * @param renderEntity
+     * @param shape
+     * @param level
+     * @param indexOffset
+     */
+    constructor(shape:Shape, renderEntity:RenderEntity)
+    {
+        super(shape, renderEntity);
+
+        this.shape = shape;
+    }
+
+    public onClear(event:AssetEvent):void
+    {
+        super.onClear(event);
+
+        this.shape = null;
+    }
+
+    /**
+     *
+     * @returns {ElementsBase}
+     * @protected
+     */
+    protected _getStageElements():_Stage_ElementsBase
+    {
+        this._offset = this.shape.offset;
+        this._count = this.shape.count;
+
+        return <_Stage_ElementsBase> this._stage.getAbstraction((this.sourceEntity.animator)? (<AnimatorBase> this.sourceEntity.animator).getRenderableElements(this, this.shape.elements) : this.shape.elements);
+    }
+
+    protected _getRenderMaterial():_Render_MaterialBase
+    {
+        return this._renderGroup.getRenderElements(this.stageElements.elements).getAbstraction(this.shape.material || this.sourceEntity.material || this.getDefaultMaterial());
+    }
+
+    protected getDefaultMaterial():IMaterial
+    {
+        return (this.stageElements.elements instanceof LineElements)? MaterialUtils.getDefaultColorMaterial() : MaterialUtils.getDefaultTextureMaterial();
+    }
+}
+
+RenderEntity.registerRenderable(_Render_Shape, Shape);

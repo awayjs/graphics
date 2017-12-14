@@ -2,7 +2,7 @@ import {Matrix3D, ProjectionBase} from "@awayjs/core";
 
 import {Stage} from "@awayjs/stage";
 
-import {ShaderBase, RenderStateBase, AnimationRegisterData} from "@awayjs/renderer";
+import {ShaderBase, _Render_RenderableBase, AnimationRegisterData} from "@awayjs/renderer";
 
 import {AnimationElements} from "../data/AnimationElements";
 import {ParticleRotateToHeadingNode} from "../nodes/ParticleRotateToHeadingNode";
@@ -27,7 +27,7 @@ export class ParticleRotateToHeadingState extends ParticleStateBase
 		super(animator, particleNode);
 	}
 
-	public setRenderState(shader:ShaderBase, renderable:RenderStateBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData, projection:ProjectionBase, stage:Stage):void
+	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData, projection:ProjectionBase, stage:Stage):void
 	{
 		if ((<ParticleAnimationSet> this._pParticleAnimator.animationSet).hasBillboard) {
 			this._matrix.copyFrom(renderable.sourceEntity.transform.concatenatedMatrix3D);
