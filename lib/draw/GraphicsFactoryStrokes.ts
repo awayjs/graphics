@@ -149,7 +149,7 @@ export class GraphicsFactoryStrokes
 				half_thickness*=(1/scale);
 			}
 
-			if(strokeStyle.scaleMode=="HAIRLINE"){
+			if(strokeStyle.scaleMode==LineScaleMode.HAIRLINE){
 				//console.log("scale", scale);
 				half_thickness=0.5*(1/scale);
 			}

@@ -38,4 +38,5 @@ export class LineScaleMode
 	 * both vertically and horizontally.
 	 */
 	public static VERTICAL:string = "vertical";
+	public static HAIRLINE:string = "HAIRLINE";
 }
