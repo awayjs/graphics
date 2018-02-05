@@ -372,41 +372,37 @@ export class GraphicsFactoryFills
 				//console.timeEnd("time Tess2.tesselate");
 
 				var numElems:number =  res.elements.length / 3;
-				var p1:number=0;
-				var p2:number=0;
-				var p3:number=0;
+				var p1x:number=0;
+				var p1y:number=0;
+				var p2x:number=0;
+				var p2y:number=0;
+				var p3x:number=0;
+				var p3y:number=0;
 				for (i = 0; i < numElems; ++i) {
-					p1 = res.elements[i * 3];
-					p2 = res.elements[i * 3 + 1];
-					p3 = res.elements[i * 3 + 2];
+					p1x = res.vertices[res.elements[i * 3]*2];
+					p1y = res.vertices[res.elements[i * 3]*2 + 1];
+					p2x = res.vertices[res.elements[i * 3 + 1]*2];
+					p2y = res.vertices[res.elements[i * 3 + 1]*2 + 1];
+					p3x = res.vertices[res.elements[i * 3 + 2]*2];
+					p3y = res.vertices[res.elements[i * 3 + 2]*2 + 1];
+					if (GraphicsFactoryHelper.isClockWiseXY(p1x, p1y, p2x, p2y, p3x, p3y)) {
 
-					final_vert_list[final_vert_cnt++] = res.vertices[p3*2];
-					final_vert_list[final_vert_cnt++] = res.vertices[p3*2+1];
-					/*
-					 final_vert_list[final_vert_cnt++] = 1;
-					 final_vert_list[final_vert_cnt++] = 2.0;
-					 final_vert_list[final_vert_cnt++] = 0.0;
-					 final_vert_list[final_vert_cnt++] = 1.0;
-					 final_vert_list[final_vert_cnt++] = 0.0;
-					 */
-					final_vert_list[final_vert_cnt++] = res.vertices[p2*2];
-					final_vert_list[final_vert_cnt++] = res.vertices[p2*2+1];
-					/*
-					 final_vert_list[final_vert_cnt++] = 1;
-					 final_vert_list[final_vert_cnt++] = 2.0;
-					 final_vert_list[final_vert_cnt++] = 0.0;
-					 final_vert_list[final_vert_cnt++] = 1.0;
-					 final_vert_list[final_vert_cnt++] = 0.0;
-					 */
-					final_vert_list[final_vert_cnt++] = res.vertices[p1*2];
-					final_vert_list[final_vert_cnt++] = res.vertices[p1*2+1];
-					/*
-					 final_vert_list[final_vert_cnt++] = 1;
-					 final_vert_list[final_vert_cnt++] = 2.0;
-					 final_vert_list[final_vert_cnt++] = 0.0;
-					 final_vert_list[final_vert_cnt++] = 1.0;
-					 final_vert_list[final_vert_cnt++] = 0.0;
-					 */
+						final_vert_list[final_vert_cnt++] = p3x;
+						final_vert_list[final_vert_cnt++] = p3y;
+						final_vert_list[final_vert_cnt++] = p2x;
+						final_vert_list[final_vert_cnt++] = p2y;
+						final_vert_list[final_vert_cnt++] = p1x;
+						final_vert_list[final_vert_cnt++] = p1y;
+					}
+					else{
+
+						final_vert_list[final_vert_cnt++] = p1x;
+						final_vert_list[final_vert_cnt++] = p1y;
+						final_vert_list[final_vert_cnt++] = p2x;
+						final_vert_list[final_vert_cnt++] = p2y;
+						final_vert_list[final_vert_cnt++] = p3x;
+						final_vert_list[final_vert_cnt++] = p3y;
+					}
 
 				}
 			}
