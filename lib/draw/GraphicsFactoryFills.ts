@@ -118,7 +118,7 @@ export class GraphicsFactoryFills
 	}
 
 
-	public static pathToAttributesBuffer(graphicsPath:GraphicsPath, closePath:boolean=false):AttributesBuffer {
+	public static pathToAttributesBuffer(graphicsPath:GraphicsPath, closePath:boolean=true):AttributesBuffer {
 
 		graphicsPath.prepare();
 		//one_path.finalizeContour();

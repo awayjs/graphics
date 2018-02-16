@@ -111,10 +111,11 @@ export class GraphicsPath implements IGraphicsData
 
     public curveTo(controlX:number, controlY:number, anchorX:number, anchorY:number)
     {
+        //console.log(controlX, controlY, anchorX, anchorY);
         // if controlpoint and anchor are same, we add lineTo command
         if((controlX==anchorX)&&(controlY==anchorY)){
             this.lineTo(controlX, controlY);
-            this.moveTo(anchorX, anchorY);
+            //this.moveTo(anchorX, anchorY);
             return;
         }
         // if anchor is current point, but controlpoint is different, we lineto controlpoint

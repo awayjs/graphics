@@ -42,7 +42,7 @@ export class GraphicsFactoryStrokes
 
 			var final_vert_list:Array<number>=[];
 			strokePath.prepare(targetGraphics._scaleX);
-			GraphicsFactoryStrokes.draw_path([strokePath], final_vert_list, material.curves);
+			GraphicsFactoryStrokes.draw_path([strokePath], final_vert_list, material.curves, targetGraphics.getSpriteScale());
 			final_vert_list=final_vert_list.concat(strokePath.verts);
 			var attributesView:AttributesView = new AttributesView(Float32Array, material.curves?3:2);
 			attributesView.set(final_vert_list);
@@ -150,7 +150,6 @@ export class GraphicsFactoryStrokes
 			}
 
 			if(strokeStyle.scaleMode==LineScaleMode.HAIRLINE){
-				//console.log("scale", scale);
 				half_thickness=0.5*(1/scale);
 			}
 

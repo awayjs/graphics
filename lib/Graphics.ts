@@ -105,6 +105,12 @@ export class Graphics extends AssetBase
 
 	private _drawingDirty:boolean = false;
 
+	public getSpriteScale():number{
+		if(this._entity){
+			return (<any>this._entity).scaleX;
+		}
+		return 1;
+	}
 	public updateScale(scaleX:number, scaleY:number)
 	{
 
@@ -1352,6 +1358,12 @@ export class Graphics extends AssetBase
 	public endFill():void
 	{
 		this._drawingDirty=false;
+
+		//todo: this is a hack for getting stroke pathes closed if a fill_path exists. needs refactor to make this work correctly
+		if(this._active_stroke_path && this._active_fill_path){
+			this._active_stroke_path.forceClose=true;
+		}
+
 		this.draw_fills();
 		this.draw_strokes();
 		this._active_fill_path=null;
