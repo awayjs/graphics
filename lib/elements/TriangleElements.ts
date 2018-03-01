@@ -44,6 +44,8 @@ export class TriangleElements extends ElementsBase
 	public initialSlice9Positions:number[];
 	public lastStrokeScale:number;
 
+
+
 	public updateSlice9(width:number, height:number){
 
 	}

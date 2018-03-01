@@ -1749,8 +1749,15 @@ export class Graphics extends AssetBase
 			shape = shapes[i];
 			if(this.slice9Rectangle) // todo: this is a dirty workaround to get the slice9-shapes cloned:
 				shape = Shape.getShape(TriangleElementsUtils.updateTriangleGraphicsSlice9(<TriangleElements> shape.elements, this.originalSlice9Size, 1, 1, false, true), shape.material, shape.style);
-			else if (cloneShapes)
+			else if (shape.isStroke){
+				var originalShape:Shape=shape;
+				shape = Shape.getShape(shape.elements.clone(), shape.material, shape.style, 0, 0);
+				shape.isStroke=originalShape.isStroke;
+				shape.strokePath=originalShape.strokePath;
+			}
+			else if (cloneShapes){
 				shape = Shape.getShape(shape.elements, shape.material, shape.style, shape.count, shape.offset);
+			}
 
             shape.particleCollection = shapes[i].particleCollection;
 

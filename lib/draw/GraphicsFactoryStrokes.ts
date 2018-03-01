@@ -145,6 +145,7 @@ export class GraphicsFactoryStrokes
 					half_thickness=0.5*(1/scale);
 				}
 			}
+
 			else if(scaleMode==LineScaleMode.NONE){
 				half_thickness*=(1/scale);
 			}
@@ -195,14 +196,15 @@ export class GraphicsFactoryStrokes
 				prev_normal.x = -1*last_dir_vec.y;
 				prev_normal.y = last_dir_vec.x;
 
+				//console.log("\nsegment "+i+"lastPoint x = "+lastPoint.x+" y = "+lastPoint.y)
 				for (i = 1; i < commands.length; i++) {
 					if (commands[i]==GraphicsPathCommand.MOVE_TO) {
 						console.log("ERROR ! ONLY THE FIRST COMMAND FOR A CONTOUR IS ALLOWED TO BE A 'MOVE_TO' COMMAND");
 						continue;
 					}
 					//console.log("");
-					//console.log("segment "+i+"lastPoint x = "+lastPoint.x+" y = "+lastPoint.y)
 					end_point = new Point(data[data_cnt++], data[data_cnt++]);
+
 					//console.log("segment "+i+"end_point x = "+end_point.x+" y = "+end_point.y)
 					if (commands[i]==GraphicsPathCommand.CURVE_TO) {
 						curve_end_point = new Point(data[data_cnt++], data[data_cnt++]);
@@ -254,10 +256,11 @@ export class GraphicsFactoryStrokes
 									add_segment=true;
 								}
 							}
-							if (Math.abs(dir_delta) >= 179.9997 && Math.abs(dir_delta) <= 180.0003 ) {
+
+							//edgecase - very small angle between segments
+							// for now just add the contour points
+							if (Math.abs(dir_delta) <= 3 || (Math.abs(dir_delta) >= 177 && Math.abs(dir_delta) <= 183)) {
 								add_segment=true;
-								//todo: edgecase - path goes straight back. we can just add the contour points (?)
-								//console.log("path goes straight back (180)!")
 							}
 							else if (dir_delta!=0) {
 								add_segment=true;
@@ -265,11 +268,20 @@ export class GraphicsFactoryStrokes
 								if(dir_delta<0){
 									half_angle=(-180-(dir_delta));
 								}
+								//console.log("half_angle: ",half_angle);
 								half_angle= half_angle * -0.5 * MathConsts.DEGREES_TO_RADIANS;
+								//console.log("half_angle: ",half_angle);
 								var distance:number=half_thickness / Math.sin(half_angle);
+								if(distance>half_thickness*2){
+									//console.log("ERROR: ",distance, half_thickness);
+
+								}
+								//console.log("Math.sin(half_angle): ",Math.sin(half_angle));
 								tmp_point2.x = tmp_dir_point.x * Math.cos(half_angle) + tmp_dir_point.y * Math.sin(half_angle);
 								tmp_point2.y = tmp_dir_point.y * Math.cos(half_angle) - tmp_dir_point.x * Math.sin(half_angle);
 								tmp_point2.normalize();
+								//console.log("distance: ",distance);
+								//console.log("tmp_point2: ",tmp_point2);
 								var merged_pnt_ri:Point = new Point(lastPoint.x - (tmp_point2.x * distance), lastPoint.y - (tmp_point2.y * distance));
 								var merged_pnt_le:Point = new Point(lastPoint.x + (tmp_point2.x * distance), lastPoint.y + (tmp_point2.y * distance));
 								if (dir_delta > 0){
