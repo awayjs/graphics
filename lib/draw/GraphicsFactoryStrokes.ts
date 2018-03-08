@@ -259,7 +259,7 @@ export class GraphicsFactoryStrokes
 
 							//edgecase - very small angle between segments
 							// for now just add the contour points
-							if (Math.abs(dir_delta) <= 3 || (Math.abs(dir_delta) >= 177 && Math.abs(dir_delta) <= 183)) {
+							if (Math.abs(dir_delta) <= 10 || (Math.abs(dir_delta) >= 170 && Math.abs(dir_delta) <= 190) || Math.abs(dir_delta) >= 350) {
 								add_segment=true;
 							}
 							else if (dir_delta!=0) {

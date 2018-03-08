@@ -407,7 +407,7 @@ export class GraphicsFactoryFills
 				}
 			}
 			catch(e){
-				console.log("error when trying to tesselate", "countours:", endContours);
+				//console.log("error when trying to tesselate", "countours:", endContours);
 			}
 
 		}
