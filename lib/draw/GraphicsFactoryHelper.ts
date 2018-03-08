@@ -1,11 +1,113 @@
-import {Point, MathConsts} from "@awayjs/core";
 
+import {Point, MathConsts, Rectangle, Matrix} from "@awayjs/core";
+
+import {ImageSampler, AttributesBuffer, AttributesView, Float3Attributes, Float2Attributes} from "@awayjs/stage";
+
+import {IMaterial, Style} from "@awayjs/renderer";
+
+import {Shape} from "../renderables/Shape";
+import {TriangleElements} from "../elements/TriangleElements";
+import {JointStyle}	 from "../draw/JointStyle";
+import {GraphicsPath} from "../draw/GraphicsPath";
+import {GraphicsPathCommand} from "../draw/GraphicsPathCommand";
+import {GraphicsStrokeStyle} from "../draw/GraphicsStrokeStyle";
+import {LineScaleMode} from "../draw/LineScaleMode";
+import {Graphics} from "../Graphics";
 import {CapsStyle} from "../draw/CapsStyle";
 
 export class GraphicsFactoryHelper
 {
 	public static _tess_obj:any;
 
+	public static drawRectangles(inputRectangles:number[], color:number, alpha:number):Shape{
+
+		if(inputRectangles.length%4>0){
+			console.log("GraphicsFactoryHelper.drawRectangles: inputRectangles.length is not a multiple of 4", inputRectangles);
+			return;
+		}
+
+		var final_vert_list:number[]=[];
+		final_vert_list.length=(inputRectangles.length/4)*12;
+		var i:number=0;
+		var outCnt:number=0;
+		var len:number=inputRectangles.length;
+		var x:number=0;
+		var y:number=0;
+		var w:number=0;
+		var h:number=0;
+
+		for(i=0; i<len; i+=4){
+			x=inputRectangles[i];
+			y=inputRectangles[i+1];
+			w=inputRectangles[i+2];
+			h=inputRectangles[i+3];
+			final_vert_list[outCnt++]=x;
+			final_vert_list[outCnt++]=y;
+			final_vert_list[outCnt++]=x+w;
+			final_vert_list[outCnt++]=y;
+			final_vert_list[outCnt++]=x+w;
+			final_vert_list[outCnt++]=y+h;
+			final_vert_list[outCnt++]=x;
+			final_vert_list[outCnt++]=y;
+			final_vert_list[outCnt++]=x;
+			final_vert_list[outCnt++]=y+h;
+			final_vert_list[outCnt++]=x+w;
+			final_vert_list[outCnt++]=y+h;
+		}
+		var obj:any = Graphics.get_material_for_color(color, alpha);
+		var material:IMaterial=obj.material;
+		var attributesView:AttributesView = new AttributesView(Float32Array, material.curves?3:2);
+		attributesView.set(final_vert_list);
+		var attributesBuffer:AttributesBuffer = attributesView.attributesBuffer;
+		attributesView.dispose();
+		var elements:TriangleElements = new TriangleElements(attributesBuffer);
+		elements.setPositions(new Float2Attributes(attributesBuffer));
+
+		var shape:Shape=Shape.getShape(elements, material);
+		if(obj.colorPos){
+			shape.style = new Style();
+			var sampler:ImageSampler = new ImageSampler();
+			material.animateUVs=true;
+			shape.style.addSamplerAt(sampler, material.getTextureAt(0));
+
+			shape.style.uvMatrix = new Matrix(0, 0, 0, 0, obj.colorPos.x, obj.colorPos.y);
+		}
+		return shape;
+	}
+	public static updateRectanglesShape(shape:Shape, inputRectangles:number[]){
+
+		var final_vert_list:number[]=[];
+		final_vert_list.length=(inputRectangles.length/4)*12;
+		var i:number=0;
+		var outCnt:number=0;
+		var len:number=inputRectangles.length;
+		var x:number=0;
+		var y:number=0;
+		var w:number=0;
+		var h:number=0;
+
+		for(i=0; i<len; i+=4){
+			x=inputRectangles[i];
+			y=inputRectangles[i+1];
+			w=inputRectangles[i+2];
+			h=inputRectangles[i+3];
+			final_vert_list[outCnt++]=x;
+			final_vert_list[outCnt++]=y;
+			final_vert_list[outCnt++]=x+w;
+			final_vert_list[outCnt++]=y;
+			final_vert_list[outCnt++]=x+w;
+			final_vert_list[outCnt++]=y+h;
+			final_vert_list[outCnt++]=x;
+			final_vert_list[outCnt++]=y;
+			final_vert_list[outCnt++]=x;
+			final_vert_list[outCnt++]=y+h;
+			final_vert_list[outCnt++]=x+w;
+			final_vert_list[outCnt++]=y+h;
+		}
+		var elements:TriangleElements = <TriangleElements> shape.elements;
+		elements.setPositions(final_vert_list);
+		elements.invalidate();
+	}
 
 	public static isClockWiseXY(point1x:number, point1y:number, point2x:number, point2y:number, point3x:number, point3y:number):boolean
 	{
