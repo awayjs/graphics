@@ -86,14 +86,19 @@ export class GraphicsFactoryStrokes
 	}
 	public static updateStrokesForShape(shape:Shape, scale:number, scaleMode:string ){
 
-		var graphicsPath = shape.strokePath;
 		var elements:TriangleElements = <TriangleElements> shape.elements;
-		/*if(elements.lastStrokeScale>(scale*2) || elements.lastStrokeScale<(scale*0.5)){
-			graphicsPath.prepare(scale);
+		if(elements.lastStrokeScale>(scale*2) || elements.lastStrokeScale<(scale*0.5)){
+			//graphicsPath.prepare(scale);
 			elements.lastStrokeScale=scale;
 
-		}*/
+		}
+		else{
+			//elements.lastStrokeScale=scale;
+			return;
+		}
 
+		var graphicsPath = shape.strokePath;
+		elements.lastStrokeScale=scale;
 		var final_vert_list:Array<number>=[];
 		GraphicsFactoryStrokes.draw_path([graphicsPath], final_vert_list, false, scale, scaleMode);
 		elements.setPositions(final_vert_list);
