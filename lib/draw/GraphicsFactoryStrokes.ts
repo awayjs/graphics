@@ -94,7 +94,7 @@ export class GraphicsFactoryStrokes
 		}
 		else{
 			//elements.lastStrokeScale=scale;
-			return;
+			//return;
 		}
 
 		var graphicsPath = shape.strokePath;
