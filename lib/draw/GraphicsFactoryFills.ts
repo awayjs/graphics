@@ -417,7 +417,7 @@ export class GraphicsFactoryFills
 			//	console.log("final verts "+i+" = "+final_vert_list[i*7]+" / "+final_vert_list[i*7+1]);
 			var attributesView:AttributesView = new AttributesView(Float32Array, 2);
 			attributesView.set(final_vert_list);
-			var attributesBuffer:AttributesBuffer = attributesView.attributesBuffer;
+			var attributesBuffer:AttributesBuffer = attributesView.attributesBuffer.cloneBufferView();
 			attributesView.dispose();
 			return attributesBuffer;
 

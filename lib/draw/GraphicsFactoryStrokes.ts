@@ -46,7 +46,7 @@ export class GraphicsFactoryStrokes
 			final_vert_list=final_vert_list.concat(strokePath.verts);
 			var attributesView:AttributesView = new AttributesView(Float32Array, material.curves?3:2);
 			attributesView.set(final_vert_list);
-			var attributesBuffer:AttributesBuffer = attributesView.attributesBuffer;
+			var attributesBuffer:AttributesBuffer = attributesView.attributesBuffer.cloneBufferView();
 			attributesView.dispose();
 			var elements:TriangleElements = new TriangleElements(attributesBuffer);
 			elements.setPositions(new Float2Attributes(attributesBuffer));
