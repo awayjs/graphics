@@ -413,6 +413,12 @@ export class Graphics extends AssetBase
 		for (var i:number = 0; i < len; i++) {
 			shape = this._shapes[i];
 			shape.clear();
+			if (shape.isStroke) {
+				shape.elements.clear();
+				shape.elements.dispose();
+				shape.dispose();
+			}
+			
 			shape.removeEventListener(ElementsEvent.INVALIDATE_VERTICES, this._onInvalidateVerticesDelegate);
 			shape.removeEventListener(ShapeEvent.ADD_MATERIAL, this._onAddMaterialDelegate);
 			shape.removeEventListener(ShapeEvent.REMOVE_MATERIAL, this._onRemoveMaterialDelegate);
