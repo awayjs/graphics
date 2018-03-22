@@ -416,7 +416,7 @@ export class Graphics extends AssetBase
 			if (shape.isStroke) {
 				shape.elements.clear();
 				shape.elements.dispose();
-				shape.dispose();
+				Shape.storeShape(shape);
 			}
 			
 			shape.removeEventListener(ElementsEvent.INVALIDATE_VERTICES, this._onInvalidateVerticesDelegate);
