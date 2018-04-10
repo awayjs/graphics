@@ -17,8 +17,8 @@ import {GraphicsPathCommand} from "./GraphicsPathCommand";
 
 import {Graphics} from "../Graphics";
 
-declare var require: any
-var Tess2 = require('tess2');
+import Tess2 from "tess2";
+
 /**
  * The Graphics class contains a set of methods that you can use to create a
  * vector shape. Display objects that support drawing include Sprite and Shape
