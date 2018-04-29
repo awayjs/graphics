@@ -31,6 +31,7 @@ export class Shape extends AssetBase implements IRenderable
 			shape.style = style;
 			shape.count = count;
 			shape.offset = offset;
+			shape.isStroke = false;
 			return shape;
 		}
 
