@@ -18,14 +18,14 @@ module.exports = {
 	external: [
 		'@awayjs/core',
         '@awayjs/stage',
-        '@awayjs/renderer',
-        '@awayjs/materials'
+        '@awayjs/renderer'
 	],
 	plugins: [
 		nodeResolve({
 			jsnext: true,
 			main: true,
-			module: true
+			module: true,
+			only: [ '@awayjs/core', '@awayjs/stage', '@awayjs/renderer', 'tslib' ]
 		}),
 		commonjs({
 			include: 'node_modules/tess2/**'
