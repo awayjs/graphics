@@ -24,10 +24,9 @@ module.exports = {
 		nodeResolve({
 			jsnext: true,
 			main: true,
-			module: true,
-			only: [ '@awayjs/core', '@awayjs/stage', '@awayjs/renderer', 'tslib' ]
+			module: true
 		}),
 		commonjs({
-			include: 'node_modules/tess2/**'
+			include: /node_modules/
 		}) ]
 };
