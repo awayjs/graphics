@@ -146,8 +146,8 @@ export class TriangleElements extends ElementsBase
 			var attributesView2:AttributesView = new AttributesView(Float32Array, 2);
 			attributesView2.set(this._positions.get(this._positions.count));
 			var attributesBuffer2:AttributesBuffer = attributesView2.attributesBuffer;
-			attributesView2.dispose();
 			this._uvs=new Float2Attributes(attributesBuffer2);
+			attributesView2.dispose();
 		}
 
 		return this._uvs;
