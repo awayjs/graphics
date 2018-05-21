@@ -239,34 +239,34 @@ export class GraphicsFactoryHelper
 				vertices[final_vert_cnt++] = 1.793662034335766e-43;// ((-128<<24)+0+0+0)
 		}
 	}
-	public static createCap(startX:number, startY:number, start_le:Point, start_ri:Point, dir_vec:Point, capstyle:number, cap_position:number, thickness:number, vertices:Array<number>, curves:boolean, scale:number=1):void
+	public static createCap(startX:number, startY:number, start_le_x:number, start_le_y:number, start_ri_x:number, start_ri_y:number, direction_x:number, direction_y:number, capstyle:number, cap_position:number, thickness:number, vertices:Array<number>, curves:boolean, scale:number=1):void
 	{
-		dir_vec.x*=cap_position;
-		dir_vec.y*=cap_position;
+		direction_x*=cap_position;
+		direction_y*=cap_position;
 		if (capstyle == CapsStyle.ROUND) {
 			//console.log("add round cap");
-			var end_x:number = startX + ((dir_vec.x * thickness));
-			var end_y:number = startY + ((dir_vec.y * thickness));
+			var end_x:number = startX + ((direction_x * thickness));
+			var end_y:number = startY + ((direction_y * thickness));
 			//end_x = end_x * 2 - start_le.x/2 - start_ri.x/2;
 			//end_y = end_y * 2 - start_le.y/2 - start_ri.y/2;
-			var tmp1_x:number = start_le.x + ((dir_vec.x * thickness));
-			var tmp1_y:number = start_le.y + ((dir_vec.y * thickness));
-			var tmp2_x:number = start_ri.x + ((dir_vec.x * thickness));
-			var tmp2_y:number = start_ri.y + ((dir_vec.y * thickness));
+			var tmp1_x:number = start_le_x + ((direction_x * thickness));
+			var tmp1_y:number = start_le_y + ((direction_y * thickness));
+			var tmp2_x:number = start_ri_x + ((direction_x * thickness));
+			var tmp2_y:number = start_ri_y + ((direction_y * thickness));
 
-			GraphicsFactoryHelper.tesselateCurve(start_le.x, start_le.y, tmp1_x, tmp1_y, end_x, end_y, vertices, scale, true);
-			GraphicsFactoryHelper.tesselateCurve(end_x, end_y, tmp2_x, tmp2_y, start_ri.x, start_ri.y, vertices, scale, true);
-			GraphicsFactoryHelper.addTriangle(start_le.x, start_le.y, end_x, end_y, start_ri.x, start_ri.y, -1, vertices, curves);
+			GraphicsFactoryHelper.tesselateCurve(start_le_x, start_le_y, tmp1_x, tmp1_y, end_x, end_y, vertices, scale, true);
+			GraphicsFactoryHelper.tesselateCurve(end_x, end_y, tmp2_x, tmp2_y, start_ri_x, start_ri_y, vertices, scale, true);
+			GraphicsFactoryHelper.addTriangle(start_le_x, start_le_y, end_x, end_y, start_ri_x, start_ri_y, -1, vertices, curves);
 		}
 		else if (capstyle == CapsStyle.SQUARE) {
 			//console.log("add square cap");
-			var tmp1_x:number = start_le.x + ((dir_vec.x * thickness));
-			var tmp1_y:number = start_le.y + ((dir_vec.y * thickness));
-			var tmp2_x:number = start_ri.x + ((dir_vec.x * thickness));
-			var tmp2_y:number = start_ri.y + ((dir_vec.y * thickness));
+			var tmp1_x:number = start_le_x + ((direction_x * thickness));
+			var tmp1_y:number = start_le_y + ((direction_y * thickness));
+			var tmp2_x:number = start_ri_x + ((direction_x * thickness));
+			var tmp2_y:number = start_ri_y + ((direction_y * thickness));
 
-			GraphicsFactoryHelper.addTriangle(tmp2_x,tmp2_y, tmp1_x, tmp1_y, start_le.x, start_le.y, 0, vertices, curves);
-			GraphicsFactoryHelper.addTriangle(tmp2_x,tmp2_y, start_le.x, start_le.y, start_ri.x, start_ri.y, 0, vertices, curves);
+			GraphicsFactoryHelper.addTriangle(tmp2_x,tmp2_y, tmp1_x, tmp1_y, start_le_x, start_le_y, 0, vertices, curves);
+			GraphicsFactoryHelper.addTriangle(tmp2_x,tmp2_y, start_le_x, start_le_y, start_ri_x, start_ri_y, 0, vertices, curves);
 		}
 	}
 	public static getLineFormularData(a:Point, b:Point):Point
@@ -348,11 +348,29 @@ export class GraphicsFactoryHelper
 
 	public static tesselateCurve(startx:number, starty:number, cx:number, cy:number, endx:number, endy:number, array_out:Array<number>, scale:number=1, filled:boolean=false,iterationCnt:number=0):void
 	{
+		var maxIterations:number=6;
+		var minAngle:number=1;
+		var minLength:number=1;
+		
+		// if "filled" is true, we are collecting final vert positions in the array, ready to use for rendering. (6-position values for each tri)
+		// if "filled" is false, we are collecting vert positions for a path (we do not need the start-position).
+		
+		// stop tesselation on maxIteration level. Set it to 0 for no tesselation at all.
+		if(iterationCnt>=maxIterations){
+			if(filled){
+				array_out.push(startx, starty, cx, cy, endx, endy);
+				return;
+			}
+			array_out.push(cx, cy, endx, endy);
+			return;
+		}
+
+		// calculate angle between segments
 		var angle_1:number=Math.atan2(cy - starty, cx - startx) * MathConsts.RADIANS_TO_DEGREES;
 		var angle_2:number=Math.atan2(endy - cy, endx - cx) * MathConsts.RADIANS_TO_DEGREES;
 		var angle_delta:number=angle_2 - angle_1;
-		//console.log("angle_delta "+angle_delta);
 
+		// make sure angle is in range -180 - 180
 		while(angle_delta>180){
 			angle_delta-=360;
 		}
@@ -360,39 +378,40 @@ export class GraphicsFactoryHelper
 			angle_delta+=360;
 		}
 
+		// calculate length of segment
+		// this does not include the crtl-point position		
 		var diff_x=endx-startx;
 		var diff_y=endy-starty;
 		var len:number=Math.sqrt(diff_x*diff_x + diff_y*diff_y);
-		//console.log("len", len, "angle_delta", angle_delta);
-		// if the curve angle is smaller than threshold_ang_2 and the len is smaller than threshold_len, we just early out. we will not use the ctr-point at all
 		
-		// todo: find best constants / checks to test if a curve need more subdividing
-		
-		/*if(Math.abs(angle_delta)>=150 && len <=3){
-			array_out.push(endx, endy);
-			return;			
-		}*/
-		if(iterationCnt>7 || Math.abs(angle_delta)<=1 || len<=1 ){
-			if(!filled)
-				array_out.push(endx, endy);
-			return;
-		}
 
-
-		// curve needs to be subdivided:
-		
+		// subdivide the curve
 		var c1x = startx + (cx - startx) * 0.5;// new controlpoint 1
 		var c1y = starty + (cy - starty) * 0.5;
 		var c2x = cx + (endx - cx) * 0.5;// new controlpoint 2
 		var c2y = cy + (endy - cy) * 0.5;
 		var ax = c1x + (c2x - c1x) * 0.5;// new middlepoint 1
 		var ay = c1y + (c2y - c1y) * 0.5;
+		
+		// stop subdividing if the angle or the length is to small
+		if(Math.abs(angle_delta)<=minAngle || len<minLength){
+			if(filled){
+				array_out.push(startx, starty, ax, ay, endx, endy);
+			}
+			else{
+				array_out.push(endx, endy);
+			}
+			return;
+		}
 
-		iterationCnt++;
-
+		// if the output should be directly in valid tris, we always must create a tri,
+		// even when we will keep on subdividing.
 		if(filled){
 			array_out.push(startx, starty, ax, ay, endx, endy);
 		}
+
+		iterationCnt++;
+
 		GraphicsFactoryHelper.tesselateCurve(startx, starty, c1x, c1y, ax, ay, array_out, scale, filled, iterationCnt);
 		GraphicsFactoryHelper.tesselateCurve(ax, ay, c2x, c2y, endx, endy, array_out, scale, filled, iterationCnt);
 
