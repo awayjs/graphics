@@ -105,33 +105,42 @@ export class Graphics extends AssetBase
 
 	private _drawingDirty:boolean = false;
 
-	public getSpriteScale():number{
-		if(this._entity){
-			return (<any>this._entity).scaleX;
+	public getSpriteScale():number
+	{
+		if(this._entity) {
+			var scaleX:number=(<any> this._entity).scaleX;
+			var parent:IEntity=this._entity.parent;
+			while(parent){
+				scaleX*=(<any>parent).scaleX;
+				parent=parent.parent;
+			}
+			this._scaleX = scaleX;
+			this._scaleY = scaleX;
+			
+			return scaleX;	
 		}
+		this._scaleX = 1;
+		this._scaleY = 1;
+
 		return 1;
 	}
-	public updateScale(scaleX:number, scaleY:number)
+
+	public updateScale()
 	{
+		var prevScale:number = this._scaleX;
+		var scale:number = this.getSpriteScale();
 
-		if(!scaleX){
+		if(!scale){
 			return;
-		}
-		if (this._scaleX == scaleX && this._scaleY == scaleY)
-			return;
-
-		this._scaleX = scaleX;
-		this._scaleY = scaleY;
+		}	
+		if (prevScale == scale)
+		 	return;
+		
 		var len:number = this._shapes.length;
-		var doInvalid:boolean=false;
 		for (var i:number = 0; i < len; i++) {
 			if(this._shapes[i].isStroke){
-				doInvalid=true;
-				GraphicsFactoryStrokes.updateStrokesForShape(this._shapes[i], this._scaleX, this.scaleStrokes);
+				GraphicsFactoryStrokes.updateStrokesForShape(this._shapes[i], scale, this.scaleStrokes);
 			}
-		}
-		if(doInvalid){
-			this.invalidate();
 		}
 	}
 	public updateSlice9(scaleX:number, scaleY:number)
@@ -317,6 +326,9 @@ export class Graphics extends AssetBase
 		shape.addEventListener(ElementsEvent.INVALIDATE_VERTICES, this._onInvalidateVerticesDelegate);
 		//shape.addEventListener(ShapeEvent.ADD_MATERIAL, this._onAddMaterialDelegate);
 		//shape.addEventListener(ShapeEvent.REMOVE_MATERIAL, this._onRemoveMaterialDelegate);
+
+		this._scaleX = 0;
+		this._scaleY = 0;
 
 		this.invalidate();
 
@@ -1772,6 +1784,9 @@ export class Graphics extends AssetBase
 			shape.addEventListener(ShapeEvent.REMOVE_MATERIAL, this._onRemoveMaterialDelegate);
 			this._shapes.push(shape);
 		}
+
+		this._scaleX = 0;
+		this._scaleY = 0;
 
 		this.invalidate();
 	}

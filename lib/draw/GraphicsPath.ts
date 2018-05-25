@@ -344,7 +344,7 @@ export class GraphicsPath implements IGraphicsData
                     end_y = this.data[this._mergeSource][this._positionOffset[this._mergeSource][cur]+3];
                     //console.log("CURVE_TO ", i, ctrl_x, ctrl_y, end_x, end_y);
                     curve_verts=[];
-                    GraphicsFactoryHelper.tesselateCurve(prev_x, prev_y, ctrl_x, ctrl_y, end_x, end_y, curve_verts, 1);
+                    GraphicsFactoryHelper.tesselateCurve(prev_x, prev_y, ctrl_x, ctrl_y, end_x, end_y, curve_verts);
                     k_len=curve_verts.length;
                     for (k=0; k<k_len; k+=2){
                         this._positions[this._mergetarget].push(curve_verts[k]);
@@ -363,7 +363,7 @@ export class GraphicsPath implements IGraphicsData
     private _connectedIdx:number[][]=[];
     private _positionOffset:number[][]=[];
 	public forceClose:boolean=false;
-    public prepare(scale:number=1){
+    public prepare(){
 
         var closed:boolean;
         var commands:number[];
@@ -642,7 +642,7 @@ export class GraphicsPath implements IGraphicsData
                                 end_y = data[data_cnt++];
                                 //console.log("CURVE_TO ", i, ctrl_x, ctrl_y, end_x, end_y);
                                 curve_verts=[];
-                                GraphicsFactoryHelper.tesselateCurve(prev_x, prev_y, ctrl_x, ctrl_y, end_x, end_y, curve_verts, scale);
+                                GraphicsFactoryHelper.tesselateCurve(prev_x, prev_y, ctrl_x, ctrl_y, end_x, end_y, curve_verts);
                                 k_len=curve_verts.length;
                                 for (k=0; k<k_len; k+=2){
                                     this._positions[c].push(curve_verts[k]);

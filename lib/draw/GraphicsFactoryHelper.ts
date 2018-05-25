@@ -239,7 +239,7 @@ export class GraphicsFactoryHelper
 				vertices[final_vert_cnt++] = 1.793662034335766e-43;// ((-128<<24)+0+0+0)
 		}
 	}
-	public static createCap(startX:number, startY:number, start_le_x:number, start_le_y:number, start_ri_x:number, start_ri_y:number, direction_x:number, direction_y:number, capstyle:number, cap_position:number, thickness:number, vertices:Array<number>, curves:boolean, scale:number=1):void
+	public static createCap(startX:number, startY:number, start_le_x:number, start_le_y:number, start_ri_x:number, start_ri_y:number, direction_x:number, direction_y:number, capstyle:number, cap_position:number, thickness:number, vertices:Array<number>, curves:boolean):void
 	{
 		direction_x*=cap_position;
 		direction_y*=cap_position;
@@ -254,8 +254,8 @@ export class GraphicsFactoryHelper
 			var tmp2_x:number = start_ri_x + ((direction_x * thickness));
 			var tmp2_y:number = start_ri_y + ((direction_y * thickness));
 
-			GraphicsFactoryHelper.tesselateCurve(start_le_x, start_le_y, tmp1_x, tmp1_y, end_x, end_y, vertices, scale, true);
-			GraphicsFactoryHelper.tesselateCurve(end_x, end_y, tmp2_x, tmp2_y, start_ri_x, start_ri_y, vertices, scale, true);
+			GraphicsFactoryHelper.tesselateCurve(start_le_x, start_le_y, tmp1_x, tmp1_y, end_x, end_y, vertices, true);
+			GraphicsFactoryHelper.tesselateCurve(end_x, end_y, tmp2_x, tmp2_y, start_ri_x, start_ri_y, vertices, true);
 			GraphicsFactoryHelper.addTriangle(start_le_x, start_le_y, end_x, end_y, start_ri_x, start_ri_y, -1, vertices, curves);
 		}
 		else if (capstyle == CapsStyle.SQUARE) {
@@ -346,7 +346,7 @@ export class GraphicsFactoryHelper
 
 	}
 
-	public static tesselateCurve(startx:number, starty:number, cx:number, cy:number, endx:number, endy:number, array_out:Array<number>, scale:number=1, filled:boolean=false,iterationCnt:number=0):void
+	public static tesselateCurve(startx:number, starty:number, cx:number, cy:number, endx:number, endy:number, array_out:Array<number>, filled:boolean=false,iterationCnt:number=0):void
 	{
 		var maxIterations:number=6;
 		var minAngle:number=1;
@@ -412,8 +412,8 @@ export class GraphicsFactoryHelper
 
 		iterationCnt++;
 
-		GraphicsFactoryHelper.tesselateCurve(startx, starty, c1x, c1y, ax, ay, array_out, scale, filled, iterationCnt);
-		GraphicsFactoryHelper.tesselateCurve(ax, ay, c2x, c2y, endx, endy, array_out, scale, filled, iterationCnt);
+		GraphicsFactoryHelper.tesselateCurve(startx, starty, c1x, c1y, ax, ay, array_out, filled, iterationCnt);
+		GraphicsFactoryHelper.tesselateCurve(ax, ay, c2x, c2y, endx, endy, array_out, filled, iterationCnt);
 
 	}
 }
