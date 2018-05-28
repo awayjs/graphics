@@ -161,8 +161,8 @@ export class GraphicsFactoryStrokes
 
 			//console.log("process contour", positions);
 			if(scaleMode==LineScaleMode.NORMAL){
-				if((half_thickness*scale)<=0.25){
-					half_thickness=0.25*(1/scale);
+				if((half_thickness*scale)<=0.5){
+					half_thickness=0.5*(1/scale);
 				}
 			}
 
@@ -171,7 +171,7 @@ export class GraphicsFactoryStrokes
 			}
 
 			if(strokeStyle.scaleMode==LineScaleMode.HAIRLINE){
-				half_thickness=0.25*(1/scale);
+				half_thickness=0.5*(1/scale);
 			}
 
 			for(k=0; k<positions.length; k++) {
@@ -248,27 +248,31 @@ export class GraphicsFactoryStrokes
 							add_segment=true;
 						}
 						else{
+					
+							// dir_delta delta is the difference in direction between the segments
+							// 2 segments forming a straight line  have a dir_delta of 0
+							// a segments that goes straight back would have a dir_delta of 180 or -180
+							// we want to convert this into a angle where 0 means going back and 180 means straight forward.
+							half_angle=(180-(dir_delta));
+							if(dir_delta<0){
+								half_angle = (-180-(dir_delta));
+							}	
 
-							// we need to figure out if we need to add a joint or not
-							if ((dir_delta==0)||(dir_delta==180)){
+
+							if ((dir_delta==0)||(Math.abs(dir_delta)==180)){
 								// straight line (back or forth)
 								// only add segment if this is the first
 								add_segment=(i==2);
 							}
+							else if(Math.abs(half_angle)<5){
+								// line going back with very steep angle
+								add_segment=true;
+							}
 							else {
 								add_segment=true;
 
-								// dir_delta delta is the difference in direction between the segments
-								// 2 segments forming a straight line would have a dir_delta of 0
-								// a segments thta goes straight back would have a dir_delta of 180 or -180
 								
-								// convert this into a angle where 0 means going back and 180 means straight forward.
-															
-								half_angle=(180-(dir_delta));
-								if(dir_delta<0){
-									half_angle = (-180-(dir_delta));
-								}	
-								// 	get the half of this angle. 
+										
 								//	half_angle is the angle need to rotate our segments direction with
 								//  in order to have a direction vector that points from original point to the merged contour points							
 								half_angle = half_angle * -0.5 * MathConsts.DEGREES_TO_RADIANS;
@@ -288,6 +292,27 @@ export class GraphicsFactoryStrokes
 								else{
 									distance = half_thickness / Math.sin(half_angle);
 								}
+								/*console.log("\ndir_delta", dir_delta);
+								console.log("half_angle", half_angle);
+								console.log("distance", distance);
+								console.log("dist", dist);*/
+								/*
+								var distx:number=end_x-prev_x;
+								var disty:number=end_y-prev_y;
+								var dist:number=Math.sqrt(distx*distx + disty*disty);
+
+
+								distx=prev_prev_x-prev_x;
+								disty=prev_prev_y-prev_y;
+								var dist2:number=Math.sqrt(distx*distx + disty*disty);
+								if(dist2<dist){
+									dist=dist2;
+								}
+								//console.log("dist", dist);
+
+								if(Math.abs(distance)>dist){
+									//distance=(distance>=0)?dist:-dist;
+								}*/
 
 
 								// 	get the merged points left and right 
@@ -327,7 +352,7 @@ export class GraphicsFactoryStrokes
 									// 	as long as the mitter-value is within a given miter_limit
 									distance_miter = (Math.sqrt((distance*distance)-(half_thickness*half_thickness))/half_thickness);
 									if(distance_miter<=strokeStyle.miter_limit){
-										// if within miter_limit, miter is applied, and we only need to add the merged points
+										// if within miter_limit, miter is applied, and we only need to add the merged points for both sides
 										addJoints=false;
 										left_point_x = left_point_merged_x;
 										left_point_y = left_point_merged_y;
@@ -336,6 +361,7 @@ export class GraphicsFactoryStrokes
 									}
 									else{										
 										if (dir_delta > 0){
+											// right side is merged, left side has 2 points
 											left_point_contour_x = left_point_contour_x-(tmp_dir_point.x*(strokeStyle.miter_limit*half_thickness));
 											left_point_contour_y = left_point_contour_y-(tmp_dir_point.y*(strokeStyle.miter_limit*half_thickness));
 											tmp_point3.x=prev_normal_y*-1;
@@ -344,6 +370,7 @@ export class GraphicsFactoryStrokes
 											left_point_contour_prev_y = left_point_contour_prev_y-(tmp_point3.y*(strokeStyle.miter_limit*half_thickness));
 										}
 										else{
+											// left side is merged, right side has 2 points
 											right_point_contour_x = right_point_contour_x-(tmp_dir_point.x*(strokeStyle.miter_limit*half_thickness));
 											right_point_contour_y = right_point_contour_y-(tmp_dir_point.y*(strokeStyle.miter_limit*half_thickness));
 											tmp_point3.x=prev_normal_y*-1;
@@ -358,6 +385,7 @@ export class GraphicsFactoryStrokes
 
 									new_cmds[new_cmds_cnt++]=(strokeStyle.jointstyle!=JointStyle.ROUND)? GraphicsPathCommand.BUILD_JOINT : GraphicsPathCommand.BUILD_ROUND_JOINT;
 									if (dir_delta > 0) {
+										// right side is merged, left side has 2 points
 										new_pnts[new_pnts_cnt++] = right_point_merged_x;
 										new_pnts[new_pnts_cnt++] = right_point_merged_y;
 										new_pnts[new_pnts_cnt++] = left_point_contour_prev_x;
@@ -366,6 +394,7 @@ export class GraphicsFactoryStrokes
 										new_pnts[new_pnts_cnt++] = left_point_contour_y;
 									}
 									else {
+										// left side is merged, right side has 2 points
 										new_pnts[new_pnts_cnt++] = right_point_contour_prev_x;
 										new_pnts[new_pnts_cnt++] = right_point_contour_prev_y;
 										new_pnts[new_pnts_cnt++] = left_point_merged_x;
