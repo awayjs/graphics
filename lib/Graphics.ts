@@ -1,4 +1,4 @@
-import {ArgumentError, RangeError, PartialImplementationError, Point, Box, Vector3D, Sphere, Matrix, Matrix3D, AssetBase, Rectangle} from "@awayjs/core";
+import {ArgumentError, RangeError, PartialImplementationError, Point, Box, Vector3D, Sphere, Matrix, Matrix3D, AssetBase, Rectangle, Transform} from "@awayjs/core";
 
 import {BitmapImage2D, AttributesBuffer, AttributesView, Byte4Attributes, Float2Attributes} from "@awayjs/stage";
 
@@ -75,11 +75,10 @@ export class Graphics extends AssetBase
 	private _onAddMaterialDelegate:(event:ShapeEvent) => void;
 	private _onRemoveMaterialDelegate:(event:ShapeEvent) => void;
 
-	private _boxBounds:Box;
-	private _boxBoundsInvalid:boolean = true;
-	private _sphereBounds:Sphere;
-	private _sphereBoundsInvalid = true;
-
+	private _orientedBoxBounds:Box;
+	private _orientedBoxBoundsDirty:boolean = true;
+	private _orientedSphereBounds:Sphere;
+	private _orientedSphereBoundsDirty = true;
 	private _material:IMaterial;
 	private _shapes:Array<Shape> = [];
 	private _animator:IAnimator;
@@ -97,51 +96,38 @@ export class Graphics extends AssetBase
 	public originalSlice9Size:Rectangle;
 	public minSlice9Width:number;
 	public minSlice9Height:number;
-	public _scaleX:number = 1;
-	private _scaleY:number = 1;
+	private _scale:Vector3D = new Vector3D();
+	private _scaleX:number = 0;
+	private _scaleY:number = 0;
 
 	// todo: this is a temp workarpound to prevent strokes from getting scaled, if they are not coming from awd
 	public scaleStrokes:string=LineScaleMode.NORMAL;
 
 	private _drawingDirty:boolean = false;
 
-	public getSpriteScale():number
+	public getSpriteScale():Vector3D
 	{
-		if(this._entity) {
-			var scaleX:number=(<any> this._entity).scaleX;
-			var parent:IEntity=this._entity.parent;
-			while(parent){
-				scaleX*=(<any>parent).scaleX;
-				parent=parent.parent;
-			}
-			this._scaleX = scaleX;
-			this._scaleY = scaleX;
-			
-			return scaleX;	
-		}
-		this._scaleX = 1;
-		this._scaleY = 1;
+		if(this._entity)
+			this._scale.copyFrom(this._entity.transform.concatenatedMatrix3D.decompose()[3]);
+		else
+			this._scale.identity();
 
-		return 1;
+		return this._scale;
 	}
 
 	public updateScale()
 	{
-		var prevScale:number = this._scaleX;
-		var scale:number = this.getSpriteScale();
+		var prevScaleX:number = this._scale.x;
+		var prevScaleY:number = this._scale.y;
+		var scale:Vector3D = this.getSpriteScale();
 
-		if(!scale){
-			return;
-		}	
-		if (prevScale == scale)
+		if (scale.x == prevScaleX && scale.y == prevScaleY)
 		 	return;
 		
 		var len:number = this._shapes.length;
-		for (var i:number = 0; i < len; i++) {
-			if(this._shapes[i].isStroke){
+		for (var i:number = 0; i < len; i++)
+			if(this._shapes[i].isStroke)
 				GraphicsFactoryStrokes.updateStrokesForShape(this._shapes[i], scale, this.scaleStrokes);
-			}
-		}
 	}
 	public updateSlice9(scaleX:number, scaleY:number)
 	{
@@ -152,9 +138,9 @@ export class Graphics extends AssetBase
 		this._scaleY = scaleY;
 
 		var len:number = this._shapes.length;
-		for (var i:number = 0; i < len; i++) {
+		for (var i:number = 0; i < len; i++)
 			TriangleElementsUtils.updateTriangleGraphicsSlice9((<TriangleElements>this._shapes[i].elements), this.originalSlice9Size, scaleX, scaleY);
-		}
+		
 		this.invalidate();
 	}
 	
@@ -474,49 +460,102 @@ export class Graphics extends AssetBase
 			this._shapes[i].scaleUV(scaleU, scaleV);
 	}
 
-	public getBoxBounds():Box
+	public getBoxBounds(matrix3D:Matrix3D = null, strokeFlag:boolean = true, cache:Box = null, target:Box = null):Box
 	{
-		if(this._drawingDirty){
+		if(this._drawingDirty)
 			this.endFill();
-		}
-		if (this._boxBoundsInvalid) {
-			this._boxBoundsInvalid = false;
 
-			if (!this._boxBounds)
-				this._boxBounds = new Box();
+		var numShapes:number = this._shapes.length;
 
-			this._boxBounds.setEmpty();
 
-			var numShapes:number = this._shapes.length;
+		if (numShapes) {
+			var shape:Shape;
 
-			if (numShapes) {
-				var shapeBox:Box;
-				var first:boolean = true;
+			if (matrix3D) {
 				for (var i:number = 0; i < numShapes; i++){
-					shapeBox = this._shapes[i].getBoxBounds();
-
-					if (shapeBox.isEmpty())
+					shape = this._shapes[i];
+	
+					if (shape.isStroke && !strokeFlag)
 						continue;
+					
+					target = shape.getBoxBounds(matrix3D, cache, target);
+				}
 
-					if (first) {
-						first = false;
-						this._boxBounds.copyFrom(shapeBox);
-					} else {
-						this._boxBounds = this._boxBounds.union(shapeBox, this._boxBounds);
-					}
+				return target;
+			}
+
+			if (this._orientedBoxBoundsDirty) {
+				this._orientedBoxBoundsDirty = false;
+	
+				for (var i:number = 0; i < numShapes; i++){
+					shape = this._shapes[i];
+	
+					if (shape.isStroke && !strokeFlag)
+						continue;
+					
+					this._orientedBoxBounds = shape.getBoxBounds(matrix3D, this._orientedBoxBounds);
+				}
+			}
+			
+			if (this._orientedBoxBounds != null) {
+				if (target == null) {
+					target = cache || new Box();
+					target.copyFrom(this._orientedBoxBounds);
+				} else {
+					target = target.union(this._orientedBoxBounds, target);
 				}
 			}
 		}
 
-		return this._boxBounds;
+		return target;
 	}
 
 
-	public getSphereBounds(center:Vector3D, target:Sphere = null):Sphere
+	public getSphereBounds(center:Vector3D, matrix3D:Matrix3D = null, strokeFlag:boolean = true, cache:Sphere = null, target:Sphere = null):Sphere
 	{
-		var len:number = this._shapes.length;
-		for (var i:number = 0; i < len; i++){
-			target = this._shapes[i].getSphereBounds(center, target);
+		if(this._drawingDirty)
+			this.endFill();
+
+		var numShapes:number = this._shapes.length;
+
+
+		if (numShapes) {
+			var shape:Shape;
+
+			if (matrix3D) {
+				for (var i:number = 0; i < numShapes; i++){
+					shape = this._shapes[i];
+	
+					if (shape.isStroke && !strokeFlag)
+						continue;
+					
+					target = shape.getSphereBounds(center, matrix3D, cache, target);
+				}
+
+				return target;
+			}
+
+			if (this._orientedSphereBoundsDirty) {
+				this._orientedSphereBoundsDirty = false;
+	
+				for (var i:number = 0; i < numShapes; i++){
+					shape = this._shapes[i];
+	
+					if (shape.isStroke && !strokeFlag)
+						continue;
+					
+					this._orientedSphereBounds = shape.getSphereBounds(center, matrix3D, this._orientedSphereBounds);
+				}
+			}
+			
+			if (this._orientedSphereBounds != null) {
+				if (target == null) {
+					target = cache || new Sphere();
+					target.copyFrom(this._orientedSphereBounds);
+				} else {
+					target = target.union(this._orientedSphereBounds, target);
+				}
+			}
 		}
 
 		return target;
@@ -526,8 +565,8 @@ export class Graphics extends AssetBase
 	{
 		super.invalidate();
 
-		this._boxBoundsInvalid = true;
-		this._sphereBoundsInvalid = true;
+		this._orientedBoxBoundsDirty = true;
+		this._orientedSphereBoundsDirty = true;
 	}
 
 	public invalidateMaterials():void
@@ -1787,6 +1826,7 @@ export class Graphics extends AssetBase
 
 		this._scaleX = 0;
 		this._scaleY = 0;
+		this._scale.identity();
 
 		this.invalidate();
 	}

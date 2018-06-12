@@ -1,4 +1,4 @@
-import {Box, Sphere, Vector3D} from "@awayjs/core";
+import {Box, Sphere, Vector3D, Transform} from "@awayjs/core";
 
 import {AttributesBuffer, AttributesView, Byte4Attributes, Float1Attributes} from "@awayjs/stage";
 
@@ -70,13 +70,13 @@ export class LineElements extends ElementsBase
 		this._positions = new AttributesView(Float32Array, 6, concatenatedBuffer);
 	}
 
-	public getBoxBounds(target:Box = null):Box
+	public getBoxBounds(matrix3D:Matrix3D = null, cache:Box = null, target:Box = null, count:number = 0, offset:number = 0):Box
 	{
 		//TODO bounding calculations for lines
 		return target;
 	}
 
-	public getSphereBounds(center:Vector3D, target:Sphere = null):Sphere
+	public getSphereBounds(center:Vector3D, matrix3D:Matrix3D = null, cache:Sphere = null, target:Sphere = null):Sphere
 	{
 		//TODO bounding calculations for lines
 		return target;

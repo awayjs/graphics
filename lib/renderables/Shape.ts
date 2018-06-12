@@ -1,4 +1,4 @@
-import {Box, Matrix3D, Sphere, Vector3D, AssetBase} from "@awayjs/core";
+import {Box, Matrix3D, Sphere, Vector3D, AssetBase, Transform} from "@awayjs/core";
 
 import {IMaterial, RenderableEvent, StyleEvent, Style, IRenderable, ElementsEvent} from "@awayjs/renderer";
 
@@ -51,10 +51,10 @@ export class Shape extends AssetBase implements IRenderable
 
 	public static assetType:string = "[asset Shape]";
 
-	private _boxBounds:Box;
-	private _boxBoundsInvalid:boolean = true;
-	private _sphereBounds:Sphere;
-	private _sphereBoundsInvalid = true;
+	private _orientedBoxBounds:Box;
+	private _orientedBoxBoundsDirty:boolean = true;
+	private _orientedSphereBounds:Sphere;
+	private _orientedSphereBoundsDirty = true;
 	private _onInvalidatePropertiesDelegate:(event:StyleEvent) => void;
 	private _onInvalidateVerticesDelegate:(event:ElementsEvent) => void;
 
@@ -208,16 +208,16 @@ export class Shape extends AssetBase implements IRenderable
 	{
 		super.invalidate();
 
-		this._boxBoundsInvalid = true;
-		this._sphereBoundsInvalid = true;
+		this._orientedBoxBoundsDirty = true;
+		this._orientedSphereBoundsDirty = true;
 	}
 	
 	public invalidateElements():void
 	{
 		this.dispatchEvent(new RenderableEvent(RenderableEvent.INVALIDATE_ELEMENTS, this));
 
-		this._boxBoundsInvalid = true;
-		this._sphereBoundsInvalid = true;
+		this._orientedBoxBoundsDirty = true;
+		this._orientedSphereBoundsDirty = true;
 	}
 
 	public invalidateMaterial():void
@@ -283,20 +283,50 @@ export class Shape extends AssetBase implements IRenderable
 		this._elements.scaleUV(scaleU, scaleV, this.count, this.offset);
 	}
 
-	public getBoxBounds():Box
+	public getBoxBounds(matrix3D:Matrix3D = null, cache:Box = null, target:Box = null):Box
 	{
-		if (this._boxBoundsInvalid) {
-			this._boxBoundsInvalid = false;
+		if (matrix3D)
+			return this._elements.getBoxBounds(matrix3D, cache, target, this.count, this.offset);
 
-			this._boxBounds = this._elements.getBoxBounds(this._boxBounds || (this._boxBounds = new Box()), this.count, this.offset);
+		if (this._orientedBoxBoundsDirty) {
+			this._orientedBoxBoundsDirty = false;
+
+			this._orientedBoxBounds = this._elements.getBoxBounds(null, this._orientedBoxBounds, null, this.count, this.offset);
 		}
 
-		return this._boxBounds;
+		if (this._orientedBoxBounds != null) {
+			if (target == null) {
+				target = cache || new Box();
+				target.copyFrom(this._orientedBoxBounds);
+			} else {
+				target = target.union(this._orientedBoxBounds, target);
+			}
+		}
+
+		return target;
 	}
 
-	public getSphereBounds(center:Vector3D, target:Sphere = null):Sphere
+	public getSphereBounds(center:Vector3D, matrix3D:Matrix3D = null, cache:Sphere = null, target:Sphere = null):Sphere
 	{
-		return this._elements.getSphereBounds(center, target, this.count, this.offset);
+		if (matrix3D)
+			return this._elements.getSphereBounds(center, matrix3D, cache, target, this.count, this.offset);
+
+		if (this._orientedSphereBoundsDirty) {
+			this._orientedSphereBoundsDirty = false;
+
+			this._orientedSphereBounds = this._elements.getSphereBounds(center, null, this._orientedSphereBounds, null, this.count, this.offset);
+		}
+
+		if (this._orientedSphereBounds != null) {
+			if (target == null) {
+				target = cache || new Sphere();
+				target.copyFrom(this._orientedSphereBounds);
+			} else {
+				target = target.union(this._orientedSphereBounds, target);
+			}
+		}
+
+		return target;
 	}
 }
 

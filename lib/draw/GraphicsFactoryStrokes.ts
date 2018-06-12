@@ -1,4 +1,4 @@
-import {Point, MathConsts, Rectangle, Matrix} from "@awayjs/core";
+import {Point, MathConsts, Rectangle, Matrix, Vector3D} from "@awayjs/core";
 
 import {ImageSampler, AttributesBuffer, AttributesView, Float3Attributes, Float2Attributes} from "@awayjs/stage";
 
@@ -50,7 +50,6 @@ export class GraphicsFactoryStrokes
 			attributesView.dispose();
 			var elements:TriangleElements = new TriangleElements(attributesBuffer);
 			elements.setPositions(new Float2Attributes(attributesBuffer));
-			elements.halfStrokeThickness=strokeStyle.half_thickness;
 			//	if(material.curves)
 			//		elements.setCustomAttributes("curves", new Byte4Attributes(attributesBuffer, false));
 			//	material.alpha=(<GraphicsStrokeStyle>this.queued_stroke_pathes[i].style).alpha;
@@ -70,7 +69,7 @@ export class GraphicsFactoryStrokes
 
 
 	}
-	public static updateStrokesForShape(shape:Shape, scale:number, scaleMode:string ){
+	public static updateStrokesForShape(shape:Shape, scale:Vector3D, scaleMode:string ){
 		//return;
 
 		var elements:TriangleElements = <TriangleElements> shape.elements;
@@ -83,7 +82,7 @@ export class GraphicsFactoryStrokes
 
 
 	}
-	public static draw_path(graphic_pathes:Array<GraphicsPath>, final_vert_list:Array<number>, curves:boolean, scale:number=1, scaleMode:string=LineScaleMode.NORMAL){
+	public static draw_path(graphic_pathes:Array<GraphicsPath>, final_vert_list:Array<number>, curves:boolean, scale:Vector3D, scaleMode:string=LineScaleMode.NORMAL){
 		
 		var len=graphic_pathes.length;
 		var positions:number[][];
@@ -140,8 +139,10 @@ export class GraphicsFactoryStrokes
 		var last_direction:number=0;
 		var distance_miter:number=0;
 		var half_angle:number=0;
-		var distance:number=0;
-		var half_thickness:number=0;
+		var distanceX:number=0;
+		var distanceY:number=0;
+		var half_thicknessX:number=0;
+		var half_thicknessY:number=0;
 		
 		var new_cmds:number[]=[];
 		var new_pnts:number[]=[];
@@ -157,21 +158,26 @@ export class GraphicsFactoryStrokes
 
 			positions = graphic_pathes[cp]._positions;
 			strokeStyle = graphic_pathes[cp].stroke();
-			half_thickness=strokeStyle.half_thickness;
+			half_thicknessX=strokeStyle.half_thickness;
+			half_thicknessY=strokeStyle.half_thickness;
 
 			//console.log("process contour", positions);
-			if(scaleMode==LineScaleMode.NORMAL){
-				if((half_thickness*scale)<=0.5){
-					half_thickness=0.5*(1/scale);
-				}
+			if(scaleMode==LineScaleMode.NORMAL) {
+				if((half_thicknessX*scale.x)<=0.5)
+					half_thicknessX=0.5*(1/scale.x);
+				
+				if((half_thicknessY*scale.y)<=0.5)
+					half_thicknessY=0.5*(1/scale.y);
 			}
 
 			else if(scaleMode==LineScaleMode.NONE){
-				half_thickness*=(1/scale);
+				half_thicknessX*=(1/scale.x);
+				half_thicknessY*=(1/scale.y);
 			}
 
 			if(strokeStyle.scaleMode==LineScaleMode.HAIRLINE){
-				half_thickness=0.5*(1/scale);
+				half_thicknessX=0.5*(1/scale.x);
+				half_thicknessY=0.5*(1/scale.y);
 			}
 
 			for(k=0; k<positions.length; k++) {
@@ -235,10 +241,10 @@ export class GraphicsFactoryStrokes
 						tmp_point.y = tmp_dir_point.x;
 
 						// find the 2 points left and right of the segments end-point
-						right_point_x = prev_x + (tmp_point.x * half_thickness);
-						right_point_y = prev_y + (tmp_point.y * half_thickness);
-						left_point_x = prev_x - (tmp_point.x * half_thickness);
-						left_point_y = prev_y - (tmp_point.y * half_thickness);
+						right_point_x = prev_x + (tmp_point.x * half_thicknessX);
+						right_point_y = prev_y + (tmp_point.y * half_thicknessY);
+						left_point_x = prev_x - (tmp_point.x * half_thicknessX);
+						left_point_y = prev_y - (tmp_point.y * half_thicknessY);
 
 						add_segment=false;
 						// check if this is the first segment, and the path is not closed
@@ -287,10 +293,12 @@ export class GraphicsFactoryStrokes
 								//	we need to catch those cases and set sensible fallback for distance
 								if (Math.abs(dir_delta) <= 1 || Math.abs(dir_delta) >= 359
 									|| (Math.abs(dir_delta) >= 179 && Math.abs(dir_delta) <= 181) ) {
-									distance=(dir_delta<0)?half_thickness:-half_thickness;
+									distanceX=(dir_delta<0)?half_thicknessX:-half_thicknessX;
+									distanceY=(dir_delta<0)?half_thicknessY:-half_thicknessY;
 								}
 								else{
-									distance = half_thickness / Math.sin(half_angle);
+									distanceX = half_thicknessX / Math.sin(half_angle);
+									distanceY = half_thicknessY / Math.sin(half_angle);
 								}
 								/*console.log("\ndir_delta", dir_delta);
 								console.log("half_angle", half_angle);
@@ -317,27 +325,27 @@ export class GraphicsFactoryStrokes
 
 								// 	get the merged points left and right 
 								//	by moving from original point along the direction vector 
-								right_point_merged_x = prev_x - (tmp_point2.x * distance);
-								right_point_merged_y = prev_y - (tmp_point2.y * distance);
-								left_point_merged_x = prev_x + (tmp_point2.x * distance);
-								left_point_merged_y = prev_y + (tmp_point2.y * distance);
+								right_point_merged_x = prev_x - (tmp_point2.x * distanceX);
+								right_point_merged_y = prev_y - (tmp_point2.y * distanceY);
+								left_point_merged_x = prev_x + (tmp_point2.x * distanceX);
+								left_point_merged_y = prev_y + (tmp_point2.y * distanceY);
 
 								// use different points dependent if dir_delta is positive or negative
 								if (dir_delta > 0){
-									left_point_contour_x = prev_x - (tmp_point.x * half_thickness);
-									left_point_contour_y = prev_y - (tmp_point.y * half_thickness);
-									left_point_contour_prev_x = prev_x - (prev_normal_x * half_thickness);
-									left_point_contour_prev_y = prev_y - (prev_normal_y * half_thickness);
+									left_point_contour_x = prev_x - (tmp_point.x * half_thicknessX);
+									left_point_contour_y = prev_y - (tmp_point.y * half_thicknessY);
+									left_point_contour_prev_x = prev_x - (prev_normal_x * half_thicknessX);
+									left_point_contour_prev_y = prev_y - (prev_normal_y * half_thicknessY);
 									right_point_x = right_point_merged_x;
 									right_point_y = right_point_merged_y;
 									left_point_x = left_point_contour_x;
 									left_point_y = left_point_contour_y;
 								}
 								else{
-									right_point_contour_x = prev_x + (tmp_point.x * half_thickness);
-									right_point_contour_y = prev_y + (tmp_point.y * half_thickness);
-									right_point_contour_prev_x = prev_x + (prev_normal_x * half_thickness);
-									right_point_contour_prev_y = prev_y + (prev_normal_y * half_thickness);
+									right_point_contour_x = prev_x + (tmp_point.x * half_thicknessX);
+									right_point_contour_y = prev_y + (tmp_point.y * half_thicknessY);
+									right_point_contour_prev_x = prev_x + (prev_normal_x * half_thicknessX);
+									right_point_contour_prev_y = prev_y + (prev_normal_y * half_thicknessY);
 									left_point_x = left_point_merged_x;
 									left_point_y = left_point_merged_y;
 									right_point_x = right_point_contour_x;
@@ -350,7 +358,7 @@ export class GraphicsFactoryStrokes
 								if (strokeStyle.jointstyle==JointStyle.MITER){
 									// 	miter means that we have no bevel effect on the corners, 
 									// 	as long as the mitter-value is within a given miter_limit
-									distance_miter = (Math.sqrt((distance*distance)-(half_thickness*half_thickness))/half_thickness);
+									distance_miter = Math.sqrt((distanceX*distanceX + distanceY*distanceY)/(half_thicknessX*half_thicknessX + half_thicknessY*half_thicknessY) - 1);
 									if(distance_miter<=strokeStyle.miter_limit){
 										// if within miter_limit, miter is applied, and we only need to add the merged points for both sides
 										addJoints=false;
@@ -362,21 +370,21 @@ export class GraphicsFactoryStrokes
 									else{										
 										if (dir_delta > 0){
 											// right side is merged, left side has 2 points
-											left_point_contour_x = left_point_contour_x-(tmp_dir_point.x*(strokeStyle.miter_limit*half_thickness));
-											left_point_contour_y = left_point_contour_y-(tmp_dir_point.y*(strokeStyle.miter_limit*half_thickness));
+											left_point_contour_x = left_point_contour_x-(tmp_dir_point.x*(strokeStyle.miter_limit*half_thicknessX));
+											left_point_contour_y = left_point_contour_y-(tmp_dir_point.y*(strokeStyle.miter_limit*half_thicknessY));
 											tmp_point3.x=prev_normal_y*-1;
 											tmp_point3.y=prev_normal_x;
-											left_point_contour_prev_x = left_point_contour_prev_x-(tmp_point3.x*(strokeStyle.miter_limit*half_thickness));
-											left_point_contour_prev_y = left_point_contour_prev_y-(tmp_point3.y*(strokeStyle.miter_limit*half_thickness));
+											left_point_contour_prev_x = left_point_contour_prev_x-(tmp_point3.x*(strokeStyle.miter_limit*half_thicknessX));
+											left_point_contour_prev_y = left_point_contour_prev_y-(tmp_point3.y*(strokeStyle.miter_limit*half_thicknessY));
 										}
 										else{
 											// left side is merged, right side has 2 points
-											right_point_contour_x = right_point_contour_x-(tmp_dir_point.x*(strokeStyle.miter_limit*half_thickness));
-											right_point_contour_y = right_point_contour_y-(tmp_dir_point.y*(strokeStyle.miter_limit*half_thickness));
+											right_point_contour_x = right_point_contour_x-(tmp_dir_point.x*(strokeStyle.miter_limit*half_thicknessX));
+											right_point_contour_y = right_point_contour_y-(tmp_dir_point.y*(strokeStyle.miter_limit*half_thicknessY));
 											tmp_point3.x=prev_normal_y*-1;
 											tmp_point3.y=prev_normal_x;
-											right_point_contour_prev_x = right_point_contour_prev_x-(tmp_point3.x*(strokeStyle.miter_limit*half_thickness));
-											right_point_contour_prev_y = right_point_contour_prev_y-(tmp_point3.y*(strokeStyle.miter_limit*half_thickness));
+											right_point_contour_prev_x = right_point_contour_prev_x-(tmp_point3.x*(strokeStyle.miter_limit*half_thicknessX));
+											right_point_contour_prev_y = right_point_contour_prev_y-(tmp_point3.y*(strokeStyle.miter_limit*half_thicknessY));
 										}
 									}
 								}
@@ -405,8 +413,8 @@ export class GraphicsFactoryStrokes
 
 									if(strokeStyle.jointstyle==JointStyle.ROUND){
 
-										new_pnts[new_pnts_cnt++] = prev_x - (tmp_point2.x * Math.abs(half_thickness));
-										new_pnts[new_pnts_cnt++] = prev_y - (tmp_point2.y * Math.abs(half_thickness));
+										new_pnts[new_pnts_cnt++] = prev_x - (tmp_point2.x * Math.abs(half_thicknessX));
+										new_pnts[new_pnts_cnt++] = prev_y - (tmp_point2.y * Math.abs(half_thicknessY));
 
 										if (dir_delta > 0) {
 											new_pnts[new_pnts_cnt++] = left_point_contour_prev_x;
@@ -442,10 +450,10 @@ export class GraphicsFactoryStrokes
 						if(i==data.length-2){
 							new_cmds[new_cmds_cnt++] = GraphicsPathCommand.NO_OP;
 							if (!closed) {
-								new_pnts[new_pnts_cnt++] = prev_x + (tmp_point.x * half_thickness);
-								new_pnts[new_pnts_cnt++] = prev_y + (tmp_point.y * half_thickness);
-								new_pnts[new_pnts_cnt++] = prev_x - (tmp_point.x * half_thickness);
-								new_pnts[new_pnts_cnt++] = prev_y - (tmp_point.y * half_thickness);
+								new_pnts[new_pnts_cnt++] = prev_x + (tmp_point.x * half_thicknessX);
+								new_pnts[new_pnts_cnt++] = prev_y + (tmp_point.y * half_thicknessY);
+								new_pnts[new_pnts_cnt++] = prev_x - (tmp_point.x * half_thicknessX);
+								new_pnts[new_pnts_cnt++] = prev_y - (tmp_point.y * half_thicknessY);
 							}
 							else{
 								new_pnts[new_pnts_cnt++] = new_pnts[0];
@@ -504,12 +512,12 @@ export class GraphicsFactoryStrokes
 					last_dir_vec.y = data[3] - data[1];
 					last_dir_vec.normalize();
 					//console.log("createCap", data[0], data[1], new_pnts[0], new_pnts[1], new_pnts[2], new_pnts[3], last_dir_vec.x, last_dir_vec.y, strokeStyle.capstyle, -1, half_thickness, final_vert_list, curves, scale);
-					GraphicsFactoryHelper.createCap(data[0], data[1], new_pnts[0], new_pnts[1], new_pnts[2], new_pnts[3], last_dir_vec.x, last_dir_vec.y, strokeStyle.capstyle, -1, half_thickness, final_vert_list, curves);
+					GraphicsFactoryHelper.createCap(data[0], data[1], new_pnts[0], new_pnts[1], new_pnts[2], new_pnts[3], last_dir_vec.x, last_dir_vec.y, strokeStyle.capstyle, -1, half_thicknessX, half_thicknessY, final_vert_list, curves);
 
 					last_dir_vec.x = data[data.length-2] - data[data.length-4];
 					last_dir_vec.y = data[data.length-1] - data[data.length-3];
 					last_dir_vec.normalize();
-					GraphicsFactoryHelper.createCap(data[data.length-2], data[data.length-1], new_pnts[new_pnts.length-4], new_pnts[new_pnts.length-3], new_pnts[new_pnts.length-2], new_pnts[new_pnts.length-1], last_dir_vec.x, last_dir_vec.y, strokeStyle.capstyle, 1, half_thickness, final_vert_list, curves);
+					GraphicsFactoryHelper.createCap(data[data.length-2], data[data.length-1], new_pnts[new_pnts.length-4], new_pnts[new_pnts.length-3], new_pnts[new_pnts.length-2], new_pnts[new_pnts.length-1], last_dir_vec.x, last_dir_vec.y, strokeStyle.capstyle, 1, half_thicknessX, half_thicknessY, final_vert_list, curves);
 
 				}
 

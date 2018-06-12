@@ -239,20 +239,20 @@ export class GraphicsFactoryHelper
 				vertices[final_vert_cnt++] = 1.793662034335766e-43;// ((-128<<24)+0+0+0)
 		}
 	}
-	public static createCap(startX:number, startY:number, start_le_x:number, start_le_y:number, start_ri_x:number, start_ri_y:number, direction_x:number, direction_y:number, capstyle:number, cap_position:number, thickness:number, vertices:Array<number>, curves:boolean):void
+	public static createCap(startX:number, startY:number, start_le_x:number, start_le_y:number, start_ri_x:number, start_ri_y:number, direction_x:number, direction_y:number, capstyle:number, cap_position:number, thicknessX:number, thicknessY:number, vertices:Array<number>, curves:boolean):void
 	{
 		direction_x*=cap_position;
 		direction_y*=cap_position;
 		if (capstyle == CapsStyle.ROUND) {
 			//console.log("add round cap");
-			var end_x:number = startX + ((direction_x * thickness));
-			var end_y:number = startY + ((direction_y * thickness));
+			var end_x:number = startX + ((direction_x * thicknessX));
+			var end_y:number = startY + ((direction_y * thicknessY));
 			//end_x = end_x * 2 - start_le.x/2 - start_ri.x/2;
 			//end_y = end_y * 2 - start_le.y/2 - start_ri.y/2;
-			var tmp1_x:number = start_le_x + ((direction_x * thickness));
-			var tmp1_y:number = start_le_y + ((direction_y * thickness));
-			var tmp2_x:number = start_ri_x + ((direction_x * thickness));
-			var tmp2_y:number = start_ri_y + ((direction_y * thickness));
+			var tmp1_x:number = start_le_x + ((direction_x * thicknessX));
+			var tmp1_y:number = start_le_y + ((direction_y * thicknessY));
+			var tmp2_x:number = start_ri_x + ((direction_x * thicknessX));
+			var tmp2_y:number = start_ri_y + ((direction_y * thicknessY));
 
 			GraphicsFactoryHelper.tesselateCurve(start_le_x, start_le_y, tmp1_x, tmp1_y, end_x, end_y, vertices, true);
 			GraphicsFactoryHelper.tesselateCurve(end_x, end_y, tmp2_x, tmp2_y, start_ri_x, start_ri_y, vertices, true);
@@ -260,10 +260,10 @@ export class GraphicsFactoryHelper
 		}
 		else if (capstyle == CapsStyle.SQUARE) {
 			//console.log("add square cap");
-			var tmp1_x:number = start_le_x + ((direction_x * thickness));
-			var tmp1_y:number = start_le_y + ((direction_y * thickness));
-			var tmp2_x:number = start_ri_x + ((direction_x * thickness));
-			var tmp2_y:number = start_ri_y + ((direction_y * thickness));
+			var tmp1_x:number = start_le_x + ((direction_x * thicknessX));
+			var tmp1_y:number = start_le_y + ((direction_y * thicknessY));
+			var tmp2_x:number = start_ri_x + ((direction_x * thicknessX));
+			var tmp2_y:number = start_ri_y + ((direction_y * thicknessY));
 
 			GraphicsFactoryHelper.addTriangle(tmp2_x,tmp2_y, tmp1_x, tmp1_y, start_le_x, start_le_y, 0, vertices, curves);
 			GraphicsFactoryHelper.addTriangle(tmp2_x,tmp2_y, start_le_x, start_le_y, start_ri_x, start_ri_y, 0, vertices, curves);

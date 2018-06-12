@@ -1,4 +1,4 @@
-import {AbstractMethodError, Box, Sphere, Matrix3D, Vector3D, AssetBase} from "@awayjs/core";
+import {AbstractMethodError, Box, Sphere, Matrix3D, Vector3D, AssetBase, Transform} from "@awayjs/core";
 
 import {AttributesBuffer, AttributesView, Float3Attributes, Short3Attributes} from "@awayjs/stage";
 
@@ -268,12 +268,12 @@ export class ElementsBase extends AssetBase implements IElements
 		throw new AbstractMethodError();
 	}
 
-	public getBoxBounds(target:Box = null, count:number = 0, offset:number = 0):Box
+	public getBoxBounds(matrix3D:Matrix3D = null, cache:Box = null, target:Box = null, count:number = 0, offset:number = 0):Box
 	{
 		throw new AbstractMethodError();
 	}
 
-	public getSphereBounds(center:Vector3D, target:Sphere = null, count:number = 0, offset:number = 0):Sphere
+	public getSphereBounds(center:Vector3D, matrix3D:Matrix3D = null, cache:Sphere = null, target:Sphere = null, count:number = 0, offset:number = 0):Sphere
 	{
 		throw new AbstractMethodError();
 	}

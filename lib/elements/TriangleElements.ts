@@ -1,4 +1,4 @@
-import {Rectangle, Box, Sphere, Matrix3D, Vector3D} from "@awayjs/core";
+import {Rectangle, Box, Sphere, Matrix3D, Vector3D, Transform} from "@awayjs/core";
 
 import {TraverserBase, ElementsUtils} from "@awayjs/renderer";
 
@@ -34,9 +34,6 @@ export class TriangleElements extends ElementsBase
 
 	//used for hittesting geometry
 	public hitTestCache:Object = new Object();
-
-
-	public halfStrokeThickness:number=0;
 
 	public originalSlice9Size:Rectangle;
 	public slice9offsets:Rectangle;
@@ -168,14 +165,14 @@ export class TriangleElements extends ElementsBase
 		return this._jointWeights;
 	}
 
-	public getBoxBounds(target:Box = null, count:number = 0, offset:number = 0):Box
+	public getBoxBounds(matrix3D:Matrix3D = null, cache:Box = null, target:Box = null, count:number = 0, offset:number = 0):Box
 	{
-		return TriangleElementsUtils.getTriangleGraphicsBoxBounds(this.positions, this.indices, target, count || this._numElements || this._numVertices, offset, this.halfStrokeThickness);
+		return TriangleElementsUtils.getTriangleGraphicsBoxBounds(this.positions, this.indices, matrix3D, cache, target, count || this._numElements || this._numVertices, offset);
 	}
 
-	public getSphereBounds(center:Vector3D, target:Sphere = null, count:number = 0, offset:number = 0):Sphere
+	public getSphereBounds(center:Vector3D, matrix3D:Matrix3D = null, cache:Sphere = null, target:Sphere = null, count:number = 0, offset:number = 0):Sphere
 	{
-		return TriangleElementsUtils.getTriangleGraphicsSphereBounds(this.positions, center, target, count || this._numVertices, offset);
+		return TriangleElementsUtils.getTriangleGraphicsSphereBounds(this.positions, center, matrix3D, cache, target, count || this._numVertices, offset);
 	}
 
 	public hitTestPoint(x:number, y:number, z:number, box:Box, count:number = 0, offset:number = 0, idx_count:number = 0, idx_offset:number = 0):boolean

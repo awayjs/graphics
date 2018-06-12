@@ -1,4 +1,4 @@
-import {Matrix3D, Vector3D, Box, Sphere, Rectangle, Point} from "@awayjs/core";
+import {Matrix3D, Vector3D, Box, Sphere, Rectangle, Point, Transform} from "@awayjs/core";
 
 import {AttributesBuffer, AttributesView, Short2Attributes, Short3Attributes, Float2Attributes, Float3Attributes, Float4Attributes, Byte4Attributes} from "@awayjs/stage";
 
@@ -389,13 +389,12 @@ export class TriangleElementsUtils
 		return false;
 	}
 
-	public static getTriangleGraphicsBoxBounds(positionAttributes:AttributesView, indexAttributes:Short2Attributes, output:Box, count:number, offset:number = 0, halfThickness:number=0):Box
+	public static getTriangleGraphicsBoxBounds(positionAttributes:AttributesView, indexAttributes:Short2Attributes, matrix3D:Matrix3D, cache:Box, target:Box, count:number, offset:number = 0):Box
 	{
 		var positions:ArrayBufferView;
 		var posDim:number = positionAttributes.dimensions;
 		var posStride:number = positionAttributes.stride;
 
-		var pos:number;
 		var minX:number = 0, minY:number = 0, minZ:number = 0;
 		var maxX:number = 0, maxY:number = 0, maxZ:number = 0;
 
@@ -410,53 +409,88 @@ export class TriangleElementsUtils
 			positions = positionAttributes.get(count, offset);
 		}
 
+		if (len == 0)
+			return null;
+
+		var i:number = 0
 		var index:number;
-		for (var i:number = 0; i < len; i++) {
+		var pos1:number, pos2:number, pos3:number, rawData:Float32Array;
+		
+		if (matrix3D)
+			rawData = matrix3D._rawData;
+
+		if (target == null) {
+			target = cache || new Box();
+			index = (indices)? indices[i]*posStride : i*posStride;
+			if (matrix3D) {
+				if (posDim == 3) {
+					pos1 = positions[index]*rawData[0] + positions[index + 1]*rawData[4] + positions[index + 2]*rawData[8] + rawData[12];
+					pos2 = positions[index]*rawData[1] + positions[index + 1]*rawData[5] + positions[index + 2]*rawData[9] + rawData[13];
+					pos3 = positions[index]*rawData[2] + positions[index + 1]*rawData[6] + positions[index + 2]*rawData[10] + rawData[14];
+				} else {
+					pos1 = positions[index]*rawData[0] + positions[index + 1]*rawData[4] + rawData[12];
+					pos2 = positions[index]*rawData[1] + positions[index + 1]*rawData[5] + rawData[13];
+				}
+			} else {
+				pos1 = positions[index];
+				pos2 = positions[index + 1];
+				pos3 = (posDim == 3)? positions[index + 2] : 0;
+			}
+			
+			maxX = minX = pos1;
+			maxY = minY = pos2;
+			maxZ = minZ = (posDim == 3)? pos3 : 0;
+			i++;
+		} else {
+			maxX = (minX = target.x) + target.width;
+			maxY = (minY = target.y) + target.height;
+			maxZ = (minZ = target.z) + target.depth;
+		}
+
+		for (; i < len; i++) {
 			index = (indices)? indices[i]*posStride : i*posStride;
 
-			if (i == 0) {
-				maxX = minX = positions[index];
-				maxY = minY = positions[index + 1];
-				maxZ = minZ = (posDim == 3)? positions[index + 2] : 0;
-			} else {
-				pos = positions[index];
-				if (pos < minX)
-					minX = pos;
-				else if (pos > maxX)
-					maxX = pos;
-
-				pos = positions[index + 1];
-
-				if (pos < minY)
-					minY = pos;
-				else if (pos > maxY)
-					maxY = pos;
-
+			if (matrix3D) {
 				if (posDim == 3) {
-					pos = positions[index + 2];
-
-					if (pos < minZ)
-						minZ = pos;
-					else if (pos > maxZ)
-						maxZ = pos;
+					pos1 = positions[index]*rawData[0] + positions[index + 1]*rawData[4] + positions[index + 2]*rawData[8] + rawData[12];
+					pos2 = positions[index]*rawData[1] + positions[index + 1]*rawData[5] + positions[index + 2]*rawData[9] + rawData[13];
+					pos3 = positions[index]*rawData[2] + positions[index + 1]*rawData[6] + positions[index + 2]*rawData[10] + rawData[14];
+				} else {
+					pos1 = positions[index]*rawData[0] + positions[index + 1]*rawData[4] + rawData[12];
+					pos2 = positions[index]*rawData[1] + positions[index + 1]*rawData[5] + rawData[13];
 				}
+			} else {
+				pos1 = positions[index];
+				pos2 = positions[index + 1];
+				pos3 = (posDim == 3)? positions[index + 2] : 0;
+			}
+
+			if (pos1 < minX)
+				minX = pos1;
+			else if (pos1 > maxX)
+				maxX = pos1;
+
+			if (pos2 < minY)
+				minY = pos2;
+			else if (pos2 > maxY)
+				maxY = pos2;
+
+			if (posDim == 3) {
+				if (pos3 < minZ)
+					minZ = pos3;
+				else if (pos3 > maxZ)
+					maxZ = pos3;
 			}
 		}
 
-		if (output == null)
-			output = new Box();
+		target.width = maxX - (target.x = minX);
+		target.height = maxY - (target.y = minY);
+		target.depth = maxZ - (target.z = minZ);
 
-		output.x = minX+halfThickness;
-		output.y = minY+halfThickness;
-		output.z = minZ;
-		output.right = maxX-halfThickness;
-		output.bottom = maxY-halfThickness;
-		output.back = maxZ;
-
-		return output;
+		return target;
 	}
 
-	public static getTriangleGraphicsSphereBounds(positionAttributes:AttributesView, center:Vector3D, output:Sphere, count:number, offset:number = 0):Sphere
+	public static getTriangleGraphicsSphereBounds(positionAttributes:AttributesView, center:Vector3D, matrix3D:Matrix3D, cache:Sphere, output:Sphere, count:number, offset:number = 0):Sphere
 	{
 		var positions:ArrayBufferView = positionAttributes.get(count, offset);
 		var posDim:number = positionAttributes.dimensions;
