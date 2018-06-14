@@ -1,4 +1,4 @@
-import {ArgumentError, RangeError, PartialImplementationError, Point, Box, Vector3D, Sphere, Matrix, Matrix3D, AssetBase, Rectangle, Transform} from "@awayjs/core";
+import {ArgumentError, RangeError, PartialImplementationError, Point, Box, Vector3D, Sphere, Matrix, Matrix3D, AssetBase, Rectangle, Transform, ProjectionBase, PerspectiveProjection} from "@awayjs/core";
 
 import {BitmapImage2D, AttributesBuffer, AttributesView, Byte4Attributes, Float2Attributes} from "@awayjs/stage";
 
@@ -105,21 +105,26 @@ export class Graphics extends AssetBase
 
 	private _drawingDirty:boolean = false;
 
-	public getSpriteScale():Vector3D
+	public getSpriteScale(projection:ProjectionBase = null):Vector3D
 	{
 		if(this._entity)
 			this._scale.copyFrom(this._entity.transform.concatenatedMatrix3D.decompose()[3]);
 		else
 			this._scale.identity();
 
+		if (projection) {
+			this._scale.x *= (<PerspectiveProjection> projection).hFocalLength/1000;
+			this._scale.y *= (<PerspectiveProjection> projection).focalLength/1000;
+		}
+
 		return this._scale;
 	}
 
-	public updateScale()
+	public updateScale(projection:ProjectionBase)
 	{
 		var prevScaleX:number = this._scale.x;
 		var prevScaleY:number = this._scale.y;
-		var scale:Vector3D = this.getSpriteScale();
+		var scale:Vector3D = this.getSpriteScale(projection);
 
 		if (scale.x == prevScaleX && scale.y == prevScaleY)
 		 	return;
