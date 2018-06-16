@@ -477,29 +477,23 @@ export class Graphics extends AssetBase
 			var shape:Shape;
 
 			if (matrix3D) {
-				for (var i:number = 0; i < numShapes; i++){
-					shape = this._shapes[i];
-	
-					if (shape.isStroke && !strokeFlag)
-						continue;
-					
-					target = shape.getBoxBounds(matrix3D, cache, target);
-				}
+				for (var i:number = 0; i < numShapes; i++)
+					if (!(shape = this._shapes[i]).isStroke || strokeFlag)
+						target = shape.getBoxBounds(matrix3D, cache, target);
 
 				return target;
 			}
 
 			if (this._orientedBoxBoundsDirty) {
 				this._orientedBoxBoundsDirty = false;
+
+				var obb:Box;
 	
-				for (var i:number = 0; i < numShapes; i++){
-					shape = this._shapes[i];
-	
-					if (shape.isStroke && !strokeFlag)
-						continue;
-					
-					this._orientedBoxBounds = shape.getBoxBounds(matrix3D, this._orientedBoxBounds);
-				}
+				for (var i:number = 0; i < numShapes; i++)
+					if (!(shape = this._shapes[i]).isStroke || strokeFlag)
+						obb = shape.getBoxBounds(null, this._orientedBoxBounds, obb);
+
+				this._orientedBoxBounds = obb;
 			}
 			
 			if (this._orientedBoxBounds != null) {
@@ -528,14 +522,9 @@ export class Graphics extends AssetBase
 			var shape:Shape;
 
 			if (matrix3D) {
-				for (var i:number = 0; i < numShapes; i++){
-					shape = this._shapes[i];
-	
-					if (shape.isStroke && !strokeFlag)
-						continue;
-					
-					target = shape.getSphereBounds(center, matrix3D, cache, target);
-				}
+				for (var i:number = 0; i < numShapes; i++)
+					if (!(shape = this._shapes[i]).isStroke || strokeFlag)
+						target = shape.getSphereBounds(center, matrix3D, cache, target);
 
 				return target;
 			}
@@ -543,14 +532,13 @@ export class Graphics extends AssetBase
 			if (this._orientedSphereBoundsDirty) {
 				this._orientedSphereBoundsDirty = false;
 	
-				for (var i:number = 0; i < numShapes; i++){
-					shape = this._shapes[i];
-	
-					if (shape.isStroke && !strokeFlag)
-						continue;
-					
-					this._orientedSphereBounds = shape.getSphereBounds(center, matrix3D, this._orientedSphereBounds);
-				}
+				var osb:Sphere;
+
+				for (var i:number = 0; i < numShapes; i++)
+					if (!(shape = this._shapes[i]).isStroke || strokeFlag)
+						osb = shape.getSphereBounds(center, null, this._orientedSphereBounds, osb);
+
+				this._orientedSphereBounds = osb;
 			}
 			
 			if (this._orientedSphereBounds != null) {

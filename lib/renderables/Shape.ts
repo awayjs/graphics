@@ -262,13 +262,11 @@ export class Shape extends AssetBase implements IRenderable
 
 	public hitTestPoint(x:number, y:number, z:number):boolean
 	{
-		var box:Box;
+		var box:Box = this.getBoxBounds();
 
 		//early out for box test
-		if(!(box = this.getBoxBounds()).contains(x, y, z)){
+		if(box == null || !box.contains(x, y, z))
 			return false;
-
-		}
 
 		return this._elements.hitTestPoint(x, y, z, box, this.count, this.offset);
 	}
