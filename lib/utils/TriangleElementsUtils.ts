@@ -410,7 +410,7 @@ export class TriangleElementsUtils
 		}
 
 		if (len == 0)
-			return null;
+			return target;
 
 		var i:number = 0
 		var index:number;
