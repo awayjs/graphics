@@ -292,14 +292,8 @@ export class Shape extends AssetBase implements IRenderable
 			this._orientedBoxBounds = this._elements.getBoxBounds(null, this._orientedBoxBounds, null, this.count, this.offset);
 		}
 
-		if (this._orientedBoxBounds != null) {
-			if (target == null) {
-				target = cache || new Box();
-				target.copyFrom(this._orientedBoxBounds);
-			} else {
-				target = target.union(this._orientedBoxBounds, target);
-			}
-		}
+		if (this._orientedBoxBounds != null)
+			target = this._orientedBoxBounds.union(target, target || cache);
 
 		return target;
 	}

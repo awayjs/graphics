@@ -75,8 +75,8 @@ export class Graphics extends AssetBase
 	private _onAddMaterialDelegate:(event:ShapeEvent) => void;
 	private _onRemoveMaterialDelegate:(event:ShapeEvent) => void;
 
-	private _orientedBoxBounds:Box;
-	private _orientedBoxBoundsDirty:boolean = true;
+	private _orientedBoxBounds:Box[] = [];
+	private _orientedBoxBoundsDirty:boolean[] = [true, true];
 	private _orientedSphereBounds:Sphere;
 	private _orientedSphereBoundsDirty = true;
 	private _material:IMaterial;
@@ -484,26 +484,23 @@ export class Graphics extends AssetBase
 				return target;
 			}
 
-			if (this._orientedBoxBoundsDirty) {
-				this._orientedBoxBoundsDirty = false;
+			var obb:Box;
+			var strokeIndex:number = strokeFlag? 1 : 0;
 
-				var obb:Box;
-	
+			if (this._orientedBoxBoundsDirty[strokeIndex]) {
+				this._orientedBoxBoundsDirty[strokeIndex] = false;
+
 				for (var i:number = 0; i < numShapes; i++)
 					if (!(shape = this._shapes[i]).isStroke || strokeFlag)
-						obb = shape.getBoxBounds(null, this._orientedBoxBounds, obb);
+						obb = shape.getBoxBounds(null, this._orientedBoxBounds[strokeIndex], obb);
+				
+				this._orientedBoxBounds[strokeIndex] = obb;
+			} else {
+				obb = this._orientedBoxBounds[strokeIndex];
+			}
 
-				this._orientedBoxBounds = obb;
-			}
-			
-			if (this._orientedBoxBounds != null) {
-				if (target == null) {
-					target = cache || new Box();
-					target.copyFrom(this._orientedBoxBounds);
-				} else {
-					target = target.union(this._orientedBoxBounds, target);
-				}
-			}
+			if (obb != null)
+				target = obb.union(target, target || cache);
 		}
 
 		return target;
@@ -558,7 +555,8 @@ export class Graphics extends AssetBase
 	{
 		super.invalidate();
 
-		this._orientedBoxBoundsDirty = true;
+		this._orientedBoxBoundsDirty[0] = true;
+		this._orientedBoxBoundsDirty[1] = true;
 		this._orientedSphereBoundsDirty = true;
 	}
 
