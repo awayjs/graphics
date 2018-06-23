@@ -247,7 +247,7 @@ export class Graphics extends AssetBase
 				this._queued_fill_pathes.push(value);
 			if (value.style.data_type == GraphicsStrokeStyle.data_type){
 				this._queued_stroke_pathes.push(value);
-				//this.endFill();
+				this.endFill();
 
 			}
 		}
