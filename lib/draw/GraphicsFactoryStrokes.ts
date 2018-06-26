@@ -77,6 +77,8 @@ export class GraphicsFactoryStrokes
 		var graphicsPath = shape.strokePath;
 		var final_vert_list:Array<number>=[];
 		GraphicsFactoryStrokes.draw_path([graphicsPath], final_vert_list, false, scale, scaleMode);
+		
+		elements.concatenatedBuffer.count = final_vert_list.length/2;
 		elements.setPositions(final_vert_list);
 		elements.invalidate();
 
