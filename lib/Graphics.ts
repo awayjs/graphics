@@ -477,9 +477,13 @@ export class Graphics extends AssetBase
 			var shape:Shape;
 
 			if (matrix3D) {
-				for (var i:number = 0; i < numShapes; i++)
-					if (!(shape = this._shapes[i]).isStroke || strokeFlag)
+				for (var i:number = 0; i < numShapes; i++) {
+					if ((shape = this._shapes[i]).isStroke && !strokeFlag) {
+						target = shape.strokePath.getBoxBounds(matrix3D, cache, target);
+					} else {
 						target = shape.getBoxBounds(matrix3D, cache, target);
+					}
+				}	
 
 				return target;
 			}
@@ -491,8 +495,11 @@ export class Graphics extends AssetBase
 				this._orientedBoxBoundsDirty[strokeIndex] = false;
 
 				for (var i:number = 0; i < numShapes; i++)
-					if (!(shape = this._shapes[i]).isStroke || strokeFlag)
+					if ((shape = this._shapes[i]).isStroke && !strokeFlag) {
+						obb = shape.strokePath.getBoxBounds(null, this._orientedBoxBounds[strokeIndex], obb);
+					} else {
 						obb = shape.getBoxBounds(null, this._orientedBoxBounds[strokeIndex], obb);
+					}
 				
 				this._orientedBoxBounds[strokeIndex] = obb;
 			} else {

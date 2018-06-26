@@ -1,4 +1,4 @@
-import {Point, MathConsts} from "@awayjs/core";
+import {Point, MathConsts, Matrix3D, Box} from "@awayjs/core";
 
 import {GraphicsPathWinding} from "../draw/GraphicsPathWinding";
 import {GraphicsPathCommand} from "../draw/GraphicsPathCommand";
@@ -15,6 +15,9 @@ import {GraphicsFactoryHelper} from "../draw/GraphicsFactoryHelper";
  */
 export class GraphicsPath implements IGraphicsData
 {
+    private _orientedBoxBounds:Box;
+    private _orientedBoxBoundsDirty:boolean = true;
+    
     public static data_type:string = "[graphicsdata path]";
     /**
      * The Vector of drawing commands as integers representing the path.
@@ -691,5 +694,99 @@ export class GraphicsPath implements IGraphicsData
 
 
         }
+    }
+
+    public invalidate()
+    {
+        this._orientedBoxBoundsDirty = true;
+    }
+
+
+	public getBoxBounds(matrix3D:Matrix3D = null, cache:Box = null, target:Box = null):Box
+	{
+		if (matrix3D)
+			return this._internalGetBoxBounds(matrix3D, cache, target);
+
+		if (this._orientedBoxBoundsDirty) {
+			this._orientedBoxBoundsDirty = false;
+
+			this._orientedBoxBounds = this._internalGetBoxBounds(null, this._orientedBoxBounds, null);
+		}
+
+		if (this._orientedBoxBounds != null)
+			target = this._orientedBoxBounds.union(target, target || cache);
+
+		return target;
+    }
+    
+    private _internalGetBoxBounds(matrix3D:Matrix3D = null, cache:Box = null, target:Box = null):Box
+	{
+
+		var minX:number = 0, minY:number = 0;
+		var maxX:number = 0, maxY:number = 0;
+
+		var len:number = this._positions.length;
+
+		if (len == 0)
+			return target;
+
+		var i:number = 0
+        var index:number = 0;
+        var positions:number[] = this._positions[index++];
+        var pLen:number = positions.length;
+		var pos1:number, pos2:number, pos3:number, rawData:Float32Array;
+		
+		if (matrix3D)
+			rawData = matrix3D._rawData;
+
+		if (target == null) {
+            target = cache || new Box();
+			if (matrix3D) {
+                pos1 = positions[i]*rawData[0] + positions[i + 1]*rawData[4] + rawData[12];
+                pos2 = positions[i]*rawData[1] + positions[i + 1]*rawData[5] + rawData[13];
+            } else {
+				pos1 = positions[i];
+				pos2 = positions[i + 1];
+			}
+			
+			maxX = minX = pos1;
+			maxY = minY = pos2;
+			i+=2;
+		} else {
+			maxX = (minX = target.x) + target.width;
+			maxY = (minY = target.y) + target.height;
+		}
+
+		for (; i < pLen; i+=2) {
+			if (matrix3D) {
+                pos1 = positions[i]*rawData[0] + positions[i + 1]*rawData[4] + rawData[12];
+                pos2 = positions[i]*rawData[1] + positions[i + 1]*rawData[5] + rawData[13];
+            } else {
+				pos1 = positions[i];
+				pos2 = positions[i + 1];
+			}
+
+			if (pos1 < minX)
+				minX = pos1;
+			else if (pos1 > maxX)
+				maxX = pos1;
+
+			if (pos2 < minY)
+				minY = pos2;
+			else if (pos2 > maxY)
+                maxY = pos2;
+                
+            if (i >= pLen - 2 && index < len) {
+                i = 0;
+                positions = this._positions[index++];
+                pLen = positions.length;
+            }
+		}
+i
+		target.width = maxX - (target.x = minX);
+		target.height = maxY - (target.y = minY);
+		target.depth = 0;
+
+		return target;
     }
 }

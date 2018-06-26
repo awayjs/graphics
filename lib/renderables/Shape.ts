@@ -210,6 +210,9 @@ export class Shape extends AssetBase implements IRenderable
 
 		this._orientedBoxBoundsDirty = true;
 		this._orientedSphereBoundsDirty = true;
+
+		if (this._strokePath)
+			this._strokePath.invalidate();
 	}
 	
 	public invalidateElements():void
