@@ -105,6 +105,7 @@ export class GraphicsFactoryHelper
 			final_vert_list[outCnt++]=y+h;
 		}
 		var elements:TriangleElements = <TriangleElements> shape.elements;
+		elements.concatenatedBuffer.count = final_vert_list.length/2;
 		elements.setPositions(final_vert_list);
 		elements.invalidate();
 	}
