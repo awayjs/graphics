@@ -44,7 +44,7 @@ export class GraphicsFactoryFills
 		var cp=0;
 		for(cp=0; cp<len; cp++){
 			var newBuffer:AttributesBuffer=GraphicsFactoryFills.pathToAttributesBuffer(targetGraphics.queued_fill_pathes[cp]);
-			if(newBuffer){
+			if(newBuffer && newBuffer.length>0){
 				var elements:TriangleElements = new TriangleElements(newBuffer);
 				elements.setPositions(new Float2Attributes(newBuffer));
 				//elements.setCustomAttributes("curves", new Float3Attributes(attributesBuffer));

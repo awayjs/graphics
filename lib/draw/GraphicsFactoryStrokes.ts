@@ -44,6 +44,8 @@ export class GraphicsFactoryStrokes
 			strokePath.prepare();
 			GraphicsFactoryStrokes.draw_path([strokePath], final_vert_list, material.curves, new Vector3D(1,1,1));
 			final_vert_list=final_vert_list.concat(strokePath.verts);
+			if(final_vert_list.length==0)
+				continue;
 			var attributesView:AttributesView = new AttributesView(Float32Array, material.curves?3:2);
 			attributesView.set(final_vert_list);
 			var attributesBuffer:AttributesBuffer = attributesView.attributesBuffer.cloneBufferView();
