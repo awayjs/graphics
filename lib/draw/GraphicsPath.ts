@@ -136,7 +136,6 @@ export class GraphicsPath implements IGraphicsData
     }
     public curveTo(controlX:number, controlY:number, anchorX:number, anchorY:number)
     {
-        //console.log(controlX, controlY, anchorX, anchorY);
         // if controlpoint and anchor are same, we add lineTo command
         if((controlX==anchorX)&&(controlY==anchorY)){
             this.lineTo(controlX, controlY);
@@ -167,9 +166,6 @@ export class GraphicsPath implements IGraphicsData
             this._data[this._data.length-1].push(this._cur_point.x);
             this._data[this._data.length-1].push(this._cur_point.y);
         }
-        if(this.fill)
-            this.cacheSegment(this._data.length-1, this._commands[this._commands.length-1].length, GraphicsPathCommand.CURVE_TO, this._cur_point.x, this._cur_point.y, anchorX, anchorY, controlX, controlY);
-
         this._commands[this._commands.length-1].push(GraphicsPathCommand.CURVE_TO);
         this._data[this._data.length-1].push(controlX);
         this._data[this._data.length-1].push(controlY);
@@ -193,8 +189,6 @@ export class GraphicsPath implements IGraphicsData
             this._data[this._data.length-1].push(this._cur_point.x);
             this._data[this._data.length-1].push(this._cur_point.y);
         }
-        if(this.fill)
-            this.cacheSegment(this._data.length-1, this._commands[this._commands.length-1].length, GraphicsPathCommand.CURVE_TO, this._cur_point.x, this._cur_point.y, anchorX, anchorY, controlX, controlY);
         this._commands[this._commands.length-1].push(GraphicsPathCommand.CURVE_TO);
         this._data[this._data.length-1].push(controlX);
         this._data[this._data.length-1].push(controlY);
@@ -216,9 +210,6 @@ export class GraphicsPath implements IGraphicsData
             this._data[this._data.length-1].push(this._cur_point.x);
             this._data[this._data.length-1].push(this._cur_point.y);
         }
-        if(this.fill)
-            this.cacheSegment(this._data.length-1, this._commands[this._commands.length-1].length, GraphicsPathCommand.LINE_TO, 
-            this._cur_point.x, this._cur_point.y, x, y);
         this._commands[this._commands.length-1].push(GraphicsPathCommand.LINE_TO);
         this._data[this._data.length-1].push(x);
         this._data[this._data.length-1].push(y);
@@ -234,9 +225,6 @@ export class GraphicsPath implements IGraphicsData
             //console.log("moveTo command not added because startpoint and endpoint are the same.");
             return;
         }
-        if(this.fill)
-            this.cacheSegment(this._data.length-1, this._commands[this._commands.length-1].length, GraphicsPathCommand.MOVE_TO, 
-            this._cur_point.x, this._cur_point.y, x, y);
         // whenever a moveTo command apears, we start a new contour
         if(this._commands[this._commands.length-1].length>0){
             this._commands.push([GraphicsPathCommand.MOVE_TO]);
@@ -250,26 +238,10 @@ export class GraphicsPath implements IGraphicsData
 
     public wideLineTo(x:number, y:number)
     {
-        // not used
-        /*
-         this._commands.push(GraphicsPathCommand.WIDE_LINE_TO);
-         this._data.push(0);
-         this._data.push(0);
-         this._data.push(x);
-         this._data.push(y);
-         */
     }
 
     public wideMoveTo(x:number, y:number)
     {
-        // not used
-        /*
-         this._commands.push(GraphicsPathCommand.WIDE_MOVE_TO);
-         this._data.push(0);
-         this._data.push(0);
-         this._data.push(x);
-         this._data.push(y);
-         */
     }
 
     private _startMerge:number=-1;
@@ -402,56 +374,8 @@ export class GraphicsPath implements IGraphicsData
                 }
             }
             
-            if(this.fill){
-                posOffset=0;
-                for (i = 0; i < commands.length; i++) {
-                    this._positionOffset[c][i]=posOffset;
-                    
-                    switch(commands[i]){
-                        case GraphicsPathCommand.LINE_TO:
-                            posOffset+=2;
-                            break;
-                        case GraphicsPathCommand.MOVE_TO:
-                            posOffset+=2;
-                            break;
-                        case GraphicsPathCommand.CURVE_TO:
-                            posOffset+=4;
-                            break;
-                    }
-                    isValidCommand[c][i]=c;
-                    this._connectedIdx[c][i]=-1;
-                }
-            }
         }
             
-        if(this.fill){
-            for(var key in this._cacheSharedSegments){
-                if(this._cacheSharedSegments.hasOwnProperty(key)){
-                    myCacheItem=this._cacheSharedSegments[key];
-                    if(myCacheItem.length>2){
-                        //if(myCacheItem.length>4){
-                        //    console.log("error! edge shared by more than 2 contours: ");
-                        //}
-                        //else{
-                            if(myCacheItem[0]==myCacheItem[2]){
-                                // same contour, should be save to remove both segments
-                                isValidCommand[myCacheItem[0]][myCacheItem[1]]=-1;
-                                isValidCommand[myCacheItem[0]][myCacheItem[3]]=-1;
-                            }
-                            else{
-                                // 2 different contours, should be save to remove both segments
-                                isValidCommand[myCacheItem[0]][myCacheItem[1]]=myCacheItem[2];
-                                this._connectedIdx[myCacheItem[0]][myCacheItem[1]]=myCacheItem[3];
-                                isValidCommand[myCacheItem[2]][myCacheItem[3]]=myCacheItem[0];
-                                this._connectedIdx[myCacheItem[2]][myCacheItem[3]]=myCacheItem[1];
-                            }
-                        //}
-
-                        //console.log("chached double-used segment: "+myCacheItem, key);
-                    }
-                }
-            }
-        }
 
         var cmd_len=this.commands.length;
         for(c=0; c<cmd_len; c++) {
@@ -468,129 +392,6 @@ export class GraphicsPath implements IGraphicsData
             this._positions[c].push(prev_x);
             this._positions[c].push(prev_y);
 
-            //console.log("data in", data);
-            //console.log("data in", commands.length);
-            /*
-            var k:number=0;
-            var k2:number=0;
-            var k3:number=0;
-            var keepSearching=true;
-            // alterantive way to get rid of invalid segments, without using the segment cache.
-            // does not work for all cases!
-            if(this.fill!=null){
-                for (i = 1; i < commands.length; i++) {
-                    console.log("command", i, commands[i])
-                    isValidCommand[i]=true;
-                    switch(commands[i]){
-                        case GraphicsPathCommand.LINE_TO:
-                            data_cnt+=2;
-                            console.log(i, "LINE_TO ", data[data_cnt-2], data[data_cnt-1]);
-                            if(i>0 && i<(commands.length) && commands[i-1]==commands[i]){        
-                                if(data[data_cnt-2]==data[data_cnt-6] && data[data_cnt-1]==data[data_cnt-5]){
-                                    console.log("found line segments that cancel each other", i, i-1);
-                                    // this is a step back
-                                    isValidCommand[i]=false;
-                                    isValidCommand[i-1]=false;                                    
-                                    // now keep checking how many more commands can be removed
-                                    k=1;
-                                    k2=4;
-                                    k3=0;
-                                    keepSearching=true;
-                                    // keep searching as long as we are inside bounds of commands, and we 
-                                    while(keepSearching && (i-k-1)>=0 && (i+k<commands.length) && commands[i-k-1]==commands[i+k]){
-                                        keepSearching=false;
-                                        switch(commands[i+k]){
-                                            case GraphicsPathCommand.LINE_TO:
-                                                if(data[data_cnt-k2-2]==data[data_cnt+k3] && data[data_cnt-k2-1]==data[data_cnt+k3+1]){
-                                                    console.log("found another line segment");
-                                                    keepSearching=true;
-                                                    k2+=2;
-                                                    k3+=2;
-                                                    k++;
-                                                    isValidCommand[i-k-1]=false;
-                                                    isValidCommand[i+k]=false;
-                                                }
-                                                
-                                                break;
-                                            case GraphicsPathCommand.CURVE_TO:
-                                                if(data[data_cnt-k2-4]==data[data_cnt+k3] && data[data_cnt-k2-3]==data[data_cnt+k3+1]
-                                                && data[data_cnt-k2-2]==data[data_cnt+k3+2] && data[data_cnt-k2-1]==data[data_cnt+k3+3]){
-                                                    console.log("found another curve segment");
-                                                    keepSearching=true;
-                                                    k2+=4;
-                                                    k3+=4;
-                                                    k++;
-                                                    isValidCommand[i-k-1]=false;
-                                                    isValidCommand[i+k]=false;
-                                                }
-                                                break;
-                                        }
-                                    }
-                                    i+=k-1;
-                                    data_cnt+=k3;
-
-                                }
-                            }
-                            break;
-                        
-                        case GraphicsPathCommand.CURVE_TO:
-                            data_cnt+=4;
-                            console.log(i, "CURVE_TO ", data[data_cnt-4], data[data_cnt-3], data[data_cnt-2], data[data_cnt-1]);
-                            if(i>0 && i<(commands.length) && commands[i-1]==commands[i]){
-                                if(data[data_cnt-2]==data[data_cnt-10] && data[data_cnt-1]==data[data_cnt-9] &&
-                                    data[data_cnt-4]==data[data_cnt-8] && data[data_cnt-3]==data[data_cnt-7]){   
-                                        console.log("found curve segments that cancel each other", i, i-1);                                     
-                                        // this and the previous command can be removed
-                                        isValidCommand[i]=false;
-                                        isValidCommand[i-1]=false;
-
-                                        // now keep checking how many more commands can be removed
-                                        k=1;
-                                        k2=4;
-                                        k3=0;
-                                        keepSearching=true;
-                                        // keep searching as long as we are inside bounds of commands, and we 
-                                        while(keepSearching && (i-k-1)>=0 && (i+k<commands.length) && commands[i-k-1]==commands[i+k]){
-                                            //console.log("keep searching");
-                                            keepSearching=false;
-                                            switch(commands[i+k]){
-                                                case GraphicsPathCommand.LINE_TO:
-                                                    k2+=2;
-                                                    if(data[data_cnt-k2-2]==data[data_cnt+k3] && data[data_cnt-k2-1]==data[data_cnt+k3+1]){
-                                                        console.log("found another line segment", i+k);
-                                                        keepSearching=true;
-                                                        k++;
-                                                        k3+=2;
-                                                        isValidCommand[i-k-1]=false;
-                                                        isValidCommand[i+k]=false;
-                                                    }                                                    
-                                                    break;
-                                                case GraphicsPathCommand.CURVE_TO:
-                                                    //console.log("ctr_pointprev", data_cnt-k2-6, data_cnt-k2-5);
-                                                    //console.log("ctr_point", data_cnt-k2-6, data_cnt-k2-5);
-                                                    k2+=4;
-                                                    if(data[data_cnt-k2-4]==data[data_cnt+k3] && data[data_cnt-k2-3]==data[data_cnt+k3+1]
-                                                    && data[data_cnt-k2-6]==data[data_cnt+k3+2] && data[data_cnt-k2-5]==data[data_cnt+k3+3]){
-                                                        console.log("found another curve segment", i+k);
-                                                        isValidCommand[i-k-1]=false;
-                                                        isValidCommand[i+k]=false;
-                                                        keepSearching=true;
-                                                        k++;
-                                                        k3+=4;
-                                                        //console.log("prev", i-k-1);
-                                                    }
-                                                    break;
-                                            }
-                                        }
-                                        i+=k-1;
-                                        data_cnt+=k3;                                        
-                                }
-                            }
-                            break;
-                    }
-                }
-            }
-            */
 
             // now we collect the final position data
             // a command list is no longer needed for this position data,
@@ -600,31 +401,10 @@ export class GraphicsPath implements IGraphicsData
             this._endMerge=-1;
             this._mergetarget=-1;
             this._mergeSource=-1;
-            if(!contour_merged[c]){
                 data_cnt=0;
                 prev_x=data[data_cnt++];
                 prev_y=data[data_cnt++];
                 for (i = 1; i < commands.length; i++) {
-                    if(this.fill!=null && isValidCommand[c][i]<0){
-                        //console.log("is invalid command", i);
-                        if(this._startMerge>-1 && this._mergetarget>-1)
-                            this.mergeContours();
-                        switch(commands[i]){
-                            case GraphicsPathCommand.LINE_TO:
-                                data_cnt+=2;
-                                break;
-                            case GraphicsPathCommand.MOVE_TO:
-                                data_cnt+=2;
-                                break;
-                            case GraphicsPathCommand.CURVE_TO:
-                                data_cnt+=4;
-                                break;
-                        }
-                        continue;
-                    }
-                    if(this.fill==null || isValidCommand[c][i]==c){
-                        if(this._startMerge>-1 && this._mergetarget>-1)
-                            this.mergeContours();
                         switch(commands[i]){
                             case GraphicsPathCommand.MOVE_TO:
                                 console.log("ERROR ! ONLY THE FIRST COMMAND FOR A CONTOUR IS ALLOWED TO BE A 'MOVE_TO' COMMAND");
@@ -654,45 +434,8 @@ export class GraphicsPath implements IGraphicsData
                                 prev_x=end_x;
                                 prev_y=end_y;
                                 break;
-                        }   
-    
-                    }
-                    if(this.fill!=null && isValidCommand[c][i]!=c){
-                        // another contour shares this same edge.
-                        // we must merge the two contours
-
-                        // before mergeing we must check how many segments are shared.
-                        // for this purpose we collect startMerge and endMerge which are indices into the command list
-
-                        // this approach will probably fail, if the same 2 contours share multiple ranges of segments!
-                        if(this._startMerge==-1){
-                            this._startMerge=i;
-                        }
-                        if(this._mergeSource!=-1 && this._mergeSource!=isValidCommand[c][i]){
-                            this.mergeContours();
-                        }
-                        this._endMerge=i;
-                        this._mergeSource=isValidCommand[c][i];
-                        this._mergetarget=c;
-                        //console.log("skip this segment, merge in from other path instead");   
-                        contour_merged[isValidCommand[c][i]]=true;    
-                        switch(commands[i]){
-                            case GraphicsPathCommand.LINE_TO:
-                                data_cnt+=2;
-                                break;
-                            case GraphicsPathCommand.MOVE_TO:
-                                data_cnt+=2;
-                                break;
-                            case GraphicsPathCommand.CURVE_TO:
-                                data_cnt+=4;
-                                break;
-                        }
-                    }
+                        }      
                 }
-            }
-            //console.log("data out", this._positions[c]);
-
-
         }
     }
 

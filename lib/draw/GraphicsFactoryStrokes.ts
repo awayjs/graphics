@@ -188,7 +188,6 @@ export class GraphicsFactoryStrokes
 				//commands = contour_commands[k];
 				data = positions[k];
 
-
 				// check if the path is closed. if yes, than set the last_dir_vec from last segment
 				closed = true;
 				prev_prev_x=null;
@@ -220,6 +219,8 @@ export class GraphicsFactoryStrokes
 
 					end_x = data[i];
 					end_y = data[i+1];
+					//half_thicknessX=bkphalf_thicknessX*(i/data.length);
+					//half_thicknessY=bkphalf_thicknessY*(i/data.length);
 
 					// if the points are the same, we dont need to do anything.
 					if((end_x != prev_x)||(end_y != prev_y)){
