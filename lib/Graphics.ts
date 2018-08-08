@@ -509,6 +509,9 @@ export class Graphics extends AssetBase
 			if (obb != null)
 				target = obb.union(target, target || cache);
 		}
+		/*if(!target){
+			target=cache || new Box(); 
+		}*/
 
 		return target;
 	}

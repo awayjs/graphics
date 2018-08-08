@@ -41,16 +41,13 @@ export class GradientFillStyle extends GraphicsFillStyle
         this.type=type;
 
         this.uvRectangle=new Rectangle();
-
+        this.ratios.sort((a, b) => a - b);
         this.ratio_min=this.ratios[0];
         this.ratio_max=this.ratios[this.ratios.length-1];
         var r:number=this.ratios.length;
-        while(r>1){
-            r--;
-            if(this.ratios[r]<this.ratios[r-1]){
-                throw("GradientFillStyle: Error - ratios are not valid");
-            }
-        }
+
+        //  todo: in case the ratios.sort has changed the order of ratios, 
+        //  do we need to sync the order of color too ?
 
         var c:number=colors.length;
         var argb:number[];

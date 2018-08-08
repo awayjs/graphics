@@ -147,8 +147,16 @@ export class GraphicsFactoryFills
 			// we only want to make sure that each contour contains at least 3 pairs of x/y positions
 			// otherwise there is no way they can form a shape				
 			contour = contour_data[k];
-			if(contour.length>5)
+			if(contour[0]==contour[contour.length-2] && contour[1]==contour[contour.length-1]){
+				contour.pop();
+				contour.pop();
+			}
+
+			if(contour.length>5){
 				finalContours[finalContours.length]=contour;
+
+			}
+
 		}
 		//console.log("execute Tess2 = ", finalContours);
 		try{
