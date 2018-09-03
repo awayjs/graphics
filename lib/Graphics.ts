@@ -88,6 +88,8 @@ export class Graphics extends AssetBase
 	private _queued_stroke_pathes:Array<GraphicsPath>;
 	private _active_fill_path:GraphicsPath;
 	private _active_stroke_path:GraphicsPath;
+	private _lineStyle:GraphicsFillStyle;
+	private _fillStyle:GraphicsFillStyle;
 
 	private _current_position:Point=new Point();
 
@@ -291,7 +293,9 @@ export class Graphics extends AssetBase
 		this._queued_fill_pathes=[];
 		this._queued_stroke_pathes=[];
 		this._active_fill_path=null;
-		this._active_stroke_path=null;
+        this._active_stroke_path=null;
+        this._fillStyle=null;
+        this._lineStyle=null;
 
 		this._onInvalidatePropertiesDelegate = (event:StyleEvent) => this._onInvalidateProperties(event);
 		this._onInvalidateVerticesDelegate = (event:ElementsEvent) => this._onInvalidateVertices(event);
@@ -687,15 +691,9 @@ export class Graphics extends AssetBase
 	public beginBitmapFill(bitmap:BitmapImage2D, matrix:Matrix = null, repeat:boolean = true, smooth:boolean = false):void
 	{
 		this.draw_fills();
-		this._drawingDirty=true;
-		// start a new fill path
-		this._active_fill_path=new GraphicsPath();
-		// todo: create bitmap fill style
-		this._active_fill_path.style=new GraphicsFillStyle(0xffffff, 1);
-		if(this._current_position.x!=0 || this._current_position.y!=0)
-			this._active_fill_path.moveTo(this._current_position.x, this._current_position.y);
-		this._queued_fill_pathes.push(this._active_fill_path);
-		this.invalidate();
+        this._drawingDirty=true;
+        
+        this._fillStyle=new GraphicsFillStyle(0xffffff, 1);
 	}
 
 	/**
@@ -718,14 +716,7 @@ export class Graphics extends AssetBase
 			color=0x010101;
 		}
 		this.draw_fills();
-		this._drawingDirty=true;
-		// start a new fill path
-		this._active_fill_path=new GraphicsPath();
-		this._active_fill_path.style=new GraphicsFillStyle(color, alpha);
-		if(this._current_position.x!=0 || this._current_position.y!=0)
-			this._active_fill_path.moveTo(this._current_position.x, this._current_position.y);
-		this._queued_fill_pathes.push(this._active_fill_path);
-		this.invalidate();
+        this._fillStyle=new GraphicsFillStyle(color, alpha);
 	}
 
 	/**
@@ -816,17 +807,7 @@ export class Graphics extends AssetBase
 		this.draw_fills();
 		// start a new fill path
 		this._drawingDirty=true;
-		this._active_fill_path=new GraphicsPath();
-		// todo: create gradient fill style
-		//this._active_fill_path.style=new GraphicsFillStyle(colors[0], alphas[0]);//, ratios, matrix, spreadMethod, interpolationMethod, focalPointRatio);
-
-		this._active_fill_path.style= new GradientFillStyle(type, colors, alphas, ratios, matrix, spreadMethod, interpolationMethod, focalPointRatio);
-		if(this._current_position.x!=0 || this._current_position.y!=0)
-			this._active_fill_path.moveTo(this._current_position.x, this._current_position.y);
-		this._queued_fill_pathes.push(this._active_fill_path);
-
-
-		this.invalidate();
+        this._fillStyle=new GradientFillStyle(type, colors, alphas, ratios, matrix, spreadMethod, interpolationMethod, focalPointRatio);
 	}
 
 	/**
@@ -948,7 +929,23 @@ export class Graphics extends AssetBase
 	public curveTo(controlX:number, controlY:number, anchorX:number, anchorY:number):void
 	{
 
-		this._drawingDirty=true;
+        this._drawingDirty=true;
+        
+        if(this._active_fill_path==null){            
+            this._active_fill_path=new GraphicsPath();
+            this._active_fill_path.style = this._fillStyle;
+            if(this._current_position.x!=0 || this._current_position.y!=0)
+                this._active_fill_path.moveTo(this._current_position.x, this._current_position.y);
+            this._queued_fill_pathes.push(this._active_fill_path);
+        }
+        if(this._active_stroke_path==null && this._lineStyle!=null){            
+            this._active_stroke_path=new GraphicsPath();
+            this._active_stroke_path.style = this._lineStyle;
+            if(this._current_position.x!=0 || this._current_position.y!=0)
+                this._active_fill_path.moveTo(this._current_position.x, this._current_position.y);
+            this._queued_stroke_pathes.push(this._active_fill_path);
+        }
+
 		if(this._active_fill_path!=null){
 			this._active_fill_path.curveTo(controlX, controlY, anchorX, anchorY);
 		}
@@ -957,6 +954,7 @@ export class Graphics extends AssetBase
 		}
 		this._current_position.x=anchorX;
 		this._current_position.y=anchorY;
+		this.invalidate();
 	}
 
 	/**
@@ -977,6 +975,20 @@ export class Graphics extends AssetBase
 	public drawCircle(x:number, y:number, radius:number):void
 	{
 		this._drawingDirty=true;
+        if(this._active_fill_path==null){            
+            this._active_fill_path=new GraphicsPath();
+            this._active_fill_path.style = this._fillStyle;
+            if(this._current_position.x!=0 || this._current_position.y!=0)
+                this._active_fill_path.moveTo(this._current_position.x, this._current_position.y);
+            this._queued_fill_pathes.push(this._active_fill_path);
+        }
+        if(this._active_stroke_path==null && this._lineStyle!=null){            
+            this._active_stroke_path=new GraphicsPath();
+            this._active_stroke_path.style = this._lineStyle;
+            if(this._current_position.x!=0 || this._current_position.y!=0)
+                this._active_stroke_path.moveTo(this._current_position.x, this._current_position.y);
+            this._queued_stroke_pathes.push(this._active_stroke_path);
+        }
 		//var radius2=radius*1.065;
 		if(this._active_fill_path!=null){
 			this._active_fill_path.moveTo(x, y);
@@ -1006,6 +1018,7 @@ export class Graphics extends AssetBase
 			GraphicsFactoryHelper.drawElipseStrokes(x,y, radius, radius, this._active_stroke_path.verts, 0, 360, 5, (<GraphicsStrokeStyle>this._active_stroke_path.style).thickness/2, false);
 
 		}
+		this.invalidate();
 	}
 
 	/**
@@ -1027,6 +1040,20 @@ export class Graphics extends AssetBase
 	public drawEllipse(x:number, y:number, width:number, height:number):void
 	{
 		this._drawingDirty=true;
+        if(this._active_fill_path==null && this._fillStyle!=null){            
+            this._active_fill_path=new GraphicsPath();
+            this._active_fill_path.style = this._fillStyle;
+            if(this._current_position.x!=0 || this._current_position.y!=0)
+                this._active_fill_path.moveTo(this._current_position.x, this._current_position.y);
+            this._queued_fill_pathes.push(this._active_fill_path);
+        }
+        if(this._active_stroke_path==null && this._lineStyle!=null){            
+            this._active_stroke_path=new GraphicsPath();
+            this._active_stroke_path.style = this._lineStyle;
+            if(this._current_position.x!=0 || this._current_position.y!=0)
+                this._active_stroke_path.moveTo(this._current_position.x, this._current_position.y);
+            this._queued_stroke_pathes.push(this._active_stroke_path);
+        }
 		//var radius2=radius*1.065;
 		if(this._active_fill_path!=null){
 			this._active_fill_path.moveTo(x, y);
@@ -1061,6 +1088,7 @@ export class Graphics extends AssetBase
 			 this._active_stroke_path.curveTo(x+(radius2), y+(radius2), x, y+radius);
 			 */
 		}
+		this.invalidate();
 
 	}
 
@@ -1181,6 +1209,20 @@ export class Graphics extends AssetBase
 	public drawRect(x:number, y:number, width:number, height:number):void
 	{
 		this._drawingDirty=true;
+        if(this._active_fill_path==null && this._fillStyle!=null){            
+            this._active_fill_path=new GraphicsPath();
+            this._active_fill_path.style = this._fillStyle;
+            if(this._current_position.x!=0 || this._current_position.y!=0)
+                this._active_fill_path.moveTo(this._current_position.x, this._current_position.y);
+            this._queued_fill_pathes.push(this._active_fill_path);
+        }
+        if(this._active_stroke_path==null && this._lineStyle!=null){            
+            this._active_stroke_path=new GraphicsPath();
+            this._active_stroke_path.style = this._lineStyle;
+            if(this._current_position.x!=0 || this._current_position.y!=0)
+                this._active_stroke_path.moveTo(this._current_position.x, this._current_position.y);
+            this._queued_stroke_pathes.push(this._active_stroke_path);
+        }
 		if(this._active_fill_path!=null){
 			this._active_fill_path.moveTo(x, y);
 			/*
@@ -1228,6 +1270,7 @@ export class Graphics extends AssetBase
 			this._active_stroke_path.lineTo(x, y);
 			
 		}
+		this.invalidate();
 	}
 
 	/**
@@ -1259,6 +1302,20 @@ export class Graphics extends AssetBase
 	public drawRoundRect(x:number, y:number, width:number, height:number, ellipseWidth:number, ellipseHeight:number = NaN):void
 	{
 		this._drawingDirty=true;
+        if(this._active_fill_path==null && this._fillStyle!=null){            
+            this._active_fill_path=new GraphicsPath();
+            this._active_fill_path.style = this._fillStyle;
+            if(this._current_position.x!=0 || this._current_position.y!=0)
+                this._active_fill_path.moveTo(this._current_position.x, this._current_position.y);
+            this._queued_fill_pathes.push(this._active_fill_path);
+        }
+        if(this._active_stroke_path==null && this._lineStyle!=null){            
+            this._active_stroke_path=new GraphicsPath();
+            this._active_stroke_path.style = this._lineStyle;
+            if(this._current_position.x!=0 || this._current_position.y!=0)
+                this._active_stroke_path.moveTo(this._current_position.x, this._current_position.y);
+            this._queued_stroke_pathes.push(this._active_stroke_path);
+        }
 		if(isNaN(ellipseHeight)){
 			ellipseHeight=ellipseWidth;
 		}
@@ -1310,6 +1367,7 @@ export class Graphics extends AssetBase
 			GraphicsFactoryHelper.drawElipseStrokes(x+ew,y+h-eh, ew, eh, this._active_stroke_path.verts, 90, 180, 5, t, false);
 
 		}
+		this.invalidate();
 	}
 
 	public drawRoundRectComplex(x:number, y:number, width:number, height:number, topLeftRadius:number, topRightRadius:number, bottomLeftRadius:number, bottomRightRadius:number){
@@ -1320,6 +1378,20 @@ export class Graphics extends AssetBase
 		var bl:number=bottomLeftRadius;
 		var br:number=bottomRightRadius;
 		this._drawingDirty=true;
+        if(this._active_fill_path==null && this._fillStyle!=null){            
+            this._active_fill_path=new GraphicsPath();
+            this._active_fill_path.style = this._fillStyle;
+            if(this._current_position.x!=0 || this._current_position.y!=0)
+                this._active_fill_path.moveTo(this._current_position.x, this._current_position.y);
+            this._queued_fill_pathes.push(this._active_fill_path);
+        }
+        if(this._active_stroke_path==null && this._lineStyle!=null){            
+            this._active_stroke_path=new GraphicsPath();
+            this._active_stroke_path.style = this._lineStyle;
+            if(this._current_position.x!=0 || this._current_position.y!=0)
+                this._active_stroke_path.moveTo(this._current_position.x, this._current_position.y);
+            this._queued_stroke_pathes.push(this._active_stroke_path);
+        }
 		var t:number=0;
 		if(this._active_fill_path!=null){
 			this._active_fill_path.moveTo(x, y);
@@ -1370,6 +1442,7 @@ export class Graphics extends AssetBase
 			GraphicsFactoryHelper.drawElipseStrokes(x+bl,y+h-bl, bl, bl, this._active_stroke_path.verts, 90, 180, 5, t, false);
 
 		}
+		this.invalidate();
 	}
 
 	/**
@@ -1424,8 +1497,8 @@ export class Graphics extends AssetBase
 
 		this.draw_fills();
 		this.draw_strokes();
-		//this._active_fill_path=null;
-		//this._active_stroke_path=null;
+		this._active_fill_path=null;
+		this._active_stroke_path=null;
 		//this.invalidate();
 		//this.invalidateElements();
 
@@ -1462,14 +1535,9 @@ export class Graphics extends AssetBase
 	 */
 	public lineBitmapStyle(bitmap:BitmapImage2D, matrix:Matrix = null, repeat:boolean = true, smooth:boolean = false):void
 	{
-		this._drawingDirty=true;
+		//this._drawingDirty=true;
+        //this._lineStyle=new  GraphicsStrokeStyle(colors[0], alphas[0], 1);
 		// start a new stroke path
-		this._active_stroke_path=new GraphicsPath();
-		if(this._current_position.x!=0 || this._current_position.y!=0)
-			this._active_stroke_path.moveTo(this._current_position.x, this._current_position.y);
-		this._queued_stroke_pathes.push(this._active_stroke_path);
-
-		this.invalidate();
 	}
 
 	/**
@@ -1544,15 +1612,8 @@ export class Graphics extends AssetBase
 	 */
 	public lineGradientStyle(type:GradientType, colors:Array<number /*int*/>, alphas:Array<number>, ratios:Array<number>, matrix:Matrix = null, spreadMethod:SpreadMethod = null, interpolationMethod:InterpolationMethod = null, focalPointRatio:number = 0):void
 	{
-		this._drawingDirty=true;
-		// start a new stroke path
-		this._active_stroke_path=new GraphicsPath();
-		this._active_stroke_path.style = new  GraphicsStrokeStyle(colors[0], alphas[0], 1);//, jointstyle, capstyle, miterLimit);
-		if(this._current_position.x!=0 || this._current_position.y!=0)
-			this._active_stroke_path.moveTo(this._current_position.x, this._current_position.y);
-		this._queued_stroke_pathes.push(this._active_stroke_path);
-
-		this.invalidate();
+        this._drawingDirty=true;
+        this._lineStyle=new  GraphicsStrokeStyle(colors[0], alphas[0], 1);
 	}
 
 	/**
@@ -1729,20 +1790,8 @@ export class Graphics extends AssetBase
 	public lineStyle(thickness:number = 0, color:number /*int*/ = 0, alpha:number = 1, pixelHinting:boolean = false, scaleMode:LineScaleMode = null, capstyle:number = CapsStyle.NONE, jointstyle:number = JointStyle.MITER, miterLimit:number = 100):void
 	{
 		this._drawingDirty=true;
+        this._lineStyle=new  GraphicsStrokeStyle(color, alpha, thickness, jointstyle, capstyle, miterLimit);
 		
-		// start a new stroke path
-		this._active_stroke_path=new GraphicsPath();
-		this._active_stroke_path.style = new  GraphicsStrokeStyle(color, alpha, thickness, jointstyle, capstyle, miterLimit);
-		if(thickness==0){
-			(<GraphicsStrokeStyle>this._active_stroke_path.style).scaleMode="HAIRLINE";
-			(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness=0.05;
-			//console.log("HAIRLINE");
-		}
-		if(this._current_position.x!=0 || this._current_position.y!=0)
-			this._active_stroke_path.moveTo(this._current_position.x, this._current_position.y);
-		this._queued_stroke_pathes.push(this._active_stroke_path);
-
-		this.invalidate();
 	}
 
 	/**
@@ -1764,6 +1813,20 @@ export class Graphics extends AssetBase
 	public lineTo(x:number, y:number):void
 	{
 		this._drawingDirty=true;
+        if(this._active_fill_path==null && this._fillStyle!=null){            
+            this._active_fill_path=new GraphicsPath();
+            this._active_fill_path.style = this._fillStyle;
+            if(this._current_position.x!=0 || this._current_position.y!=0)
+                this._active_fill_path.moveTo(this._current_position.x, this._current_position.y);
+            this._queued_fill_pathes.push(this._active_fill_path);
+        }
+        if(this._active_stroke_path==null && this._lineStyle!=null){            
+            this._active_stroke_path=new GraphicsPath();
+            this._active_stroke_path.style = this._lineStyle;
+            if(this._current_position.x!=0 || this._current_position.y!=0)
+                this._active_stroke_path.moveTo(this._current_position.x, this._current_position.y);
+            this._queued_stroke_pathes.push(this._active_stroke_path);
+        }
 		if(this._active_fill_path!=null){
 			this._active_fill_path.lineTo(x, y);
 		}
@@ -1772,6 +1835,7 @@ export class Graphics extends AssetBase
 		}
 		this._current_position.x=x;
 		this._current_position.y=y;
+		this.invalidate();
 
 	}
 
@@ -1788,6 +1852,20 @@ export class Graphics extends AssetBase
 	public moveTo(x:number, y:number):void
 	{
 		this._drawingDirty=true;
+        if(this._active_fill_path==null && this._fillStyle!=null){            
+            this._active_fill_path=new GraphicsPath();
+            this._active_fill_path.style = this._fillStyle;
+            if(this._current_position.x!=0 || this._current_position.y!=0)
+                this._active_fill_path.moveTo(this._current_position.x, this._current_position.y);
+            this._queued_fill_pathes.push(this._active_fill_path);
+        }
+        if(this._active_stroke_path==null && this._lineStyle!=null){            
+            this._active_stroke_path=new GraphicsPath();
+            this._active_stroke_path.style = this._lineStyle;
+            if(this._current_position.x!=0 || this._current_position.y!=0)
+                this._active_stroke_path.moveTo(this._current_position.x, this._current_position.y);
+            this._queued_stroke_pathes.push(this._active_stroke_path);
+        }
 
 		if(this._active_fill_path!=null){
 			this._active_fill_path.moveTo(x, y);
@@ -1797,6 +1875,7 @@ export class Graphics extends AssetBase
 		}
 		this._current_position.x=x;
 		this._current_position.y=y;
+		this.invalidate();
 	}
 
 	private _addShapes(shapes:Array<Shape>, cloneShapes:boolean = false):void
