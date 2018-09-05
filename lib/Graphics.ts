@@ -482,7 +482,8 @@ export class Graphics extends AssetBase
 
 			if (matrix3D) {
 				for (var i:number = 0; i < numShapes; i++) {
-					if ((shape = this._shapes[i]).isStroke && !strokeFlag) {
+                    shape = this._shapes[i]
+					if (shape.isStroke && shape.strokePath.stroke() && shape.strokePath.stroke().scaleMode==LineScaleMode.HAIRLINE && !strokeFlag) {
 						target = shape.strokePath.getBoxBounds(matrix3D, cache, target);
 					} else {
 						target = shape.getBoxBounds(matrix3D, cache, target);
@@ -498,12 +499,14 @@ export class Graphics extends AssetBase
 			if (this._orientedBoxBoundsDirty[strokeIndex]) {
 				this._orientedBoxBoundsDirty[strokeIndex] = false;
 
-				for (var i:number = 0; i < numShapes; i++)
-					if ((shape = this._shapes[i]).isStroke && !strokeFlag) {
-						obb = shape.strokePath.getBoxBounds(null, this._orientedBoxBounds[strokeIndex], obb);
+				for (var i:number = 0; i < numShapes; i++){
+                    shape = this._shapes[i]
+                    if (shape.isStroke && shape.strokePath.stroke() && shape.strokePath.stroke().scaleMode==LineScaleMode.HAIRLINE && !strokeFlag) {
+                        obb = shape.strokePath.getBoxBounds(null, this._orientedBoxBounds[strokeIndex], obb);
 					} else {
 						obb = shape.getBoxBounds(null, this._orientedBoxBounds[strokeIndex], obb);
-					}
+                    }
+                }
 				
 				this._orientedBoxBounds[strokeIndex] = obb;
 			} else {
