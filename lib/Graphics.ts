@@ -648,10 +648,12 @@ export class Graphics extends AssetBase
 	}
 
 	public draw_fills() {
-		GraphicsFactoryFills.draw_pathes(this);
+        GraphicsFactoryFills.draw_pathes(this);
+        this._active_fill_path=null;
 	}
 	public draw_strokes(){
 		GraphicsFactoryStrokes.draw_pathes(this);
+        this._active_stroke_path=null;
 
 	}
 	/**
@@ -934,20 +936,7 @@ export class Graphics extends AssetBase
 
         this._drawingDirty=true;
         
-        if(this._active_fill_path==null){            
-            this._active_fill_path=new GraphicsPath();
-            this._active_fill_path.style = this._fillStyle;
-            if(this._current_position.x!=0 || this._current_position.y!=0)
-                this._active_fill_path.moveTo(this._current_position.x, this._current_position.y);
-            this._queued_fill_pathes.push(this._active_fill_path);
-        }
-        if(this._active_stroke_path==null && this._lineStyle!=null){            
-            this._active_stroke_path=new GraphicsPath();
-            this._active_stroke_path.style = this._lineStyle;
-            if(this._current_position.x!=0 || this._current_position.y!=0)
-                this._active_fill_path.moveTo(this._current_position.x, this._current_position.y);
-            this._queued_stroke_pathes.push(this._active_fill_path);
-        }
+        this._createGraphicPathes();
 
 		if(this._active_fill_path!=null){
 			this._active_fill_path.curveTo(controlX, controlY, anchorX, anchorY);
@@ -978,20 +967,7 @@ export class Graphics extends AssetBase
 	public drawCircle(x:number, y:number, radius:number):void
 	{
 		this._drawingDirty=true;
-        if(this._active_fill_path==null){            
-            this._active_fill_path=new GraphicsPath();
-            this._active_fill_path.style = this._fillStyle;
-            if(this._current_position.x!=0 || this._current_position.y!=0)
-                this._active_fill_path.moveTo(this._current_position.x, this._current_position.y);
-            this._queued_fill_pathes.push(this._active_fill_path);
-        }
-        if(this._active_stroke_path==null && this._lineStyle!=null){            
-            this._active_stroke_path=new GraphicsPath();
-            this._active_stroke_path.style = this._lineStyle;
-            if(this._current_position.x!=0 || this._current_position.y!=0)
-                this._active_stroke_path.moveTo(this._current_position.x, this._current_position.y);
-            this._queued_stroke_pathes.push(this._active_stroke_path);
-        }
+        this._createGraphicPathes();
 		//var radius2=radius*1.065;
 		if(this._active_fill_path!=null){
 			this._active_fill_path.moveTo(x, y);
@@ -1043,20 +1019,7 @@ export class Graphics extends AssetBase
 	public drawEllipse(x:number, y:number, width:number, height:number):void
 	{
 		this._drawingDirty=true;
-        if(this._active_fill_path==null && this._fillStyle!=null){            
-            this._active_fill_path=new GraphicsPath();
-            this._active_fill_path.style = this._fillStyle;
-            if(this._current_position.x!=0 || this._current_position.y!=0)
-                this._active_fill_path.moveTo(this._current_position.x, this._current_position.y);
-            this._queued_fill_pathes.push(this._active_fill_path);
-        }
-        if(this._active_stroke_path==null && this._lineStyle!=null){            
-            this._active_stroke_path=new GraphicsPath();
-            this._active_stroke_path.style = this._lineStyle;
-            if(this._current_position.x!=0 || this._current_position.y!=0)
-                this._active_stroke_path.moveTo(this._current_position.x, this._current_position.y);
-            this._queued_stroke_pathes.push(this._active_stroke_path);
-        }
+        this._createGraphicPathes();
 		//var radius2=radius*1.065;
 		if(this._active_fill_path!=null){
 			this._active_fill_path.moveTo(x, y);
@@ -1212,20 +1175,7 @@ export class Graphics extends AssetBase
 	public drawRect(x:number, y:number, width:number, height:number):void
 	{
 		this._drawingDirty=true;
-        if(this._active_fill_path==null && this._fillStyle!=null){            
-            this._active_fill_path=new GraphicsPath();
-            this._active_fill_path.style = this._fillStyle;
-            if(this._current_position.x!=0 || this._current_position.y!=0)
-                this._active_fill_path.moveTo(this._current_position.x, this._current_position.y);
-            this._queued_fill_pathes.push(this._active_fill_path);
-        }
-        if(this._active_stroke_path==null && this._lineStyle!=null){            
-            this._active_stroke_path=new GraphicsPath();
-            this._active_stroke_path.style = this._lineStyle;
-            if(this._current_position.x!=0 || this._current_position.y!=0)
-                this._active_stroke_path.moveTo(this._current_position.x, this._current_position.y);
-            this._queued_stroke_pathes.push(this._active_stroke_path);
-        }
+        this._createGraphicPathes();
 		if(this._active_fill_path!=null){
 			this._active_fill_path.moveTo(x, y);
 			/*
@@ -1305,20 +1255,7 @@ export class Graphics extends AssetBase
 	public drawRoundRect(x:number, y:number, width:number, height:number, ellipseWidth:number, ellipseHeight:number = NaN):void
 	{
 		this._drawingDirty=true;
-        if(this._active_fill_path==null && this._fillStyle!=null){            
-            this._active_fill_path=new GraphicsPath();
-            this._active_fill_path.style = this._fillStyle;
-            if(this._current_position.x!=0 || this._current_position.y!=0)
-                this._active_fill_path.moveTo(this._current_position.x, this._current_position.y);
-            this._queued_fill_pathes.push(this._active_fill_path);
-        }
-        if(this._active_stroke_path==null && this._lineStyle!=null){            
-            this._active_stroke_path=new GraphicsPath();
-            this._active_stroke_path.style = this._lineStyle;
-            if(this._current_position.x!=0 || this._current_position.y!=0)
-                this._active_stroke_path.moveTo(this._current_position.x, this._current_position.y);
-            this._queued_stroke_pathes.push(this._active_stroke_path);
-        }
+        this._createGraphicPathes();
 		if(isNaN(ellipseHeight)){
 			ellipseHeight=ellipseWidth;
 		}
@@ -1381,20 +1318,7 @@ export class Graphics extends AssetBase
 		var bl:number=bottomLeftRadius;
 		var br:number=bottomRightRadius;
 		this._drawingDirty=true;
-        if(this._active_fill_path==null && this._fillStyle!=null){            
-            this._active_fill_path=new GraphicsPath();
-            this._active_fill_path.style = this._fillStyle;
-            if(this._current_position.x!=0 || this._current_position.y!=0)
-                this._active_fill_path.moveTo(this._current_position.x, this._current_position.y);
-            this._queued_fill_pathes.push(this._active_fill_path);
-        }
-        if(this._active_stroke_path==null && this._lineStyle!=null){            
-            this._active_stroke_path=new GraphicsPath();
-            this._active_stroke_path.style = this._lineStyle;
-            if(this._current_position.x!=0 || this._current_position.y!=0)
-                this._active_stroke_path.moveTo(this._current_position.x, this._current_position.y);
-            this._queued_stroke_pathes.push(this._active_stroke_path);
-        }
+        this._createGraphicPathes();
 		var t:number=0;
 		if(this._active_fill_path!=null){
 			this._active_fill_path.moveTo(x, y);
@@ -1816,20 +1740,7 @@ export class Graphics extends AssetBase
 	public lineTo(x:number, y:number):void
 	{
 		this._drawingDirty=true;
-        if(this._active_fill_path==null && this._fillStyle!=null){            
-            this._active_fill_path=new GraphicsPath();
-            this._active_fill_path.style = this._fillStyle;
-            if(this._current_position.x!=0 || this._current_position.y!=0)
-                this._active_fill_path.moveTo(this._current_position.x, this._current_position.y);
-            this._queued_fill_pathes.push(this._active_fill_path);
-        }
-        if(this._active_stroke_path==null && this._lineStyle!=null){            
-            this._active_stroke_path=new GraphicsPath();
-            this._active_stroke_path.style = this._lineStyle;
-            if(this._current_position.x!=0 || this._current_position.y!=0)
-                this._active_stroke_path.moveTo(this._current_position.x, this._current_position.y);
-            this._queued_stroke_pathes.push(this._active_stroke_path);
-        }
+        this._createGraphicPathes();
 		if(this._active_fill_path!=null){
 			this._active_fill_path.lineTo(x, y);
 		}
@@ -1854,7 +1765,22 @@ export class Graphics extends AssetBase
 	 */
 	public moveTo(x:number, y:number):void
 	{
-		this._drawingDirty=true;
+        this._drawingDirty=true;
+        this._createGraphicPathes();
+
+		if(this._active_fill_path!=null){
+			this._active_fill_path.moveTo(x, y);
+		}
+		if(this._active_stroke_path!=null){
+			this._active_stroke_path.moveTo(x, y);
+		}
+		this._current_position.x=x;
+		this._current_position.y=y;
+		this.invalidate();
+	}
+
+    private _createGraphicPathes(){
+
         if(this._active_fill_path==null && this._fillStyle!=null){            
             this._active_fill_path=new GraphicsPath();
             this._active_fill_path.style = this._fillStyle;
@@ -1869,18 +1795,7 @@ export class Graphics extends AssetBase
                 this._active_stroke_path.moveTo(this._current_position.x, this._current_position.y);
             this._queued_stroke_pathes.push(this._active_stroke_path);
         }
-
-		if(this._active_fill_path!=null){
-			this._active_fill_path.moveTo(x, y);
-		}
-		if(this._active_stroke_path!=null){
-			this._active_stroke_path.moveTo(x, y);
-		}
-		this._current_position.x=x;
-		this._current_position.y=y;
-		this.invalidate();
-	}
-
+    }
 	private _addShapes(shapes:Array<Shape>, cloneShapes:boolean = false):void
 	{
 		var shape:Shape;
