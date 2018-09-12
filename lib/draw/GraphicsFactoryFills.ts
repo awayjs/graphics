@@ -100,16 +100,18 @@ export class GraphicsFactoryFills
 					var shape:Shape=targetGraphics.addShape(Shape.getShape(elements, material));
 
 					shape.style = new Style();
-					sampler = new ImageSampler();
+                    sampler = new ImageSampler();
+                    sampler.mipmap=true;
+                    sampler.smooth=true;
 					shape.style.addSamplerAt(sampler, material.getTextureAt(0));
 					material.animateUVs=true;
 					shape.style.uvMatrix = bitmapStyle.getUVMatrix();
 
 					// todo: always use mappingmode = Radial ?
-					//sampler.imageRect = bitmapStyle.uvRectangle;
-					//material.imageRect = true;
-					//material.getTextureAt(0).mappingMode = MappingMode.RADIAL;
-
+					/*sampler.imageRect = bitmapStyle.uvRectangle;
+					material.imageRect = true;
+					material.getTextureAt(0).mappingMode = MappingMode.RADIAL;
+*/
 
 				}
 
