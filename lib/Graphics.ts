@@ -1425,7 +1425,9 @@ export class Graphics extends AssetBase
 		this.draw_fills();
 		this.draw_strokes();
 		this._active_fill_path=null;
-		this._active_stroke_path=null;
+        this._active_stroke_path=null;
+        this._lineStyle=null;
+        this._fillStyle=null;
 		//this.invalidate();
 		//this.invalidateElements();
 
@@ -1717,7 +1719,7 @@ export class Graphics extends AssetBase
 	public lineStyle(thickness:number = 0, color:number /*int*/ = 0, alpha:number = 1, pixelHinting:boolean = false, scaleMode:LineScaleMode = null, capstyle:number = CapsStyle.NONE, jointstyle:number = JointStyle.MITER, miterLimit:number = 100):void
 	{
 		this._drawingDirty=true;
-        this._lineStyle=new  GraphicsStrokeStyle(color, alpha, thickness, jointstyle, capstyle, miterLimit);
+        this._lineStyle = new  GraphicsStrokeStyle(color, alpha, thickness, jointstyle, capstyle, miterLimit);
 		
 	}
 
@@ -1781,14 +1783,14 @@ export class Graphics extends AssetBase
 
     private _createGraphicPathes(){
 
-        if(this._active_fill_path==null && this._fillStyle!=null){            
+        if(this._fillStyle!=null && (this._active_fill_path==null ||  this._active_fill_path.style!=this._fillStyle)){
             this._active_fill_path=new GraphicsPath();
             this._active_fill_path.style = this._fillStyle;
             if(this._current_position.x!=0 || this._current_position.y!=0)
                 this._active_fill_path.moveTo(this._current_position.x, this._current_position.y);
             this._queued_fill_pathes.push(this._active_fill_path);
         }
-        if(this._active_stroke_path==null && this._lineStyle!=null){            
+        if(this._lineStyle!=null && (this._active_stroke_path==null ||  this._active_stroke_path.style!=this._lineStyle)){
             this._active_stroke_path=new GraphicsPath();
             this._active_stroke_path.style = this._lineStyle;
             if(this._current_position.x!=0 || this._current_position.y!=0)

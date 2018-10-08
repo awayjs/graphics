@@ -525,7 +525,7 @@ export class GraphicsPath implements IGraphicsData
                 pLen = positions.length;
             }
 		}
-i
+
 		target.width = maxX - (target.x = minX);
 		target.height = maxY - (target.y = minY);
 		target.depth = 0;
