@@ -2,7 +2,7 @@ import {AbstractMethodError, Box, Sphere, Matrix3D, Vector3D, AssetBase, Transfo
 
 import {AttributesBuffer, AttributesView, Float3Attributes, Short3Attributes} from "@awayjs/stage";
 
-import {ElementsEvent, IElements} from "@awayjs/renderer";
+import {ElementsEvent, IElements, PickingCollision, IMaterial} from "@awayjs/renderer";
 
 /**
  * @class away.base.TriangleElements
@@ -26,12 +26,6 @@ export class ElementsBase extends AssetBase implements IElements
 
 	public _verticesDirty:Object = new Object();
 	public _invalidateVertices:Object = new Object();
-
-
-	public get traverseName():string
-	{
-		throw new AbstractMethodError();
-	}
 	
 	public get concatenatedBuffer():AttributesBuffer
 	{
@@ -321,5 +315,10 @@ export class ElementsBase extends AssetBase implements IElements
 
 		this._verticesDirty[attributesView.id] = null;
 		this._invalidateVertices[attributesView.id] = null;
+	}
+
+	public testCollision(collision:PickingCollision, closestFlag:boolean, material:IMaterial, count:number, offset:number = 0):boolean
+	{
+		throw new AbstractMethodError();
 	}
 }

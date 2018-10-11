@@ -1,8 +1,8 @@
-import {Rectangle, Box, Sphere, Matrix3D, Vector3D, Transform} from "@awayjs/core";
+import {Rectangle, Box, Sphere, Matrix3D, Vector3D, Transform, Point} from "@awayjs/core";
 
-import {TraverserBase, ElementsUtils} from "@awayjs/renderer";
+import {ElementsUtils, PickingCollision, IMaterial} from "@awayjs/renderer";
 
-import {AttributesBuffer, AttributesView, Float4Attributes, Float3Attributes, Float2Attributes, Short3Attributes} from "@awayjs/stage";
+import {AttributesBuffer, AttributesView, Float4Attributes, Float3Attributes, Float2Attributes, Short3Attributes, Viewport} from "@awayjs/stage";
 
 import {TriangleElementsUtils} from "../utils/TriangleElementsUtils";
 
@@ -14,7 +14,6 @@ export class TriangleElements extends ElementsBase
 {
 	private static isIE:boolean=!!navigator.userAgent.match(/Trident/g) || !!navigator.userAgent.match(/MSIE/g);
 
-	public static traverseName:string = TraverserBase.addRenderableName("applyTriangleShape");
 	public static assetType:string = "[asset TriangleElements]";
 	
 	private _faceNormalsDirty:boolean = true;
@@ -49,11 +48,6 @@ export class TriangleElements extends ElementsBase
 	public get assetType():string
 	{
 		return TriangleElements.assetType;
-	}
-
-	public get traverseName():string
-	{
-		return TriangleElements.traverseName;
 	}
 
 	/**
@@ -563,10 +557,143 @@ export class TriangleElements extends ElementsBase
 		this._faceNormalsDirty = false;
 	}
 
-	// public _iTestCollision(pickingCollider:IPickingCollider, material:MaterialBase, pickingCollision:PickingCollision, count:number = 0, offset:number = 0):boolean
-	// {
-	// 	return pickingCollider.testTriangleCollision(this, material, pickingCollision, count || this._numVertices, offset);
-	// }
+	public testCollision(collision:PickingCollision, closestFlag:boolean, material:IMaterial, count:number, offset:number = 0):boolean
+	{
+		var rayPosition:Vector3D = collision.rayPosition;
+		var rayDirection:Vector3D = collision.rayDirection;
+		var t:number;
+		var i0:number, i1:number, i2:number;
+		var rx:number, ry:number, rz:number;
+		var nx:number, ny:number, nz:number;
+		var cx:number, cy:number, cz:number;
+		var coeff:number, u:number, v:number, w:number;
+		var p0x:number, p0y:number, p0z:number;
+		var p1x:number, p1y:number, p1z:number;
+		var p2x:number, p2y:number, p2z:number;
+		var s0x:number, s0y:number, s0z:number;
+		var s1x:number, s1y:number, s1z:number;
+		var nl:number, nDotV:number, D:number, disToPlane:number;
+		var Q1Q2:number, Q1Q1:number, Q2Q2:number, RQ1:number, RQ2:number;
+		var collisionTriangleIndex:number = -1;
+		var bothSides:boolean = material.bothSides;
+
+		var positions:ArrayBufferView = this.positions.get(count, offset);
+		var posDim:number = this.positions.dimensions;
+		var posStride:number = this.positions.stride;
+
+		var indices:Uint16Array;
+		if (this.indices) {
+			indices = this.indices.get(this.numElements);
+			count = indices.length;
+		}
+
+		for (var index:number = 0; index < count; index+=3) { // sweep all triangles
+			// evaluate triangle indices
+			if (indices) {
+				i0 = indices[index]*posStride;
+				i1 = indices[index + 1]*posStride;
+				i2 = indices[index + 2]*posStride;
+			} else {
+				i0 = index*posStride;
+				i1 = (index + 1)*posStride;
+				i2 = (index + 2)*posStride;
+			}
+
+
+			// evaluate triangle positions
+			p0x = positions[i0];
+			p1x = positions[i1];
+			p2x = positions[i2];
+			s0x = p1x - p0x; // s0 = p1 - p0
+			s1x = p2x - p0x; // s1 = p2 - p0
+
+			p0y = positions[i0 + 1];
+			p1y = positions[i1 + 1];
+			p2y = positions[i2 + 1];
+			s0y = p1y - p0y;
+			s1y = p2y - p0y;
+
+			if (posDim == 3) {
+				p0z = positions[i0 + 2];
+				p1z = positions[i1 + 2];
+				p2z = positions[i2 + 2];
+				s0z = p1z - p0z;
+				s1z = p2z - p0z;
+
+				// evaluate sides and triangle normal
+				nx = s0y*s1z - s0z*s1y; // n = s0 x s1
+				ny = s0z*s1x - s0x*s1z;
+				nz = s0x*s1y - s0y*s1x;
+				nl = 1/Math.sqrt(nx*nx + ny*ny + nz*nz); // normalize n
+				nx *= nl;
+				ny *= nl;
+				nz *= nl;
+			} else { //2d hittest
+				nx = 0;
+				ny = 0;
+				nz = 1;
+			}
+
+			// -- plane intersection test --
+			nDotV = nx*rayDirection.x + ny* +rayDirection.y + nz*rayDirection.z; // rayDirection . normal
+			if (( !bothSides && nDotV < 0.0 ) || ( bothSides && nDotV != 0.0 )) { // an intersection must exist
+				// find collision t
+				D = -( nx*p0x + ny*p0y + nz*p0z );
+				disToPlane = -( nx*rayPosition.x + ny*rayPosition.y + nz*rayPosition.z + D );
+				t = disToPlane/nDotV;
+				// find collision point
+				cx = rayPosition.x + t*rayDirection.x;
+				cy = rayPosition.y + t*rayDirection.y;
+				cz = rayPosition.z + t*rayDirection.z;
+				// collision point inside triangle? ( using barycentric coordinates )
+				Q1Q2 = s0x*s1x + s0y*s1y + s0z*s1z;
+				Q1Q1 = s0x*s0x + s0y*s0y + s0z*s0z;
+				Q2Q2 = s1x*s1x + s1y*s1y + s1z*s1z;
+				rx = cx - p0x;
+				ry = cy - p0y;
+				rz = cz - p0z;
+				RQ1 = rx*s0x + ry*s0y + rz*s0z;
+				RQ2 = rx*s1x + ry*s1y + rz*s1z;
+				coeff = 1/(Q1Q1*Q2Q2 - Q1Q2*Q1Q2);
+				v = coeff*(Q2Q2*RQ1 - Q1Q2*RQ2);
+				w = coeff*(-Q1Q2*RQ1 + Q1Q1*RQ2);
+				if (v < 0)
+					continue;
+				if (w < 0)
+					continue;
+				u = 1 - v - w;
+				if (!( u < 0 ) && t > 0 && t < collision.rayEntryDistance) { // all tests passed
+					collisionTriangleIndex = index/3;
+					collision.rayEntryDistance = t;
+					collision.position = new Vector3D(cx, cy, cz);
+					collision.normal = new Vector3D(nx, ny, nz);
+					if (this.uvs) { //uv calculations
+						var uvs:ArrayBufferView = this.uvs.get(this.numVertices);
+						var uvStride:number = this.uvs.stride;
+
+						var uIndex:number = indices[index]*uvStride;
+						var uv0:Vector3D = new Vector3D(uvs[uIndex], uvs[uIndex + 1]);
+						uIndex = indices[index + 1]*uvStride;
+						var uv1:Vector3D = new Vector3D(uvs[uIndex], uvs[uIndex + 1]);
+						uIndex = indices[index + 2]*uvStride;
+						var uv2:Vector3D = new Vector3D(uvs[uIndex], uvs[uIndex + 1]);
+						collision.uv = new Point(u*uv0.x + v*uv1.x + w*uv2.x, u*uv0.y + v*uv1.y + w*uv2.y);
+					}
+					collision.elementIndex = collisionTriangleIndex;
+
+					// if not looking for best hit, first found will do...
+					if (!closestFlag)
+						return true;
+				}
+			}
+		}
+
+
+		if (collisionTriangleIndex >= 0)
+			return true;
+
+		return false;
+	}
 }
 
 import {AssetEvent, ProjectionBase} from "@awayjs/core";
@@ -597,9 +724,9 @@ export class _Stage_TriangleElements extends _Stage_ElementsBase
         this._triangleElements = null;
     }
 
-    public _setRenderState(renderRenderable:_Render_RenderableBase, shader:ShaderBase, projection:ProjectionBase):void
+    public _setRenderState(renderRenderable:_Render_RenderableBase, shader:ShaderBase, viewport:Viewport):void
     {
-        super._setRenderState(renderRenderable, shader, projection);
+        super._setRenderState(renderRenderable, shader, viewport);
 
         //set buffers
         //TODO: find a better way to update a concatenated buffer when autoderiving
@@ -633,16 +760,16 @@ export class _Stage_TriangleElements extends _Stage_ElementsBase
         this.activateVertexBufferVO(0, this._triangleElements.positions);
     }
 
-    public draw(renderRenderable:_Render_RenderableBase, shader:ShaderBase, projection:ProjectionBase, count:number, offset:number):void
+    public draw(renderRenderable:_Render_RenderableBase, shader:ShaderBase, viewport:Viewport, count:number, offset:number):void
     {
         //set constants
         if (shader.sceneMatrixIndex >= 0) {
             shader.sceneMatrix.copyFrom(renderRenderable.renderSceneTransform, true);
-            shader.viewMatrix.copyFrom(projection.viewMatrix3D, true);
+            shader.viewMatrix.copyFrom(viewport.viewMatrix3D, true);
         } else {
             var matrix3D:Matrix3D = Matrix3D.CALCULATION_MATRIX;
             matrix3D.copyFrom(renderRenderable.renderSceneTransform);
-            matrix3D.append(projection.viewMatrix3D);
+            matrix3D.append(viewport.viewMatrix3D);
             shader.viewMatrix.copyFrom(matrix3D, true);
         }
 

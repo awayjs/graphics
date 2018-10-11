@@ -1,8 +1,8 @@
 import {Box, Sphere, Vector3D, Transform} from "@awayjs/core";
 
-import {AttributesBuffer, AttributesView, Byte4Attributes, Float1Attributes} from "@awayjs/stage";
+import {AttributesBuffer, AttributesView, Byte4Attributes, Float1Attributes, Viewport} from "@awayjs/stage";
 
-import {TraverserBase, ElementsUtils} from "@awayjs/renderer";;
+import {TraverserBase, ElementsUtils, PickingCollision, IMaterial} from "@awayjs/renderer";;
 
 import {ElementsBase} from "./ElementsBase";
 
@@ -10,9 +10,7 @@ import {ElementsBase} from "./ElementsBase";
  * @class LineElements
  */
 export class LineElements extends ElementsBase
-{
-	public static traverseName:string = TraverserBase.addRenderableName("applyLineShape");
-		
+{	
 	public static assetType:string = "[asset LineElements]";
 
 	private _positions:AttributesView;
@@ -26,11 +24,6 @@ export class LineElements extends ElementsBase
 	public get assetType():string
 	{
 		return LineElements.assetType;
-	}
-	
-	public get traverseName():string
-	{
-		return LineElements.traverseName;
 	}
 
 	/**
@@ -277,10 +270,11 @@ export class LineElements extends ElementsBase
 		return clone;
 	}
 
-	// public _iTestCollision(pickingCollider:IPickingCollider, material:MaterialBase, pickingCollision:PickingCollision, count:number = 0, offset:number = 0):boolean
-	// {
-	// 	return pickingCollider.testLineCollision(this, material, pickingCollision, count || this._numVertices, offset);
-	// }
+	
+	public testCollision(collision:PickingCollision, closestFlag:boolean, material:IMaterial, count:number, offset:number = 0):boolean
+	{
+		return false; //TODO: peform correct line collision calculations
+	}
 }
 
 import {AssetEvent, Matrix3D, ProjectionBase} from "@awayjs/core";
@@ -314,9 +308,9 @@ export class _Stage_LineElements extends _Stage_ElementsBase
         this._lineElements = null;
     }
 
-    public _setRenderState(renderRenderable:_Render_RenderableBase, shader:ShaderBase, projection:ProjectionBase):void
+    public _setRenderState(renderRenderable:_Render_RenderableBase, shader:ShaderBase, viewport:Viewport):void
     {
-        super._setRenderState(renderRenderable, shader, projection);
+        super._setRenderState(renderRenderable, shader, viewport);
 
         if (shader.colorBufferIndex >= 0)
             this.activateVertexBufferVO(shader.colorBufferIndex, this._lineElements.colors);
@@ -332,23 +326,23 @@ export class _Stage_LineElements extends _Stage_ElementsBase
 
         shader.vertexConstantData[10+16] = -1;
 
-        shader.vertexConstantData[12+16] = this._thickness/((this._stage.scissorRect)? Math.min(this._stage.scissorRect.width, this._stage.scissorRect.height) : Math.min(this._stage.width, this._stage.height));
+        shader.vertexConstantData[12+16] = this._thickness/Math.min(viewport.width, viewport.height);
         shader.vertexConstantData[13+16] = 1/255;
-        shader.vertexConstantData[14+16] = projection.near;
+        shader.vertexConstantData[14+16] = viewport.projection.near;
 
         var context:IContextGL = this._stage.context;
     }
 
-    public draw(renderRenderable:_Render_RenderableBase, shader:ShaderBase, projection:ProjectionBase, count:number, offset:number):void
+    public draw(renderRenderable:_Render_RenderableBase, shader:ShaderBase, viewport:Viewport, count:number, offset:number):void
     {
         var context:IContextGL = this._stage.context;
 
         // projection matrix
-        shader.viewMatrix.copyFrom(projection.frustumMatrix3D, true);
+        shader.viewMatrix.copyFrom(viewport.frustumMatrix3D, true);
 
         var matrix3D:Matrix3D = Matrix3D.CALCULATION_MATRIX;
         matrix3D.copyFrom(renderRenderable.sourceEntity.transform.concatenatedMatrix3D);
-        matrix3D.append(projection.transform.inverseConcatenatedMatrix3D);
+        matrix3D.append(viewport.projection.transform.inverseConcatenatedMatrix3D);
         shader.sceneMatrix.copyFrom(matrix3D, true);
 
         context.setProgramConstantsFromArray(ContextGLProgramType.VERTEX, shader.vertexConstantData);

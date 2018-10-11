@@ -1,6 +1,6 @@
 import {Box, Matrix3D, Sphere, Vector3D, AssetBase, Transform} from "@awayjs/core";
 
-import {IMaterial, RenderableEvent, StyleEvent, Style, IRenderable, ElementsEvent} from "@awayjs/renderer";
+import {IMaterial, RenderableEvent, StyleEvent, Style, IRenderable, ElementsEvent, PickingCollision} from "@awayjs/renderer";
 
 import {ParticleCollection} from "../animators/data/ParticleCollection";
 import {ShapeEvent} from "../events/ShapeEvent";
@@ -113,7 +113,13 @@ export class Shape extends AssetBase implements IRenderable
 		if (this._elements == value)
 			return;
 
+		if (this._elements)
+			this._elements.removeEventListener(ElementsEvent.INVALIDATE_VERTICES, this._onInvalidateVerticesDelegate);
+
 		this._elements = value;
+
+		if (this._elements)
+			this._elements.addEventListener(ElementsEvent.INVALIDATE_VERTICES, this._onInvalidateVerticesDelegate);
 
 		this.invalidateElements();
 	}
@@ -238,9 +244,7 @@ export class Shape extends AssetBase implements IRenderable
 		if (event.attributesView != (<TriangleElements> event.target).positions)
 			return;
 		
-		this.invalidate();
-		
-		this.dispatchEvent(event);
+		//this.invalidateElements(); //TODO: need to optimise hittests before enabling
 	}
 
 	/**
@@ -252,11 +256,6 @@ export class Shape extends AssetBase implements IRenderable
 	 *
 	 * @internal
 	 */
-	// public _iTestCollision(pickingCollision:PickingCollision, pickingCollider:IPickingCollider):boolean
-	// {
-	// 	return this._elements._iTestCollision(pickingCollider, this.material, pickingCollision, this.count, this.offset)
-	// }
-
 
 	public applyTransformation(transform:Matrix3D):void
 	{
@@ -322,6 +321,11 @@ export class Shape extends AssetBase implements IRenderable
 		}
 
 		return target;
+	}
+
+	public testCollision(collision:PickingCollision, closestFlag:boolean):boolean
+	{
+		return this._elements.testCollision(collision, closestFlag, this.material || collision.entity.material, this.count || this.elements.numVertices, this.offset);
 	}
 }
 

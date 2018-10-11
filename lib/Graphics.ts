@@ -1,8 +1,8 @@
 import {ArgumentError, RangeError, PartialImplementationError, Point, Box, Vector3D, Sphere, Matrix, Matrix3D, AssetBase, Rectangle, Transform, ProjectionBase, PerspectiveProjection} from "@awayjs/core";
 
-import {BitmapImage2D, AttributesBuffer, AttributesView, Byte4Attributes, Float2Attributes} from "@awayjs/stage";
+import {BitmapImage2D, AttributesBuffer, AttributesView, Byte4Attributes, Float2Attributes, Viewport} from "@awayjs/stage";
 
-import {IAnimator, IEntity, IMaterial, Style, TraverserBase, StyleEvent, ElementsUtils, ElementsEvent, MaterialUtils} from "@awayjs/renderer";
+import {IAnimator, IEntity, IMaterial, Style, TraverserBase, StyleEvent, ElementsUtils, ElementsEvent, MaterialUtils, RenderableEvent} from "@awayjs/renderer";
 
 import {Shape} from "./renderables/Shape";
 import {GraphicsPath} from "./draw/GraphicsPath";
@@ -71,7 +71,7 @@ export class Graphics extends AssetBase
 	public static assetType:string = "[asset Graphics]";
 
 	private _onInvalidatePropertiesDelegate:(event:StyleEvent) => void;
-	private _onInvalidateVerticesDelegate:(event:ElementsEvent) => void;
+	private _onInvalidateElementsDelegate:(event:RenderableEvent) => void;
 	private _onAddMaterialDelegate:(event:ShapeEvent) => void;
 	private _onRemoveMaterialDelegate:(event:ShapeEvent) => void;
 
@@ -107,33 +107,33 @@ export class Graphics extends AssetBase
 
 	private _drawingDirty:boolean = false;
 
-	public getSpriteScale(projection:ProjectionBase = null):Vector3D
+	public getSpriteScale(viewport:Viewport = null):Vector3D
 	{
 		if(this._entity)
 			this._scale.copyFrom(this._entity.transform.concatenatedMatrix3D.decompose()[3]);
 		else
 			this._scale.identity();
 
-		if (projection) {
-			this._scale.x *= (<PerspectiveProjection> projection).hFocalLength/1000;
-			this._scale.y *= (<PerspectiveProjection> projection).focalLength/1000;
+		if (viewport) {
+			this._scale.x *= viewport.focalLength*viewport.pixelRatio/1000;
+			this._scale.y *= viewport.focalLength/1000;
 		}
 
 		return this._scale;
 	}
 
-	public updateScale(projection:ProjectionBase)
+	public updateScale(viewport:Viewport)
 	{
 		var prevScaleX:number = this._scale.x;
 		var prevScaleY:number = this._scale.y;
-		var scale:Vector3D = this.getSpriteScale(projection);
+		var scale:Vector3D = this.getSpriteScale(viewport);
 
 		if (scale.x == prevScaleX && scale.y == prevScaleY)
 		 	return;
 		
 		var len:number = this._shapes.length;
 		for (var i:number = 0; i < len; i++)
-			if(this._shapes[i].isStroke)
+			if(this._shapes[i].isStroke && this._shapes[i].strokePath.stroke() && this._shapes[i].strokePath.stroke().scaleMode != LineScaleMode.NORMAL)
 				GraphicsFactoryStrokes.updateStrokesForShape(this._shapes[i], scale, this.scaleStrokes);
 	}
 	public updateSlice9(scaleX:number, scaleY:number)
@@ -298,7 +298,7 @@ export class Graphics extends AssetBase
         this._lineStyle=null;
 
 		this._onInvalidatePropertiesDelegate = (event:StyleEvent) => this._onInvalidateProperties(event);
-		this._onInvalidateVerticesDelegate = (event:ElementsEvent) => this._onInvalidateVertices(event);
+		this._onInvalidateElementsDelegate = (event:RenderableEvent) => this._onInvalidateElements(event);
 		this._onAddMaterialDelegate = (event:ShapeEvent) => this._onAddMaterial(event);
 		this._onRemoveMaterialDelegate = (event:ShapeEvent) => this._onRemoveMaterial(event);
 		
@@ -318,7 +318,7 @@ export class Graphics extends AssetBase
 
 		this._shapes.push(shape);
 
-		shape.addEventListener(ElementsEvent.INVALIDATE_VERTICES, this._onInvalidateVerticesDelegate);
+		shape.addEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateElementsDelegate);
 		//shape.addEventListener(ShapeEvent.ADD_MATERIAL, this._onAddMaterialDelegate);
 		//shape.addEventListener(ShapeEvent.REMOVE_MATERIAL, this._onRemoveMaterialDelegate);
 
@@ -347,7 +347,7 @@ export class Graphics extends AssetBase
 
 		var shape:Shape = this._shapes.splice(index, 1)[0]
 
-		shape.removeEventListener(ElementsEvent.INVALIDATE_VERTICES, this._onInvalidateVerticesDelegate);
+		shape.removeEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateElementsDelegate);
 		//shape.removeEventListener(ShapeEvent.ADD_MATERIAL, this._onAddMaterialDelegate);
 		//shape.removeEventListener(ShapeEvent.REMOVE_MATERIAL, this._onRemoveMaterialDelegate);
 
@@ -426,7 +426,7 @@ export class Graphics extends AssetBase
 				Shape.storeShape(shape);
 			}
 			
-			shape.removeEventListener(ElementsEvent.INVALIDATE_VERTICES, this._onInvalidateVerticesDelegate);
+			shape.removeEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateElementsDelegate);
 			shape.removeEventListener(ShapeEvent.ADD_MATERIAL, this._onAddMaterialDelegate);
 			shape.removeEventListener(ShapeEvent.REMOVE_MATERIAL, this._onRemoveMaterialDelegate);
 		}
@@ -611,7 +611,7 @@ export class Graphics extends AssetBase
 		var len:number = this._shapes.length;
 
 		for (var i:number = len - 1; i >= 0; i--)
-			traverser[this._shapes[i].elements.traverseName](this._shapes[i]);
+			traverser.applyRenderable(this._shapes[i]);
 
 	}
 
@@ -620,13 +620,9 @@ export class Graphics extends AssetBase
 		this.invalidateMaterials();
 	}
 
-	private _onInvalidateVertices(event:ElementsEvent):void
+	private _onInvalidateElements(event:RenderableEvent):void
 	{
-		//callback for bounds update
-		if (event.attributesView != (<TriangleElements> event.target).positions)
-			return;
-
-		this.invalidate();
+		//this.invalidate(); //TODO: this should be valid but causes too high an overhead when invalidating an animator
 	}
 
 
@@ -1818,7 +1814,7 @@ export class Graphics extends AssetBase
 
             shape.particleCollection = shapes[i].particleCollection;
 
-            shape.addEventListener(ElementsEvent.INVALIDATE_VERTICES, this._onInvalidateVerticesDelegate);
+            shape.addEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateElementsDelegate);
 			shape.addEventListener(ShapeEvent.ADD_MATERIAL, this._onAddMaterialDelegate);
 			shape.addEventListener(ShapeEvent.REMOVE_MATERIAL, this._onRemoveMaterialDelegate);
 			this._shapes.push(shape);
