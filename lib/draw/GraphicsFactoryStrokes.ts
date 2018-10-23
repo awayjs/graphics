@@ -167,11 +167,13 @@ export class GraphicsFactoryStrokes
 
 			//console.log("process contour", positions);
 			if(scaleMode==LineScaleMode.NORMAL) {
+                /*
 				if((half_thicknessX*scale.x)<=0.5)
 					half_thicknessX=0.5*(1/scale.x);
 				
 				if((half_thicknessY*scale.y)<=0.5)
-					half_thicknessY=0.5*(1/scale.y);
+                    half_thicknessY=0.5*(1/scale.y);
+                    */
 			}
 
 			else if(scaleMode==LineScaleMode.NONE){
