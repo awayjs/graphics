@@ -68,7 +68,7 @@ export class GraphicsFactoryHelper
 			shape.style = new Style();
 			var sampler:ImageSampler = new ImageSampler();
             material.animateUVs=true;
-            
+            shape.style.color=color;
 			shape.style.addSamplerAt(sampler, material.getTextureAt(0));
 			shape.style.uvMatrix = new Matrix(0, 0, 0, 0, obj.colorPos.x, obj.colorPos.y);
 		}
