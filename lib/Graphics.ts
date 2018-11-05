@@ -440,7 +440,9 @@ export class Graphics extends AssetBase
 		this._active_stroke_path=null;
 		this._queued_fill_pathes.length = 0;
 		this._queued_stroke_pathes.length = 0;
-		this._drawingDirty=false;
+        this._drawingDirty=false;
+        this._lineStyle=null;
+        this._fillStyle=null;
 		//this.invalidateElements();
 	}
 	/**
@@ -1422,8 +1424,8 @@ export class Graphics extends AssetBase
 		this.draw_strokes();
 		this._active_fill_path=null;
         this._active_stroke_path=null;
-        this._lineStyle=null;
-        this._fillStyle=null;
+        //this._lineStyle=null;
+        //this._fillStyle=null;
 		//this.invalidate();
 		//this.invalidateElements();
 
