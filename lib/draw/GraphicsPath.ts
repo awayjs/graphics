@@ -97,7 +97,7 @@ export class GraphicsPath implements IGraphicsData
             return this._style;
         return null;
     }
-    public stroke():GraphicsStrokeStyle
+    public get stroke():GraphicsStrokeStyle
     {
         if (this._style==null)
             return null;

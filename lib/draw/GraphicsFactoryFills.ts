@@ -56,7 +56,7 @@ export class GraphicsFactoryFills
 				if(targetGraphics.queued_fill_pathes[cp].style.data_type==GraphicsFillStyle.data_type){
 					var obj= Graphics.get_material_for_color((<GraphicsFillStyle>targetGraphics.queued_fill_pathes[cp].style).color,(<GraphicsFillStyle>targetGraphics.queued_fill_pathes[cp].style).alpha);
 					material=obj.material;
-					var shape:Shape=targetGraphics.addShape(Shape.getShape(elements, material));
+					var shape:Shape=<Shape> targetGraphics.addShape(Shape.getShape(elements, material));
 					if(obj.colorPos){
 						shape.style = new Style();
 						sampler = new ImageSampler();
@@ -72,7 +72,7 @@ export class GraphicsFactoryFills
 					var obj= Graphics.get_material_for_gradient(gradientStyle);
 					material = obj.material;
 
-					var shape:Shape=targetGraphics.addShape(Shape.getShape(elements, material));
+					var shape:Shape=<Shape> targetGraphics.addShape(Shape.getShape(elements, material));
 
 					shape.style = new Style();
 					sampler = new ImageSampler();
@@ -97,7 +97,7 @@ export class GraphicsFactoryFills
 
 
 					var material  = bitmapStyle.material;//new ITexture(ImageUtils.getDefaultImage2D());//bitmapStyle.texture;
-					var shape:Shape=targetGraphics.addShape(Shape.getShape(elements, material));
+					var shape:Shape=<Shape> targetGraphics.addShape(Shape.getShape(elements, material));
 
 					shape.style = new Style();
                     sampler = new ImageSampler();

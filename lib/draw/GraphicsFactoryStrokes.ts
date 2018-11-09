@@ -2,7 +2,7 @@ import {Point, MathConsts, Rectangle, Matrix, Vector3D} from "@awayjs/core";
 
 import {ImageSampler, AttributesBuffer, AttributesView, Float3Attributes, Float2Attributes} from "@awayjs/stage";
 
-import {IMaterial, Style} from "@awayjs/renderer";
+import {IMaterial, Style, MaterialUtils} from "@awayjs/renderer";
 
 import {Shape} from "../renderables/Shape";
 import {TriangleElements} from "../elements/TriangleElements";
@@ -13,6 +13,8 @@ import {GraphicsFactoryHelper} from "../draw/GraphicsFactoryHelper";
 import {GraphicsStrokeStyle} from "../draw/GraphicsStrokeStyle";
 import {LineScaleMode} from "../draw/LineScaleMode";
 import {Graphics} from "../Graphics";
+import { ElementsBase } from '../elements/ElementsBase';
+import { LineElements } from '../elements/LineElements';
 
 /**
  * The Graphics class contains a set of methods that you can use to create a
@@ -42,22 +44,22 @@ export class GraphicsFactoryStrokes
 
 			var final_vert_list:number[]=[];
 			strokePath.prepare();
-			GraphicsFactoryStrokes.draw_path([strokePath], final_vert_list, material.curves, new Vector3D(1,1,1));
-			final_vert_list=final_vert_list.concat(strokePath.verts);
-			if(final_vert_list.length==0)
+			var elements:LineElements;
+			// if (targetGraphics.scaleStrokes != null) { //use LineElements
+				elements = GraphicsFactoryStrokes.getLineElements([strokePath], material.curves, strokePath.stroke.scaleMode);
+			// } else { // use TriangleELements
+			// 	elements = GraphicsFactoryStrokes.getTriangleElements([strokePath], material.curves);
+			// }
+
+			if (!elements)
 				continue;
-			var attributesView:AttributesView = new AttributesView(Float32Array, material.curves?3:2);
-			attributesView.set(final_vert_list);
-			var attributesBuffer:AttributesBuffer = attributesView.attributesBuffer.cloneBufferView();
-			attributesView.dispose();
-			var elements:TriangleElements = new TriangleElements(attributesBuffer);
-			elements.setPositions(new Float2Attributes(attributesBuffer));
+
+			elements.stroke = strokePath.stroke;
 			//	if(material.curves)
 			//		elements.setCustomAttributes("curves", new Byte4Attributes(attributesBuffer, false));
 			//	material.alpha=(<GraphicsStrokeStyle>this.queued_stroke_pathes[i].style).alpha;
-			var shape:Shape=targetGraphics.addShape(Shape.getShape(elements, material));
-			shape.isStroke=true;
-			shape.strokePath=strokePath;
+			var shape:Shape=<Shape>targetGraphics.addShape(Shape.getShape(elements, material));
+
 			if(obj.colorPos){
 				shape.style = new Style();
 				var sampler:ImageSampler = new ImageSampler();
@@ -71,23 +73,91 @@ export class GraphicsFactoryStrokes
 
 
 	}
-	public static updateStrokesForShape(shape:Shape, scale:Vector3D, scaleMode:string ){
-		//return;
+	// public static updateStrokesForShape(shape:Shape, scale:Vector3D, scaleMode:string ){
+	// 	//return;
 
-		var elements:TriangleElements = <TriangleElements> shape.elements;
+	// 	var elements:TriangleElements = <TriangleElements> shape.elements;
 
-		var graphicsPath = shape.strokePath;
-		var final_vert_list:Array<number>=[];
-		GraphicsFactoryStrokes.draw_path([graphicsPath], final_vert_list, false, scale, scaleMode);
+	// 	var final_vert_list:Array<number>=[];
+	// 	GraphicsFactoryStrokes.draw_path([graphicsPath], final_vert_list, false, scale, scaleMode);
 		
-		elements.concatenatedBuffer.count = final_vert_list.length/2;
+	// 	elements.concatenatedBuffer.count = final_vert_list.length/2;
+	// 	elements.setPositions(final_vert_list);
+	// 	elements.invalidate();
+
+
+	// }
+
+	public static getLineElements(graphic_pathes:Array<GraphicsPath>, curves:boolean, scaleMode:LineScaleMode=LineScaleMode.NORMAL):LineElements
+	{
+		var final_vert_list:number[]=[];
+		var final_thickness_list:number[]=[];
+		var len=graphic_pathes.length;
+		var positions:number[][];
+		var strokeStyle:GraphicsStrokeStyle;
+		var data:number[];
+		var i:number=0;
+		var k:number=0;
+
+		var end_x:number = 0;
+		var end_y:number = 0;
+		var prev_x:number = 0;
+		var prev_y:number = 0;
+
+		var pos_count:number = 0;
+		var thickness_count:number = 0;
+
+		var half_thickness:number=0;
+
+		var cp=0;
+		for(cp=0; cp<len; cp++){
+
+			positions = graphic_pathes[cp]._positions;
+			strokeStyle = graphic_pathes[cp].stroke;
+			half_thickness = (scaleMode != LineScaleMode.HAIRLINE)? strokeStyle.half_thickness : 0.5;
+
+			for(k=0; k<positions.length; k++) {
+				//commands = contour_commands[k];
+				data = positions[k];
+
+				prev_x=data[0]; 
+				prev_y=data[1];
+
+				for (i = 2; i < data.length; i+=2) {
+
+					end_x = data[i];
+					end_y = data[i+1];
+
+					// if the points are the same, we dont need to do anything.
+					if((end_x != prev_x)||(end_y != prev_y)){
+						final_vert_list[pos_count++] = prev_x;
+						final_vert_list[pos_count++] = prev_y;
+						final_vert_list[pos_count++] = 0;
+						final_vert_list[pos_count++] = end_x;
+						final_vert_list[pos_count++] = end_y;
+						final_vert_list[pos_count++] = 0;
+						final_thickness_list[thickness_count++] = half_thickness;
+					}
+
+					prev_x = end_x;
+					prev_y = end_y;
+				}
+			}
+		}
+
+		if(final_vert_list.length==0)
+			return;
+
+		var elements:LineElements = new LineElements(new AttributesBuffer());
 		elements.setPositions(final_vert_list);
-		elements.invalidate();
+		elements.setThickness(final_thickness_list);
 
-
+		return elements;
 	}
-	public static draw_path(graphic_pathes:Array<GraphicsPath>, final_vert_list:Array<number>, curves:boolean, scale:Vector3D, scaleMode:string=LineScaleMode.NORMAL){
-		
+
+	public static getTriangleElements(graphic_pathes:Array<GraphicsPath>, curves:boolean, scaleMode:LineScaleMode=LineScaleMode.NORMAL):TriangleElements
+	{
+		var final_vert_list:number[]=[];
 		var len=graphic_pathes.length;
 		var positions:number[][];
 		var strokeStyle:GraphicsStrokeStyle;
@@ -161,28 +231,28 @@ export class GraphicsFactoryStrokes
 
 
 			positions = graphic_pathes[cp]._positions;
-			strokeStyle = graphic_pathes[cp].stroke();
+			strokeStyle = graphic_pathes[cp].stroke;
 			half_thicknessX=strokeStyle.half_thickness;
 			half_thicknessY=strokeStyle.half_thickness;
 
 			//console.log("process contour", positions);
 			if(scaleMode==LineScaleMode.NORMAL) {
-				if((half_thicknessX*scale.x)<=0.5)
-					half_thicknessX=0.5*(1/scale.x);
+				if((half_thicknessX)<=0.5)
+					half_thicknessX=0.5;
 				
-				if((half_thicknessY*scale.y)<=0.5)
-					half_thicknessY=0.5*(1/scale.y);
+				if((half_thicknessY)<=0.5)
+					half_thicknessY=0.5;
 			}
 
-			else if(scaleMode==LineScaleMode.NONE){
-				half_thicknessX*=(1/scale.x);
-				half_thicknessY*=(1/scale.y);
-			}
+			// else if(scaleMode==LineScaleMode.NONE){
+			// 	half_thicknessX*=(1/scale.x);
+			// 	half_thicknessY*=(1/scale.y);
+			// }
 
-			if(strokeStyle.scaleMode==LineScaleMode.HAIRLINE){
-				half_thicknessX=0.5*(1/scale.x);
-				half_thicknessY=0.5*(1/scale.y);
-			}
+			// if(strokeStyle.scaleMode==LineScaleMode.HAIRLINE){
+			// 	half_thicknessX=0.5*(1/scale.x);
+			// 	half_thicknessY=0.5*(1/scale.y);
+			// }
 
 			for(k=0; k<positions.length; k++) {
 				//commands = contour_commands[k];
@@ -530,6 +600,18 @@ export class GraphicsFactoryStrokes
 
 		}
 		//targetGraphic.queued_stroke_pathes.length=0;
+
+		if(final_vert_list.length==0)
+			return;
+
+		var attributesView:AttributesView = new AttributesView(Float32Array, curves?3:2);
+		attributesView.set(final_vert_list);
+		var attributesBuffer:AttributesBuffer = attributesView.attributesBuffer.cloneBufferView();
+		attributesView.dispose();
+		var elements:TriangleElements = new TriangleElements(attributesBuffer);
+		elements.setPositions(new Float2Attributes(attributesBuffer));
+
+		return elements;
 	}
 
 }

@@ -2,7 +2,7 @@
  * The LineScaleMode class provides values for the <code>scaleMode</code>
  * parameter in the <code>Graphics.lineStyle()</code> method.
  */
-export class LineScaleMode
+export enum LineScaleMode
 {
 	/**
 	 * With this setting used as the <code>scaleMode</code> parameter of the
@@ -13,20 +13,20 @@ export class LineScaleMode
 	 * scaled only vertically, and the circle on the right is scaled both
 	 * vertically and horizontally.
 	 */
-	public static HORIZONTAL:string = "horizontal";
+	HORIZONTAL,
 
 	/**
 	 * With this setting used as the <code>scaleMode</code> parameter of the
 	 * <code>lineStyle()</code> method, the thickness of the line never scales.
 	 */
-	public static NONE:string = "none";
+	NONE,
 
 	/**
 	 * With this setting used as the <code>scaleMode</code> parameter of the
 	 * <code>lineStyle()</code> method, the thickness of the line always scales
 	 * when the object is scaled(the default).
 	 */
-	public static NORMAL:string = "normal";
+	NORMAL,
 
 	/**
 	 * With this setting used as the <code>scaleMode</code> parameter of the
@@ -37,6 +37,10 @@ export class LineScaleMode
 	 * left is scaled only horizontally, and the circle on the right is scaled
 	 * both vertically and horizontally.
 	 */
-	public static VERTICAL:string = "vertical";
-	public static HAIRLINE:string = "HAIRLINE";
+	VERTICAL,
+
+	/**
+	 * 
+	 */
+	HAIRLINE
 }

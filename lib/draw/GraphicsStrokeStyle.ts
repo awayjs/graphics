@@ -14,9 +14,9 @@ export class GraphicsStrokeStyle implements IGraphicsData
     private _jointstyle:number;
     private _capstyle:number;
     private _miter_limit:number;
-	public scaleMode:string;
+	public scaleMode:LineScaleMode;
 
-    constructor(color:number = 0xffffff, alpha:number = 1, thickness:number = 10, jointstyle:number = JointStyle.ROUND, capstyle:number = CapsStyle.SQUARE, miter_limit:number=10, scaleMode:string=LineScaleMode.NORMAL)
+    constructor(color:number = 0xffffff, alpha:number = 1, thickness:number = 10, jointstyle:number = JointStyle.ROUND, capstyle:number = CapsStyle.SQUARE, miter_limit:number=10, scaleMode:LineScaleMode=LineScaleMode.NORMAL)
     {
         this._color=color;
         this._alpha=alpha;

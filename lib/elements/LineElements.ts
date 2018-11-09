@@ -2,7 +2,7 @@ import {Box, Sphere, Vector3D, Transform} from "@awayjs/core";
 
 import {AttributesBuffer, AttributesView, Byte4Attributes, Float1Attributes, Viewport} from "@awayjs/stage";
 
-import {TraverserBase, ElementsUtils, PickingCollision, IMaterial} from "@awayjs/renderer";;
+import {ElementsUtils, PickingCollision, IMaterial, IEntity} from "@awayjs/renderer";;
 
 import {ElementsBase} from "./ElementsBase";
 
@@ -16,7 +16,39 @@ export class LineElements extends ElementsBase
 	private _positions:AttributesView;
 	private _thickness:Float1Attributes;
 	private _colors:Byte4Attributes;
+	private _thicknessScale:Vector3D = new Vector3D();
 
+	//used for hittesting geometry
+	public hitTestCache:Object = new Object();
+
+	public stroke:GraphicsStrokeStyle;
+
+	public getThicknessScale(viewport:Viewport, entity:IEntity, strokeFlag:boolean):Vector3D
+	{
+		if (!strokeFlag && this.stroke.scaleMode == LineScaleMode.HAIRLINE) {
+			this._thicknessScale.identity();
+		} else {
+			if(entity)
+				this._thicknessScale.copyFrom(entity.transform.concatenatedMatrix3D.decompose()[3]);
+			else
+				this._thicknessScale.identity();
+
+			if (viewport) {
+				this._thicknessScale.x *= viewport.focalLength*viewport.pixelRatio/1000;
+				this._thicknessScale.y *= viewport.focalLength/1000;
+			}
+
+			if (this.stroke.scaleMode == LineScaleMode.NORMAL) {
+				this._thicknessScale.x = (this.stroke.half_thickness*this._thicknessScale.x > 0.5)? this.stroke.half_thickness : 0.5/this._thicknessScale.x;
+				this._thicknessScale.y = (this.stroke.half_thickness*this._thicknessScale.y > 0.5)? this.stroke.half_thickness : 0.5/this._thicknessScale.y;
+			} else if (this.stroke.scaleMode == LineScaleMode.HAIRLINE) {
+				this._thicknessScale.x = 0.5/this._thicknessScale.x;
+				this._thicknessScale.y = 0.5/this._thicknessScale.y;
+			}
+		}
+
+		return this._thicknessScale;
+	}
 	/**
 	 *
 	 * @returns {string}
@@ -63,16 +95,24 @@ export class LineElements extends ElementsBase
 		this._positions = new AttributesView(Float32Array, 6, concatenatedBuffer);
 	}
 
-	public getBoxBounds(matrix3D:Matrix3D = null, cache:Box = null, target:Box = null, count:number = 0, offset:number = 0):Box
+	public getBoxBounds(viewport:Viewport, entity:IEntity = null, strokeFlag:boolean = true, matrix3D:Matrix3D = null, cache:Box = null, target:Box = null, count:number = 0, offset:number = 0):Box
 	{
-		//TODO bounding calculations for lines
-		return target;
+		return LineElementsUtils.getBoxBounds(this.positions, matrix3D, this.getThicknessScale(viewport, entity, strokeFlag), cache, target, count || this._numElements || this._numVertices, offset);
 	}
 
-	public getSphereBounds(center:Vector3D, matrix3D:Matrix3D = null, cache:Sphere = null, target:Sphere = null):Sphere
+	public getSphereBounds(viewport:Viewport, center:Vector3D, matrix3D:Matrix3D = null, strokeFlag:boolean = true, cache:Sphere = null, target:Sphere = null, count:number = 0, offset:number = 0):Sphere
 	{
-		//TODO bounding calculations for lines
-		return target;
+		//TODO bounding calculations for line thickness
+		return LineElementsUtils.getSphereBounds(this.positions, center, matrix3D, cache, target, count || this._numVertices, offset);
+	}
+
+	
+	public hitTestPoint(viewport:Viewport, entity:IEntity, x:number, y:number, z:number, box:Box, count:number = 0, offset:number = 0, idx_count:number = 0, idx_offset:number = 0):boolean
+	{
+		var scale:Vector3D = this.getThicknessScale(viewport, entity, true);
+		var thickness:number = (scale.x + scale.y)/2;//approx hack for now
+
+		return LineElementsUtils.hitTest(x, y, 0, thickness, box, this, count || this._numElements || this._numVertices, offset);
 	}
 
 	/**
@@ -93,8 +133,13 @@ export class LineElements extends ElementsBase
 			var positions:Float32Array = new Float32Array(values.length*4);
 			var indices:Uint16Array = new Uint16Array(values.length);
 
+			//oders incoming startpos/endpos values to look like the following 6-dimensional attributes view:
+			//startpos x, y, z endpos x, y, z
+			//endpos x, y, z startpos x, y, z
+			//startpos x, y, z endpos x, y, z
+			//endpos x, y, z startpos x, y, z
 			while (i < values.length) {
-				if (index/6 & 1) {
+				if (index/6 & 1) { //if number is odd, reverse the order of startpos/endpos
 					positions[index] = values[i + 3];
 					positions[index + 1] = values[i + 4];
 					positions[index + 2] = values[i + 5];
@@ -154,6 +199,11 @@ export class LineElements extends ElementsBase
 			var index:number = 0;
 			var thickness:Float32Array = new Float32Array(values.length*4);
 
+			//oders incoming thickness values to look like the following 1-dimensional attributes view:
+			//thickness t
+			//thickness -t
+			//thickness -t
+			//thickness t
 			while (i < values.length) {
 				thickness[index] = (Math.floor(0.5*index + 0.5) & 1)? -values[i] : values[i];
 
@@ -271,7 +321,7 @@ export class LineElements extends ElementsBase
 	}
 
 	
-	public testCollision(collision:PickingCollision, closestFlag:boolean, material:IMaterial, count:number, offset:number = 0):boolean
+	public testCollision(viewport:Viewport, collision:PickingCollision, closestFlag:boolean, material:IMaterial, count:number, offset:number = 0):boolean
 	{
 		return false; //TODO: peform correct line collision calculations
 	}
@@ -282,6 +332,9 @@ import {AssetEvent, Matrix3D, ProjectionBase} from "@awayjs/core";
 import {ContextGLDrawMode, IContextGL, ContextGLProgramType, Stage, ShaderRegisterCache, ShaderRegisterElement, ShaderRegisterData} from "@awayjs/stage";
 
 import {RenderGroup, ShaderBase, _Stage_ElementsBase, _Render_ElementsBase, _Render_RenderableBase} from "@awayjs/renderer";
+import { LineScaleMode } from '../draw/LineScaleMode';
+import { GraphicsStrokeStyle } from '../draw/GraphicsStrokeStyle';
+import { LineElementsUtils } from '../utils/LineElementsUtils';
 
 /**
  *
@@ -289,8 +342,8 @@ import {RenderGroup, ShaderBase, _Stage_ElementsBase, _Render_ElementsBase, _Ren
  */
 export class _Stage_LineElements extends _Stage_ElementsBase
 {
-    private _calcMatrix:Matrix3D = new Matrix3D();
-    private _thickness:number = 1.25;
+    private _scale:Vector3D = new Vector3D();
+    private _thickness:number = 1;
 
     private _lineElements:LineElements;
 
@@ -312,23 +365,42 @@ export class _Stage_LineElements extends _Stage_ElementsBase
     {
         super._setRenderState(renderRenderable, shader, viewport);
 
+		var renderElements:_Render_LineElements = <_Render_LineElements> renderRenderable.renderGroup.getRenderElements(renderRenderable.stageElements.elements);
+
         if (shader.colorBufferIndex >= 0)
             this.activateVertexBufferVO(shader.colorBufferIndex, this._lineElements.colors);
 
         this.activateVertexBufferVO(0, this._lineElements.positions, 3);
-        this.activateVertexBufferVO(2, this._lineElements.positions, 3, 12);
-        this.activateVertexBufferVO(3, this._lineElements.thickness);
+        this.activateVertexBufferVO(renderElements.secondaryPositionIndex, this._lineElements.positions, 3, 12);
+        this.activateVertexBufferVO(renderElements.thicknessIndex, this._lineElements.thickness);
 
-        shader.vertexConstantData[4+16] = 1;
-        shader.vertexConstantData[5+16] = 1;
-        shader.vertexConstantData[6+16] = 1;
-        shader.vertexConstantData[7+16] = 1;
+		if (shader.uvIndex >= 0)
+			this.activateVertexBufferVO(shader.uvIndex, this._lineElements.positions, 2);
 
-        shader.vertexConstantData[10+16] = -1;
+		var index:number = renderElements._dataIndex;
+		var data:Float32Array = shader.vertexConstantData;
+			
+        data[index + 4] = 1;
+        data[index + 5] = 1;
+        data[index + 6] = 1;
+        data[index + 7] = 1;
 
-        shader.vertexConstantData[12+16] = this._thickness/Math.min(viewport.width, viewport.height);
-        shader.vertexConstantData[13+16] = 1/255;
-        shader.vertexConstantData[14+16] = viewport.projection.near;
+        data[index + 10] = -1;
+
+		this._scale.copyFrom(renderRenderable.sourceEntity.transform.concatenatedMatrix3D.decompose()[3]);
+
+		var stroke:GraphicsStrokeStyle = this._lineElements.stroke;
+		if (stroke.scaleMode == LineScaleMode.NORMAL) {
+			data[index + 12] = (stroke.half_thickness*this._scale.x*this._thickness > 0.5)? this._scale.x*this._thickness/1000 : 1/1000;
+			data[index + 13] = (stroke.half_thickness*this._scale.y*this._thickness > 0.5)? this._scale.y*this._thickness/1000 : 1/1000;
+		} else if (stroke.scaleMode == LineScaleMode.HAIRLINE) {
+			data[index + 12] = this._thickness/(viewport.focalLength*viewport.pixelRatio);
+			data[index + 13] = this._thickness/viewport.focalLength;
+		} else {
+			data[index + 12] = this._thickness/Math.min(viewport.width, viewport.height);
+			data[index + 13] = this._thickness/Math.min(viewport.width, viewport.height);
+		}
+        data[index + 14] = viewport.projection.near;
 
         var context:IContextGL = this._stage.context;
     }
@@ -346,6 +418,7 @@ export class _Stage_LineElements extends _Stage_ElementsBase
         shader.sceneMatrix.copyFrom(matrix3D, true);
 
         context.setProgramConstantsFromArray(ContextGLProgramType.VERTEX, shader.vertexConstantData);
+		context.setProgramConstantsFromArray(ContextGLProgramType.FRAGMENT, shader.fragmentConstantData);
 
         if (this._indices)
             this.getIndexBufferGL().draw(ContextGLDrawMode.TRIANGLES, offset*3, count*3 || this.numIndices);
@@ -374,17 +447,26 @@ export class _Stage_LineElements extends _Stage_ElementsBase
  */
 export class _Render_LineElements extends _Render_ElementsBase
 {
+	public secondaryPositionIndex:number = -1;
+
+	public thicknessIndex:number = -1;
+
+	public _dataIndex:number;
+
     public _includeDependencies(shader:ShaderBase):void
     {
-        shader.colorDependencies++;
+        //shader.colorDependencies++;
     }
 
     public _getVertexCode(shader:ShaderBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
     {
         //get the projection coordinates
         var position0:ShaderRegisterElement = (shader.globalPosDependencies > 0)? sharedRegisters.globalPositionVertex : sharedRegisters.animatedPosition;
-        var position1:ShaderRegisterElement = registerCache.getFreeVertexAttribute();
+		var position1:ShaderRegisterElement = registerCache.getFreeVertexAttribute();
+		this.secondaryPositionIndex =  position1.index;
+
         var thickness:ShaderRegisterElement = registerCache.getFreeVertexAttribute();
+		this.thicknessIndex =  thickness.index;
 
         //reserving vertex constants for projection matrix
         var viewMatrixReg:ShaderRegisterElement = registerCache.getFreeVertexConstant();
@@ -393,7 +475,8 @@ export class _Render_LineElements extends _Render_ElementsBase
         registerCache.getFreeVertexConstant();
         shader.viewMatrixIndex = viewMatrixReg.index*4;
 
-        registerCache.getFreeVertexConstant(); // not used
+		var dataReg = registerCache.getFreeVertexConstant(); // not used
+		this._dataIndex = dataReg.index*4;
         var constOne:ShaderRegisterElement = registerCache.getFreeVertexConstant();
         var constNegOne:ShaderRegisterElement = registerCache.getFreeVertexConstant();
         var misc:ShaderRegisterElement = registerCache.getFreeVertexConstant();
@@ -418,7 +501,7 @@ export class _Render_LineElements extends _Render_ElementsBase
         var offset:ShaderRegisterElement = registerCache.getFreeVertexVectorTemp();
         registerCache.addVertexTempUsages(offset, 1);
 
-        return "m44 " + q0 + ", " + position0 + ", " + sceneMatrixReg + "			\n" + // transform Q0 to eye space
+        var code:string = "m44 " + q0 + ", " + position0 + ", " + sceneMatrixReg + "			\n" + // transform Q0 to eye space
             "m44 " + q1 + ", " + position1 + ", " + sceneMatrixReg + "			\n" + // transform Q1 to eye space
             "sub " + l + ", " + q1 + ", " + q0 + " 			\n" + // L = Q1 - Q0
 
@@ -464,14 +547,23 @@ export class _Render_LineElements extends _Render_ElementsBase
 
             // calculate the amount required to move at the point's distance to correspond to the line's pixel width
             // scale the side vector by that amount
-            "dp3 " + offset + ".x, " + q0 + ", " + constNegOne + "			\n" + // distance = dot( view )
-            "mul " + offset + ".x, " + offset + ".x, " + misc + ".x			\n" + // distance *= vpsod
-            "mul " + qclipped + ".xyz, " + qclipped + ".xyz, " + offset + ".xxx	\n" + // S.xyz *= pixelScaleFactor
+			"dp3 " + offset + ".x, " + q0 + ", " + constNegOne + "			\n" + // distance = dot( view )
+			"mul " + qclipped + ".xyz, " + qclipped + ".xyz, " + offset + ".xxx	\n" + // S.xyz *= pixelScaleFactor
+			"mul " + qclipped + ".xyz, " + qclipped + ".xyz, " + misc + ".xy	\n" + // distance *= vpsod
 
             // add scaled side vector to Q0 and transform to clip space
             "add " + q0 + ".xyz, " + q0 + ".xyz, " + qclipped + ".xyz	\n" + // Q0 + S
 
-            "m44 op, " + q0 + ", " + viewMatrixReg + "			\n"  // transform Q0 to clip space
+			"m44 op, " + q0 + ", " + viewMatrixReg + "			\n"  // transform Q0 to clip space
+			
+		registerCache.removeVertexTempUsage(q0);
+		registerCache.removeVertexTempUsage(q1);
+        registerCache.removeVertexTempUsage(l);
+        registerCache.removeVertexTempUsage(behind);
+        registerCache.removeVertexTempUsage(qclipped);
+		registerCache.removeVertexTempUsage(offset);
+		
+		return code;
     }
 
     public _getFragmentCode(shader:ShaderBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
