@@ -38,10 +38,10 @@ export class LineElements extends ElementsBase
 				this._thicknessScale.y *= viewport.focalLength/1000;
 			}
 
-			if (this.stroke.scaleMode == LineScaleMode.NORMAL) {
+			if (this.stroke && this.stroke.scaleMode == LineScaleMode.NORMAL) {
 				this._thicknessScale.x = (this.stroke.half_thickness*this._thicknessScale.x > 0.5)? this.stroke.half_thickness : 0.5/this._thicknessScale.x;
 				this._thicknessScale.y = (this.stroke.half_thickness*this._thicknessScale.y > 0.5)? this.stroke.half_thickness : 0.5/this._thicknessScale.y;
-			} else if (this.stroke.scaleMode == LineScaleMode.HAIRLINE) {
+			} else if (!this.stroke || this.stroke.scaleMode == LineScaleMode.HAIRLINE) {
 				this._thicknessScale.x = 0.5/this._thicknessScale.x;
 				this._thicknessScale.y = 0.5/this._thicknessScale.y;
 			}
@@ -390,10 +390,10 @@ export class _Stage_LineElements extends _Stage_ElementsBase
 		this._scale.copyFrom(renderRenderable.sourceEntity.transform.concatenatedMatrix3D.decompose()[3]);
 
 		var stroke:GraphicsStrokeStyle = this._lineElements.stroke;
-		if (stroke.scaleMode == LineScaleMode.NORMAL) {
+		if (stroke && stroke.scaleMode == LineScaleMode.NORMAL) {
 			data[index + 12] = (stroke.half_thickness*this._scale.x*this._thickness > 0.5)? this._scale.x*this._thickness/1000 : 1/1000;
 			data[index + 13] = (stroke.half_thickness*this._scale.y*this._thickness > 0.5)? this._scale.y*this._thickness/1000 : 1/1000;
-		} else if (stroke.scaleMode == LineScaleMode.HAIRLINE) {
+		} else if (!stroke || stroke.scaleMode == LineScaleMode.HAIRLINE) {
 			data[index + 12] = this._thickness/(viewport.focalLength*viewport.pixelRatio);
 			data[index + 13] = this._thickness/viewport.focalLength;
 		} else {
