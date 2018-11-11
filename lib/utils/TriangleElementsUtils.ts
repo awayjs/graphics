@@ -10,7 +10,7 @@ export class TriangleElementsUtils
 {
 	//TODO - generate this dyanamically based on num tris
 
-	public static hitTestTriangleElements(x:number, y:number, z:number, box:Box, triangleElements:TriangleElements, count:number, offset:number = 0):boolean
+	public static hitTest(x:number, y:number, z:number, box:Box, triangleElements:TriangleElements, count:number, offset:number = 0):boolean
 	{
 		var positionAttributes:AttributesView = triangleElements.positions;
 		var curveAttributes:AttributesView = triangleElements.getCustomAtributes("curves");
@@ -389,7 +389,7 @@ export class TriangleElementsUtils
 		return false;
 	}
 
-	public static getTriangleGraphicsBoxBounds(positionAttributes:AttributesView, indexAttributes:Short2Attributes, matrix3D:Matrix3D, cache:Box, target:Box, count:number, offset:number = 0):Box
+	public static getBoxBounds(positionAttributes:AttributesView, indexAttributes:Short2Attributes, matrix3D:Matrix3D, cache:Box, target:Box, count:number, offset:number = 0):Box
 	{
 		var positions:ArrayBufferView;
 		var posDim:number = positionAttributes.dimensions;
@@ -490,7 +490,7 @@ export class TriangleElementsUtils
 		return target;
 	}
 
-	public static getTriangleGraphicsSphereBounds(positionAttributes:AttributesView, center:Vector3D, matrix3D:Matrix3D, cache:Sphere, output:Sphere, count:number, offset:number = 0):Sphere
+	public static getSphereBounds(positionAttributes:AttributesView, center:Vector3D, matrix3D:Matrix3D, cache:Sphere, output:Sphere, count:number, offset:number = 0):Sphere
 	{
 		var positions:ArrayBufferView = positionAttributes.get(count, offset);
 		var posDim:number = positionAttributes.dimensions;

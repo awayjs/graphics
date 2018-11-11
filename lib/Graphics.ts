@@ -1,10 +1,10 @@
-import {ArgumentError, RangeError, PartialImplementationError, Point, Box, Vector3D, Sphere, Matrix, Matrix3D, AssetBase, Rectangle, Transform, ProjectionBase, PerspectiveProjection} from "@awayjs/core";
+import {ArgumentError, RangeError, PartialImplementationError, Point, Vector3D, Matrix, Matrix3D, AssetBase, Rectangle} from "@awayjs/core";
 
-import {BitmapImage2D, AttributesBuffer, AttributesView, Byte4Attributes, Float2Attributes, Viewport} from "@awayjs/stage";
+import {BitmapImage2D, Viewport} from "@awayjs/stage";
 
-import {IAnimator, IEntity, IMaterial, Style, TraverserBase, StyleEvent, ElementsUtils, ElementsEvent, MaterialUtils, RenderableEvent} from "@awayjs/renderer";
+import {IAnimator, IEntity, IMaterial, Style, StyleEvent, MaterialUtils, RenderableEvent, IPicker, IRenderer} from "@awayjs/renderer";
 
-import {Shape} from "./renderables/Shape";
+import {IShape} from "./renderables/IShape";
 import {GraphicsPath} from "./draw/GraphicsPath";
 import {GraphicsFactoryFills} from "./draw/GraphicsFactoryFills";
 import {GraphicsFactoryStrokes} from "./draw/GraphicsFactoryStrokes";
@@ -25,6 +25,7 @@ import {GradientFillStyle} from "./draw/GradientFillStyle";
 import {TriangleElements} from "./elements/TriangleElements";
 import {ShapeEvent} from "./events/ShapeEvent";
 import {TriangleElementsUtils} from "./utils/TriangleElementsUtils";
+import { Shape } from './renderables/Shape';
 
 /**
  *
@@ -75,12 +76,8 @@ export class Graphics extends AssetBase
 	private _onAddMaterialDelegate:(event:ShapeEvent) => void;
 	private _onRemoveMaterialDelegate:(event:ShapeEvent) => void;
 
-	private _orientedBoxBounds:Box[] = [];
-	private _orientedBoxBoundsDirty:boolean[] = [true, true];
-	private _orientedSphereBounds:Sphere;
-	private _orientedSphereBoundsDirty = true;
 	private _material:IMaterial;
-	private _shapes:Array<Shape> = [];
+	private _shapes:Array<IShape> = [];
 	private _animator:IAnimator;
 	private _style:Style;
 
@@ -102,40 +99,37 @@ export class Graphics extends AssetBase
 	private _scaleX:number = 0;
 	private _scaleY:number = 0;
 
-	// todo: this is a temp workarpound to prevent strokes from getting scaled, if they are not coming from awd
-	public scaleStrokes:string=LineScaleMode.NORMAL;
-
 	private _drawingDirty:boolean = false;
 
-	public getSpriteScale(viewport:Viewport = null):Vector3D
-	{
-		if(this._entity)
-			this._scale.copyFrom(this._entity.transform.concatenatedMatrix3D.decompose()[3]);
-		else
-			this._scale.identity();
+	// public getSpriteScale(viewport:Viewport = null):Vector3D
+	// {
+	// 	if(this._entity)
+	// 		this._scale.copyFrom(this._entity.transform.concatenatedMatrix3D.decompose()[3]);
+	// 	else
+	// 		this._scale.identity();
 
-		if (viewport) {
-			this._scale.x *= viewport.focalLength*viewport.pixelRatio/1000;
-			this._scale.y *= viewport.focalLength/1000;
-		}
+	// 	if (viewport) {
+	// 		this._scale.x *= viewport.focalLength*viewport.pixelRatio/1000;
+	// 		this._scale.y *= viewport.focalLength/1000;
+	// 	}
 
-		return this._scale;
-	}
+	// 	return this._scale;
+	// }
 
-	public updateScale(viewport:Viewport)
-	{
-		var prevScaleX:number = this._scale.x;
-		var prevScaleY:number = this._scale.y;
-		var scale:Vector3D = this.getSpriteScale(viewport);
+	// public updateScale(viewport:Viewport)
+	// {
+	// 	var prevScaleX:number = this._scale.x;
+	// 	var prevScaleY:number = this._scale.y;
+	// 	var scale:Vector3D = this.getSpriteScale(viewport);
 
-		if (scale.x == prevScaleX && scale.y == prevScaleY)
-		 	return;
+	// 	if (scale.x == prevScaleX && scale.y == prevScaleY)
+	// 	 	return;
 		
-		var len:number = this._shapes.length;
-		for (var i:number = 0; i < len; i++)
-			if(this._shapes[i].isStroke && this._shapes[i].strokePath.stroke() && this._shapes[i].strokePath.stroke().scaleMode != LineScaleMode.NORMAL)
-				GraphicsFactoryStrokes.updateStrokesForShape(this._shapes[i], scale, this.scaleStrokes);
-	}
+	// 	var len:number = this._shapes.length;
+	// 	for (var i:number = 0; i < len; i++)
+	// 		if(this._shapes[i].isStroke && this._shapes[i].strokePath.stroke() && this._shapes[i].strokePath.stroke().scaleMode != LineScaleMode.NORMAL)
+	// 			GraphicsFactoryStrokes.updateStrokesForShape(this._shapes[i], scale, this.scaleStrokes);
+	// }
 	public updateSlice9(scaleX:number, scaleY:number)
 	{
 		if (this._scaleX == scaleX && this._scaleY == scaleY)
@@ -184,7 +178,7 @@ export class Graphics extends AssetBase
 			this._material.iAddOwner(this._entity);
 		}
 		
-		var shape:Shape;
+		var shape:IShape;
 		var len:number = this._shapes.length;
 		for (var i:number = 0; i < len; ++i) {
 			shape = this._shapes[i];
@@ -309,7 +303,7 @@ export class Graphics extends AssetBase
 	 *
 	 * @param elements
 	 */
-	public addShape(shape:Shape):Shape
+	public addShape(shape:IShape):IShape
 	{
 		var shapeIndex:number = this.getShapeIndex(shape);
 		
@@ -330,7 +324,7 @@ export class Graphics extends AssetBase
 		return shape;
 	}
 
-	public removeShape(shape:Shape):void
+	public removeShape(shape:IShape):void
 	{
 		var shapeIndex:number = this.getShapeIndex(shape);
 		
@@ -345,7 +339,7 @@ export class Graphics extends AssetBase
 		if (index < 0 || index >= this._shapes.length)
 			throw new RangeError("Index is out of range");
 
-		var shape:Shape = this._shapes.splice(index, 1)[0]
+		var shape:IShape = this._shapes.splice(index, 1)[0]
 
 		shape.removeEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateElementsDelegate);
 		//shape.removeEventListener(ShapeEvent.ADD_MATERIAL, this._onAddMaterialDelegate);
@@ -354,12 +348,12 @@ export class Graphics extends AssetBase
 		this.invalidate();
 	}
 
-	public getShapeAt(index:number):Shape
+	public getShapeAt(index:number):IShape
 	{
 		return this._shapes[index];
 	}
 	
-	public getShapeIndex(shape:Shape):number
+	public getShapeIndex(shape:IShape):number
 	{
 		return this._shapes.indexOf(shape);
 	}
@@ -377,7 +371,6 @@ export class Graphics extends AssetBase
 	{
 		graphics.material = this._material;
 		graphics.style = this._style;
-		graphics.scaleStrokes = this.scaleStrokes;
 		if(this.slice9Rectangle){
 			graphics.slice9Rectangle=new Rectangle();
 			graphics.slice9Rectangle.copyFrom(this.slice9Rectangle);
@@ -415,16 +408,16 @@ export class Graphics extends AssetBase
 
 	public clear():void
 	{
-		var shape:Shape;
+		var shape:IShape;
 		var len:number = this._shapes.length;
 		for (var i:number = 0; i < len; i++) {
 			shape = this._shapes[i];
-			shape.clear();
-			if (shape.isStroke) {
-				shape.elements.clear();
-				shape.elements.dispose();
-				Shape.storeShape(shape);
-			}
+			//shape.clear();
+			// if (shape.isStroke) {
+			// 	shape.elements.clear();
+			// 	shape.elements.dispose();
+			// 	Shape.storeShape(<Shape>shape);
+			// }
 			
 			shape.removeEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateElementsDelegate);
 			shape.removeEventListener(ShapeEvent.ADD_MATERIAL, this._onAddMaterialDelegate);
@@ -471,114 +464,6 @@ export class Graphics extends AssetBase
 			this._shapes[i].scaleUV(scaleU, scaleV);
 	}
 
-	public getBoxBounds(matrix3D:Matrix3D = null, strokeFlag:boolean = true, cache:Box = null, target:Box = null):Box
-	{
-		if(this._drawingDirty)
-			this.endFill();
-
-		var numShapes:number = this._shapes.length;
-
-
-		if (numShapes) {
-			var shape:Shape;
-
-			if (matrix3D) {
-				for (var i:number = 0; i < numShapes; i++) {
-                    shape = this._shapes[i]
-					if (shape.isStroke && shape.strokePath.stroke() && shape.strokePath.stroke().scaleMode==LineScaleMode.HAIRLINE && !strokeFlag) {
-						target = shape.strokePath.getBoxBounds(matrix3D, cache, target);
-					} else {
-						target = shape.getBoxBounds(matrix3D, cache, target);
-					}
-				}	
-
-				return target;
-			}
-
-			var obb:Box;
-			var strokeIndex:number = strokeFlag? 1 : 0;
-
-			if (this._orientedBoxBoundsDirty[strokeIndex]) {
-				this._orientedBoxBoundsDirty[strokeIndex] = false;
-
-				for (var i:number = 0; i < numShapes; i++){
-                    shape = this._shapes[i]
-                    if (shape.isStroke && shape.strokePath.stroke() && shape.strokePath.stroke().scaleMode==LineScaleMode.HAIRLINE && !strokeFlag) {
-                        obb = shape.strokePath.getBoxBounds(null, this._orientedBoxBounds[strokeIndex], obb);
-					} else {
-						obb = shape.getBoxBounds(null, this._orientedBoxBounds[strokeIndex], obb);
-                    }
-                }
-				
-				this._orientedBoxBounds[strokeIndex] = obb;
-			} else {
-				obb = this._orientedBoxBounds[strokeIndex];
-			}
-
-			if (obb != null)
-				target = obb.union(target, target || cache);
-		}
-		/*if(!target){
-			target=cache || new Box(); 
-		}*/
-
-		return target;
-	}
-
-
-	public getSphereBounds(center:Vector3D, matrix3D:Matrix3D = null, strokeFlag:boolean = true, cache:Sphere = null, target:Sphere = null):Sphere
-	{
-		if(this._drawingDirty)
-			this.endFill();
-
-		var numShapes:number = this._shapes.length;
-
-
-		if (numShapes) {
-			var shape:Shape;
-
-			if (matrix3D) {
-				for (var i:number = 0; i < numShapes; i++)
-					if (!(shape = this._shapes[i]).isStroke || strokeFlag)
-						target = shape.getSphereBounds(center, matrix3D, cache, target);
-
-				return target;
-			}
-
-			if (this._orientedSphereBoundsDirty) {
-				this._orientedSphereBoundsDirty = false;
-	
-				var osb:Sphere;
-
-				for (var i:number = 0; i < numShapes; i++)
-					if (!(shape = this._shapes[i]).isStroke || strokeFlag)
-						osb = shape.getSphereBounds(center, null, this._orientedSphereBounds, osb);
-
-				this._orientedSphereBounds = osb;
-			}
-			
-			if (this._orientedSphereBounds != null) {
-				if (target == null) {
-					target = cache || new Sphere();
-					target.copyFrom(this._orientedSphereBounds);
-				} else {
-					target = target.union(this._orientedSphereBounds, target);
-				}
-			}
-		}
-
-		return target;
-	}
-
-	public invalidate():void
-	{
-		super.invalidate();
-
-		this._orientedBoxBoundsDirty[0] = true;
-		this._orientedBoxBoundsDirty[1] = true;
-		this._orientedSphereBoundsDirty = true;
-	}
-
 	public invalidateMaterials():void
 	{
 		var len:number = this._shapes.length;
@@ -594,28 +479,32 @@ export class Graphics extends AssetBase
 			this._shapes[i].invalidateElements();
 	}
 
-	public _hitTestPointInternal(x:number, y:number):boolean
+	public _applyRenderables(renderer:IRenderer):void
 	{
-		//TODO: handle lines as well
-		var len:number = this._shapes.length;
-		for(var i:number = 0; i < len; i++)
-			if (this._shapes[i].hitTestPoint(x, y, 0))
-				return true;
-
-		return false;
-	}
-
-	public acceptTraverser(traverser:TraverserBase):void
-	{
-		if(this._drawingDirty){
+		if(this._drawingDirty)
 			this.endFill();
-		}
+		
 		var len:number = this._shapes.length;
 
 		for (var i:number = len - 1; i >= 0; i--)
-			traverser.applyRenderable(this._shapes[i]);
+			renderer.applyRenderable(this._shapes[i]);
 
 	}
+
+	
+	public _applyPickables(picker:IPicker):void
+	{
+		if(this._drawingDirty)
+			this.endFill();
+		
+		var len:number = this._shapes.length;
+
+		for (var i:number = len - 1; i >= 0; i--)
+			picker.applyPickable(this._shapes[i]);
+
+	}
+
+	
 
 	private _onInvalidateProperties(event:StyleEvent):void
 	{
@@ -1796,21 +1685,15 @@ export class Graphics extends AssetBase
             this._queued_stroke_pathes.push(this._active_stroke_path);
         }
     }
-	private _addShapes(shapes:Array<Shape>, cloneShapes:boolean = false):void
+	private _addShapes(shapes:Array<IShape>, cloneShapes:boolean = false):void
 	{
-		var shape:Shape;
+		var shape:IShape;
 		var len:number = shapes.length;
 		for (var i:number = 0; i < len; i++) {
 			shape = shapes[i];
-			if(this.slice9Rectangle) // todo: this is a dirty workaround to get the slice9-shapes cloned:
+			if(this.slice9Rectangle) { // todo: this is a dirty workaround to get the slice9-shapes cloned:
 				shape = Shape.getShape(TriangleElementsUtils.updateTriangleGraphicsSlice9(<TriangleElements> shape.elements, this.originalSlice9Size, 1, 1, false, true), shape.material, shape.style);
-			else if (shape.isStroke){
-				var originalShape:Shape=shape;
-				shape = Shape.getShape(shape.elements.clone(), shape.material, shape.style, 0, 0);
-				shape.isStroke=originalShape.isStroke;
-				shape.strokePath=originalShape.strokePath;
-			}
-			else if (cloneShapes){
+			} else if (cloneShapes){
 				shape = Shape.getShape(shape.elements, shape.material, shape.style, shape.count, shape.offset);
 			}
 

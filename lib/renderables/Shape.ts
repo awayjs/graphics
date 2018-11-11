@@ -1,6 +1,6 @@
 import {Box, Matrix3D, Sphere, Vector3D, AssetBase, Transform} from "@awayjs/core";
 
-import {IMaterial, RenderableEvent, StyleEvent, Style, IRenderable, ElementsEvent, PickingCollision} from "@awayjs/renderer";
+import {IMaterial, RenderableEvent, StyleEvent, Style, ElementsEvent, PickingCollision, PickEntity, _Pick_PickableBase} from "@awayjs/renderer";
 
 import {ParticleCollection} from "../animators/data/ParticleCollection";
 import {ShapeEvent} from "../events/ShapeEvent";
@@ -18,7 +18,7 @@ import {GraphicsPath} from "../draw/GraphicsPath";
  *
  * @class away.base.Graphic
  */
-export class Shape extends AssetBase implements IRenderable
+export class Shape extends AssetBase implements IShape
 {
 	private static _pool:Array<Shape> = new Array<Shape>();
 
@@ -31,7 +31,6 @@ export class Shape extends AssetBase implements IRenderable
 			shape.style = style;
 			shape.count = count;
 			shape.offset = offset;
-			shape.isStroke = false;
 			return shape;
 		}
 
@@ -51,19 +50,12 @@ export class Shape extends AssetBase implements IRenderable
 
 	public static assetType:string = "[asset Shape]";
 
-	private _orientedBoxBounds:Box;
-	private _orientedBoxBoundsDirty:boolean = true;
-	private _orientedSphereBounds:Sphere;
-	private _orientedSphereBoundsDirty = true;
 	private _onInvalidatePropertiesDelegate:(event:StyleEvent) => void;
 	private _onInvalidateVerticesDelegate:(event:ElementsEvent) => void;
 
 	private _elements:ElementsBase;
 	private _material:IMaterial;
 	private _style:Style;
-
-	private _isStroke:boolean;
-	private _strokePath:GraphicsPath;
 
 	public count:number;
 
@@ -72,33 +64,6 @@ export class Shape extends AssetBase implements IRenderable
 	public _owners:Array<Graphics>;
 
 	public particleCollection:ParticleCollection;
-
-	/*
-	 * _strokePath provides the original stroke-path that was used to create this shape
-	 * when the strokepath is set, it should already be prepared so that its faster to update stroke for new thickness
-	 */
-	public get strokePath():GraphicsPath
-	{
-		return this._strokePath;
-	}
-
-	public set strokePath(value:GraphicsPath)
-	{
-		this._strokePath = value;
-	}
-
-	/*
-		* true if this shape was created for a stroke
-	 */
-	public get isStroke():boolean
-	{
-		return this._isStroke;
-	}
-
-	public set isStroke(value:boolean)
-	{
-		this._isStroke = value;
-	}
 
 	/**
 	 * The Elements object which provides the geometry data for this Shape.
@@ -209,24 +174,10 @@ export class Shape extends AssetBase implements IRenderable
 	{
 		super.dispose();
 	}
-
-	public invalidate():void
-	{
-		super.invalidate();
-
-		this._orientedBoxBoundsDirty = true;
-		this._orientedSphereBoundsDirty = true;
-
-		if (this._strokePath)
-			this._strokePath.invalidate();
-	}
 	
 	public invalidateElements():void
 	{
 		this.dispatchEvent(new RenderableEvent(RenderableEvent.INVALIDATE_ELEMENTS, this));
-
-		this._orientedBoxBoundsDirty = true;
-		this._orientedSphereBoundsDirty = true;
 	}
 
 	public invalidateMaterial():void
@@ -262,17 +213,6 @@ export class Shape extends AssetBase implements IRenderable
 		this._elements.applyTransformation(transform, this.count, this.offset);
 	}
 
-	public hitTestPoint(x:number, y:number, z:number):boolean
-	{
-		var box:Box = this.getBoxBounds();
-
-		//early out for box test
-		if(box == null || !box.contains(x, y, z))
-			return false;
-
-		return this._elements.hitTestPoint(x, y, z, box, this.count, this.offset);
-	}
-	
 	public scale(scale:number):void
 	{
 		this._elements.scale(scale, this.count, this.offset);
@@ -282,51 +222,6 @@ export class Shape extends AssetBase implements IRenderable
 	{
 		this._elements.scaleUV(scaleU, scaleV, this.count, this.offset);
 	}
-
-	public getBoxBounds(matrix3D:Matrix3D = null, cache:Box = null, target:Box = null):Box
-	{
-		if (matrix3D)
-			return this._elements.getBoxBounds(matrix3D, cache, target, this.count, this.offset);
-
-		if (this._orientedBoxBoundsDirty) {
-			this._orientedBoxBoundsDirty = false;
-
-			this._orientedBoxBounds = this._elements.getBoxBounds(null, this._orientedBoxBounds, null, this.count, this.offset);
-		}
-
-		if (this._orientedBoxBounds != null)
-			target = this._orientedBoxBounds.union(target, target || cache);
-
-		return target;
-	}
-
-	public getSphereBounds(center:Vector3D, matrix3D:Matrix3D = null, cache:Sphere = null, target:Sphere = null):Sphere
-	{
-		if (matrix3D)
-			return this._elements.getSphereBounds(center, matrix3D, cache, target, this.count, this.offset);
-
-		if (this._orientedSphereBoundsDirty) {
-			this._orientedSphereBoundsDirty = false;
-
-			this._orientedSphereBounds = this._elements.getSphereBounds(center, null, this._orientedSphereBounds, null, this.count, this.offset);
-		}
-
-		if (this._orientedSphereBounds != null) {
-			if (target == null) {
-				target = cache || new Sphere();
-				target.copyFrom(this._orientedSphereBounds);
-			} else {
-				target = target.union(this._orientedSphereBounds, target);
-			}
-		}
-
-		return target;
-	}
-
-	public testCollision(collision:PickingCollision, closestFlag:boolean):boolean
-	{
-		return this._elements.testCollision(collision, closestFlag, this.material || collision.entity.material, this.count || this.elements.numVertices, this.offset);
-	}
 }
 
 import {AssetEvent} from "@awayjs/core";
@@ -335,6 +230,7 @@ import {_Render_RenderableBase, RenderEntity, _Stage_ElementsBase, _Render_Mater
 
 import {AnimatorBase} from "../animators/AnimatorBase";
 import {LineElements} from "../elements/LineElements";
+import { IShape } from './IShape';
 
 /**
  * @class away.pool._Render_Shape
@@ -383,7 +279,7 @@ export class _Render_Shape extends _Render_RenderableBase
 
     protected _getRenderMaterial():_Render_MaterialBase
     {
-        return this._renderGroup.getRenderElements(this.stageElements.elements).getAbstraction(this.shape.material || this.sourceEntity.material || this.getDefaultMaterial());
+        return this.renderGroup.getRenderElements(this.stageElements.elements).getAbstraction(this.shape.material || this.sourceEntity.material || this.getDefaultMaterial());
     }
 
     protected getDefaultMaterial():IMaterial
@@ -392,4 +288,110 @@ export class _Render_Shape extends _Render_RenderableBase
     }
 }
 
+
+/**
+ * @class away.pool._Render_Shape
+ */
+export class _Pick_Shape extends _Pick_PickableBase
+{
+	private _orientedBoxBounds:Box;
+	private _orientedBoxBoundsDirty:boolean = true;
+	private _orientedSphereBounds:Sphere;
+	private _orientedSphereBoundsDirty = true;
+
+    /**
+     *
+     */
+    public shape:Shape;
+
+    /**
+     * //TODO
+     *
+     * @param renderEntity
+     * @param shape
+     * @param level
+     * @param indexOffset
+     */
+    constructor(shape:Shape, pickEntity:PickEntity)
+    {
+        super(shape, pickEntity);
+
+        this.shape = shape;
+    }
+
+    public onInvalidate(event:AssetEvent):void
+    {
+        super.onInvalidate(event);
+
+		this._orientedBoxBoundsDirty = true;
+		this._orientedSphereBoundsDirty = true;
+	}
+
+	public onInvalidateElements(event:RenderableEvent):void
+    {
+		super.onInvalidateElements(event);
+
+		this._orientedBoxBoundsDirty = true;
+		this._orientedSphereBoundsDirty = true;
+	}
+	
+    public onClear(event:AssetEvent):void
+    {
+        super.onClear(event);
+
+        this.shape = null;
+	}
+	
+	public hitTestPoint(x:number, y:number, z:number):boolean
+	{
+		var box:Box = this.getBoxBounds();
+
+		//early out for box test
+		if(box == null || !box.contains(x, y, z))
+			return false;
+
+		return this.shape.elements.hitTestPoint(this._viewport, this.sourceEntity, x, y, z, box, this.shape.count, this.shape.offset);
+	}
+
+	public getBoxBounds(matrix3D:Matrix3D = null, strokeFlag:boolean = true, cache:Box = null, target:Box = null):Box
+	{
+		if (matrix3D)
+			return this.shape.elements.getBoxBounds(this._viewport, this.sourceEntity, strokeFlag, matrix3D, cache, target, this.shape.count, this.shape.offset);
+
+		if (this._orientedBoxBoundsDirty) {
+			this._orientedBoxBoundsDirty = false;
+
+			this._orientedBoxBounds = this.shape.elements.getBoxBounds(this._viewport, this.sourceEntity, strokeFlag, null, this._orientedBoxBounds, null, this.shape.count, this.shape.offset);
+		}
+
+		if (this._orientedBoxBounds != null)
+			target = this._orientedBoxBounds.union(target, target || cache);
+
+		return target;
+	}
+
+	public getSphereBounds(center:Vector3D, matrix3D:Matrix3D = null, strokeFlag:boolean = true, cache:Sphere = null, target:Sphere = null):Sphere
+	{
+		if (matrix3D)
+			return this.shape.elements.getSphereBounds(this._viewport, center, matrix3D, strokeFlag, cache, target, this.shape.count, this.shape.offset);
+
+		if (this._orientedSphereBoundsDirty) {
+			this._orientedSphereBoundsDirty = false;
+
+			this._orientedSphereBounds = this.shape.elements.getSphereBounds(this._viewport, center, null, strokeFlag, this._orientedSphereBounds, null, this.shape.count, this.shape.offset);
+		}
+
+		if (this._orientedSphereBounds != null)
+			target = this._orientedSphereBounds.union(target, target || cache);
+
+		return target;
+	}
+
+	public testCollision(collision:PickingCollision, findClosestCollision:boolean):boolean
+	{
+		return this.shape.elements.testCollision(this._viewport, collision, findClosestCollision, this.shape.material || collision.entity.material, this.shape.count || this.shape.elements.numVertices, this.shape.offset);
+	}
+}
+
 RenderEntity.registerRenderable(_Render_Shape, Shape);
+PickEntity.registerPickable(_Pick_Shape, Shape);

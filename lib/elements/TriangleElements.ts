@@ -1,6 +1,6 @@
 import {Rectangle, Box, Sphere, Matrix3D, Vector3D, Transform, Point} from "@awayjs/core";
 
-import {ElementsUtils, PickingCollision, IMaterial} from "@awayjs/renderer";
+import {ElementsUtils, PickingCollision, IMaterial, IEntity} from "@awayjs/renderer";
 
 import {AttributesBuffer, AttributesView, Float4Attributes, Float3Attributes, Float2Attributes, Short3Attributes, Viewport} from "@awayjs/stage";
 
@@ -159,19 +159,19 @@ export class TriangleElements extends ElementsBase
 		return this._jointWeights;
 	}
 
-	public getBoxBounds(matrix3D:Matrix3D = null, cache:Box = null, target:Box = null, count:number = 0, offset:number = 0):Box
+	public getBoxBounds(viewport:Viewport, entity:IEntity = null, strokeFlag:boolean = true, matrix3D:Matrix3D = null, cache:Box = null, target:Box = null, count:number = 0, offset:number = 0):Box
 	{
-		return TriangleElementsUtils.getTriangleGraphicsBoxBounds(this.positions, this.indices, matrix3D, cache, target, count || this._numElements || this._numVertices, offset);
+		return TriangleElementsUtils.getBoxBounds(this.positions, this.indices, matrix3D, cache, target, count || this._numElements || this._numVertices, offset);
 	}
 
-	public getSphereBounds(center:Vector3D, matrix3D:Matrix3D = null, cache:Sphere = null, target:Sphere = null, count:number = 0, offset:number = 0):Sphere
+	public getSphereBounds(viewport:Viewport, center:Vector3D, matrix3D:Matrix3D = null, strokeFlag:boolean = true, cache:Sphere = null, target:Sphere = null, count:number = 0, offset:number = 0):Sphere
 	{
-		return TriangleElementsUtils.getTriangleGraphicsSphereBounds(this.positions, center, matrix3D, cache, target, count || this._numVertices, offset);
+		return TriangleElementsUtils.getSphereBounds(this.positions, center, matrix3D, cache, target, count || this._numVertices, offset);
 	}
 
-	public hitTestPoint(x:number, y:number, z:number, box:Box, count:number = 0, offset:number = 0, idx_count:number = 0, idx_offset:number = 0):boolean
+	public hitTestPoint(viewport:Viewport, entity:IEntity, x:number, y:number, z:number, box:Box, count:number = 0, offset:number = 0, idx_count:number = 0, idx_offset:number = 0):boolean
 	{
-		return TriangleElementsUtils.hitTestTriangleElements(x, y, 0, box, this, count || this._numElements || this._numVertices, offset);
+		return TriangleElementsUtils.hitTest(x, y, 0, box, this, count || this._numElements || this._numVertices, offset);
 	}
 
 	/**
@@ -557,7 +557,7 @@ export class TriangleElements extends ElementsBase
 		this._faceNormalsDirty = false;
 	}
 
-	public testCollision(collision:PickingCollision, closestFlag:boolean, material:IMaterial, count:number, offset:number = 0):boolean
+	public testCollision(viewport:Viewport, collision:PickingCollision, closestFlag:boolean, material:IMaterial, count:number, offset:number = 0):boolean
 	{
 		var rayPosition:Vector3D = collision.rayPosition;
 		var rayDirection:Vector3D = collision.rayDirection;
