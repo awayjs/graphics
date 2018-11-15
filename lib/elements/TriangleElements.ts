@@ -629,9 +629,13 @@ export class TriangleElements extends ElementsBase
 				ny *= nl;
 				nz *= nl;
 			} else { //2d hittest
+				p0z = 0;
+				p1z = 0;
+				s0z = 0;
+				s1z = 0;
 				nx = 0;
 				ny = 0;
-				nz = 1;
+				nz = s0x*s1y - s0y*s1x;
 			}
 
 			// -- plane intersection test --
