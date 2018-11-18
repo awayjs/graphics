@@ -1314,7 +1314,7 @@ export class Graphics extends AssetBase
 		this._active_fill_path=null;
         this._active_stroke_path=null;
         //this._lineStyle=null;
-        //this._fillStyle=null;
+        this._fillStyle=null;
 		//this.invalidate();
 		//this.invalidateElements();
 
