@@ -635,7 +635,7 @@ export class TriangleElements extends ElementsBase
 				s1z = 0;
 				nx = 0;
 				ny = 0;
-				nz = s0x*s1y - s0y*s1x;
+				nz = ((s0x*s1y - s0y*s1x) > 0)? 1 : -1;
 			}
 
 			// -- plane intersection test --
@@ -659,6 +659,8 @@ export class TriangleElements extends ElementsBase
 				RQ1 = rx*s0x + ry*s0y + rz*s0z;
 				RQ2 = rx*s1x + ry*s1y + rz*s1z;
 				coeff = 1/(Q1Q1*Q2Q2 - Q1Q2*Q1Q2);
+				if (!isFinite(coeff))
+					continue;
 				v = coeff*(Q2Q2*RQ1 - Q1Q2*RQ2);
 				w = coeff*(-Q1Q2*RQ1 + Q1Q1*RQ2);
 				if (v < 0)
