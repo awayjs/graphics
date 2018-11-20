@@ -677,11 +677,11 @@ export class TriangleElements extends ElementsBase
 						var uvs:ArrayBufferView = this.uvs.get(this.numVertices);
 						var uvStride:number = this.uvs.stride;
 
-						var uIndex:number = indices[index]*uvStride;
+						var uIndex:number = indices? indices[index]*uvStride : index*uvStride;
 						var uv0:Vector3D = new Vector3D(uvs[uIndex], uvs[uIndex + 1]);
-						uIndex = indices[index + 1]*uvStride;
+						uIndex = indices? indices[index + 1]*uvStride : (index + 1)*uvStride
 						var uv1:Vector3D = new Vector3D(uvs[uIndex], uvs[uIndex + 1]);
-						uIndex = indices[index + 2]*uvStride;
+						uIndex = indices? indices[index + 2]*uvStride : (index + 2)*uvStride
 						var uv2:Vector3D = new Vector3D(uvs[uIndex], uvs[uIndex + 1]);
 						collision.uv = new Point(u*uv0.x + v*uv1.x + w*uv2.x, u*uv0.y + v*uv1.y + w*uv2.y);
 					}
