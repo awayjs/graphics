@@ -9,7 +9,7 @@ export class AnimationElements
 {
 	public static SUBGEOM_ID_COUNT:number = 0;
 
-	public _pVertexData:Array<number>;
+	public _pVertexData:Float32Array;
 
 	public _pVertexBuffer:Array<IVertexBuffer> = new Array<IVertexBuffer>(8);
 	public _pBufferContext:Array<IContextGL> = new Array<IContextGL>(8);
@@ -44,7 +44,7 @@ export class AnimationElements
 	{
 		this._numVertices = numVertices;
 		this._totalLenOfOneVertex = totalLenOfOneVertex;
-		this._pVertexData = new Array<number>(numVertices*totalLenOfOneVertex);
+		this._pVertexData = new Float32Array(numVertices*totalLenOfOneVertex);
 	}
 
 	public activateVertexBuffer(index:number, bufferOffset:number, stage:Stage, format:number):void
@@ -81,7 +81,7 @@ export class AnimationElements
 			this._pBufferDirty[i] = true;
 	}
 
-	public get vertexData():Array<number>
+	public get vertexData():Float32Array
 	{
 		return this._pVertexData;
 	}

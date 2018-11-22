@@ -118,7 +118,7 @@ export class ParticleFollowState extends ParticleStateBase
 	private processPosition(currentTime:number, deltaTime:number, animationElements:AnimationElements):void
 	{
 		var data:Array<ParticleAnimationData> = animationElements.animationParticles;
-		var vertexData:Array<number> = animationElements.vertexData;
+		var vertexData:Float32Array = animationElements.vertexData;
 
 		var changed:boolean = false;
 		var len:number = data.length;
@@ -159,7 +159,7 @@ export class ParticleFollowState extends ParticleStateBase
 	private precessRotation(currentTime:number, deltaTime:number, animationElements:AnimationElements):void
 	{
 		var data:Array<ParticleAnimationData> = animationElements.animationParticles;
-		var vertexData:Array<number> = animationElements.vertexData;
+		var vertexData:Float32Array = animationElements.vertexData;
 
 		var changed:boolean = false;
 		var len:number = data.length;
@@ -203,7 +203,7 @@ export class ParticleFollowState extends ParticleStateBase
 	private processPositionAndRotation(currentTime:number, deltaTime:number, animationElements:AnimationElements):void
 	{
 		var data:Array<ParticleAnimationData> = animationElements.animationParticles;
-		var vertexData:Array<number> = animationElements.vertexData;
+		var vertexData:Float32Array = animationElements.vertexData;
 
 		var changed:boolean = false;
 		var len:number = data.length;

@@ -49,7 +49,7 @@ export class ParticleStateBase extends AnimationStateBase
 		this._pDynamicPropertiesDirty[animationElements._iUniqueId] = true;
 
 		var animationParticles:Array<ParticleAnimationData> = animationElements.animationParticles;
-		var vertexData:Array<number> = animationElements.vertexData;
+		var vertexData:Float32Array = animationElements.vertexData;
 		var totalLenOfOneVertex:number = animationElements.totalLenOfOneVertex;
 		var dataLength:number = this._particleNode.dataLength;
 		var dataOffset:number = this._particleNode._iDataOffset;

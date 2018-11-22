@@ -313,7 +313,7 @@ export class ParticleAnimationSet extends AnimationSetBase implements IAnimation
 		var counterForOneData:number;
 		var oneData:Array<number>;
 		var numVertices:number;
-		var vertexData:Array<number>;
+		var vertexData:Float32Array;
 		var vertexLength:number;
 		var startingOffset:number;
 		var vertexOffset:number;
