@@ -405,8 +405,8 @@ export class _Stage_LineElements extends _Stage_ElementsBase
 
 		var stroke:GraphicsStrokeStyle = this._lineElements.stroke;
 		if (stroke && stroke.scaleMode == LineScaleMode.NORMAL) {
-			data[index + 12] = (stroke.half_thickness*this._scale.x*this._thickness/(viewport.focalLength*viewport.pixelRatio) > 0.5/1000)? this._scale.x*this._thickness/1000 : 0.5/(stroke.half_thickness*viewport.focalLength*viewport.pixelRatio);
-			data[index + 13] = (stroke.half_thickness*this._scale.y*this._thickness/viewport.focalLength > 0.5/1000)? this._scale.y*this._thickness/1000 : 0.5/(stroke.half_thickness*viewport.focalLength);
+			data[index + 12] = (stroke.half_thickness*this._scale.x*this._thickness/1000 > 0.5/(viewport.focalLength*viewport.pixelRatio))? this._scale.x*this._thickness/1000 : 0.5/(stroke.half_thickness*viewport.focalLength*viewport.pixelRatio);
+			data[index + 13] = (stroke.half_thickness*this._scale.y*this._thickness/1000 > 0.5/viewport.focalLength)? this._scale.y*this._thickness/1000 : 0.5/(stroke.half_thickness*viewport.focalLength);
 		} else if (!stroke || stroke.scaleMode == LineScaleMode.HAIRLINE) {
 			data[index + 12] = this._thickness/(viewport.focalLength*viewport.pixelRatio);
 			data[index + 13] = this._thickness/viewport.focalLength;
