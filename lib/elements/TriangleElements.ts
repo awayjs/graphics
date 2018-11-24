@@ -557,7 +557,7 @@ export class TriangleElements extends ElementsBase
 		this._faceNormalsDirty = false;
 	}
 
-	public testCollision(viewport:Viewport, collision:PickingCollision, closestFlag:boolean, material:IMaterial, count:number, offset:number = 0):boolean
+	public testCollision(viewport:Viewport, collision:PickingCollision, box:Box, closestFlag:boolean, material:IMaterial, count:number, offset:number = 0):boolean
 	{
 		var rayPosition:Vector3D = collision.rayPosition;
 		var rayDirection:Vector3D = collision.rayDirection;

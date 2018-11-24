@@ -317,7 +317,7 @@ export class ElementsBase extends AssetBase implements IElements
 		this._invalidateVertices[attributesView.id] = null;
 	}
 
-	public testCollision(viewport:Viewport, collision:PickingCollision, closestFlag:boolean, material:IMaterial, count:number, offset:number = 0):boolean
+	public testCollision(viewport:Viewport, collision:PickingCollision, box:Box, closestFlag:boolean, material:IMaterial, count:number, offset:number = 0):boolean
 	{
 		throw new AbstractMethodError();
 	}

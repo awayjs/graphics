@@ -19,7 +19,18 @@ export class LineElementsUtils
 
 		var positions:ArrayBufferView = positionAttributes.get(count, offset);
 
-		var len:number = count;
+		var indices:Uint16Array;
+
+		var len:number;
+		if (lineElements.indices) {
+			indices = lineElements.indices.get(count, offset);
+			positions = positionAttributes.get(positionAttributes.count);
+			len = count*lineElements.indices.dimensions;
+		} else {
+			positions = positionAttributes.get(count, offset);
+			len = count;
+		}
+
 		var id0:number;
 		var id1:number;
 
@@ -34,9 +45,13 @@ export class LineElementsUtils
 		if (index != -1 && index < len) {
 			precheck:
 			{
-
-				id0 = index*posStride;
-				id1 = (index + 1)*posStride;
+				if (indices) {
+					id0 = indices[index]*posStride;
+					id1 = indices[index + 1]*posStride;
+				} else {
+					id0 = index*posStride;
+					id1 = (index + 1)*posStride;
+				}
 
 				ax = positions[id0];
 				ay = positions[id0 + 1];
@@ -50,17 +65,21 @@ export class LineElementsUtils
 				//edge normal (a-b)
 				var nx:number = by - ay;
 				var ny:number = -(bx - ax);
-
-				var dot:number = (dx*nx) + (dy*ny);
+				var D:number = Math.sqrt(nx*nx + ny*ny);
 
 				//TODO: should strictly speaking be an elliptical calculation, use circle to approx temp
-				if (Math.abs(dot) < thickness)
+				if (Math.abs((dx*nx) + (dy*ny)) > thickness*D)
+					break precheck;
+
+				//edge vector
+				var dot:number = (dx*ny) - (dy*nx);
+
+				if (dot > D*D || dot < 0)
 					break precheck;
 
 				return true;
 			}
 		}
-
 
 		//hard coded min vertex count to bother using a grid for
 		if (len > 150) {
@@ -77,8 +96,13 @@ export class LineElementsUtils
 				cells.length = divisions*divisions;
 
 				for (var k:number = 0; k < len; k += 3) {
-					id0 = k*posStride;
-					id1 = (k + 1)*posStride;
+					if (indices) {
+						id0 = indices[k]*posStride;
+						id1 = indices[k + 1]*posStride;
+					} else {
+						id0 = k*posStride;
+						id1 = (k + 1)*posStride;
+					}
 
 					ax = positions[id0];
 					ay = positions[id0 + 1];
@@ -117,10 +141,14 @@ export class LineElementsUtils
 			var nodeCount:number = nodes.length;
 			for (var n:number = 0; n < nodeCount; n++) {
 				var k:number = nodes[n];
-				id0 = k*posStride;
-				id1 = (k + 1)*posStride;
 
-				if (id0 == index) continue;
+				if (indices) {
+					id0 = indices[k]*posStride;
+					id1 = indices[k + 1]*posStride;
+				} else {
+					id0 = k*posStride;
+					id1 = (k + 1)*posStride;
+				}
 
 				ax = positions[id0];
 				ay = positions[id0 + 1];
@@ -134,10 +162,16 @@ export class LineElementsUtils
 				//edge normal (a-b)
 				var nx:number = by - ay;
 				var ny:number = -(bx - ax);
+				var D:number = Math.sqrt(nx*nx + ny*ny);
 
-				var dot:number = (dx*nx) + (dy*ny);
+				//TODO: should strictly speaking be an elliptical calculation, use circle to approx temp
+				if (Math.abs((dx*nx) + (dy*ny)) > thickness*D)
+					continue;
 
-				if (Math.abs(dot) < thickness)
+				//edge vector
+				var dot:number = (dx*ny) - (dy*nx);
+
+				if (dot > D*D || dot < 0)
 					continue;
 
 				hitTestCache.lastCollisionIndex = k;
@@ -148,11 +182,14 @@ export class LineElementsUtils
 		}
 
 		//brute force
-		for (var k:number = 0; k < len; k += 3) {
-			id0 = k*posStride;
-			id1 = (k + 1)*posStride;
-
-			if (id0 == index) continue;
+		for (var k:number = 0; k < len; k += 6) {
+			if (indices) {
+				id0 = indices[k]*posStride;
+				id1 = indices[k + 1]*posStride;
+			} else {
+				id0 = k*posStride;
+				id1 = (k + 1)*posStride;
+			}
 
 			ax = positions[id0];
 			ay = positions[id0 + 1];
@@ -166,10 +203,16 @@ export class LineElementsUtils
 			//edge normal (a-b)
 			var nx:number = by - ay;
 			var ny:number = -(bx - ax);
+			var D:number = Math.sqrt(nx*nx + ny*ny);
 
-			var dot:number = (dx*nx) + (dy*ny);
+			//TODO: should strictly speaking be an elliptical calculation, use circle to approx temp
+			if (Math.abs((dx*nx) + (dy*ny)) > thickness*D)
+				continue;
 
-			if (Math.abs(dot) < thickness)
+			//edge vector
+			var dot:number = (dx*ny) - (dy*nx);
+
+			if (dot > D*D || dot < 0)
 				continue;
 
 			hitTestCache.lastCollisionIndex = k;
@@ -179,16 +222,25 @@ export class LineElementsUtils
 		return false;
 	}
 
-	public static getBoxBounds(positionAttributes:AttributesView, matrix3D:Matrix3D, thicknessScale:Vector3D, cache:Box, target:Box, count:number, offset:number = 0):Box
+	public static getBoxBounds(positionAttributes:AttributesView, indexAttributes:Short2Attributes, matrix3D:Matrix3D, thicknessScale:Vector3D, cache:Box, target:Box, count:number, offset:number = 0):Box
 	{
+		var positions:ArrayBufferView;
+		var posDim:number = positionAttributes.dimensions;
+		var posStride:number = positionAttributes.stride;
 
 		var minX:number = 0, minY:number = 0, minZ:number = 0;
 		var maxX:number = 0, maxY:number = 0, maxZ:number = 0;
 
-		var len:number = count;
-		var positions:ArrayBufferView = positionAttributes.get(count, offset);
-		var posDim:number = positionAttributes.dimensions;
-		var posStride:number = positionAttributes.stride;
+		var indices:Uint16Array;
+		var len:number;
+		if (indexAttributes) {
+			len = count*indexAttributes.dimensions;
+			indices = indexAttributes.get(count, offset);
+			positions = positionAttributes.get(positionAttributes.count);
+		} else {
+			len = count;
+			positions = positionAttributes.get(count, offset);
+		}
 
 		if (len == 0)
 			return target;
@@ -203,7 +255,7 @@ export class LineElementsUtils
 
 		if (target == null) {
 			target = cache || new Box();
-			index = i*posStride;
+			index = (indices)? indices[i]*posStride : i*posStride;
 			if (matrix3D) {
 				if (posDim == 6) {
 					pos1 = positions[index]*rawData[0] + positions[index + 1]*rawData[4] + positions[index + 2]*rawData[8] + rawData[12];
@@ -222,15 +274,15 @@ export class LineElementsUtils
 			maxX = minX = pos1;
 			maxY = minY = pos2;
 			maxZ = minZ = (posDim == 6)? pos3 : 0;
-			i++;
+			i+=3;
 		} else {
 			maxX = (minX = target.x) + target.width;
 			maxY = (minY = target.y) + target.height;
 			maxZ = (minZ = target.z) + target.depth;
 		}
 
-		for (; i < len; i++) {
-			index = i*posStride;
+		for (; i < len; i+=3) {
+			index = (indices)? indices[i]*posStride : i*posStride;
 
 			if (matrix3D) {
 				if (posDim == 6) {
@@ -263,18 +315,12 @@ export class LineElementsUtils
 				else if (pos3 > maxZ)
 					maxZ = pos3;
 			}
-
-			//only check the first two values out of each group of 4 to avoid duplicating checks
-			if (j < i) {
-				i += 2
-				j = i + 1;
-			}
 		}
 
 		maxX += thicknessScale.x;
-		maxX -= thicknessScale.x;
+		minX -= thicknessScale.x;
 		maxY += thicknessScale.y;
-		maxY -= thicknessScale.y;
+		minY -= thicknessScale.y;
 
 		target.width = maxX - (target.x = minX);
 		target.height = maxY - (target.y = minY);

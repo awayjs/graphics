@@ -389,7 +389,13 @@ export class _Pick_Shape extends _Pick_PickableBase
 
 	public testCollision(collision:PickingCollision, findClosestCollision:boolean):boolean
 	{
-		return this.shape.elements.testCollision(this._viewport, collision, findClosestCollision, this.shape.material || collision.entity.material, this.shape.count || this.shape.elements.numVertices, this.shape.offset);
+		var box:Box = this.getBoxBounds();
+
+		//early out for box test
+		if(box == null || !box.rayIntersection(collision.rayPosition, collision.rayDirection))
+			return false;
+
+		return this.shape.elements.testCollision(this._viewport, collision, box, findClosestCollision, this.shape.material || collision.entity.material, this.shape.count || this.shape.elements.numVertices, this.shape.offset);
 	}
 }
 
