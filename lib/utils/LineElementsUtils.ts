@@ -246,42 +246,13 @@ export class LineElementsUtils
 			return target;
 
 		var i:number = 0;
-		var j:number = 0;
 		var index:number;
 		var pos1:number, pos2:number, pos3:number, rawData:Float32Array;
 		
 		if (matrix3D)
 			rawData = matrix3D._rawData;
 
-		if (target == null) {
-			target = cache || new Box();
-			index = (indices)? indices[i]*posStride : i*posStride;
-			if (matrix3D) {
-				if (posDim == 6) {
-					pos1 = positions[index]*rawData[0] + positions[index + 1]*rawData[4] + positions[index + 2]*rawData[8] + rawData[12];
-					pos2 = positions[index]*rawData[1] + positions[index + 1]*rawData[5] + positions[index + 2]*rawData[9] + rawData[13];
-					pos3 = positions[index]*rawData[2] + positions[index + 1]*rawData[6] + positions[index + 2]*rawData[10] + rawData[14];
-				} else {
-					pos1 = positions[index]*rawData[0] + positions[index + 1]*rawData[4] + rawData[12];
-					pos2 = positions[index]*rawData[1] + positions[index + 1]*rawData[5] + rawData[13];
-				}
-			} else {
-				pos1 = positions[index];
-				pos2 = positions[index + 1];
-				pos3 = (posDim == 6)? positions[index + 2] : 0;
-			}
-			
-			maxX = minX = pos1;
-			maxY = minY = pos2;
-			maxZ = minZ = (posDim == 6)? pos3 : 0;
-			i+=3;
-		} else {
-			maxX = (minX = target.x) + target.width;
-			maxY = (minY = target.y) + target.height;
-			maxZ = (minZ = target.z) + target.depth;
-		}
-
-		for (; i < len; i+=3) {
+		for (var i:number = 0; i < len; i+=3) {
 			index = (indices)? indices[i]*posStride : i*posStride;
 
 			if (matrix3D) {
@@ -299,34 +270,35 @@ export class LineElementsUtils
 				pos3 = (posDim == 6)? positions[index + 2] : 0;
 			}
 
-			if (pos1 < minX)
-				minX = pos1;
-			else if (pos1 > maxX)
-				maxX = pos1;
+			if (i == 0) {
+				maxX = minX = pos1;
+				maxY = minY = pos2;
+				maxZ = minZ = (posDim == 6)? pos3 : 0;
+			} else {
+				if (pos1 < minX)
+					minX = pos1;
+				else if (pos1 > maxX)
+					maxX = pos1;
 
-			if (pos2 < minY)
-				minY = pos2;
-			else if (pos2 > maxY)
-				maxY = pos2;
+				if (pos2 < minY)
+					minY = pos2;
+				else if (pos2 > maxY)
+					maxY = pos2;
 
-			if (posDim == 6) {
-				if (pos3 < minZ)
-					minZ = pos3;
-				else if (pos3 > maxZ)
-					maxZ = pos3;
+				if (posDim == 6) {
+					if (pos3 < minZ)
+						minZ = pos3;
+					else if (pos3 > maxZ)
+						maxZ = pos3;
+				}
 			}
 		}
 
-		maxX += thicknessScale.x;
-		minX -= thicknessScale.x;
-		maxY += thicknessScale.y;
-		minY -= thicknessScale.y;
+		var box:Box = new Box(minX - thicknessScale.x, minY - thicknessScale.y);
+		box.right = maxX + thicknessScale.x;
+		box.bottom = maxY + thicknessScale.y;
 
-		target.width = maxX - (target.x = minX);
-		target.height = maxY - (target.y = minY);
-		target.depth = maxZ - (target.z = minZ);
-
-		return target;
+		return box.union(target, target || cache);
 	}
 
 	public static getSphereBounds(positionAttributes:AttributesView, center:Vector3D, matrix3D:Matrix3D, cache:Sphere, output:Sphere, count:number, offset:number = 0):Sphere
