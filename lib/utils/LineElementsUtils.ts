@@ -294,9 +294,12 @@ export class LineElementsUtils
 			}
 		}
 
-		var box:Box = new Box(minX - thicknessScale.x, minY - thicknessScale.y);
-		box.right = maxX + thicknessScale.x;
-		box.bottom = maxY + thicknessScale.y;
+		var thicknessX:number = matrix3D? thicknessScale.x*rawData[0] + thicknessScale.y*rawData[4] : thicknessScale.x;
+		var thicknessY:number = matrix3D? thicknessScale.x*rawData[1] + thicknessScale.y*rawData[5] : thicknessScale.y;
+
+		var box:Box = new Box(minX - thicknessX, minY - thicknessY);
+		box.right = maxX + thicknessX;
+		box.bottom = maxY + thicknessY;
 
 		return box.union(target, target || cache);
 	}

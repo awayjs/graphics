@@ -37,8 +37,8 @@ export class LineElements extends ElementsBase
 			this._thicknessScale.y *= viewport.focalLength/1000;
 
 			if (this.stroke && this.stroke.scaleMode == LineScaleMode.NORMAL) {
-				this._thicknessScale.x = (this.stroke.half_thickness*this._thicknessScale.x > 0.5)? this.stroke.half_thickness : 0.5/this._thicknessScale.x;
-				this._thicknessScale.y = (this.stroke.half_thickness*this._thicknessScale.y > 0.5)? this.stroke.half_thickness : 0.5/this._thicknessScale.y;
+				this._thicknessScale.x = (!strokeFlag || this.stroke.half_thickness*this._thicknessScale.x > 0.5)? this.stroke.half_thickness : 0.5/this._thicknessScale.x;
+				this._thicknessScale.y = (!strokeFlag || this.stroke.half_thickness*this._thicknessScale.y > 0.5)? this.stroke.half_thickness : 0.5/this._thicknessScale.y;
 			} else if (!this.stroke || this.stroke.scaleMode == LineScaleMode.HAIRLINE) {
 				this._thicknessScale.x = 0.5/this._thicknessScale.x;
 				this._thicknessScale.y = 0.5/this._thicknessScale.y;
@@ -93,14 +93,13 @@ export class LineElements extends ElementsBase
 		this._positions = new AttributesView(Float32Array, 6, concatenatedBuffer);
 	}
 
-	public getBoxBounds(viewport:Viewport, entity:IEntity = null, strokeFlag:boolean = true, matrix3D:Matrix3D = null, cache:Box = null, target:Box = null, count:number = 0, offset:number = 0):Box
+	public getBoxBounds(viewport:Viewport, entity:IEntity = null, strokeFlag:boolean = false, matrix3D:Matrix3D = null, cache:Box = null, target:Box = null, count:number = 0, offset:number = 0):Box
 	{
 		return LineElementsUtils.getBoxBounds(this.positions, this.indices, matrix3D, this.getThicknessScale(viewport, entity, strokeFlag), cache, target, count || this._numElements || this._numVertices, offset);
 	}
 
-	public getSphereBounds(viewport:Viewport, center:Vector3D, matrix3D:Matrix3D = null, strokeFlag:boolean = true, cache:Sphere = null, target:Sphere = null, count:number = 0, offset:number = 0):Sphere
+	public getSphereBounds(viewport:Viewport, center:Vector3D, matrix3D:Matrix3D = null, strokeFlag:boolean = false, cache:Sphere = null, target:Sphere = null, count:number = 0, offset:number = 0):Sphere
 	{
-		//TODO bounding calculations for line thickness
 		return LineElementsUtils.getSphereBounds(this.positions, center, matrix3D, cache, target, count || this._numVertices, offset);
 	}
 
