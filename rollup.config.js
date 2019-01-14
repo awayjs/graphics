@@ -9,6 +9,7 @@ module.exports = {
 		globals: {
 			'@awayjs/core': 'AwayjsCore',
 			'@awayjs/stage': 'AwayjsStage',
+			'@awayjs/view': 'AwayjsView',
 			'@awayjs/renderer': 'AwayjsRenderer'
 		},
 		sourceMap: true,
@@ -18,7 +19,8 @@ module.exports = {
 	external: [
 		'@awayjs/core',
         '@awayjs/stage',
-        '@awayjs/renderer'
+		'@awayjs/view',
+		'@awayjs/renderer'
 	],
 	plugins: [
 		nodeResolve({
