@@ -1,6 +1,6 @@
 import {ProjectionBase} from "@awayjs/core";
 
-import {IElements, IRenderable, IEntity, AnimationRegisterData, ShaderBase, _Render_RenderableBase, _Stage_ElementsBase} from "@awayjs/renderer";
+import {IElements, IRenderable, IRenderEntity, AnimationRegisterData, ShaderBase, _Render_RenderableBase, _Stage_ElementsBase} from "@awayjs/renderer";
 
 import {Stage} from "@awayjs/stage";
 
@@ -114,7 +114,7 @@ export class VertexAnimator extends AnimatorBase
 		// todo: add code for when running on cpu
 		// this type of animation can only be IRenderable
 		var renderable:IRenderable = renderState.renderable;
-		var entity:IEntity = <IEntity> renderState.sourceEntity;
+		var entity:IRenderEntity = <IRenderEntity> renderState.sourceEntity;
 		var elements:TriangleElements = <TriangleElements> renderState.stageElements.elements;
 
 		// if no poses defined, set temp data
@@ -183,7 +183,7 @@ export class VertexAnimator extends AnimatorBase
 	public getRenderableElements(renderState:_Render_RenderableBase, sourceElements:IElements):IElements
 	{
 		if (this._vertexAnimationSet.blendMode == VertexAnimationMode.ABSOLUTE && this._poses.length)
-			return this._poses[0].getShapeAt((<IEntity> renderState.sourceEntity).getRenderableIndex(renderState.renderable)).elements || sourceElements;
+			return this._poses[0].getShapeAt((<IRenderEntity> renderState.sourceEntity).getRenderableIndex(renderState.renderable)).elements || sourceElements;
 
 		//nothing to do here
 		return sourceElements;

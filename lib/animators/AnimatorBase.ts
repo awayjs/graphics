@@ -2,7 +2,7 @@ import {Vector3D, AssetBase, AbstractMethodError, RequestAnimationFrame, Project
 
 import {Stage} from "@awayjs/stage";
 
-import {ShaderBase, IAnimator, AnimationNodeBase, IEntity, _Render_RenderableBase, IElements} from "@awayjs/renderer";
+import {ShaderBase, IAnimator, AnimationNodeBase, IRenderEntity, _Render_RenderableBase, IElements} from "@awayjs/renderer";
 
 import {AnimatorEvent} from "../events/AnimatorEvent";
 
@@ -50,7 +50,7 @@ export class AnimatorBase extends AssetBase implements IAnimator
 	private _playbackSpeed:number = 1;
 
 	public _pAnimationSet:AnimationSetBase;
-	public _pOwners:Array<IEntity> = new Array<IEntity>();
+	public _pOwners:Array<IRenderEntity> = new Array<IRenderEntity>();
 	public _pActiveNode:AnimationNodeBase;
 	public _pActiveState:IAnimationState;
 	public _pActiveAnimationName:string;
@@ -281,7 +281,7 @@ export class AnimatorBase extends AssetBase implements IAnimator
 	 *
 	 * @private
 	 */
-	public addOwner(entity:IEntity):void
+	public addOwner(entity:IRenderEntity):void
 	{
 		this._pOwners.push(entity);
 	}
@@ -291,7 +291,7 @@ export class AnimatorBase extends AssetBase implements IAnimator
 	 *
 	 * @private
 	 */
-	public removeOwner(entity:IEntity):void
+	public removeOwner(entity:IRenderEntity):void
 	{
 		this._pOwners.splice(this._pOwners.indexOf(entity), 1);
 	}
@@ -364,7 +364,7 @@ export class AnimatorBase extends AssetBase implements IAnimator
 
 	public invalidateElements():void
 	{
-		var entity:IEntity;
+		var entity:IRenderEntity;
 		var len:number = this._pOwners.length;
 		for (var i:number = 0; i < len; i++) {
 			entity = this._pOwners[i];

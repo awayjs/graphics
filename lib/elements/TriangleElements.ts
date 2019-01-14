@@ -1,8 +1,10 @@
-import {Rectangle, Box, Sphere, Matrix3D, Vector3D, Transform, Point} from "@awayjs/core";
+import {Rectangle, Box, Sphere, Matrix3D, Vector3D, Point} from "@awayjs/core";
 
-import {ElementsUtils, PickingCollision, IMaterial, IEntity} from "@awayjs/renderer";
+import {View, IPickingEntity, PickingCollision} from "@awayjs/view";
 
-import {AttributesBuffer, AttributesView, Float4Attributes, Float3Attributes, Float2Attributes, Short3Attributes, Viewport} from "@awayjs/stage";
+import {ElementsUtils, IMaterial} from "@awayjs/renderer";
+
+import {AttributesBuffer, AttributesView, Float4Attributes, Float3Attributes, Float2Attributes, Short3Attributes} from "@awayjs/stage";
 
 import {TriangleElementsUtils} from "../utils/TriangleElementsUtils";
 
@@ -159,17 +161,17 @@ export class TriangleElements extends ElementsBase
 		return this._jointWeights;
 	}
 
-	public getBoxBounds(viewport:Viewport, entity:IEntity = null, strokeFlag:boolean = true, matrix3D:Matrix3D = null, cache:Box = null, target:Box = null, count:number = 0, offset:number = 0):Box
+	public getBoxBounds(view:View, entity:IPickingEntity = null, strokeFlag:boolean = true, matrix3D:Matrix3D = null, cache:Box = null, target:Box = null, count:number = 0, offset:number = 0):Box
 	{
 		return TriangleElementsUtils.getBoxBounds(this.positions, this.indices, matrix3D, cache, target, count || this._numElements || this._numVertices, offset);
 	}
 
-	public getSphereBounds(viewport:Viewport, center:Vector3D, matrix3D:Matrix3D = null, strokeFlag:boolean = true, cache:Sphere = null, target:Sphere = null, count:number = 0, offset:number = 0):Sphere
+	public getSphereBounds(view:View, center:Vector3D, matrix3D:Matrix3D = null, strokeFlag:boolean = true, cache:Sphere = null, target:Sphere = null, count:number = 0, offset:number = 0):Sphere
 	{
 		return TriangleElementsUtils.getSphereBounds(this.positions, center, matrix3D, cache, target, count || this._numVertices, offset);
 	}
 
-	public hitTestPoint(viewport:Viewport, entity:IEntity, x:number, y:number, z:number, box:Box, count:number = 0, offset:number = 0, idx_count:number = 0, idx_offset:number = 0):boolean
+	public hitTestPoint(view:View, entity:IPickingEntity, x:number, y:number, z:number, box:Box, count:number = 0, offset:number = 0, idx_count:number = 0, idx_offset:number = 0):boolean
 	{
 		return TriangleElementsUtils.hitTest(x, y, 0, box, this, count || this._numElements || this._numVertices, offset);
 	}
@@ -557,7 +559,7 @@ export class TriangleElements extends ElementsBase
 		this._faceNormalsDirty = false;
 	}
 
-	public testCollision(viewport:Viewport, collision:PickingCollision, box:Box, closestFlag:boolean, material:IMaterial, count:number, offset:number = 0):boolean
+	public testCollision(view:View, collision:PickingCollision, box:Box, closestFlag:boolean, material:IMaterial, count:number, offset:number = 0):boolean
 	{
 		var rayPosition:Vector3D = collision.rayPosition;
 		var rayDirection:Vector3D = collision.rayDirection;
@@ -730,9 +732,9 @@ export class _Stage_TriangleElements extends _Stage_ElementsBase
         this._triangleElements = null;
     }
 
-    public _setRenderState(renderRenderable:_Render_RenderableBase, shader:ShaderBase, viewport:Viewport):void
+    public _setRenderState(renderRenderable:_Render_RenderableBase, shader:ShaderBase, view:View):void
     {
-        super._setRenderState(renderRenderable, shader, viewport);
+        super._setRenderState(renderRenderable, shader, view);
 
         //set buffers
         //TODO: find a better way to update a concatenated buffer when autoderiving
@@ -766,16 +768,16 @@ export class _Stage_TriangleElements extends _Stage_ElementsBase
         this.activateVertexBufferVO(0, this._triangleElements.positions);
     }
 
-    public draw(renderRenderable:_Render_RenderableBase, shader:ShaderBase, viewport:Viewport, count:number, offset:number):void
+    public draw(renderRenderable:_Render_RenderableBase, shader:ShaderBase, view:View, count:number, offset:number):void
     {
         //set constants
         if (shader.sceneMatrixIndex >= 0) {
             shader.sceneMatrix.copyFrom(renderRenderable.renderSceneTransform, true);
-            shader.viewMatrix.copyFrom(viewport.viewMatrix3D, true);
+            shader.viewMatrix.copyFrom(view.viewMatrix3D, true);
         } else {
             var matrix3D:Matrix3D = Matrix3D.CALCULATION_MATRIX;
             matrix3D.copyFrom(renderRenderable.renderSceneTransform);
-            matrix3D.append(viewport.viewMatrix3D);
+            matrix3D.append(view.viewMatrix3D);
             shader.viewMatrix.copyFrom(matrix3D, true);
         }
 

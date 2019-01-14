@@ -1,6 +1,6 @@
 import {ShaderRegisterElement, ShaderRegisterCache, ShaderRegisterData} from "@awayjs/stage";
 
-import {ShaderBase, AnimationRegisterData, IElements, IAnimationSet, AnimationNodeBase, IEntity, IRenderable} from "@awayjs/renderer";
+import {ShaderBase, AnimationRegisterData, IElements, IAnimationSet, AnimationNodeBase} from "@awayjs/renderer";
 
 import {ParticleData} from "./data/ParticleData";
 import {ParticleCollection} from "./data/ParticleCollection";

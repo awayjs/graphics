@@ -1,8 +1,10 @@
-import {AbstractMethodError, Box, Sphere, Matrix3D, Vector3D, AssetBase, Transform} from "@awayjs/core";
+import {AbstractMethodError, Box, Sphere, Matrix3D, Vector3D, AssetBase} from "@awayjs/core";
 
-import {AttributesBuffer, AttributesView, Float3Attributes, Short3Attributes, Viewport} from "@awayjs/stage";
+import {AttributesBuffer, AttributesView, Float3Attributes, Short3Attributes} from "@awayjs/stage";
 
-import {ElementsEvent, IElements, PickingCollision, IMaterial, IEntity} from "@awayjs/renderer";
+import {View, PickingCollision, IPickingEntity} from "@awayjs/view";
+
+import {ElementsEvent, IElements, IMaterial} from "@awayjs/renderer";
 
 /**
  * @class away.base.TriangleElements
@@ -262,17 +264,17 @@ export class ElementsBase extends AssetBase implements IElements
 		throw new AbstractMethodError();
 	}
 
-	public getBoxBounds(viewport:Viewport, entity:IEntity = null, strokeFlag:boolean = true, matrix3D:Matrix3D = null, cache:Box = null, target:Box = null, count:number = 0, offset:number = 0):Box
+	public getBoxBounds(view:View, entity:IPickingEntity = null, strokeFlag:boolean = true, matrix3D:Matrix3D = null, cache:Box = null, target:Box = null, count:number = 0, offset:number = 0):Box
 	{
 		throw new AbstractMethodError();
 	}
 
-	public getSphereBounds(viewport:Viewport, center:Vector3D, matrix3D:Matrix3D = null, strokeFlag:boolean = true, cache:Sphere = null, target:Sphere = null, count:number = 0, offset:number = 0):Sphere
+	public getSphereBounds(view:View, center:Vector3D, matrix3D:Matrix3D = null, strokeFlag:boolean = true, cache:Sphere = null, target:Sphere = null, count:number = 0, offset:number = 0):Sphere
 	{
 		throw new AbstractMethodError();
 	}
 
-	public hitTestPoint(viewport:Viewport, entity:IEntity, x:number, y:number, z:number, box:Box, count:number = 0, offset:number = 0):boolean
+	public hitTestPoint(view:View, entity:IPickingEntity, x:number, y:number, z:number, box:Box, count:number = 0, offset:number = 0):boolean
 	{
 		throw new AbstractMethodError();
 	}
@@ -317,7 +319,7 @@ export class ElementsBase extends AssetBase implements IElements
 		this._invalidateVertices[attributesView.id] = null;
 	}
 
-	public testCollision(viewport:Viewport, collision:PickingCollision, box:Box, closestFlag:boolean, material:IMaterial, count:number, offset:number = 0):boolean
+	public testCollision(view:View, collision:PickingCollision, box:Box, closestFlag:boolean, material:IMaterial, count:number, offset:number = 0):boolean
 	{
 		throw new AbstractMethodError();
 	}

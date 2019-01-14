@@ -1,8 +1,10 @@
 import {ArgumentError, RangeError, PartialImplementationError, Point, Vector3D, Matrix, Matrix3D, AssetBase, Rectangle} from "@awayjs/core";
 
-import {BitmapImage2D, Viewport} from "@awayjs/stage";
+import {BitmapImage2D} from "@awayjs/stage";
 
-import {IAnimator, IEntity, IMaterial, Style, StyleEvent, MaterialUtils, RenderableEvent, IPicker, IRenderer} from "@awayjs/renderer";
+import { IEntityTraverser } from '@awayjs/view';
+
+import {IAnimator, IRenderEntity, IMaterial, Style, StyleEvent, MaterialUtils, RenderableEvent} from "@awayjs/renderer";
 
 import {IShape} from "./renderables/IShape";
 import {GraphicsPath} from "./draw/GraphicsPath";
@@ -50,7 +52,7 @@ export class Graphics extends AssetBase
 		return {material:MaterialUtils.getDefaultTextureMaterial()};
 	};
 
-	public static getGraphics(entity:IEntity):Graphics
+	public static getGraphics(entity:IRenderEntity):Graphics
 	{
 		if (Graphics._pool.length) {
 			var graphics:Graphics = Graphics._pool.pop();
@@ -90,7 +92,7 @@ export class Graphics extends AssetBase
 
 	private _current_position:Point=new Point();
 
-	private _entity:IEntity;
+	private _entity:IRenderEntity;
 	public slice9Rectangle:Rectangle;
 	public originalSlice9Size:Rectangle;
 	public minSlice9Width:number;
@@ -101,26 +103,26 @@ export class Graphics extends AssetBase
 
 	private _drawingDirty:boolean = false;
 
-	// public getSpriteScale(viewport:Viewport = null):Vector3D
+	// public getSpriteScale(view:View = null):Vector3D
 	// {
 	// 	if(this._entity)
 	// 		this._scale.copyFrom(this._entity.transform.concatenatedMatrix3D.decompose()[3]);
 	// 	else
 	// 		this._scale.identity();
 
-	// 	if (viewport) {
-	// 		this._scale.x *= viewport.focalLength*viewport.pixelRatio/1000;
-	// 		this._scale.y *= viewport.focalLength/1000;
+	// 	if (view) {
+	// 		this._scale.x *= view.focalLength*view.pixelRatio/1000;
+	// 		this._scale.y *= view.focalLength/1000;
 	// 	}
 
 	// 	return this._scale;
 	// }
 
-	// public updateScale(viewport:Viewport)
+	// public updateScale(view:View)
 	// {
 	// 	var prevScaleX:number = this._scale.x;
 	// 	var prevScaleY:number = this._scale.y;
-	// 	var scale:Vector3D = this.getSpriteScale(viewport);
+	// 	var scale:Vector3D = this.getSpriteScale(view);
 
 	// 	if (scale.x == prevScaleX && scale.y == prevScaleY)
 	// 	 	return;
@@ -275,7 +277,7 @@ export class Graphics extends AssetBase
 	/**
 	 * Creates a new Graphics object.
 	 */
-	constructor(entity:IEntity = null)
+	constructor(entity:IRenderEntity = null)
 	{
 		super();
 
@@ -479,7 +481,7 @@ export class Graphics extends AssetBase
 			this._shapes[i].invalidateElements();
 	}
 
-	public _applyRenderables(renderer:IRenderer):void
+	public _acceptTraverser(traverser:IEntityTraverser):void
 	{
 		if(this._drawingDirty)
 			this.endFill();
@@ -487,24 +489,9 @@ export class Graphics extends AssetBase
 		var len:number = this._shapes.length;
 
 		for (var i:number = len - 1; i >= 0; i--)
-			renderer.applyRenderable(this._shapes[i]);
+			traverser.applyTraversable(this._shapes[i]);
 
-	}
-
-	
-	public _applyPickables(picker:IPicker):void
-	{
-		if(this._drawingDirty)
-			this.endFill();
-		
-		var len:number = this._shapes.length;
-
-		for (var i:number = len - 1; i >= 0; i--)
-			picker.applyPickable(this._shapes[i]);
-
-	}
-
-	
+	}	
 
 	private _onInvalidateProperties(event:StyleEvent):void
 	{

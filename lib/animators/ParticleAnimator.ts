@@ -2,7 +2,7 @@ import {ProjectionBase} from "@awayjs/core";
 
 import {Stage} from "@awayjs/stage";
 
-import {IElements, ShaderBase, _Render_RenderableBase, AnimationRegisterData, IEntity, IRenderable} from "@awayjs/renderer";
+import {IElements, ShaderBase, _Render_RenderableBase, AnimationRegisterData} from "@awayjs/renderer";
 
 import {Shape} from "../renderables/Shape";
 
