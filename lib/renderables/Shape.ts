@@ -357,18 +357,18 @@ export class _Pick_Shape extends _Pick_PickableBase
 		if(box == null || !box.contains(x, y, z))
 			return false;
 
-		return (<Shape> this._asset).elements.hitTestPoint(this._view, <IPickingEntity> this.sourceEntity, x, y, z, box, this.shape.count, this.shape.offset);
+		return (<Shape> this._asset).elements.hitTestPoint(this._view, <IPickingEntity> this.sourceEntity, x, y, z, box, (<Shape> this._asset).count, (<Shape> this._asset).offset);
 	}
 
 	public getBoxBounds(matrix3D:Matrix3D = null, strokeFlag:boolean = true, cache:Box = null, target:Box = null):Box
 	{
 		if (matrix3D)
-			return (<Shape> this._asset).elements.getBoxBounds(this._view, <IPickingEntity> this.sourceEntity, strokeFlag, matrix3D, cache, target, this.shape.count, this.shape.offset);
+			return (<Shape> this._asset).elements.getBoxBounds(this._view, <IPickingEntity> this.sourceEntity, strokeFlag, matrix3D, cache, target, (<Shape> this._asset).count, (<Shape> this._asset).offset);
 
 		if (this._orientedBoxBoundsDirty) {
 			this._orientedBoxBoundsDirty = false;
 
-			this._orientedBoxBounds = (<Shape> this._asset).elements.getBoxBounds(this._view, <IPickingEntity> this.sourceEntity, strokeFlag, null, this._orientedBoxBounds, null, this.shape.count, this.shape.offset);
+			this._orientedBoxBounds = (<Shape> this._asset).elements.getBoxBounds(this._view, <IPickingEntity> this.sourceEntity, strokeFlag, null, this._orientedBoxBounds, null, (<Shape> this._asset).count, (<Shape> this._asset).offset);
 		}
 
 		if (this._orientedBoxBounds != null)
