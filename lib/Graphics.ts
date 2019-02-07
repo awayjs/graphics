@@ -6,7 +6,6 @@ import { IEntityTraverser } from '@awayjs/view';
 
 import {IAnimator, IRenderEntity, IMaterial, Style, StyleEvent, MaterialUtils, RenderableEvent} from "@awayjs/renderer";
 
-import {IShape} from "./renderables/IShape";
 import {GraphicsPath} from "./draw/GraphicsPath";
 import {GraphicsFactoryFills} from "./draw/GraphicsFactoryFills";
 import {GraphicsFactoryStrokes} from "./draw/GraphicsFactoryStrokes";
@@ -79,7 +78,7 @@ export class Graphics extends AssetBase
 	private _onRemoveMaterialDelegate:(event:ShapeEvent) => void;
 
 	private _material:IMaterial;
-	private _shapes:Array<IShape> = [];
+	private _shapes:Array<Shape> = [];
 	private _animator:IAnimator;
 	private _style:Style;
 
@@ -180,7 +179,7 @@ export class Graphics extends AssetBase
 			this._material.iAddOwner(this._entity);
 		}
 		
-		var shape:IShape;
+		var shape:Shape;
 		var len:number = this._shapes.length;
 		for (var i:number = 0; i < len; ++i) {
 			shape = this._shapes[i];
@@ -305,7 +304,7 @@ export class Graphics extends AssetBase
 	 *
 	 * @param elements
 	 */
-	public addShape(shape:IShape):IShape
+	public addShape(shape:Shape):Shape
 	{
 		var shapeIndex:number = this.getShapeIndex(shape);
 		
@@ -326,7 +325,7 @@ export class Graphics extends AssetBase
 		return shape;
 	}
 
-	public removeShape(shape:IShape):void
+	public removeShape(shape:Shape):void
 	{
 		var shapeIndex:number = this.getShapeIndex(shape);
 		
@@ -341,7 +340,7 @@ export class Graphics extends AssetBase
 		if (index < 0 || index >= this._shapes.length)
 			throw new RangeError("Index is out of range");
 
-		var shape:IShape = this._shapes.splice(index, 1)[0]
+		var shape:Shape = this._shapes.splice(index, 1)[0]
 
 		shape.removeEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateElementsDelegate);
 		//shape.removeEventListener(ShapeEvent.ADD_MATERIAL, this._onAddMaterialDelegate);
@@ -350,12 +349,12 @@ export class Graphics extends AssetBase
 		this.invalidate();
 	}
 
-	public getShapeAt(index:number):IShape
+	public getShapeAt(index:number):Shape
 	{
 		return this._shapes[index];
 	}
 	
-	public getShapeIndex(shape:IShape):number
+	public getShapeIndex(shape:Shape):number
 	{
 		return this._shapes.indexOf(shape);
 	}
@@ -410,7 +409,7 @@ export class Graphics extends AssetBase
 
 	public clear():void
 	{
-		var shape:IShape;
+		var shape:Shape;
 		var len:number = this._shapes.length;
 		for (var i:number = 0; i < len; i++) {
 			shape = this._shapes[i];
@@ -1672,9 +1671,9 @@ export class Graphics extends AssetBase
             this._queued_stroke_pathes.push(this._active_stroke_path);
         }
     }
-	private _addShapes(shapes:Array<IShape>, cloneShapes:boolean = false):void
+	private _addShapes(shapes:Array<Shape>, cloneShapes:boolean = false):void
 	{
-		var shape:IShape;
+		var shape:Shape;
 		var len:number = shapes.length;
 		for (var i:number = 0; i < len; i++) {
 			shape = shapes[i];

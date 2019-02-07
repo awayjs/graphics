@@ -1,8 +1,8 @@
 import {Vector3D} from "@awayjs/core";
 
-import {VertexClipState} from "../states/VertexClipState";
+import { ElementsBase } from '../../elements/ElementsBase';
 
-import {Graphics} from "../../Graphics";
+import {VertexClipState} from "../states/VertexClipState";
 
 import {AnimationClipNodeBase} from "./AnimationClipNodeBase";
 
@@ -11,13 +11,13 @@ import {AnimationClipNodeBase} from "./AnimationClipNodeBase";
  */
 export class VertexClipNode extends AnimationClipNodeBase
 {
-	private _frames:Array<Graphics> = new Array<Graphics>();
+	private _frames:Array<ElementsBase> = new Array<ElementsBase>();
 	private _translations:Array<Vector3D> = new Array<Vector3D>();
 
 	/**
 	 * Returns a vector of geometry frames representing the vertex values of each animation frame in the clip.
 	 */
-	public get frames():Array<Graphics>
+	public get frames():Array<ElementsBase>
 	{
 		return this._frames;
 	}
@@ -39,9 +39,9 @@ export class VertexClipNode extends AnimationClipNodeBase
 	 * @param duration The specified duration of the frame in milliseconds.
 	 * @param translation The absolute translation of the frame, used in root delta calculations for sprite movement.
 	 */
-	public addFrame(geometry:Graphics, duration:number, translation:Vector3D = null):void
+	public addFrame(elements:ElementsBase, duration:number, translation:Vector3D = null):void
 	{
-		this._frames.push(geometry);
+		this._frames.push(elements);
 		this._pDurations.push(duration);
 		this._translations.push(translation || new Vector3D());
 

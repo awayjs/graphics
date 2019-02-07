@@ -1,4 +1,4 @@
-import {Graphics} from "../../Graphics";
+import { ElementsBase } from '../../elements/ElementsBase';
 
 import {IAnimationState} from "./IAnimationState";
 
@@ -12,12 +12,12 @@ export interface IVertexAnimationState extends IAnimationState
 	/**
 	 * Returns the current geometry frame of animation in the clip based on the internal playhead position.
 	 */
-	currentGraphics:Graphics; //GET
+	currentElements:ElementsBase; //GET
 
 	/**
 	 * Returns the current geometry frame of animation in the clip based on the internal playhead position.
 	 */
-	nextGraphics:Graphics; //GET
+	nextElements:ElementsBase; //GET
 
 	/**
 	 * Returns a fractional value between 0 and 1 representing the blending ratio of the current playhead position

@@ -1,6 +1,6 @@
 import {EventBase} from "@awayjs/core";
 
-import {IShape} from "../renderables/IShape";
+import {Shape} from "../renderables/Shape";
 
 /**
  * Dispatched to notify changes in a sub geometry object's state.
@@ -20,14 +20,14 @@ export class ShapeEvent extends EventBase
 	 */
 	public static REMOVE_MATERIAL:string = "removeMaterial";
 
-	private _shape:IShape;
+	private _shape:Shape;
 
 	/**
 	 * Create a new GraphicsEvent
 	 * @param type The event type.
 	 * @param dataType An optional data type of the vertex data being updated.
 	 */
-	constructor(type:string, shape:IShape)
+	constructor(type:string, shape:Shape)
 	{
 		super(type);
 
@@ -37,7 +37,7 @@ export class ShapeEvent extends EventBase
 	/**
 	 * The renderobject owner of the renderable owner.
 	 */
-	public get shape():IShape
+	public get shape():Shape
 	{
 		return this._shape;
 	}

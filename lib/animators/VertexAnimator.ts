@@ -1,10 +1,10 @@
 import {ProjectionBase} from "@awayjs/core";
 
-import {IElements, IRenderable, IRenderEntity, AnimationRegisterData, ShaderBase, _Render_RenderableBase, _Stage_ElementsBase} from "@awayjs/renderer";
+import {IElements, AnimationRegisterData, ShaderBase, _Render_RenderableBase, _Stage_ElementsBase} from "@awayjs/renderer";
 
 import {Stage} from "@awayjs/stage";
 
-import {Shape} from "../renderables/Shape";
+import {Shape, _Render_Shape} from "../renderables/Shape";
 import {TriangleElements} from "../elements/TriangleElements";
 
 import {Graphics} from "../Graphics";
@@ -15,6 +15,7 @@ import {IAnimationTransition} from "./transitions/IAnimationTransition";
 
 import {AnimatorBase} from "./AnimatorBase";
 import {VertexAnimationSet} from "./VertexAnimationSet";
+import { ElementsBase } from '../elements/ElementsBase';
 
 /**
  * Provides an interface for assigning vertex-based animation data sets to entity-based entity objects
@@ -24,7 +25,7 @@ import {VertexAnimationSet} from "./VertexAnimationSet";
 export class VertexAnimator extends AnimatorBase
 {
 	private _vertexAnimationSet:VertexAnimationSet;
-	private _poses:Array<Graphics> = new Array<Graphics>();
+	private _poses:Array<ElementsBase> = new Array<ElementsBase>();
 	private _weights:Float32Array = new Float32Array([1, 0, 0, 0]);
 	private _activeVertexState:IVertexAnimationState;
 
@@ -92,13 +93,13 @@ export class VertexAnimator extends AnimatorBase
 
 		var geometryFlag:boolean = false;
 
-		if (this._poses[0] != this._activeVertexState.currentGraphics) {
-			this._poses[0] = this._activeVertexState.currentGraphics;
+		if (this._poses[0] != this._activeVertexState.currentElements) {
+			this._poses[0] = this._activeVertexState.currentElements;
 			geometryFlag = true;
 		}
 
-		if (this._poses[1] != this._activeVertexState.nextGraphics)
-			this._poses[1] = this._activeVertexState.nextGraphics;
+		if (this._poses[1] != this._activeVertexState.nextElements)
+			this._poses[1] = this._activeVertexState.nextElements;
 
 		this._weights[0] = 1 - (this._weights[1] = this._activeVertexState.blendWeight);
 
@@ -109,13 +110,12 @@ export class VertexAnimator extends AnimatorBase
 	/**
 	 * @inheritDoc
 	 */
-	public setRenderState(shader:ShaderBase, renderState:_Render_RenderableBase, stage:Stage, projection:ProjectionBase):void
+	public setRenderState(shader:ShaderBase, renderable:_Render_Shape, stage:Stage, projection:ProjectionBase):void
 	{
 		// todo: add code for when running on cpu
 		// this type of animation can only be IRenderable
-		var renderable:IRenderable = renderState.renderable;
-		var entity:IRenderEntity = <IRenderEntity> renderState.sourceEntity;
-		var elements:TriangleElements = <TriangleElements> renderState.stageElements.elements;
+		var shape:Shape = renderable.shape;
+		var elements:TriangleElements = <TriangleElements> renderable.stageElements.elements;
 
 		// if no poses defined, set temp data
 		if (!this._poses.length) {
@@ -136,13 +136,12 @@ export class VertexAnimator extends AnimatorBase
 
 		var stageElements:_Stage_ElementsBase;
 		var k:number = 0;
-		var renderableIndex:number = entity.getRenderableIndex(renderable);
 
 		for (; i < len; ++i) {
-			elements = <TriangleElements> (this._poses[i].getShapeAt(renderableIndex).elements || (<Shape> renderable).elements);
+			elements = <TriangleElements> (this._poses[i] || shape.elements);
 
 			stageElements = <_Stage_ElementsBase> stage.getAbstraction(elements);
-			stageElements._indexMappings = (<_Stage_ElementsBase> stage.getAbstraction((<Shape> renderable).elements)).getIndexMappings();
+			stageElements._indexMappings = (<_Stage_ElementsBase> stage.getAbstraction(shape.elements)).getIndexMappings();
 			
 			stageElements.activateVertexBufferVO(animationRegisterData.poseIndices[k++], elements.positions);
 
@@ -183,7 +182,7 @@ export class VertexAnimator extends AnimatorBase
 	public getRenderableElements(renderState:_Render_RenderableBase, sourceElements:IElements):IElements
 	{
 		if (this._vertexAnimationSet.blendMode == VertexAnimationMode.ABSOLUTE && this._poses.length)
-			return this._poses[0].getShapeAt((<IRenderEntity> renderState.sourceEntity).getRenderableIndex(renderState.renderable)).elements || sourceElements;
+			return this._poses[0] || sourceElements;
 
 		//nothing to do here
 		return sourceElements;

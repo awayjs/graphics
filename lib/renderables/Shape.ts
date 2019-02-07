@@ -19,7 +19,7 @@ import {Graphics} from "../Graphics";
  *
  * @class away.base.Graphic
  */
-export class Shape extends AssetBase implements IShape
+export class Shape extends AssetBase
 {
 	private static _pool:Array<Shape> = new Array<Shape>();
 
@@ -143,7 +143,7 @@ export class Shape extends AssetBase implements IShape
 		if (this._style)
 			this._style.addEventListener(StyleEvent.INVALIDATE_PROPERTIES, this._onInvalidatePropertiesDelegate);
 
-		this.invalidateMaterial();
+		this.invalidateStyle();
 	}
 
 
@@ -185,10 +185,15 @@ export class Shape extends AssetBase implements IShape
 	{
 		this.dispatchEvent(new RenderableEvent(RenderableEvent.INVALIDATE_MATERIAL, this));
 	}
+	
+	public invalidateStyle():void
+	{
+		this.dispatchEvent(new RenderableEvent(RenderableEvent.INVALIDATE_STYLE, this));
+	}
 
 	private _onInvalidateProperties(event:StyleEvent):void
 	{
-		this.invalidateMaterial();
+		this.invalidateStyle();
 	}
 
 	private _onInvalidateVertices(event:ElementsEvent):void
@@ -231,7 +236,6 @@ import {_Render_RenderableBase, RenderEntity, _Stage_ElementsBase, _Render_Mater
 
 import {AnimatorBase} from "../animators/AnimatorBase";
 import {LineElements} from "../elements/LineElements";
-import { IShape } from './IShape';
 
 /**
  * @class away.pool._Render_Shape
@@ -280,7 +284,12 @@ export class _Render_Shape extends _Render_RenderableBase
 
     protected _getRenderMaterial():_Render_MaterialBase
     {
-        return this.renderGroup.getRenderElements(this.stageElements.elements).getAbstraction(this.shape.material || this.sourceEntity.material || this.getDefaultMaterial());
+        return this.renderGroup.getRenderElements(this.shape.elements).getAbstraction((<Shape> this._asset).material || this.sourceEntity.material || this.getDefaultMaterial());
+	}
+	
+	protected _getStyle():Style
+    {
+        return (<Shape> this._asset).style || this.sourceEntity.style;
     }
 
     protected getDefaultMaterial():IMaterial
@@ -301,11 +310,6 @@ export class _Pick_Shape extends _Pick_PickableBase
 	private _orientedSphereBoundsDirty = true;
 
 	private _onInvalidateElementsDelegate:(event:RenderableEvent) => void;
-	
-    /**
-     *
-     */
-    public shape:Shape;
 
     /**
      * //TODO
@@ -318,12 +322,10 @@ export class _Pick_Shape extends _Pick_PickableBase
     constructor(shape:Shape, pickEntity:PickEntity)
     {
 		super(shape, pickEntity);
-		
-		this.shape = shape;
 
 		this._onInvalidateElementsDelegate = (event:RenderableEvent) => this._onInvalidateElements(event);
 		
-		this.shape.addEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateElementsDelegate);
+		this._asset.addEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateElementsDelegate);
     }
 
     public onInvalidate(event:AssetEvent):void
@@ -342,10 +344,9 @@ export class _Pick_Shape extends _Pick_PickableBase
 	
     public onClear(event:AssetEvent):void
     {
-        super.onClear(event);
+		this._asset.removeEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateElementsDelegate);
 
-		this.shape.removeEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateElementsDelegate);
-        this.shape = null;
+        super.onClear(event);
 	}
 	
 	public hitTestPoint(x:number, y:number, z:number):boolean
@@ -356,18 +357,18 @@ export class _Pick_Shape extends _Pick_PickableBase
 		if(box == null || !box.contains(x, y, z))
 			return false;
 
-		return this.shape.elements.hitTestPoint(this._view, <IPickingEntity> this.sourceEntity, x, y, z, box, this.shape.count, this.shape.offset);
+		return (<Shape> this._asset).elements.hitTestPoint(this._view, <IPickingEntity> this.sourceEntity, x, y, z, box, this.shape.count, this.shape.offset);
 	}
 
 	public getBoxBounds(matrix3D:Matrix3D = null, strokeFlag:boolean = true, cache:Box = null, target:Box = null):Box
 	{
 		if (matrix3D)
-			return this.shape.elements.getBoxBounds(this._view, <IPickingEntity> this.sourceEntity, strokeFlag, matrix3D, cache, target, this.shape.count, this.shape.offset);
+			return (<Shape> this._asset).elements.getBoxBounds(this._view, <IPickingEntity> this.sourceEntity, strokeFlag, matrix3D, cache, target, this.shape.count, this.shape.offset);
 
 		if (this._orientedBoxBoundsDirty) {
 			this._orientedBoxBoundsDirty = false;
 
-			this._orientedBoxBounds = this.shape.elements.getBoxBounds(this._view, <IPickingEntity> this.sourceEntity, strokeFlag, null, this._orientedBoxBounds, null, this.shape.count, this.shape.offset);
+			this._orientedBoxBounds = (<Shape> this._asset).elements.getBoxBounds(this._view, <IPickingEntity> this.sourceEntity, strokeFlag, null, this._orientedBoxBounds, null, this.shape.count, this.shape.offset);
 		}
 
 		if (this._orientedBoxBounds != null)
@@ -379,12 +380,12 @@ export class _Pick_Shape extends _Pick_PickableBase
 	public getSphereBounds(center:Vector3D, matrix3D:Matrix3D = null, strokeFlag:boolean = true, cache:Sphere = null, target:Sphere = null):Sphere
 	{
 		if (matrix3D)
-			return this.shape.elements.getSphereBounds(this._view, center, matrix3D, strokeFlag, cache, target, this.shape.count, this.shape.offset);
+			return (<Shape> this._asset).elements.getSphereBounds(this._view, center, matrix3D, strokeFlag, cache, target, (<Shape> this._asset).count, (<Shape> this._asset).offset);
 
 		if (this._orientedSphereBoundsDirty) {
 			this._orientedSphereBoundsDirty = false;
 
-			this._orientedSphereBounds = this.shape.elements.getSphereBounds(this._view, center, null, strokeFlag, this._orientedSphereBounds, null, this.shape.count, this.shape.offset);
+			this._orientedSphereBounds = (<Shape> this._asset).elements.getSphereBounds(this._view, center, null, strokeFlag, this._orientedSphereBounds, null, (<Shape> this._asset).count, (<Shape> this._asset).offset);
 		}
 
 		if (this._orientedSphereBounds != null)
@@ -401,7 +402,7 @@ export class _Pick_Shape extends _Pick_PickableBase
 		if(box == null || !box.rayIntersection(collision.rayPosition, collision.rayDirection))
 			return false;
 
-		return this.shape.elements.testCollision(this._view, collision, box, findClosestCollision, this.shape.material || (<IRenderEntity> collision.entity).material, this.shape.count || this.shape.elements.numVertices, this.shape.offset);
+		return (<Shape> this._asset).elements.testCollision(this._view, collision, box, findClosestCollision, (<Shape> this._asset).material || (<IRenderEntity> collision.entity).material, (<Shape> this._asset).count || (<Shape> this._asset).elements.numVertices, (<Shape> this._asset).offset);
 	}
 }
 

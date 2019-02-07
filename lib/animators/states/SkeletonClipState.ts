@@ -135,7 +135,8 @@ export class SkeletonClipState extends AnimationClipState implements ISkeletonAn
 			p2 = pose2.translation;
 
 			if (this._skeletonClipNode.highQuality)
-				endPose.orientation.slerp(pose1.orientation, pose2.orientation, this._pBlendWeight); else
+				endPose.orientation.slerp(pose1.orientation, pose2.orientation, this._pBlendWeight);
+			else
 				endPose.orientation.lerp(pose1.orientation, pose2.orientation, this._pBlendWeight);
 
 			if (i > 0) {
