@@ -2,7 +2,7 @@ import {Vector3D, MathConsts, ProjectionBase} from "@awayjs/core";
 
 import {Stage, ContextGLVertexBufferFormat} from "@awayjs/stage";
 
-import {ShaderBase, _Render_RenderableBase, AnimationRegisterData, IRenderEntity} from "@awayjs/renderer";
+import {ShaderBase, _Render_RenderableBase, AnimationRegisterData, IEntity} from "@awayjs/renderer";
 
 import {ParticleAnimationData} from "../data/ParticleAnimationData";
 import {AnimationElements} from "../data/AnimationElements";
@@ -24,7 +24,7 @@ export class ParticleFollowState extends ParticleStateBase
 	public static FOLLOW_ROTATION_INDEX:number = 1;
 
 	private _particleFollowNode:ParticleFollowNode;
-	private _followTarget:IRenderEntity;
+	private _followTarget:IEntity;
 
 	private _targetPos:Vector3D = new Vector3D();
 	private _targetEuler:Vector3D = new Vector3D();
@@ -43,12 +43,12 @@ export class ParticleFollowState extends ParticleStateBase
 		this._smooth = particleFollowNode._iSmooth;
 	}
 
-	public get followTarget():IRenderEntity
+	public get followTarget():IEntity
 	{
 		return this._followTarget;
 	}
 
-	public set followTarget(value:IRenderEntity)
+	public set followTarget(value:IEntity)
 	{
 		this._followTarget = value;
 	}

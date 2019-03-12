@@ -1,6 +1,6 @@
-import {Matrix3D, Vector3D, Box, Sphere, Rectangle} from "@awayjs/core";
+import {Matrix3D, Vector3D, Box, Sphere, Rectangle, Point, Transform} from "@awayjs/core";
 
-import {AttributesBuffer, AttributesView, Short2Attributes, Float2Attributes} from "@awayjs/stage";
+import {AttributesBuffer, AttributesView, Short2Attributes, Short3Attributes, Float2Attributes, Float3Attributes, Float4Attributes, Byte4Attributes} from "@awayjs/stage";
 
 import {TriangleElements} from "../elements/TriangleElements";
 

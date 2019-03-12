@@ -5,7 +5,7 @@ import {ShaderBase, _Render_RenderableBase, _Stage_ElementsBase, ElementsEvent, 
 import {Stage} from "@awayjs/stage";
 
 import {TriangleElements} from "../elements/TriangleElements";
-import {_Render_Shape} from "../renderables/Shape";
+import {Shape} from "../renderables/Shape";
 import {AnimationStateEvent} from "../events/AnimationStateEvent";
 import {JointPose} from "./data/JointPose";
 import {Skeleton} from "./data/Skeleton";
@@ -194,13 +194,13 @@ export class SkeletonAnimator extends AnimatorBase
 	/**
 	 * @inheritDoc
 	 */
-	public setRenderState(shader:ShaderBase, renderable:_Render_Shape, stage:Stage, projection:ProjectionBase):void
+	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, stage:Stage, projection:ProjectionBase):void
 	{
 		// do on request of globalProperties
 		if (this._globalPropertiesDirty)
 			this.updateGlobalProperties();
 
-		var elements:TriangleElements = <TriangleElements> renderable.shape.elements;
+		var elements:TriangleElements = <TriangleElements> (<Shape> renderable.renderable).elements;
 
 		elements.useCondensedIndices = this._useCondensedIndices;
 

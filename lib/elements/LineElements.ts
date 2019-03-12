@@ -1,10 +1,8 @@
-import {Box, Sphere, Vector3D} from "@awayjs/core";
+import {Box, Sphere, Vector3D, Transform} from "@awayjs/core";
 
-import {AttributesBuffer, AttributesView, Byte4Attributes, Float1Attributes} from "@awayjs/stage";
+import {AttributesBuffer, AttributesView, Byte4Attributes, Float1Attributes, Viewport} from "@awayjs/stage";
 
-import {View, PickingCollision, IPickingEntity, IPartitionEntity} from "@awayjs/view";
-
-import {ElementsUtils, IMaterial} from "@awayjs/renderer";;
+import {ElementsUtils, PickingCollision, IMaterial, IEntity} from "@awayjs/renderer";;
 
 import {ElementsBase} from "./ElementsBase";
 
@@ -25,7 +23,7 @@ export class LineElements extends ElementsBase
 
 	public stroke:GraphicsStrokeStyle;
 
-	public getThicknessScale(view:View, entity:IPartitionEntity, strokeFlag:boolean):Vector3D
+	public getThicknessScale(viewport:Viewport, entity:IEntity, strokeFlag:boolean):Vector3D
 	{
 		if (!strokeFlag && this.stroke.scaleMode == LineScaleMode.HAIRLINE) {
 			this._thicknessScale.identity();
@@ -35,8 +33,8 @@ export class LineElements extends ElementsBase
 			else
 				this._thicknessScale.identity();
 
-			this._thicknessScale.x *= view.focalLength*view.pixelRatio/1000;
-			this._thicknessScale.y *= view.focalLength/1000;
+			this._thicknessScale.x *= viewport.focalLength*viewport.pixelRatio/1000;
+			this._thicknessScale.y *= viewport.focalLength/1000;
 
 			if (this.stroke && this.stroke.scaleMode == LineScaleMode.NORMAL) {
 				this._thicknessScale.x = (!strokeFlag || this.stroke.half_thickness*this._thicknessScale.x > 0.5)? this.stroke.half_thickness : 0.5/this._thicknessScale.x;
@@ -95,20 +93,20 @@ export class LineElements extends ElementsBase
 		this._positions = new AttributesView(Float32Array, 6, concatenatedBuffer);
 	}
 
-	public getBoxBounds(view:View, entity:IPickingEntity = null, strokeFlag:boolean = false, matrix3D:Matrix3D = null, cache:Box = null, target:Box = null, count:number = 0, offset:number = 0):Box
+	public getBoxBounds(viewport:Viewport, entity:IEntity = null, strokeFlag:boolean = false, matrix3D:Matrix3D = null, cache:Box = null, target:Box = null, count:number = 0, offset:number = 0):Box
 	{
-		return LineElementsUtils.getBoxBounds(this.positions, this.indices, matrix3D, this.getThicknessScale(view, entity, strokeFlag), cache, target, count || this._numElements || this._numVertices, offset);
+		return LineElementsUtils.getBoxBounds(this.positions, this.indices, matrix3D, this.getThicknessScale(viewport, entity, strokeFlag), cache, target, count || this._numElements || this._numVertices, offset);
 	}
 
-	public getSphereBounds(view:View, center:Vector3D, matrix3D:Matrix3D = null, strokeFlag:boolean = false, cache:Sphere = null, target:Sphere = null, count:number = 0, offset:number = 0):Sphere
+	public getSphereBounds(viewport:Viewport, center:Vector3D, matrix3D:Matrix3D = null, strokeFlag:boolean = false, cache:Sphere = null, target:Sphere = null, count:number = 0, offset:number = 0):Sphere
 	{
 		return LineElementsUtils.getSphereBounds(this.positions, center, matrix3D, cache, target, count || this._numVertices, offset);
 	}
 
 	
-	public hitTestPoint(view:View, entity:IPickingEntity, x:number, y:number, z:number, box:Box, count:number = 0, offset:number = 0, idx_count:number = 0, idx_offset:number = 0):boolean
+	public hitTestPoint(viewport:Viewport, entity:IEntity, x:number, y:number, z:number, box:Box, count:number = 0, offset:number = 0, idx_count:number = 0, idx_offset:number = 0):boolean
 	{
-		var scale:Vector3D = this.getThicknessScale(view, entity, true);
+		var scale:Vector3D = this.getThicknessScale(viewport, entity, true);
 		var thickness:number = (scale.x + scale.y)/2;//approx hack for now
 
 		return LineElementsUtils.hitTest(x, y, 0, thickness, box, this, count || this._numElements || this._numVertices, offset);
@@ -320,10 +318,10 @@ export class LineElements extends ElementsBase
 	}
 
 	
-	public testCollision(view:View, collision:PickingCollision, box:Box, closestFlag:boolean, material:IMaterial, count:number, offset:number = 0):boolean
+	public testCollision(viewport:Viewport, collision:PickingCollision, box:Box, closestFlag:boolean, material:IMaterial, count:number, offset:number = 0):boolean
 	{
 		//TODO: peform correct line collision calculations
-		var scale:Vector3D = this.getThicknessScale(view, collision.entity, true);
+		var scale:Vector3D = this.getThicknessScale(viewport, collision.entity, true);
 		var thickness:number = (scale.x + scale.y)/2;//approx hack for now
 
 		var rayEntryDistance:number = -collision.rayPosition.z/collision.rayDirection.z;
@@ -376,9 +374,9 @@ export class _Stage_LineElements extends _Stage_ElementsBase
         this._lineElements = null;
     }
 
-    public _setRenderState(renderRenderable:_Render_RenderableBase, shader:ShaderBase, view:View):void
+    public _setRenderState(renderRenderable:_Render_RenderableBase, shader:ShaderBase, viewport:Viewport):void
     {
-        super._setRenderState(renderRenderable, shader, view);
+        super._setRenderState(renderRenderable, shader, viewport);
 
 		var renderElements:_Render_LineElements = <_Render_LineElements> renderRenderable.renderGroup.getRenderElements(renderRenderable.stageElements.elements);
 
@@ -406,30 +404,30 @@ export class _Stage_LineElements extends _Stage_ElementsBase
 
 		var stroke:GraphicsStrokeStyle = this._lineElements.stroke;
 		if (stroke && stroke.scaleMode == LineScaleMode.NORMAL) {
-			data[index + 12] = (stroke.half_thickness*this._scale.x*this._thickness/1000 > 0.5/(view.focalLength*view.pixelRatio))? this._scale.x*this._thickness/1000 : 0.5/(stroke.half_thickness*view.focalLength*view.pixelRatio);
-			data[index + 13] = (stroke.half_thickness*this._scale.y*this._thickness/1000 > 0.5/view.focalLength)? this._scale.y*this._thickness/1000 : 0.5/(stroke.half_thickness*view.focalLength);
+			data[index + 12] = (stroke.half_thickness*this._scale.x*this._thickness/1000 > 0.5/(viewport.focalLength*viewport.pixelRatio))? this._scale.x*this._thickness/1000 : 0.5/(stroke.half_thickness*viewport.focalLength*viewport.pixelRatio);
+			data[index + 13] = (stroke.half_thickness*this._scale.y*this._thickness/1000 > 0.5/viewport.focalLength)? this._scale.y*this._thickness/1000 : 0.5/(stroke.half_thickness*viewport.focalLength);
 		} else if (!stroke || stroke.scaleMode == LineScaleMode.HAIRLINE) {
-			data[index + 12] = this._thickness/(view.focalLength*view.pixelRatio);
-			data[index + 13] = this._thickness/view.focalLength;
+			data[index + 12] = this._thickness/(viewport.focalLength*viewport.pixelRatio);
+			data[index + 13] = this._thickness/viewport.focalLength;
 		} else {
-			data[index + 12] = this._thickness/Math.min(view.width, view.height);
-			data[index + 13] = this._thickness/Math.min(view.width, view.height);
+			data[index + 12] = this._thickness/Math.min(viewport.width, viewport.height);
+			data[index + 13] = this._thickness/Math.min(viewport.width, viewport.height);
 		}
-        data[index + 14] = view.projection.near;
+        data[index + 14] = viewport.projection.near;
 
         var context:IContextGL = this._stage.context;
     }
 
-    public draw(renderRenderable:_Render_RenderableBase, shader:ShaderBase, view:View, count:number, offset:number):void
+    public draw(renderRenderable:_Render_RenderableBase, shader:ShaderBase, viewport:Viewport, count:number, offset:number):void
     {
         var context:IContextGL = this._stage.context;
 
         // projection matrix
-        shader.viewMatrix.copyFrom(view.frustumMatrix3D, true);
+        shader.viewMatrix.copyFrom(viewport.frustumMatrix3D, true);
 
         var matrix3D:Matrix3D = Matrix3D.CALCULATION_MATRIX;
         matrix3D.copyFrom(renderRenderable.sourceEntity.transform.concatenatedMatrix3D);
-        matrix3D.append(view.projection.transform.inverseConcatenatedMatrix3D);
+        matrix3D.append(viewport.projection.transform.inverseConcatenatedMatrix3D);
         shader.sceneMatrix.copyFrom(matrix3D, true);
 
         context.setProgramConstantsFromArray(ContextGLProgramType.VERTEX, shader.vertexConstantData);

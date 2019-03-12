@@ -2,9 +2,9 @@ import {ProjectionBase} from "@awayjs/core";
 
 import {Stage} from "@awayjs/stage";
 
-import {IElements, ShaderBase, _Render_RenderableBase, AnimationRegisterData} from "@awayjs/renderer";
+import {IElements, ShaderBase, _Render_RenderableBase, AnimationRegisterData, IEntity, IRenderable} from "@awayjs/renderer";
 
-import {_Render_Shape} from "../renderables/Shape";
+import {Shape} from "../renderables/Shape";
 
 import {AnimationElements} from "./data/AnimationElements";
 import {ParticleCollection} from "./data/ParticleCollection";
@@ -75,26 +75,26 @@ export class ParticleAnimator extends AnimatorBase
 	/**
 	 * @inheritDoc
 	 */
-	public setRenderState(shader:ShaderBase, renderable:_Render_Shape, stage:Stage, projection:ProjectionBase):void
+	public setRenderState(shader:ShaderBase, renderState:_Render_RenderableBase, stage:Stage, projection:ProjectionBase):void
 	{
 		var animationRegisterData:AnimationRegisterData = this._particleAnimationSet._iAnimationRegisterData;
 
-		var particleCollection:ParticleCollection = renderable.shape.particleCollection;
+		var particleCollection:ParticleCollection = (<Shape> renderState.renderable).particleCollection;
 
-		var elements:IElements = renderable.shape.elements;
+		var elements:IElements = (<Shape> renderState.renderable).elements;
 
 		//process animation sub geometries
 		var animationElements:AnimationElements = this._particleAnimationSet.getAnimationElements(particleCollection, elements);
 		var i:number;
 		
 		for (i = 0; i < this._animationParticleStates.length; i++)
-			this._animationParticleStates[i].setRenderState(shader, renderable, animationElements, animationRegisterData, projection, stage);
+			this._animationParticleStates[i].setRenderState(shader, renderState, animationElements, animationRegisterData, projection, stage);
 
 		//process animator subgeometries
 		var animatorElements:AnimationElements = this.getAnimatorElements(particleCollection, elements);
 
 		for (i = 0; i < this._animatorParticleStates.length; i++)
-			this._animatorParticleStates[i].setRenderState(shader, renderable, animatorElements, animationRegisterData, projection, stage);
+			this._animatorParticleStates[i].setRenderState(shader, renderState, animatorElements, animationRegisterData, projection, stage);
 	}
 
 	/**

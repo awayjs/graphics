@@ -1,11 +1,10 @@
 import {ArgumentError, RangeError, PartialImplementationError, Point, Vector3D, Matrix, Matrix3D, AssetBase, Rectangle} from "@awayjs/core";
 
-import {BitmapImage2D} from "@awayjs/stage";
+import {BitmapImage2D, Viewport} from "@awayjs/stage";
 
-import { IEntityTraverser } from '@awayjs/view';
+import {IAnimator, IEntity, IMaterial, Style, StyleEvent, MaterialUtils, RenderableEvent, IPicker, IRenderer} from "@awayjs/renderer";
 
-import {IAnimator, IRenderEntity, IMaterial, Style, StyleEvent, MaterialUtils, RenderableEvent} from "@awayjs/renderer";
-
+import {IShape} from "./renderables/IShape";
 import {GraphicsPath} from "./draw/GraphicsPath";
 import {GraphicsFactoryFills} from "./draw/GraphicsFactoryFills";
 import {GraphicsFactoryStrokes} from "./draw/GraphicsFactoryStrokes";
@@ -51,7 +50,7 @@ export class Graphics extends AssetBase
 		return {material:MaterialUtils.getDefaultTextureMaterial()};
 	};
 
-	public static getGraphics(entity:IRenderEntity):Graphics
+	public static getGraphics(entity:IEntity):Graphics
 	{
 		if (Graphics._pool.length) {
 			var graphics:Graphics = Graphics._pool.pop();
@@ -78,7 +77,7 @@ export class Graphics extends AssetBase
 	private _onRemoveMaterialDelegate:(event:ShapeEvent) => void;
 
 	private _material:IMaterial;
-	private _shapes:Array<Shape> = [];
+	private _shapes:Array<IShape> = [];
 	private _animator:IAnimator;
 	private _style:Style;
 
@@ -91,7 +90,7 @@ export class Graphics extends AssetBase
 
 	private _current_position:Point=new Point();
 
-	private _entity:IRenderEntity;
+	private _entity:IEntity;
 	public slice9Rectangle:Rectangle;
 	public originalSlice9Size:Rectangle;
 	public minSlice9Width:number;
@@ -102,26 +101,26 @@ export class Graphics extends AssetBase
 
 	private _drawingDirty:boolean = false;
 
-	// public getSpriteScale(view:View = null):Vector3D
+	// public getSpriteScale(viewport:Viewport = null):Vector3D
 	// {
 	// 	if(this._entity)
 	// 		this._scale.copyFrom(this._entity.transform.concatenatedMatrix3D.decompose()[3]);
 	// 	else
 	// 		this._scale.identity();
 
-	// 	if (view) {
-	// 		this._scale.x *= view.focalLength*view.pixelRatio/1000;
-	// 		this._scale.y *= view.focalLength/1000;
+	// 	if (viewport) {
+	// 		this._scale.x *= viewport.focalLength*viewport.pixelRatio/1000;
+	// 		this._scale.y *= viewport.focalLength/1000;
 	// 	}
 
 	// 	return this._scale;
 	// }
 
-	// public updateScale(view:View)
+	// public updateScale(viewport:Viewport)
 	// {
 	// 	var prevScaleX:number = this._scale.x;
 	// 	var prevScaleY:number = this._scale.y;
-	// 	var scale:Vector3D = this.getSpriteScale(view);
+	// 	var scale:Vector3D = this.getSpriteScale(viewport);
 
 	// 	if (scale.x == prevScaleX && scale.y == prevScaleY)
 	// 	 	return;
@@ -179,7 +178,7 @@ export class Graphics extends AssetBase
 			this._material.iAddOwner(this._entity);
 		}
 		
-		var shape:Shape;
+		var shape:IShape;
 		var len:number = this._shapes.length;
 		for (var i:number = 0; i < len; ++i) {
 			shape = this._shapes[i];
@@ -276,7 +275,7 @@ export class Graphics extends AssetBase
 	/**
 	 * Creates a new Graphics object.
 	 */
-	constructor(entity:IRenderEntity = null)
+	constructor(entity:IEntity = null)
 	{
 		super();
 
@@ -304,7 +303,7 @@ export class Graphics extends AssetBase
 	 *
 	 * @param elements
 	 */
-	public addShape(shape:Shape):Shape
+	public addShape(shape:IShape):IShape
 	{
 		var shapeIndex:number = this.getShapeIndex(shape);
 		
@@ -325,7 +324,7 @@ export class Graphics extends AssetBase
 		return shape;
 	}
 
-	public removeShape(shape:Shape):void
+	public removeShape(shape:IShape):void
 	{
 		var shapeIndex:number = this.getShapeIndex(shape);
 		
@@ -340,7 +339,7 @@ export class Graphics extends AssetBase
 		if (index < 0 || index >= this._shapes.length)
 			throw new RangeError("Index is out of range");
 
-		var shape:Shape = this._shapes.splice(index, 1)[0]
+		var shape:IShape = this._shapes.splice(index, 1)[0]
 
 		shape.removeEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateElementsDelegate);
 		//shape.removeEventListener(ShapeEvent.ADD_MATERIAL, this._onAddMaterialDelegate);
@@ -349,12 +348,12 @@ export class Graphics extends AssetBase
 		this.invalidate();
 	}
 
-	public getShapeAt(index:number):Shape
+	public getShapeAt(index:number):IShape
 	{
 		return this._shapes[index];
 	}
 	
-	public getShapeIndex(shape:Shape):number
+	public getShapeIndex(shape:IShape):number
 	{
 		return this._shapes.indexOf(shape);
 	}
@@ -409,7 +408,7 @@ export class Graphics extends AssetBase
 
 	public clear():void
 	{
-		var shape:Shape;
+		var shape:IShape;
 		var len:number = this._shapes.length;
 		for (var i:number = 0; i < len; i++) {
 			shape = this._shapes[i];
@@ -480,7 +479,7 @@ export class Graphics extends AssetBase
 			this._shapes[i].invalidateElements();
 	}
 
-	public _acceptTraverser(traverser:IEntityTraverser):void
+	public _applyRenderables(renderer:IRenderer):void
 	{
 		if(this._drawingDirty)
 			this.endFill();
@@ -488,9 +487,24 @@ export class Graphics extends AssetBase
 		var len:number = this._shapes.length;
 
 		for (var i:number = len - 1; i >= 0; i--)
-			traverser.applyTraversable(this._shapes[i]);
+			renderer.applyRenderable(this._shapes[i]);
 
-	}	
+	}
+
+	
+	public _applyPickables(picker:IPicker):void
+	{
+		if(this._drawingDirty)
+			this.endFill();
+		
+		var len:number = this._shapes.length;
+
+		for (var i:number = len - 1; i >= 0; i--)
+			picker.applyPickable(this._shapes[i]);
+
+	}
+
+	
 
 	private _onInvalidateProperties(event:StyleEvent):void
 	{
@@ -1671,9 +1685,9 @@ export class Graphics extends AssetBase
             this._queued_stroke_pathes.push(this._active_stroke_path);
         }
     }
-	private _addShapes(shapes:Array<Shape>, cloneShapes:boolean = false):void
+	private _addShapes(shapes:Array<IShape>, cloneShapes:boolean = false):void
 	{
-		var shape:Shape;
+		var shape:IShape;
 		var len:number = shapes.length;
 		for (var i:number = 0; i < len; i++) {
 			shape = shapes[i];

@@ -1,4 +1,4 @@
-import { ElementsBase } from '../../elements/ElementsBase';
+import {Graphics} from "../../Graphics";
 
 import {VertexAnimator} from "../VertexAnimator";
 import {VertexClipNode} from "../nodes/VertexClipNode";
@@ -13,15 +13,15 @@ import {AnimatorBase} from "../AnimatorBase";
  */
 export class VertexClipState extends AnimationClipState implements IVertexAnimationState
 {
-	private _frames:Array<ElementsBase>;
+	private _frames:Array<Graphics>;
 	private _vertexClipNode:VertexClipNode;
-	private _currentGraphics:ElementsBase;
-	private _nextGraphics:ElementsBase;
+	private _currentGraphics:Graphics;
+	private _nextGraphics:Graphics;
 
 	/**
 	 * @inheritDoc
 	 */
-	public get currentElements():ElementsBase
+	public get currentGraphics():Graphics
 	{
 		if (this._pFramesDirty)
 			this._pUpdateFrames();
@@ -32,7 +32,7 @@ export class VertexClipState extends AnimationClipState implements IVertexAnimat
 	/**
 	 * @inheritDoc
 	 */
-	public get nextElements():ElementsBase
+	public get nextGraphics():Graphics
 	{
 		if (this._pFramesDirty)
 			this._pUpdateFrames();
