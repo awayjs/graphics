@@ -38,19 +38,26 @@
   },
   "homepage": "https://github.com/awayjs/graphics#readme",
   "dependencies": {
+    "tess2": "^1.0.0"
+  },
+  "peerDependencies": {
     "@awayjs/core": "^0.7.0",
     "@awayjs/stage": "^0.9.0",
     "@awayjs/view": "^0.4.0",
     "@awayjs/renderer": "^0.9.0",
-    "tess2": "^1.0.0",
     "tslib": "^1.9.0"
   },
   "devDependencies": {
+    "@awayjs/core": "^0.7.0",
+    "@awayjs/stage": "^0.9.0",
+    "@awayjs/view": "^0.4.0",
+    "@awayjs/renderer": "^0.9.0",
     "rimraf": "^2.5.2",
     "rollup": "^0.57.1",
     "rollup-plugin-commonjs": "^9.1.0",
     "rollup-plugin-includepaths": "^0.2.1",
     "rollup-plugin-node-resolve": "^3.3.0",
+    "tslib": "^1.9.0",
     "typescript": "^2.6.1",
     "uglify-js": "^3.0.15"
   }
