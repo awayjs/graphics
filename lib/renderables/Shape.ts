@@ -165,31 +165,25 @@ export class Shape extends AssetBase implements IShape
 
 		this.count = count;
 		this.offset = offset;
-		this._invalidateElementsEvent = new RenderableEvent(RenderableEvent.INVALIDATE_ELEMENTS, this);
-		this._invalidateMaterialsEvent = new RenderableEvent(RenderableEvent.INVALIDATE_MATERIAL, this);
 	}
 
-	private _invalidateElementsEvent:RenderableEvent;
-	private _invalidateMaterialsEvent:RenderableEvent;
 
 	/**
 	 *
 	 */
 	public dispose():void
 	{
-		this._invalidateElementsEvent=null;
-		this._invalidateMaterialsEvent=null;
 		super.dispose();
 	}
 	
 	public invalidateElements():void
 	{
-		this.dispatchEvent(this._invalidateElementsEvent);
+		this.dispatchEvent(new RenderableEvent(RenderableEvent.INVALIDATE_ELEMENTS, this));
 	}
 
 	public invalidateMaterial():void
 	{
-		this.dispatchEvent(this._invalidateMaterialsEvent);
+		this.dispatchEvent(new RenderableEvent(RenderableEvent.INVALIDATE_MATERIAL, this));
 	}
 
 	private _onInvalidateProperties(event:StyleEvent):void
