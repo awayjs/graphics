@@ -17,14 +17,14 @@ export class GradientFillStyle extends GraphicsFillStyle
     public ratios:number[];
     public ratio_min:number;
     public ratio_max:number;
-    public type:string;
+    public type:GradientType;
     public matrix:Matrix;
     public spreadMethod:string;
     public interpolationMethod:string;
     public focalPointRatio:number;
     public uvRectangle:Rectangle;
 
-    constructor(type:string, colors:number[], alphas:number[], ratios:number[], matrix:Matrix, spreadMethod:string, interpolationMethod:string, focalPointRatio:number)
+    constructor(type:GradientType, colors:number[], alphas:number[], ratios:number[], matrix:Matrix, spreadMethod:string, interpolationMethod:string, focalPointRatio:number)
     {
         super();
         if(colors.length != alphas.length || colors.length != ratios.length){

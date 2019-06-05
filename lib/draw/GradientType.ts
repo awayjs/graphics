@@ -4,15 +4,15 @@
  * <code>lineGradientStyle()</code> methods of the flash.display.Graphics
  * class.
  */
-export class GradientType
+export enum GradientType
 {
 	/**
 	 * Value used to specify a linear gradient fill.
 	 */
-	public static LINEAR:string = "linear";
+	LINEAR,
 
 	/**
 	 * Value used to specify a radial gradient fill.
 	 */
-	public static RADIAL:string = "radial";
+	RADIAL
 }

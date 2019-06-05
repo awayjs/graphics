@@ -81,6 +81,27 @@ export {AnimationSetBase} from "./lib/animators/AnimationSetBase";
 export {AnimatorBase} from "./lib/animators/AnimatorBase";
 export {ParticleData}					from "./lib/animators/data/ParticleData";
 
+export {DataBuffer}						from "./lib/data/DataBuffer";
+export {FillType}						from "./lib/data/FillType";
+export {PathSegment}					from "./lib/data/PathSegment";
+export {SegmentedPath}					from "./lib/data/SegmentedPath";
+export {ShapeData, ShapeMatrix}						from "./lib/data/ShapeData";
+export {Deflate, Inflate, Adler32}						from "./lib/data/deflate";
+export {LzmaDecoder}						    from "./lib/data/lzma";
+export {assert, ensureTypedArrayCapacity, clamp, Bounds,
+	IDataDecoder,
+	ABCBlock,
+	ActionBlock,
+	InitActionBlock,
+	SymbolExport,
+	UnparsedTag,
+	utf8encode,
+	DictionaryEntry,
+	EagerlyParsedDictionaryEntry,
+    memCopy,
+    ImageType,
+    roundToMultipleOfFour}						from "./lib/data/utilities";
+
 export {CapsStyle}						from "./lib/draw/CapsStyle";
 export {DrawMode}						from "./lib/draw/DrawMode";
 export {GradientType}					from "./lib/draw/GradientType";

@@ -239,13 +239,13 @@ export class Graphics extends AssetBase
 	public add_queued_path(value:GraphicsPath)
 	{
 		if(value.style) {
-			this._drawingDirty = false;
-			if (value.style.data_type == GraphicsFillStyle.data_type || value.style.data_type == GradientFillStyle.data_type || value.style.data_type == BitmapFillStyle.data_type)
+			if (value.style.data_type == GraphicsFillStyle.data_type || value.style.data_type == GradientFillStyle.data_type || value.style.data_type == BitmapFillStyle.data_type) {
+				this._drawingDirty = true;
 				this._queued_fill_pathes.push(value);
+			}
 			if (value.style.data_type == GraphicsStrokeStyle.data_type){
 				this._queued_stroke_pathes.push(value);
 				this.endFill();
-
 			}
 		}
 	}
@@ -370,6 +370,9 @@ export class Graphics extends AssetBase
 
 	public copyTo(graphics:Graphics, cloneShapes:boolean = false):void
 	{
+		if (this._drawingDirty)
+			this.endFill();
+
 		graphics.material = this._material;
 		graphics.style = this._style;
 		if(this.slice9Rectangle){
@@ -680,7 +683,7 @@ export class Graphics extends AssetBase
 	 *                            a <code>focalPointRatio</code> set to 0.75:
 	 * @throws ArgumentError If the <code>type</code> parameter is not valid.
 	 */
-	public beginGradientFill(type:string, colors:number[], alphas:number[], ratios:number[], matrix:Matrix = null, spreadMethod:string = "pad", interpolationMethod:string = "rgb", focalPointRatio:number = 0):void
+	public beginGradientFill(type:GradientType, colors:number[], alphas:number[], ratios:number[], matrix:Matrix = null, spreadMethod:string = "pad", interpolationMethod:string = "rgb", focalPointRatio:number = 0):void
 	{
 		this.draw_fills();
 		// start a new fill path
