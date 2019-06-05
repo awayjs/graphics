@@ -240,7 +240,7 @@ class BasicInflate extends Inflate {
 
     if (this._bufferPosition < this._bufferSize) {
       // shift buffer
-      if ('copyWithin' in this._buffer) {
+      if ('copyWithin' in this._buffer as any) {
         this._buffer['copyWithin'](0, this._bufferPosition, this._bufferSize);
       } else {
         this._buffer.set(this._buffer.subarray(this._bufferPosition, this._bufferSize));
