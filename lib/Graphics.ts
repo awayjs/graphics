@@ -1,10 +1,10 @@
-import {ArgumentError, RangeError, PartialImplementationError, Point, Vector3D, Matrix, Matrix3D, AssetBase, Rectangle} from "@awayjs/core";
+import {ArgumentError, RangeError, PartialImplementationError, Point, Vector3D, Matrix, Matrix3D, AssetBase, Rectangle, AssetEvent} from "@awayjs/core";
 
 import {BitmapImage2D} from "@awayjs/stage";
 
 import { IEntityTraverser } from '@awayjs/view';
 
-import {IAnimator, IRenderEntity, IMaterial, Style, StyleEvent, MaterialUtils, RenderableEvent} from "@awayjs/renderer";
+import {IMaterial, Style, MaterialUtils, RenderableEvent} from "@awayjs/renderer";
 
 import {GraphicsPath} from "./draw/GraphicsPath";
 import {GraphicsFactoryFills} from "./draw/GraphicsFactoryFills";
@@ -24,7 +24,6 @@ import {GraphicsStrokeStyle} from "./draw/GraphicsStrokeStyle";
 import {GraphicsFillStyle} from "./draw/GraphicsFillStyle";
 import {GradientFillStyle} from "./draw/GradientFillStyle";
 import {TriangleElements} from "./elements/TriangleElements";
-import {ShapeEvent} from "./events/ShapeEvent";
 import {TriangleElementsUtils} from "./utils/TriangleElementsUtils";
 import { Shape } from './renderables/Shape';
 
@@ -51,16 +50,12 @@ export class Graphics extends AssetBase
 		return {material:MaterialUtils.getDefaultTextureMaterial()};
 	};
 
-	public static getGraphics(entity:IRenderEntity):Graphics
+	public static getGraphics():Graphics
 	{
-		if (Graphics._pool.length) {
-			var graphics:Graphics = Graphics._pool.pop();
-			graphics._entity = entity;
+		if (Graphics._pool.length)
+			return Graphics._pool.pop();
 
-			return graphics;
-		}
-
-		return new Graphics(entity);
+		return new Graphics();
 	}
 
 	public static storeGraphics(graphics:Graphics)
@@ -72,14 +67,10 @@ export class Graphics extends AssetBase
 
 	public static assetType:string = "[asset Graphics]";
 
-	private _onInvalidatePropertiesDelegate:(event:StyleEvent) => void;
-	private _onInvalidateElementsDelegate:(event:RenderableEvent) => void;
-	private _onAddMaterialDelegate:(event:ShapeEvent) => void;
-	private _onRemoveMaterialDelegate:(event:ShapeEvent) => void;
+	private _onInvalidateDelegate:(event:AssetEvent) => void;
 
 	private _material:IMaterial;
 	private _shapes:Array<Shape> = [];
-	private _animator:IAnimator;
 	private _style:Style;
 
 	private _queued_fill_pathes:Array<GraphicsPath>;
@@ -91,7 +82,6 @@ export class Graphics extends AssetBase
 
 	private _current_position:Point=new Point();
 
-	private _entity:IRenderEntity;
 	public slice9Rectangle:Rectangle;
 	public originalSlice9Size:Rectangle;
 	public minSlice9Width:number;
@@ -155,68 +145,6 @@ export class Graphics extends AssetBase
 	{
 		return (this._shapes.length + this._queued_stroke_pathes.length + this._queued_fill_pathes.length);
 	}
-	
-	/**
-	 * Defines the animator of the graphics object.  Default value is <code>null</code>.
-	 */
-	public get animator():IAnimator
-	{
-		return this._animator;
-	}
-
-	public set animator(value:IAnimator)
-	{
-		if (this._animator)
-			this._animator.removeOwner(this._entity);
-
-		this._animator = value;
-
-		if (this._animator)
-			this._animator.addOwner(this._entity);
-		
-		if (this._material) {
-			this._material.iRemoveOwner(this._entity);
-			this._material.iAddOwner(this._entity);
-		}
-		
-		var shape:Shape;
-		var len:number = this._shapes.length;
-		for (var i:number = 0; i < len; ++i) {
-			shape = this._shapes[i];
-			// cause material to be unregistered and registered again to work with the new animation type (if possible)
-			if (shape.material && shape.material != this._material) {
-				shape.material.iRemoveOwner(this._entity);
-				shape.material.iAddOwner(this._entity);
-			}
-
-			//invalidate any existing shape objects in case they need to pull new elements
-			shape.invalidateElements();
-		}
-	}
-
-	/**
-	 *
-	 */
-	public get style():Style
-	{
-		return this._style;
-	}
-
-	public set style(value:Style)
-	{
-		if (this._style == value)
-			return;
-
-		if (this._style)
-			this._style.removeEventListener(StyleEvent.INVALIDATE_PROPERTIES, this._onInvalidatePropertiesDelegate);
-
-		this._style = value;
-
-		if (this._style)
-			this._style.addEventListener(StyleEvent.INVALIDATE_PROPERTIES, this._onInvalidatePropertiesDelegate);
-
-		this.invalidateMaterials();
-	}
 
 	public get queued_stroke_pathes():Array<GraphicsPath>
 	{
@@ -249,39 +177,15 @@ export class Graphics extends AssetBase
 			}
 		}
 	}
-	/**
-	 * The material with which to render the Graphics.
-	 */
-	public get material():IMaterial
-	{
-		return this._material;
-	}
-
-	public set material(value:IMaterial)
-	{
-		if (value == this._material)
-			return;
-
-		if (this._material && !this._isShapeMaterial(this._material))
-			this._material.iRemoveOwner(this._entity);
-
-		this._material = value;
-
-		if (this._material && !this._isShapeMaterial(this._material))
-			this._material.iAddOwner(this._entity);
-
-		this.invalidateMaterials();
-	}
 
 	/**
 	 * Creates a new Graphics object.
 	 */
-	constructor(entity:IRenderEntity = null)
+	constructor()
 	{
 		super();
 
 		//store associated entity object, otherwise assign itself as entity
-		this._entity = entity;
 
 		this._drawingDirty=false;
 		this._current_position=new Point();
@@ -292,10 +196,7 @@ export class Graphics extends AssetBase
         this._fillStyle=null;
         this._lineStyle=null;
 
-		this._onInvalidatePropertiesDelegate = (event:StyleEvent) => this._onInvalidateProperties(event);
-		this._onInvalidateElementsDelegate = (event:RenderableEvent) => this._onInvalidateElements(event);
-		this._onAddMaterialDelegate = (event:ShapeEvent) => this._onAddMaterial(event);
-		this._onRemoveMaterialDelegate = (event:ShapeEvent) => this._onRemoveMaterial(event);
+		this._onInvalidateDelegate = (event:AssetEvent | RenderableEvent) => this._onInvalidate(event);
 		
 	}
 
@@ -313,9 +214,10 @@ export class Graphics extends AssetBase
 
 		this._shapes.push(shape);
 
-		shape.addEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateElementsDelegate);
-		//shape.addEventListener(ShapeEvent.ADD_MATERIAL, this._onAddMaterialDelegate);
-		//shape.addEventListener(ShapeEvent.REMOVE_MATERIAL, this._onRemoveMaterialDelegate);
+		shape.addEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateDelegate);
+		shape.addEventListener(RenderableEvent.INVALIDATE_MATERIAL, this._onInvalidateDelegate);
+		shape.addEventListener(RenderableEvent.INVALIDATE_STYLE, this._onInvalidateDelegate);
+		shape.addEventListener(AssetEvent.INVALIDATE, this._onInvalidateDelegate);
 
 		this._scaleX = 0;
 		this._scaleY = 0;
@@ -342,9 +244,10 @@ export class Graphics extends AssetBase
 
 		var shape:Shape = this._shapes.splice(index, 1)[0]
 
-		shape.removeEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateElementsDelegate);
-		//shape.removeEventListener(ShapeEvent.ADD_MATERIAL, this._onAddMaterialDelegate);
-		//shape.removeEventListener(ShapeEvent.REMOVE_MATERIAL, this._onRemoveMaterialDelegate);
+		shape.removeEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateDelegate);
+		shape.removeEventListener(RenderableEvent.INVALIDATE_MATERIAL, this._onInvalidateDelegate);
+		shape.removeEventListener(RenderableEvent.INVALIDATE_STYLE, this._onInvalidateDelegate);
+		shape.removeEventListener(AssetEvent.INVALIDATE, this._onInvalidateDelegate);
 
 		this.invalidate();
 	}
@@ -373,8 +276,6 @@ export class Graphics extends AssetBase
 		if (this._drawingDirty)
 			this.endFill();
 
-		graphics.material = this._material;
-		graphics.style = this._style;
 		if(this.slice9Rectangle){
 			graphics.slice9Rectangle=new Rectangle();
 			graphics.slice9Rectangle.copyFrom(this.slice9Rectangle);
@@ -386,9 +287,6 @@ export class Graphics extends AssetBase
 		}
 
 		graphics._addShapes(this._shapes, cloneShapes);
-
-		if (this._animator)
-			graphics.animator = this._animator.clone();
 	}
 
 	/**
@@ -423,9 +321,10 @@ export class Graphics extends AssetBase
 			// 	Shape.storeShape(<Shape>shape);
 			// }
 			
-			shape.removeEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateElementsDelegate);
-			shape.removeEventListener(ShapeEvent.ADD_MATERIAL, this._onAddMaterialDelegate);
-			shape.removeEventListener(ShapeEvent.REMOVE_MATERIAL, this._onRemoveMaterialDelegate);
+			shape.removeEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateDelegate);
+			shape.removeEventListener(RenderableEvent.INVALIDATE_MATERIAL, this._onInvalidateDelegate);
+			shape.removeEventListener(RenderableEvent.INVALIDATE_STYLE, this._onInvalidateDelegate);
+			shape.removeEventListener(AssetEvent.INVALIDATE, this._onInvalidateDelegate);
 		}
 
 
@@ -446,13 +345,8 @@ export class Graphics extends AssetBase
 	 * Clears all resources used by the Graphics object, including SubGeometries.
 	 */
 	public dispose():void
-	{
-		this.material = null;
-		
+	{	
 		this.clear();
-
-		if (this._animator)
-			this._animator.dispose();
 	}
 
 	/**
@@ -468,20 +362,20 @@ export class Graphics extends AssetBase
 			this._shapes[i].scaleUV(scaleU, scaleV);
 	}
 
-	public invalidateMaterials():void
-	{
-		var len:number = this._shapes.length;
-		for (var i:number = 0; i < len; ++i)
-			this._shapes[i].invalidateMaterial();
-	}
+	// public invalidateMaterials():void
+	// {
+	// 	var len:number = this._shapes.length;
+	// 	for (var i:number = 0; i < len; ++i)
+	// 		this._shapes[i].invalidateMaterial();
+	// }
 
 
-	public invalidateElements():void
-	{
-		var len:number = this._shapes.length;
-		for (var i:number = 0; i < len; ++i)
-			this._shapes[i].invalidateElements();
-	}
+	// public invalidateElements():void
+	// {
+	// 	var len:number = this._shapes.length;
+	// 	for (var i:number = 0; i < len; ++i)
+	// 		this._shapes[i].invalidateElements();
+	// }
 
 	public _acceptTraverser(traverser:IEntityTraverser):void
 	{
@@ -493,34 +387,11 @@ export class Graphics extends AssetBase
 		for (var i:number = len - 1; i >= 0; i--)
 			traverser.applyTraversable(this._shapes[i]);
 
-	}	
-
-	private _onInvalidateProperties(event:StyleEvent):void
-	{
-		this.invalidateMaterials();
 	}
 
-	private _onInvalidateElements(event:RenderableEvent):void
+	private _onInvalidate(event:AssetEvent | RenderableEvent):void
 	{
-		//this.invalidate(); //TODO: this should be valid but causes too high an overhead when invalidating an animator
-	}
-
-
-	
-	private _onAddMaterial(event:ShapeEvent):void
-	{
-		var material:IMaterial = event.shape.material;
-
-		if (material != this._material)
-			material.iAddOwner(this._entity);
-	}
-	
-	private _onRemoveMaterial(event:ShapeEvent):void
-	{
-		var material:IMaterial = event.shape.material;
-
-		if (material != this._material)
-			material.iRemoveOwner(this._entity);
+		this.invalidate();
 	}
 
 	public draw_fills() {
@@ -1688,9 +1559,11 @@ export class Graphics extends AssetBase
 
             shape.particleCollection = shapes[i].particleCollection;
 
-            shape.addEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateElementsDelegate);
-			shape.addEventListener(ShapeEvent.ADD_MATERIAL, this._onAddMaterialDelegate);
-			shape.addEventListener(ShapeEvent.REMOVE_MATERIAL, this._onRemoveMaterialDelegate);
+            shape.addEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateDelegate);
+			shape.addEventListener(RenderableEvent.INVALIDATE_MATERIAL, this._onInvalidateDelegate);
+			shape.addEventListener(RenderableEvent.INVALIDATE_STYLE, this._onInvalidateDelegate);
+			shape.addEventListener(AssetEvent.INVALIDATE, this._onInvalidateDelegate);
+			
 			this._shapes.push(shape);
 		}
 
@@ -1701,7 +1574,7 @@ export class Graphics extends AssetBase
 		this.invalidate();
 	}
 
-	private _isShapeMaterial(material:IMaterial):boolean
+	public _isShapeMaterial(material:IMaterial):boolean
 	{
 		var len:number = this._shapes.length;
 		for (var i:number = 0; i < len; i++)

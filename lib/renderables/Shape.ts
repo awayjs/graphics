@@ -5,7 +5,6 @@ import {PickingCollision, PickEntity, _Pick_PickableBase, IPickingEntity} from "
 import {IMaterial, RenderableEvent, StyleEvent, Style, ElementsEvent, IRenderEntity} from "@awayjs/renderer";
 
 import {ParticleCollection} from "../animators/data/ParticleCollection";
-import {ShapeEvent} from "../events/ShapeEvent";
 import {ElementsBase} from "../elements/ElementsBase";
 import {TriangleElements} from "../elements/TriangleElements";
 import {Graphics} from "../Graphics";
@@ -111,13 +110,7 @@ export class Shape extends AssetBase
 		if (this._material == value)
 			return;
 
-		if (this._material)
-			this.dispatchEvent(new ShapeEvent(ShapeEvent.REMOVE_MATERIAL, this));
-
 		this._material = value;
-
-		if (this._material)
-			this.dispatchEvent(new ShapeEvent(ShapeEvent.ADD_MATERIAL, this));
 
 		this.invalidateMaterial();
 	}
@@ -201,7 +194,7 @@ export class Shape extends AssetBase
 		if (event.attributesView != (<TriangleElements> event.target).positions)
 			return;
 		
-		//this.invalidateElements(); //TODO: need to optimise hittests before enabling
+		this.invalidate();
 	}
 
 	/**

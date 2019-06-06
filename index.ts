@@ -123,7 +123,6 @@ export {PixelSnapping}					from "./lib/draw/PixelSnapping";
 export {SpreadMethod}					from "./lib/draw/SpreadMethod";
 export {TriangleCulling}				from "./lib/draw/TriangleCulling";
 
-export {ShapeEvent}						from "./lib/events/ShapeEvent";
 export {AnimatorEvent} from "./lib/events/AnimatorEvent";
 export {AnimationStateEvent}				from "./lib/events/AnimationStateEvent";
 
