@@ -58,13 +58,6 @@ export class Graphics extends AssetBase
 		return new Graphics();
 	}
 
-	public static storeGraphics(graphics:Graphics)
-	{
-		graphics.clear();
-
-		Graphics._pool.push(graphics);
-	}
-
 	public static assetType:string = "[asset Graphics]";
 
 	private _onInvalidateDelegate:(event:AssetEvent) => void;
@@ -91,6 +84,8 @@ export class Graphics extends AssetBase
 	private _scaleY:number = 0;
 
 	private _drawingDirty:boolean = false;
+
+	public usages:number = 0;
 
 	// public getSpriteScale(view:View = null):Vector3D
 	// {
@@ -300,14 +295,6 @@ export class Graphics extends AssetBase
 			this._shapes[i].scale(scale);
 	}
 
-	public clearInternal():void
-	{
-		for (var i:number = this._shapes.length - 1; i>=0; i--)
-			this._shapes[i].clear();
-
-		//this.invalidateElements();
-	}
-
 	public clear():void
 	{
 		var shape:Shape;
@@ -347,6 +334,8 @@ export class Graphics extends AssetBase
 	public dispose():void
 	{	
 		this.clear();
+
+		Graphics._pool.push(this);
 	}
 
 	/**
