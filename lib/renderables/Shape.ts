@@ -7,7 +7,6 @@ import {IMaterial, RenderableEvent, StyleEvent, Style, ElementsEvent, IRenderEnt
 import {ParticleCollection} from "../animators/data/ParticleCollection";
 import {ElementsBase} from "../elements/ElementsBase";
 import {TriangleElements} from "../elements/TriangleElements";
-import {Graphics} from "../Graphics";
 
 /**
  * Graphic wraps a Elements as a scene graph instantiation. A Graphic is owned by a Sprite object.
@@ -37,17 +36,6 @@ export class Shape extends AssetBase
 		return new Shape(elements, material, style, count, offset);
 	}
 
-	public static storeShape(shape:Shape)
-	{
-		shape.elements = null;
-		shape.material = null;
-		shape.style = null;
-        shape.particleCollection = null;
-		shape.clear();
-
-		Shape._pool.push(shape);
-	}
-
 	public static assetType:string = "[asset Shape]";
 
 	private _onInvalidatePropertiesDelegate:(event:StyleEvent) => void;
@@ -57,11 +45,11 @@ export class Shape extends AssetBase
 	private _material:IMaterial;
 	private _style:Style;
 
+	public usages:number = 0;
+
 	public count:number;
 
 	public offset:number;
-
-	public _owners:Array<Graphics>;
 
 	public particleCollection:ParticleCollection;
 
@@ -78,13 +66,21 @@ export class Shape extends AssetBase
 		if (this._elements == value)
 			return;
 
-		if (this._elements)
+		if (this._elements) {
 			this._elements.removeEventListener(ElementsEvent.INVALIDATE_VERTICES, this._onInvalidateVerticesDelegate);
+			this._elements.usages--;
+
+			if (!this._elements.usages)
+				this._elements.dispose();
+		}
+			
 
 		this._elements = value;
 
-		if (this._elements)
+		if (this._elements) {
 			this._elements.addEventListener(ElementsEvent.INVALIDATE_VERTICES, this._onInvalidateVerticesDelegate);
+			this._elements.usages++;
+		}
 
 		this.invalidateElements();
 	}
@@ -166,7 +162,14 @@ export class Shape extends AssetBase
 	 */
 	public dispose():void
 	{
-		super.dispose();
+		super.clear();
+
+		this.elements = null;
+		this.material = null;
+		this.style = null;
+		this.particleCollection = null;
+		
+		Shape._pool.push(this);
 	}
 	
 	public invalidateElements():void

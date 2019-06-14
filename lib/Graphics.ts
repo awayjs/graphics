@@ -214,6 +214,8 @@ export class Graphics extends AssetBase
 		shape.addEventListener(RenderableEvent.INVALIDATE_STYLE, this._onInvalidateDelegate);
 		shape.addEventListener(AssetEvent.INVALIDATE, this._onInvalidateDelegate);
 
+		shape.usages++;
+
 		this._scaleX = 0;
 		this._scaleY = 0;
 
@@ -237,12 +239,17 @@ export class Graphics extends AssetBase
 		if (index < 0 || index >= this._shapes.length)
 			throw new RangeError("Index is out of range");
 
-		var shape:Shape = this._shapes.splice(index, 1)[0]
+		var shape:Shape = this._shapes.splice(index, 1)[0];
 
 		shape.removeEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateDelegate);
 		shape.removeEventListener(RenderableEvent.INVALIDATE_MATERIAL, this._onInvalidateDelegate);
 		shape.removeEventListener(RenderableEvent.INVALIDATE_STYLE, this._onInvalidateDelegate);
 		shape.removeEventListener(AssetEvent.INVALIDATE, this._onInvalidateDelegate);
+
+		shape.usages--;
+
+		if (!shape.usages)
+			shape.dispose();
 
 		this.invalidate();
 	}
@@ -301,19 +308,17 @@ export class Graphics extends AssetBase
 		var len:number = this._shapes.length;
 		for (var i:number = 0; i < len; i++) {
 			shape = this._shapes[i];
-			//shape.clear();
-			// if (shape.isStroke) {
-			// 	shape.elements.clear();
-			// 	shape.elements.dispose();
-			// 	Shape.storeShape(<Shape>shape);
-			// }
-			
+
 			shape.removeEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateDelegate);
 			shape.removeEventListener(RenderableEvent.INVALIDATE_MATERIAL, this._onInvalidateDelegate);
 			shape.removeEventListener(RenderableEvent.INVALIDATE_STYLE, this._onInvalidateDelegate);
 			shape.removeEventListener(AssetEvent.INVALIDATE, this._onInvalidateDelegate);
-		}
 
+			shape.usages--;
+
+			if (!shape.usages)
+				shape.dispose();
+		}
 
 		this._shapes.length = 0;
 
@@ -1554,6 +1559,8 @@ export class Graphics extends AssetBase
 			shape.addEventListener(AssetEvent.INVALIDATE, this._onInvalidateDelegate);
 			
 			this._shapes.push(shape);
+
+			shape.usages++;
 		}
 
 		this._scaleX = 0;

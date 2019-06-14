@@ -29,6 +29,8 @@ export class ElementsBase extends AssetBase implements IElements
 	public _verticesDirty:Object = new Object();
 	public _invalidateVertices:Object = new Object();
 	
+	public usages:number = 0;
+
 	public get concatenatedBuffer():AttributesBuffer
 	{
 		return this._concatenatedBuffer;
@@ -153,7 +155,7 @@ export class ElementsBase extends AssetBase implements IElements
 	 */
 	public dispose():void
 	{
-		super.dispose();
+		this.clear();
 
 		if (this._indices) {
 			this._indices.dispose();
