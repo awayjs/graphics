@@ -295,11 +295,15 @@ export class LineElements extends ElementsBase
 		this._positions.dispose();
 		this._positions = null;
 
-		this._thickness.dispose();
-		this._thickness = null;
+		if (this._thickness) {
+			this._thickness.dispose();
+			this._thickness = null;
+		}
 
-		this._colors.dispose();
-		this._colors = null;
+		if (this._colors) {
+			this._colors.dispose();
+			this._colors = null;
+		}
 	}
 
 	/**
