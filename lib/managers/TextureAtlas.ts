@@ -10,6 +10,15 @@ export class TextureAtlas
 	private static _allGradients:any={};
 	private static _allColors:any={};
 
+	public static clearAllMaterials()
+	{
+		for (var key in TextureAtlas._allColors){
+			TextureAtlas._allColors[key].material=null;
+		}
+		for (var key in TextureAtlas._allGradients){
+			TextureAtlas._allGradients[key].material=null;
+		}
+	}
 
 	public static getTextureForColor(color:number, alpha):any
 	{
