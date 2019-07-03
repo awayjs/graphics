@@ -142,4 +142,4 @@ export {ParticleGraphicsHelper}			from "./lib/utils/ParticleGraphicsHelper";
 export {ParticleGraphicsTransform}		from "./lib/utils/ParticleGraphicsTransform";
 export {TriangleElementsUtils}		from "./lib/utils/TriangleElementsUtils";
 
-export {Graphics}						from "./lib/Graphics";
+export {Graphics, FillStyle, LineStyle, Bbox, ShapeRecord, ShapeTag, DefinitionTag, SwfTag, ShapeRecordFlags}						from "./lib/Graphics";
