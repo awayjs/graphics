@@ -164,6 +164,7 @@ export class Shape extends AssetBase
 	{
 		super.clear();
 
+		this.usages = 0;
 		this.elements = null;
 		this.material = null;
 		this.style = null;
