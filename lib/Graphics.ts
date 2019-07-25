@@ -62,6 +62,11 @@ export class Graphics extends AssetBase
 
 		return new Graphics();
 	}
+	public static clearPool()
+	{
+		Graphics._pool=[];
+	}
+
 
 	public static assetType:string = "[asset Graphics]";
 
