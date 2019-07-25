@@ -35,6 +35,9 @@ export class Shape extends AssetBase
 
 		return new Shape(elements, material, style, count, offset);
 	}
+	public static clearPool(){
+		Shape._pool=[];
+	}
 
 	public static assetType:string = "[asset Shape]";
 
