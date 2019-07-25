@@ -100,7 +100,10 @@ export {assert, ensureTypedArrayCapacity, clamp, Bounds,
 	EagerlyParsedDictionaryEntry,
     memCopy,
     ImageType,
-    roundToMultipleOfFour}						from "./lib/data/utilities";
+	roundToMultipleOfFour,
+	axCoerceString,
+	isObject,
+	isNullOrUndefined}						from "./lib/data/utilities";
 
 export {CapsStyle}						from "./lib/draw/CapsStyle";
 export {DrawMode}						from "./lib/draw/DrawMode";
