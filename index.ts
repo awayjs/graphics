@@ -85,7 +85,7 @@ export {DataBuffer}						from "./lib/data/DataBuffer";
 export {FillType}						from "./lib/data/FillType";
 export {PathSegment}					from "./lib/data/PathSegment";
 export {SegmentedPath}					from "./lib/data/SegmentedPath";
-export {ShapeData, ShapeMatrix}						from "./lib/data/ShapeData";
+export {ShapeData, ShapeMatrix, PathCommand, GradientSpreadMethod, GradientInterpolationMethod}						from "./lib/data/ShapeData";
 export {Deflate, Inflate, Adler32}						from "./lib/data/deflate";
 export {LzmaDecoder}						    from "./lib/data/lzma";
 export {assert, ensureTypedArrayCapacity, clamp, Bounds,
