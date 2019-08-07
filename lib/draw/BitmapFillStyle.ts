@@ -59,8 +59,8 @@ export class BitmapFillStyle implements IGraphicsData
 		var ty_inv:number =  -(a*ty - b*tx)/(a*d - b*c);
 
 		this.matrix.a=a_inv / projection_width_half;
-		this.matrix.b=c_inv / projection_width_half;
-		this.matrix.c=b_inv / projection_height_half;
+		this.matrix.b=b_inv / projection_height_half;
+		this.matrix.c= c_inv / projection_width_half;
 		this.matrix.d=d_inv / projection_height_half;
 		this.matrix.tx=tx_inv / projection_width_half;
 		this.matrix.ty=ty_inv / projection_height_half;

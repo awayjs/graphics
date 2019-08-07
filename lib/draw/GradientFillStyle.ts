@@ -99,7 +99,7 @@ export class GradientFillStyle extends GraphicsFillStyle
         var tx_out:number = (this.uvRectangle.x)+((tx_inv + projection_width_half)/projection_width)*(1-(1/256));
         var ty_out:number = (this.uvRectangle.y);//+((ty_inv + projection_height_half)/projection_width)*(1-(1/256));
 
-        this.matrix=new Matrix(a_out, c_out, 0,0, tx_out, ty_out);
+        this.matrix=new Matrix(a_out, 0, c_out, 0, tx_out, ty_out);
         if(this.type==GradientType.RADIAL){
             this.matrix=new Matrix(a_inv / projection_width_half,
                 c_inv / projection_width_half,
