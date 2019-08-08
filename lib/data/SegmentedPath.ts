@@ -187,7 +187,7 @@ export class SegmentedPath {
 						scaleModeAWJ=LineScaleMode.HAIRLINE;
 					}
 					if(style.startCapsStyle!=style.endCapsStyle){
-						throw("different end vs start capstyöe");
+						console.log("Warning: different end vs start capstyöe");
 					}
 					style.startCapsStyle=CapsStyle.ROUND;
 					style.jointStyle=0;
