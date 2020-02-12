@@ -2252,6 +2252,7 @@ export interface ShapeRecord {
 
 export interface SwfTag {
   code: number;
+  ns?: string;
 }
 
 export interface DefinitionTag extends SwfTag {

@@ -613,13 +613,11 @@ export class DictionaryEntry extends UnparsedTag {
 export class EagerlyParsedDictionaryEntry extends DictionaryEntry {
 	type: string;
 	definition: Object;
-	env: any;
 	ready: boolean;
-	constructor(id: number, unparsed: UnparsedTag, type: string, definition: any, env: any) {
+	constructor(id: number, unparsed: UnparsedTag, type: string, definition: any) {
 		super(id, unparsed.tagCode, unparsed.byteOffset, unparsed.byteLength);
 		this.type = type;
 		this.definition = definition;
-		this.env = env;
 		this.ready = false;
 	}
 }
