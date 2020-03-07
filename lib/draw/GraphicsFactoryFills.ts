@@ -76,12 +76,10 @@ export class GraphicsFactoryFills
 
 					shape.style = new Style();
 					sampler = new ImageSampler();
-					shape.style.addSamplerAt(sampler, material.getTextureAt(0));
-					material.animateUVs=true;
+                    shape.style.addSamplerAt(sampler, material.getTextureAt(0));
+                    material.animateUVs=true;
 					shape.style.uvMatrix = gradientStyle.getUVMatrix();
-					//sampler.repeat=true;
 
-					// todo: always use mappingmode = Radial ?
 					if(gradientStyle.type==GradientType.LINEAR)
 						material.getTextureAt(0).mappingMode = MappingMode.LINEAR;
 					else if(gradientStyle.type==GradientType.RADIAL){
@@ -145,7 +143,7 @@ export class GraphicsFactoryFills
 			// all contours should already be prepared by GraphicsPath.prepare()
 			// we only want to make sure that each contour contains at least 3 pairs of x/y positions
 			// otherwise there is no way they can form a shape				
-			contour = contour_data[k];
+            contour = contour_data[k];
             // make sure start and end point of a contour are not the same            
             if((Math.round(contour[0]*10000)/10000)==(Math.round(contour[contour.length-2]*10000)/10000)
              && (Math.round(contour[1]*10000)/10000)==(Math.round(contour[contour.length-1]*10000)/10000)){

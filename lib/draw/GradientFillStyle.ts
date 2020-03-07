@@ -66,17 +66,11 @@ export class GradientFillStyle extends GraphicsFillStyle
         if(!this.matrix){
             this.matrix=new Matrix();
         }
-       // console.log(this.uvRectangle);
-       // console.log(this.matrix);
-        // todo: this is ported from exporter-cpp code
-        // probably a lot to optimize here
         
         var projection_width:number= 1638.4;
-        var projection_height:number= 1638.4;
         
-        var projection_width_half:number= projection_width * 0.5;
-        var projection_height_half:number= projection_height * 0.5;
-
+        var projection_width_half:number= projection_width *0.5;
+ 
         //	Get and invert the uv transform:
         var a:number =  this.matrix.a;
         var b:number =  this.matrix.b;
@@ -92,21 +86,23 @@ export class GradientFillStyle extends GraphicsFillStyle
         var tx_inv:number =  (c*ty - d*tx)/(a*d - b*c);
         var ty_inv:number =  -(a*ty - b*tx)/(a*d - b*c);
 
-        var a_out:number = (a_inv / projection_width)*(1-(1/256));
-        var b_out:number = 0;//(b_inv / projection_width)*(1-(1/256));
-        var c_out:number = (c_inv / projection_width)*(1-(1/256));
-        var d_out:number = 0;//(d_inv / projection_width)*(1-(1/256));
-        var tx_out:number = (this.uvRectangle.x)+((tx_inv + projection_width_half)/projection_width)*(1-(1/256));
-        var ty_out:number = (this.uvRectangle.y);//+((ty_inv + projection_height_half)/projection_width)*(1-(1/256));
-
-        this.matrix=new Matrix(a_out, 0, c_out, 0, tx_out, ty_out);
-        if(this.type==GradientType.RADIAL){
-            this.matrix=new Matrix(a_inv / projection_width_half,
-                c_inv / projection_width_half,
+        if(this.type==GradientType.LINEAR){
+            this.matrix=new Matrix(
+                (a_inv / projection_width)*(1-(1/256)), 
+                0, 
+                (c_inv / projection_width)*(1-(1/256)), 
+                0, 
+                (this.uvRectangle.x)+((tx_inv + projection_width_half)/projection_width)*(1-(1/256)),
+                this.uvRectangle.y);
+        }
+        else if(this.type==GradientType.RADIAL){
+            this.matrix=new Matrix(
+                a_inv / projection_width_half,
                 b_inv / projection_width_half,
-                d_inv / projection_width_half,
+                c_inv / projection_width_half,
+                d_inv / projection_width_half,  
                 ((tx_inv + projection_width_half)/projection_width_half)-1,
-                ((ty_inv + projection_height_half)/projection_width_half)-1);
+                ((ty_inv + projection_width_half)/projection_width_half)-1);
         }
         return this.matrix;
     }
