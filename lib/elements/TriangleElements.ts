@@ -743,7 +743,11 @@ export class _Stage_TriangleElements extends _Stage_ElementsBase
 
         if (shader.tangentIndex >= 0 && this._triangleElements.autoDeriveTangents)
             this._triangleElements.tangents;
-
+        
+        // workaround to prevent gl-errors in drawArrays on ios / osx
+        // a call to activateVertexBufferVO with index==-1 will disable all 8 vertex-attributes
+        this.activateVertexBufferVO(-1, this._triangleElements.positions)
+        
         if (shader.curvesIndex >= 0)
             this.activateVertexBufferVO(shader.curvesIndex, this._triangleElements.getCustomAtributes("curves"));
 
