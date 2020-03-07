@@ -146,7 +146,9 @@ export class GraphicsFactoryFills
 			// we only want to make sure that each contour contains at least 3 pairs of x/y positions
 			// otherwise there is no way they can form a shape				
 			contour = contour_data[k];
-			if(contour[0]==contour[contour.length-2] && contour[1]==contour[contour.length-1]){
+            // make sure start and end point of a contour are not the same            
+            if((Math.round(contour[0]*10000)/10000)==(Math.round(contour[contour.length-2]*10000)/10000)
+             && (Math.round(contour[1]*10000)/10000)==(Math.round(contour[contour.length-1]*10000)/10000)){
 				contour.pop();
 				contour.pop();
 			}
