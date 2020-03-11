@@ -80,7 +80,7 @@ export class ParticleSpriteSheetState extends ParticleStateBase
 		this.updateSpriteSheetData();
 	}
 
-	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData, projection:ProjectionBase, stage:Stage):void
+	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData):void
 	{
 		if (!shader.usesUVTransform) {
 			shader.setVertexConst(animationRegisterData.getRegisterIndex(this._pAnimationNode, ParticleSpriteSheetState.UV_INDEX_0), this._spriteSheetData[0], this._spriteSheetData[1], this._spriteSheetData[2], this._spriteSheetData[3]);
@@ -88,9 +88,9 @@ export class ParticleSpriteSheetState extends ParticleStateBase
 				var index:number = animationRegisterData.getRegisterIndex(this._pAnimationNode, ParticleSpriteSheetState.UV_INDEX_1);
 				if (this._particleSpriteSheetNode.mode == ParticlePropertiesMode.LOCAL_STATIC) {
 					if (this._usesPhase)
-						animationElements.activateVertexBuffer(index, this._particleSpriteSheetNode._iDataOffset, stage, ContextGLVertexBufferFormat.FLOAT_3);
+						animationElements.activateVertexBuffer(index, this._particleSpriteSheetNode._iDataOffset, shader.stage, ContextGLVertexBufferFormat.FLOAT_3);
 					else
-						animationElements.activateVertexBuffer(index, this._particleSpriteSheetNode._iDataOffset, stage, ContextGLVertexBufferFormat.FLOAT_2);
+						animationElements.activateVertexBuffer(index, this._particleSpriteSheetNode._iDataOffset, shader.stage, ContextGLVertexBufferFormat.FLOAT_2);
 				} else
 					shader.setVertexConst(index, this._spriteSheetData[4], this._spriteSheetData[5]);
 			}

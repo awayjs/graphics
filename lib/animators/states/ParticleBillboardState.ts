@@ -33,12 +33,12 @@ export class ParticleBillboardState extends ParticleStateBase
 		this._billboardAxis = particleNode._iBillboardAxis;
 	}
 
-	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData, projection:ProjectionBase, stage:Stage):void
+	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData):void
 	{
 		var comps:Array<Vector3D>;
 		if (this._billboardAxis) {
 			var pos:Vector3D = renderable.sourceEntity.transform.concatenatedMatrix3D.position;
-			var look:Vector3D = projection.transform.concatenatedMatrix3D.position.subtract(pos);
+			var look:Vector3D = shader.view.projection.transform.concatenatedMatrix3D.position.subtract(pos);
 			var right:Vector3D = look.crossProduct(this._billboardAxis);
 			right.normalize();
 			look = this.billboardAxis.crossProduct(right);
@@ -55,7 +55,7 @@ export class ParticleBillboardState extends ParticleStateBase
 		} else {
 			//create a quick inverse projection matrix
 			this._matrix.copyFrom(renderable.sourceEntity.transform.concatenatedMatrix3D);
-			this._matrix.append(projection.transform.inverseConcatenatedMatrix3D);
+			this._matrix.append(shader.view.projection.transform.inverseConcatenatedMatrix3D);
 
 			//decompose using axis angle rotations
 			comps = this._matrix.decompose(Orientation3D.AXIS_ANGLE);

@@ -110,7 +110,7 @@ export class VertexAnimator extends AnimatorBase
 	/**
 	 * @inheritDoc
 	 */
-	public setRenderState(shader:ShaderBase, renderable:_Render_Shape, stage:Stage, projection:ProjectionBase):void
+	public setRenderState(shader:ShaderBase, renderable:_Render_Shape):void
 	{
 		// todo: add code for when running on cpu
 		// this type of animation can only be IRenderable
@@ -119,7 +119,7 @@ export class VertexAnimator extends AnimatorBase
 
 		// if no poses defined, set temp data
 		if (!this._poses.length) {
-			this.setNullPose(shader, elements, stage);
+			this.setNullPose(shader, elements);
 			return;
 		}
 
@@ -140,8 +140,8 @@ export class VertexAnimator extends AnimatorBase
 		for (; i < len; ++i) {
 			elements = <TriangleElements> (this._poses[i] || shape.elements);
 
-			stageElements = <_Stage_ElementsBase> stage.getAbstraction(elements);
-			stageElements._indexMappings = (<_Stage_ElementsBase> stage.getAbstraction(shape.elements)).getIndexMappings();
+			stageElements = <_Stage_ElementsBase> shader.stage.getAbstraction(elements);
+			stageElements._indexMappings = (<_Stage_ElementsBase> shader.stage.getAbstraction(shape.elements)).getIndexMappings();
 			
 			stageElements.activateVertexBufferVO(animationRegisterData.poseIndices[k++], elements.positions);
 
@@ -150,13 +150,13 @@ export class VertexAnimator extends AnimatorBase
 		}
 	}
 
-	private setNullPose(shader:ShaderBase, elements:TriangleElements, stage:Stage):void
+	private setNullPose(shader:ShaderBase, elements:TriangleElements):void
 	{
 		var animationRegisterData:AnimationRegisterData = shader.animationRegisterData;
 		
 		shader.setVertexConstFromArray(animationRegisterData.weightsIndex, this._weights);
 
-		var stageElements:_Stage_ElementsBase = (<_Stage_ElementsBase> stage.getAbstraction(elements));
+		var stageElements:_Stage_ElementsBase = (<_Stage_ElementsBase> shader.stage.getAbstraction(elements));
 		var k:number = 0;
 		
 		if (this._vertexAnimationSet.blendMode == VertexAnimationMode.ABSOLUTE) {

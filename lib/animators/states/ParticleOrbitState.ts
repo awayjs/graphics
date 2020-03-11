@@ -110,15 +110,15 @@ export class ParticleOrbitState extends ParticleStateBase
 		this.updateOrbitData();
 	}
 
-	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData, projection:ProjectionBase, stage:Stage):void
+	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData):void
 	{
 		var index:number = animationRegisterData.getRegisterIndex(this._pAnimationNode, ParticleOrbitState.ORBIT_INDEX);
 
 		if (this._particleOrbitNode.mode == ParticlePropertiesMode.LOCAL_STATIC) {
 			if (this._usesPhase)
-				animationElements.activateVertexBuffer(index, this._particleOrbitNode._iDataOffset, stage, ContextGLVertexBufferFormat.FLOAT_4);
+				animationElements.activateVertexBuffer(index, this._particleOrbitNode._iDataOffset, shader.stage, ContextGLVertexBufferFormat.FLOAT_4);
 			else
-				animationElements.activateVertexBuffer(index, this._particleOrbitNode._iDataOffset, stage, ContextGLVertexBufferFormat.FLOAT_3);
+				animationElements.activateVertexBuffer(index, this._particleOrbitNode._iDataOffset, shader.stage, ContextGLVertexBufferFormat.FLOAT_3);
 		} else
 			shader.setVertexConst(index, this._orbitData.x, this._orbitData.y, this._orbitData.z, this._orbitData.w);
 

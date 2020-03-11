@@ -62,14 +62,14 @@ export class ParticleBezierCurveState extends ParticleStateBase
 		this._endPoint = this._particleBezierCurveNode._iEndPoint;
 	}
 
-	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData, projection:ProjectionBase, stage:Stage):void
+	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData):void
 	{
 		var controlIndex:number = animationRegisterData.getRegisterIndex(this._pAnimationNode, ParticleBezierCurveState.BEZIER_CONTROL_INDEX);
 		var endIndex:number = animationRegisterData.getRegisterIndex(this._pAnimationNode, ParticleBezierCurveState.BEZIER_END_INDEX);
 
 		if (this._particleBezierCurveNode.mode == ParticlePropertiesMode.LOCAL_STATIC) {
-			animationElements.activateVertexBuffer(controlIndex, this._particleBezierCurveNode._iDataOffset, stage, ContextGLVertexBufferFormat.FLOAT_3);
-			animationElements.activateVertexBuffer(endIndex, this._particleBezierCurveNode._iDataOffset + 3, stage, ContextGLVertexBufferFormat.FLOAT_3);
+			animationElements.activateVertexBuffer(controlIndex, this._particleBezierCurveNode._iDataOffset, shader.stage, ContextGLVertexBufferFormat.FLOAT_3);
+			animationElements.activateVertexBuffer(endIndex, this._particleBezierCurveNode._iDataOffset + 3, shader.stage, ContextGLVertexBufferFormat.FLOAT_3);
 		} else {
 			shader.setVertexConst(controlIndex, this._controlPoint.x, this._controlPoint.y, this._controlPoint.z);
 			shader.setVertexConst(endIndex, this._endPoint.x, this._endPoint.y, this._endPoint.z);

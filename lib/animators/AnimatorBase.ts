@@ -202,7 +202,7 @@ export class AnimatorBase extends AssetBase implements IAnimator
 		this._playbackSpeed = value;
 	}
 
-	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, stage:Stage, projection:ProjectionBase):void
+	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase):void
 	{
 		throw new AbstractMethodError();
 	}

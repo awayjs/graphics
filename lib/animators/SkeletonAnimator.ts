@@ -194,7 +194,7 @@ export class SkeletonAnimator extends AnimatorBase
 	/**
 	 * @inheritDoc
 	 */
-	public setRenderState(shader:ShaderBase, renderable:_Render_Shape, stage:Stage, projection:ProjectionBase):void
+	public setRenderState(shader:ShaderBase, renderable:_Render_Shape):void
 	{
 		// do on request of globalProperties
 		if (this._globalPropertiesDirty)

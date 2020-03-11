@@ -49,13 +49,13 @@ export class ParticleRotateToPositionState extends ParticleStateBase
 		this._position = this._particleRotateToPositionNode._iPosition;
 	}
 
-	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData, projection:ProjectionBase, stage:Stage):void
+	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData):void
 	{
 		var index:number = animationRegisterData.getRegisterIndex(this._pAnimationNode, ParticleRotateToPositionState.POSITION_INDEX);
 
 		if ((<ParticleAnimationSet> this._pParticleAnimator.animationSet).hasBillboard) {
 			this._matrix.copyFrom(renderable.sourceEntity.transform.concatenatedMatrix3D);
-			this._matrix.append(projection.transform.inverseConcatenatedMatrix3D);
+			this._matrix.append(shader.view.projection.transform.inverseConcatenatedMatrix3D);
 			shader.setVertexConstFromMatrix(animationRegisterData.getRegisterIndex(this._pAnimationNode, ParticleRotateToPositionState.MATRIX_INDEX), this._matrix);
 		}
 
@@ -63,7 +63,7 @@ export class ParticleRotateToPositionState extends ParticleStateBase
 			this._offset = renderable.sourceEntity.transform.inverseConcatenatedMatrix3D.transformVector(this._position);
 			shader.setVertexConst(index, this._offset.x, this._offset.y, this._offset.z);
 		} else
-			animationElements.activateVertexBuffer(index, this._particleRotateToPositionNode._iDataOffset, stage, ContextGLVertexBufferFormat.FLOAT_3);
+			animationElements.activateVertexBuffer(index, this._particleRotateToPositionNode._iDataOffset, shader.stage, ContextGLVertexBufferFormat.FLOAT_3);
 
 	}
 

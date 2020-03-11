@@ -380,10 +380,11 @@ export class _Stage_LineElements extends _Stage_ElementsBase
         this._lineElements = null;
     }
 
-    public _setRenderState(renderRenderable:_Render_RenderableBase, shader:ShaderBase, view:View):void
+    public _setRenderState(renderRenderable:_Render_RenderableBase, shader:ShaderBase):void
     {
-        super._setRenderState(renderRenderable, shader, view);
+        super._setRenderState(renderRenderable, shader);
 
+		var view:View = shader.view;
 		var renderElements:_Render_LineElements = <_Render_LineElements> renderRenderable.renderGroup.getRenderElements(renderRenderable.stageElements.elements);
 
         if (shader.colorBufferIndex >= 0)
@@ -424,16 +425,16 @@ export class _Stage_LineElements extends _Stage_ElementsBase
         var context:IContextGL = this._stage.context;
     }
 
-    public draw(renderRenderable:_Render_RenderableBase, shader:ShaderBase, view:View, count:number, offset:number):void
+    public draw(renderRenderable:_Render_RenderableBase, shader:ShaderBase, count:number, offset:number):void
     {
         var context:IContextGL = this._stage.context;
 
         // projection matrix
-        shader.viewMatrix.copyFrom(view.frustumMatrix3D, true);
+        shader.viewMatrix.copyFrom(shader.view.frustumMatrix3D, true);
 
         var matrix3D:Matrix3D = Matrix3D.CALCULATION_MATRIX;
         matrix3D.copyFrom(renderRenderable.sourceEntity.transform.concatenatedMatrix3D);
-        matrix3D.append(view.projection.transform.inverseConcatenatedMatrix3D);
+        matrix3D.append(shader.view.projection.transform.inverseConcatenatedMatrix3D);
         shader.sceneMatrix.copyFrom(matrix3D, true);
 
         context.setProgramConstantsFromArray(ContextGLProgramType.VERTEX, shader.vertexConstantData);

@@ -63,7 +63,7 @@ export class ParticlePositionState extends ParticleStateBase
 	/**
 	 * @inheritDoc
 	 */
-	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData, projection:ProjectionBase, stage:Stage):void
+	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData):void
 	{
 		if (this._particlePositionNode.mode == ParticlePropertiesMode.LOCAL_DYNAMIC && !this._pDynamicPropertiesDirty[animationElements._iUniqueId])
 			this._pUpdateDynamicProperties(animationElements);
@@ -73,6 +73,6 @@ export class ParticlePositionState extends ParticleStateBase
 		if (this._particlePositionNode.mode == ParticlePropertiesMode.GLOBAL)
 			shader.setVertexConst(index, this._position.x, this._position.y, this._position.z);
 		else
-			animationElements.activateVertexBuffer(index, this._particlePositionNode._iDataOffset, stage, ContextGLVertexBufferFormat.FLOAT_3);
+			animationElements.activateVertexBuffer(index, this._particlePositionNode._iDataOffset, shader.stage, ContextGLVertexBufferFormat.FLOAT_3);
 	}
 }

@@ -67,7 +67,7 @@ export class ParticleRotationalVelocityState extends ParticleStateBase
 	/**
 	 * @inheritDoc
 	 */
-	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData, projection:ProjectionBase, stage:Stage):void
+	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData):void
 	{
 		if (this._particleRotationalVelocityNode.mode == ParticlePropertiesMode.LOCAL_DYNAMIC && !this._pDynamicPropertiesDirty[animationElements._iUniqueId])
 			this._pUpdateDynamicProperties(animationElements);
@@ -77,7 +77,7 @@ export class ParticleRotationalVelocityState extends ParticleStateBase
 		if (this._particleRotationalVelocityNode.mode == ParticlePropertiesMode.GLOBAL)
 			shader.setVertexConst(index, this._rotationalVelocityData.x, this._rotationalVelocityData.y, this._rotationalVelocityData.z, this._rotationalVelocityData.w);
 		else
-			animationElements.activateVertexBuffer(index, this._particleRotationalVelocityNode._iDataOffset, stage, ContextGLVertexBufferFormat.FLOAT_4);
+			animationElements.activateVertexBuffer(index, this._particleRotationalVelocityNode._iDataOffset, shader.stage, ContextGLVertexBufferFormat.FLOAT_4);
 	}
 
 	private updateRotationalVelocityData():void

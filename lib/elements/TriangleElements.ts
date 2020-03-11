@@ -732,9 +732,9 @@ export class _Stage_TriangleElements extends _Stage_ElementsBase
         this._triangleElements = null;
     }
 
-    public _setRenderState(renderRenderable:_Render_RenderableBase, shader:ShaderBase, view:View):void
+    public _setRenderState(renderRenderable:_Render_RenderableBase, shader:ShaderBase):void
     {
-        super._setRenderState(renderRenderable, shader, view);
+        super._setRenderState(renderRenderable, shader);
 
         //set buffers
         //TODO: find a better way to update a concatenated buffer when autoderiving
@@ -772,16 +772,16 @@ export class _Stage_TriangleElements extends _Stage_ElementsBase
         this.activateVertexBufferVO(0, this._triangleElements.positions);
     }
 
-    public draw(renderRenderable:_Render_RenderableBase, shader:ShaderBase, view:View, count:number, offset:number):void
+    public draw(renderRenderable:_Render_RenderableBase, shader:ShaderBase, count:number, offset:number):void
     {
         //set constants
         if (shader.sceneMatrixIndex >= 0) {
             shader.sceneMatrix.copyFrom(renderRenderable.renderSceneTransform, true);
-            shader.viewMatrix.copyFrom(view.viewMatrix3D, true);
+            shader.viewMatrix.copyFrom(shader.view.viewMatrix3D, true);
         } else {
             var matrix3D:Matrix3D = Matrix3D.CALCULATION_MATRIX;
             matrix3D.copyFrom(renderRenderable.renderSceneTransform);
-            matrix3D.append(view.viewMatrix3D);
+            matrix3D.append(shader.view.viewMatrix3D);
             shader.viewMatrix.copyFrom(matrix3D, true);
         }
 

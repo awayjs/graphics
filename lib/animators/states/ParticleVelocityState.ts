@@ -59,7 +59,7 @@ export class ParticleVelocityState extends ParticleStateBase
 		this._velocity = this._particleVelocityNode._iVelocity;
 	}
 
-	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData, projection:ProjectionBase, stage:Stage):void
+	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData):void
 	{
 		if (this._particleVelocityNode.mode == ParticlePropertiesMode.LOCAL_DYNAMIC && !this._pDynamicPropertiesDirty[animationElements._iUniqueId])
 			this._pUpdateDynamicProperties(animationElements);
@@ -69,6 +69,6 @@ export class ParticleVelocityState extends ParticleStateBase
 		if (this._particleVelocityNode.mode == ParticlePropertiesMode.GLOBAL)
 			shader.setVertexConst(index, this._velocity.x, this._velocity.y, this._velocity.z);
 		else
-			animationElements.activateVertexBuffer(index, this._particleVelocityNode._iDataOffset, stage, ContextGLVertexBufferFormat.FLOAT_3);
+			animationElements.activateVertexBuffer(index, this._particleVelocityNode._iDataOffset, shader.stage, ContextGLVertexBufferFormat.FLOAT_3);
 	}
 }

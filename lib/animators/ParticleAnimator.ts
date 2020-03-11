@@ -75,7 +75,7 @@ export class ParticleAnimator extends AnimatorBase
 	/**
 	 * @inheritDoc
 	 */
-	public setRenderState(shader:ShaderBase, renderable:_Render_Shape, stage:Stage, projection:ProjectionBase):void
+	public setRenderState(shader:ShaderBase, renderable:_Render_Shape):void
 	{
 		var animationRegisterData:AnimationRegisterData = this._particleAnimationSet._iAnimationRegisterData;
 
@@ -88,13 +88,13 @@ export class ParticleAnimator extends AnimatorBase
 		var i:number;
 		
 		for (i = 0; i < this._animationParticleStates.length; i++)
-			this._animationParticleStates[i].setRenderState(shader, renderable, animationElements, animationRegisterData, projection, stage);
+			this._animationParticleStates[i].setRenderState(shader, renderable, animationElements, animationRegisterData);
 
 		//process animator subgeometries
 		var animatorElements:AnimationElements = this.getAnimatorElements(particleCollection, elements);
 
 		for (i = 0; i < this._animatorParticleStates.length; i++)
-			this._animatorParticleStates[i].setRenderState(shader, renderable, animatorElements, animationRegisterData, projection, stage);
+			this._animatorParticleStates[i].setRenderState(shader, renderable, animatorElements, animationRegisterData);
 	}
 
 	/**
