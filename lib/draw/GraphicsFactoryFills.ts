@@ -139,24 +139,56 @@ export class GraphicsFactoryFills {
 		var attributesView: AttributesView;
 		var attributesBuffer: AttributesBuffer;
 
-		for (k = 0; k < contour_data.length; k++) {
-			// all contours should already be prepared by GraphicsPath.prepare()
-			// we only want to make sure that each contour contains at least 3 pairs of x/y positions
-			// otherwise there is no way they can form a shape
-			contour = contour_data[k];
+		const tessFix = 20;
+		const fixedPoints = 3;
+		const fixedBase = Math.pow(10, fixedPoints);
+		const eps = 1 / fixedBase;
+
+		const useTessFix = true;
+
+		const toFixed = (value: number) =>{
+			return Math.round(value * fixedBase) / fixedBase;
+		}
+
+        const nearestCheck = (ax : number, ay : number, bx : number, by : number) =>{
+            // manhattan distance, fast check for nearest point
+            const mah = Math.abs(ax-bx) + Math.abs(ay-by);
+
+            return mah <= eps;
+		}
+
+
+		for (let k = 0; k < contour_data.length; k++) {
+			
+			const contour = contour_data[k];
+
+			// same as map, but without allocation 
+
+			const closed = nearestCheck(contour[0], contour[1], contour[contour.length - 2], contour[contour.length - 1]);
+
 			// make sure start and end point of a contour are not the same
-			if (
-				Math.round(contour[0] * 10000) / 10000 == Math.round(contour[contour.length - 2] * 10000) / 10000 &&
-				Math.round(contour[1] * 10000) / 10000 == Math.round(contour[contour.length - 1] * 10000) / 10000
-			) {
+			if (closed) {
 				contour.pop();
 				contour.pop();
 			}
 
+			// all contours should already be prepared by GraphicsPath.prepare()
+			// we only want to make sure that each contour contains at least 3 pairs of x/y positions
+			// otherwise there is no way they can form a shape
+
 			if (contour.length > 5) {
-				finalContours[finalContours.length] = contour;
+
+				if(useTessFix){
+					// tess2 fix
+					// there are problems with small shapes
+					const fixed =  contour.map((e)=> toFixed(e) * tessFix);
+					finalContours.push(fixed);
+				} else {
+					finalContours.push(contour);
+				}
 			}
 		}
+
 		//console.log("execute Tess2 = ", finalContours);
 		try {
 			res = Tess2.tesselate({
@@ -165,6 +197,7 @@ export class GraphicsFactoryFills {
 				elementType: Tess2.POLYGONS,
 				polySize: 3,
 				vertexSize: 2,
+				debug: true
 			});
 			//console.timeEnd("time Tess2.tesselate");
 
@@ -182,6 +215,7 @@ export class GraphicsFactoryFills {
 				p2y = res.vertices[res.elements[i * 3 + 1] * 2 + 1];
 				p3x = res.vertices[res.elements[i * 3 + 2] * 2];
 				p3y = res.vertices[res.elements[i * 3 + 2] * 2 + 1];
+
 				if (GraphicsFactoryHelper.isClockWiseXY(p1x, p1y, p2x, p2y, p3x, p3y)) {
 					final_vert_list[final_vert_cnt++] = p3x;
 					final_vert_list[final_vert_cnt++] = p3y;
@@ -203,7 +237,14 @@ export class GraphicsFactoryFills {
 		}
 		//}
 
+
+		if(useTessFix){
+			// divide to avoid increase shape size
+			final_vert_list.forEach((e, i) => final_vert_list[i] = e / tessFix);
+		}
+
 		final_vert_list = final_vert_list.concat(graphicsPath.verts);
+
 		if (final_vert_list.length > 0) {
 			attributesView = new AttributesView(Float32Array, 2);
 			attributesView.set(final_vert_list);

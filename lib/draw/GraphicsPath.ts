@@ -378,16 +378,15 @@ export class GraphicsPath implements IGraphicsData {
 			ctrl_y: number = 0;
 		var curve_verts: number[];
 		var myCacheItem: any[];
-		var cmd_len = this.commands.length;
+        var cmd_len = this.commands.length;
 
-        const eps = 0.01;
-        const nearestCheck = (ax : number, ay : number, bx : number, by : number) =>{
-            // manhattan distance, fast check for nearest point
-            const mah = Math.abs(ax-bx) + Math.abs(ay-by);
-
-            return mah <= eps;
+        // commands may be empty
+        if(cmd_len === 1 && !this.commands[0]) {
+            return;
         }
 
+        const eps = 1 / 100;
+        
 		for (let c = 0; c < cmd_len; c++) {
             const commands = this.commands[c];
             const data = this.data[c];
@@ -405,8 +404,9 @@ export class GraphicsPath implements IGraphicsData {
 			// if its not closed, we optionally close it by adding the extra lineTo-cmd
 			closed = true;
             
-            const near = nearestCheck(data[0], data[1], data[data.length - 2], data[data.length - 1]);
-            if (!near) {
+            const gap = Math.abs(data[0] - data[data.length - 2]) + Math.abs(data[1] - data[data.length - 1])
+
+            if (gap > eps) {
 				if (this.forceClose) {
 					commands[commands.length] = GraphicsPathCommand.LINE_TO;
 					data[data.length] = data[0];
