@@ -380,18 +380,33 @@ export class GraphicsPath implements IGraphicsData {
 		var myCacheItem: any[];
 		var cmd_len = this.commands.length;
 
-		for (c = 0; c < cmd_len; c++) {
-			commands = this.commands[c];
-			contour_merged[c] = false;
-			data = this.data[c];
-			this._positions[c] = [];
-			isValidCommand[c] = [];
-			this._connectedIdx[c] = [];
-			this._positionOffset[c] = [];
+        const eps = 0.01;
+        const nearestCheck = (ax : number, ay : number, bx : number, by : number) =>{
+            // manhattan distance, fast check for nearest point
+            const mah = Math.abs(ax-bx) + Math.abs(ay-by);
+
+            return mah <= eps;
+        }
+
+		for (let c = 0; c < cmd_len; c++) {
+            const commands = this.commands[c];
+            const data = this.data[c];
+           
+            this._positions[c] = []; 
+            this._connectedIdx[c] = [];
+            this._positionOffset[c] = [];
+            
+            contour_merged[c] = false;
+            
+            isValidCommand[c] = [];
+            
+			
 			// check if the path is closed.
 			// if its not closed, we optionally close it by adding the extra lineTo-cmd
 			closed = true;
-			if (data[0] != data[data.length - 2] || data[1] != data[data.length - 1]) {
+            
+            const near = nearestCheck(data[0], data[1], data[data.length - 2], data[data.length - 1]);
+            if (!near) {
 				if (this.forceClose) {
 					commands[commands.length] = GraphicsPathCommand.LINE_TO;
 					data[data.length] = data[0];
@@ -402,10 +417,10 @@ export class GraphicsPath implements IGraphicsData {
 			}
 		}
 
-		var cmd_len = this.commands.length;
-		for (c = 0; c < cmd_len; c++) {
-			commands = this.commands[c];
-			data = this.data[c];
+		cmd_len = this.commands.length;
+        for (let c = 0; c < cmd_len; c++) {
+			const commands = this.commands[c];
+			const data = this.data[c];
 
 			data_cnt = 0;
 			prev_x = data[data_cnt++];
@@ -413,7 +428,8 @@ export class GraphicsPath implements IGraphicsData {
 			end_x = 0;
 			end_y = 0;
 			ctrl_x = 0;
-			ctrl_y = 0;
+            ctrl_y = 0;
+
 			this._positions[c].push(prev_x);
 			this._positions[c].push(prev_y);
 
@@ -424,11 +440,13 @@ export class GraphicsPath implements IGraphicsData {
 			this._startMerge = -1;
 			this._endMerge = -1;
 			this._mergetarget = -1;
-			this._mergeSource = -1;
+            this._mergeSource = -1;
+
 			data_cnt = 0;
 			prev_x = data[data_cnt++];
-			prev_y = data[data_cnt++];
-			for (i = 1; i < commands.length; i++) {
+            prev_y = data[data_cnt++];
+            
+			for (let i = 1; i < commands.length; i++) {
 				switch (commands[i]) {
 					case GraphicsPathCommand.MOVE_TO:
 						console.log(
@@ -448,15 +466,19 @@ export class GraphicsPath implements IGraphicsData {
 						ctrl_x = data[data_cnt++];
 						ctrl_y = data[data_cnt++];
 						end_x = data[data_cnt++];
-						end_y = data[data_cnt++];
+                        end_y = data[data_cnt++];
+
 						//console.log("CURVE_TO ", i, ctrl_x, ctrl_y, end_x, end_y);
 						curve_verts = [];
 						GraphicsFactoryHelper.tesselateCurve(prev_x, prev_y, ctrl_x, ctrl_y, end_x, end_y, curve_verts);
-						k_len = curve_verts.length;
-						for (k = 0; k < k_len; k += 2) {
+                        
+                        k_len = curve_verts.length;
+                        
+                        for (k = 0; k < k_len; k += 2) {
 							this._positions[c].push(curve_verts[k]);
 							this._positions[c].push(curve_verts[k + 1]);
-						}
+                        }
+                        
 						prev_x = end_x;
 						prev_y = end_y;
 						break;
