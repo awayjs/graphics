@@ -150,9 +150,12 @@ export class Shape extends AssetBase
 		this._onInvalidateVerticesDelegate = (event:ElementsEvent) => this._onInvalidateVertices(event);
 
 		this._elements = elements;
-		this._material = material;
-		this._style = style;
+		this._elements.addEventListener(ElementsEvent.INVALIDATE_VERTICES, this._onInvalidateVerticesDelegate);
+		this._elements.usages++;
 
+		this._material = material;
+
+		this._style = style;
 		if (this._style)
 			this._style.addEventListener(StyleEvent.INVALIDATE_PROPERTIES, this._onInvalidatePropertiesDelegate);
 
