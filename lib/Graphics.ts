@@ -215,6 +215,8 @@ export class Graphics extends AssetBase
 	 */
 	public addShape(shape:Shape):Shape
 	{
+		shape.usages++;
+
 		var shapeIndex:number = this.getShapeIndex(shape);
 		
 		if (shapeIndex != -1)
@@ -226,8 +228,6 @@ export class Graphics extends AssetBase
 		shape.addEventListener(RenderableEvent.INVALIDATE_MATERIAL, this._onInvalidateDelegate);
 		shape.addEventListener(RenderableEvent.INVALIDATE_STYLE, this._onInvalidateDelegate);
 		shape.addEventListener(AssetEvent.INVALIDATE, this._onInvalidateDelegate);
-
-		shape.usages++;
 
 		this._scaleX = 0;
 		this._scaleY = 0;
