@@ -1632,9 +1632,16 @@ export class Graphics extends AssetBase
 		var linePaths:SegmentedPath[] = createPathsList(lineStyles, true, !!recordsMorph, parser);
 		var isMorph:boolean = recordsMorph !== null;
 		var styles = {fill0: 0, fill1: 0, line: 0};
-		var segment1: PathSegment = null;
-		var segment2: PathSegment = null;
-		var segmentL: PathSegment = null;
+
+		interface IPathElement {
+			segment?: PathSegment | undefined,
+			path: SegmentedPath | undefined,
+			lastMorphX: number,
+			lastMorphY: number,
+		}
+
+		const psPool: Array<IPathElement | undefined> = [];
+
 
 		// Fill- and line styles can be added by style change records in the middle of
 		// a shape records list. This also causes the previous paths to be treated as
@@ -1650,32 +1657,42 @@ export class Graphics extends AssetBase
 		var y: number = 0;
 		var morphX: number = 0;
 		var morphY: number = 0;
-		var path1: SegmentedPath;
-		var path2: SegmentedPath;
-		var pathL: SegmentedPath;
+
 		//console.log("numRecords", numRecords);
-		for (var i = 0, j = 0; i < numRecords; i++) {
+		for (let i = 0, j = 0; i < numRecords; i++) {
 			var record: ShapeRecord = records[i];
 			//console.log("record", i, record.type);
 			var morphRecord: ShapeRecord;
+			
 			if (isMorph) {
 				morphRecord = recordsMorph[j++];
 			}
+			
 			// type 0 is a StyleChange record
 			if (record.type === 0) {
 
+				// reset segment pool 
+				for(let i = 0; i <  3; i++) {
+					psPool[i] = undefined;
+				};
+				
 				if (record.flags & ShapeRecordFlags.HasNewStyles) {
 					if (!allPaths) {
 						allPaths = [];
 					}
+
 					this.push.apply(allPaths, fillPaths);
 					fillPaths = createPathsList(record.fillStyles, false, isMorph, parser);
+					
 					this.push.apply(allPaths, linePaths);
+					
 					linePaths = createPathsList(record.lineStyles, true, isMorph, parser);
+					
 					if (defaultPath) {
 						allPaths.push(defaultPath);
 						defaultPath = null;
 					}
+
 					styles = {fill0: 0, fill1: 0, line: 0};
 				}
 
@@ -1689,20 +1706,33 @@ export class Graphics extends AssetBase
 					styles.line = record.lineStyle;
 				}
 				// reset all segments and pathes to null, and than reset them based on new styles
-				path1=path2=pathL=null;
-				segment1=segment2=segmentL=null;
+				// path1 = path2 = pathL=null;
+				// segment1 = segment2 = segmentL=null;
+				
 				if (styles.fill0) {
-					path1 = fillPaths[styles.fill0 - 1];
+					psPool[0] = {
+						path: fillPaths[styles.fill0 - 1],
+						lastMorphX:0, lastMorphY: 0,
+					}
+					//path1 = fillPaths[styles.fill0 - 1];
 				}
+				
 				if (styles.fill1) {
-					path2 = fillPaths[styles.fill1 - 1];
+					psPool[1] = {
+						path: fillPaths[styles.fill1 - 1],
+						lastMorphX:0, lastMorphY: 0,
+					}
+					//path2 = fillPaths[styles.fill1 - 1];
 				}
-				if (styles.line) {
-					pathL = linePaths[styles.line - 1];
-				}
-				
-				
 
+				if (styles.line) {
+					psPool[2] = {
+						path: linePaths[styles.line - 1],
+						lastMorphX:0, lastMorphY: 0,
+					}
+					//pathL = linePaths[styles.line - 1];
+				}
+				
 				if (record.flags & ShapeRecordFlags.Move) {
 					x = record.moveX | 0;
 					y = record.moveY | 0;				
@@ -1714,16 +1744,48 @@ export class Graphics extends AssetBase
 				// if a segment1 has same fill on both sides, we want to ignore this segment1 for fills
 				if(styles.fill1 && styles.fill0 && styles.fill0==styles.fill1){
 					//console.log("IGNORED SEGMENT", styles);
-					segment1=null;//80pro: ignore segments with same fill on both sides
-					segment2=null;//80pro: ignore segments with same fill on both sides
-					path1=null;//80pro: ignore segments with same fill on both sides
-					path2=null;//80pro: ignore segments with same fill on both sides
+					//segment1=null;//80pro: ignore segments with same fill on both sides
+					//segment2=null;//80pro: ignore segments with same fill on both sides
+					//path1=null;//80pro: ignore segments with same fill on both sides
+					//path2=null;//80pro: ignore segments with same fill on both sides
+
+					psPool[0] = psPool[1] = undefined;
 				}
 				
+				for(let i = 0; i < 3; i ++) {
+					const entry = psPool[i];
+
+					if(!entry) {
+						continue;
+					}
+
+					entry.segment = PathSegment.FromDefaults(isMorph);
+					entry.path.addSegment(entry.segment);
+					
+					if (!isMorph) {
+						entry.segment.moveTo(x, y);
+						//console.log("segment1.moveTo" ,x/20, y/20);
+					} else {
+						if (morphRecord.type === 0) {
+							entry.lastMorphX = morphRecord.moveX | 0;
+							entry.lastMorphY = morphRecord.moveY | 0;
+						} else {
+							entry.lastMorphX = x | 0;
+							entry.lastMorphY = y | 0;
+
+							// Not all moveTos are reflected in morph data.
+							// In that case, decrease morph data index.
+							j--;
+						}
+						entry.segment.morphMoveTo(x, y, entry.lastMorphX, entry.lastMorphY);
+					}
+
+				}
+/*
 				if (path1) {
 					segment1 = PathSegment.FromDefaults(isMorph);
-					path1.addSegment(segment1);
-				
+					path1.addSegment(segment2);
+
 					//console.log("new segment1");
 					// Move or not, we want this path1 segment1 to start where the last one
 					// left off. Even if the last one belonged to a different style.
@@ -1796,13 +1858,14 @@ export class Graphics extends AssetBase
 					//console.log("IGNORED SEGMENT");
 				//}
 
-
+*/
 			}
 			// type 1 is a StraightEdge or CurvedEdge record
 			else {
 				//console.log("record.type !== 0");
 				assert(record.type === 1);
-				if (!segment1) {
+				
+				if (!psPool[0]) {
 					//console.log("no segment1")
 					/*if (!defaultPath) {
 						var style = {color: {red: 0, green: 0, blue: 0, alpha: 0}, width: 20};
@@ -1817,9 +1880,10 @@ export class Graphics extends AssetBase
 						segment1.morphMoveTo(x, y, morphX, morphY);
 					}*/
 				}
-				if (!segment2) {
+				if (!psPool[1]) {
 					//console.log("no segment2")
 				}
+
 				if (isMorph) {
 					// An invalid SWF might contain a move in the EndEdges list where the
 					// StartEdges list contains an edge. The Flash Player seems to skip it,
@@ -1836,14 +1900,38 @@ export class Graphics extends AssetBase
 
 				if (record.flags & ShapeRecordFlags.IsStraight &&
 					(!isMorph || (morphRecord.flags & ShapeRecordFlags.IsStraight))) {
+					
 					x += record.deltaX | 0;
 					y += record.deltaY | 0;
+
+
+					for(let i = 0; i < 3; i++) {
+						const entry = psPool[i];
+
+						if(!entry) {
+							continue;
+						}
+
+						if(!isMorph) {
+							entry.segment.lineTo(x,y);
+						} else {
+							
+							entry.lastMorphX += morphRecord.deltaX | 0;
+							entry.lastMorphY += morphRecord.deltaY | 0;
+							
+							entry.segment.morphLineTo(x, y, entry.lastMorphX, entry.lastMorphY);
+						}
+					}
+/*
 					if (segment1 && !isMorph) {
 						segment1.lineTo(x, y);
 						//console.log("segment1.lineTo" ,x/20, y/20);
 					} else if (segment1){
 						morphX += morphRecord.deltaX | 0;
 						morphY += morphRecord.deltaY | 0;
+						
+						console.log("segment1.mlt" , morphX, morphY);
+						
 						segment1.morphLineTo(x, y, morphX, morphY);
 					}
 					if (segment2 && !isMorph) {
@@ -1852,6 +1940,9 @@ export class Graphics extends AssetBase
 					} else if (segment2){
 						morphX += morphRecord.deltaX | 0;
 						morphY += morphRecord.deltaY | 0;
+
+						console.log("segment2.mlt" , morphX, morphY);
+
 						segment2.morphLineTo(x, y, morphX, morphY);
 					}
 					if (segmentL && !isMorph) {
@@ -1860,11 +1951,16 @@ export class Graphics extends AssetBase
 					} else if (segmentL){
 						morphX += morphRecord.deltaX | 0;
 						morphY += morphRecord.deltaY | 0;
+
+						console.log("segmentL.mlt" , morphX, morphY);
+
 						segmentL.morphLineTo(x, y, morphX, morphY);
 					}
+*/
 				} else {
-					var cx, cy;
-					var deltaX, deltaY;
+					let cx, cy;
+					let deltaX, deltaY;
+
 					if (!(record.flags & ShapeRecordFlags.IsStraight)) {
 						cx = x + record.controlDeltaX | 0;
 						cy = y + record.controlDeltaY | 0;
@@ -1878,6 +1974,42 @@ export class Graphics extends AssetBase
 						x += deltaX;
 						y += deltaY;
 					}
+					
+					for(let i = 0; i < 3; i++) {
+						const e = psPool[i];
+
+						if(!e) {
+							continue;
+						}
+
+						const s = e.segment;
+
+						if(!isMorph) {
+							s.curveTo(cx, cy, x, y);
+						} else {		
+							let morphCX, morphCY;
+							
+							if (!(morphRecord.flags & ShapeRecordFlags.IsStraight)) {
+								morphCX = e.lastMorphX + morphRecord.controlDeltaX | 0;
+								morphCY = e.lastMorphY + morphRecord.controlDeltaY | 0;
+								
+								e.lastMorphX = morphCX + morphRecord.anchorDeltaX | 0;
+								e.lastMorphY = morphCY + morphRecord.anchorDeltaY | 0;
+							} else {
+								deltaX = morphRecord.deltaX | 0;
+								deltaY = morphRecord.deltaY | 0;
+								
+								morphCX = morphX + (deltaX >> 1);
+								morphCY = morphY + (deltaY >> 1);
+								
+								e.lastMorphX += deltaX;
+								e.lastMorphY += deltaY;
+							}
+
+							s.morphCurveTo(cx, cy, x, y, morphCX, morphCY, e.lastMorphX, e.lastMorphY);
+						}
+					}
+/*
 					if (segment1 && !isMorph) {
 						segment1.curveTo(cx, cy, x, y);
 						//console.log("segment1.curveTo",cx/20, cy/20, x/20, y/20);
@@ -1935,6 +2067,7 @@ export class Graphics extends AssetBase
 						}
 						segmentL.morphCurveTo(cx, cy, x, y, morphCX, morphCY, morphX, morphY);
 					}
+*/
 				}
 			}
 		}
@@ -1958,7 +2091,7 @@ export class Graphics extends AssetBase
 			//shape.morphStyles = new DataBuffer(16);
 			this.start=[];
 			this.end=[];
-			for (i = 0; i < allPaths.length; i++) {
+			for (let i = 0; i < allPaths.length; i++) {
 				//allPaths[i].serialize(shape);
 				shapeAJS = new GraphicsPath();
 				morphShapeAJS = new GraphicsPath();
@@ -1968,7 +2101,7 @@ export class Graphics extends AssetBase
 				this.end.push(morphShapeAJS);
 			}
 		} else {
-			for (i = 0; i < allPaths.length; i++) {
+			for (let i = 0; i < allPaths.length; i++) {
 				//console.log("allPaths", i, allPaths[i]);
 				//allPaths[i].serialize(shape);
 				shapeAJS = new GraphicsPath();
