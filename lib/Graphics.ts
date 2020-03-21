@@ -1899,28 +1899,39 @@ export class Graphics extends AssetBase
 
 		// All current paths get appended to the allPaths list at the end. First fill,
 		// then line paths.
+
+		allPaths = (allPaths || []).concat(fillPaths || [], linePaths || [], defaultPath ||[]);
+
+		/*
 		if (allPaths) {
 			this.push.apply(allPaths, fillPaths);
 		} else {
 			allPaths = fillPaths;
 		}
+
 		this.push.apply(allPaths, linePaths);
+
 		if (defaultPath) {
 			allPaths.push(defaultPath);
-		}
-		var shapeAJS: GraphicsPath;
+		}*/
+		
+		let shapeAJS;
+		let morphShapeAJS;
+
 		if (isMorph) {
-			var morphShapeAJS: GraphicsPath;
 			//shape.morphCoordinates = new Int32Array(shape.coordinates.length);
 			//shape.morphStyles = new DataBuffer(16);
 			this.start=[];
 			this.end=[];
+
 			for (let i = 0; i < allPaths.length; i++) {
 				//allPaths[i].serialize(shape);
 				shapeAJS = new GraphicsPath();
 				morphShapeAJS = new GraphicsPath();
+				
 				//shapeAJS.queuePath(allPaths[i], morphShapeAJS)
 				allPaths[i].serializeAJS(shapeAJS, morphShapeAJS);
+
 				this.start.push(shapeAJS);
 				this.end.push(morphShapeAJS);
 			}
@@ -1929,8 +1940,10 @@ export class Graphics extends AssetBase
 				//console.log("allPaths", i, allPaths[i]);
 				//allPaths[i].serialize(shape);
 				shapeAJS = new GraphicsPath();
+				
 				//shapeAJS.queuePath(allPaths[i], null);
 				allPaths[i].serializeAJS(shapeAJS, null);
+				
 				//console.log("shapeAJS", shapeAJS);
 				this.add_queued_path(shapeAJS);
 			}

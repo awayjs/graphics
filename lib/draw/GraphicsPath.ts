@@ -219,10 +219,15 @@ export class GraphicsPath implements IGraphicsData {
 		this._cur_point.y = anchorY;
 	}
 	public lineTo(x: number, y: number) {
+		
+		/*
+		// We can't do this becouse morphes is failed. Should be filtered before tesselation 
+
 		if (this._cur_point.x == x && this._cur_point.y == y) {
 			//console.log("lineTo command not added because startpoint and endpoint are the same.");
 			return;
-		}
+		}*/
+
 		if (this._commands[this._commands.length - 1].length == 0) {
 			// every contour must start with a moveTo command, so we make sure we have correct startpoint
 			this._commands[this._commands.length - 1].push(GraphicsPathCommand.MOVE_TO);
