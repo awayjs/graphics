@@ -1655,8 +1655,6 @@ export class Graphics extends AssetBase
 		var numRecords = records.length;
 		var x: number = 0;
 		var y: number = 0;
-		var morphX: number = 0;
-		var morphY: number = 0;
 
 		//console.log("numRecords", numRecords);
 		for (let i = 0, j = 0; i < numRecords; i++) {
@@ -1743,12 +1741,6 @@ export class Graphics extends AssetBase
 
 				// if a segment1 has same fill on both sides, we want to ignore this segment1 for fills
 				if(styles.fill1 && styles.fill0 && styles.fill0==styles.fill1){
-					//console.log("IGNORED SEGMENT", styles);
-					//segment1=null;//80pro: ignore segments with same fill on both sides
-					//segment2=null;//80pro: ignore segments with same fill on both sides
-					//path1=null;//80pro: ignore segments with same fill on both sides
-					//path2=null;//80pro: ignore segments with same fill on both sides
-
 					psPool[0] = psPool[1] = undefined;
 				}
 				
@@ -1781,84 +1773,6 @@ export class Graphics extends AssetBase
 					}
 
 				}
-/*
-				if (path1) {
-					segment1 = PathSegment.FromDefaults(isMorph);
-					path1.addSegment(segment2);
-
-					//console.log("new segment1");
-					// Move or not, we want this path1 segment1 to start where the last one
-					// left off. Even if the last one belonged to a different style.
-					// "Huh," you say? Yup.
-					if (!isMorph) {
-						segment1.moveTo(x, y);
-						//console.log("segment1.moveTo" ,x/20, y/20);
-					} else {
-						if (morphRecord.type === 0) {
-							morphX = morphRecord.moveX | 0;
-							morphY = morphRecord.moveY | 0;
-						} else {
-							morphX = x;
-							morphY = y;
-							// Not all moveTos are reflected in morph data.
-							// In that case, decrease morph data index.
-							j--;
-						}
-						segment1.morphMoveTo(x, y, morphX, morphY);
-					}
-					
-				}
-				if (path2) {
-
-					segment2 = PathSegment.FromDefaults(isMorph);
-					path2.addSegment(segment2);
-				
-					if (!isMorph) {
-						segment2.moveTo(x, y);
-						//console.log("segment1.moveTo" ,x/20, y/20);
-					} else {
-						if (morphRecord.type === 0) {
-							morphX = morphRecord.moveX | 0;
-							morphY = morphRecord.moveY | 0;
-						} else {
-							morphX = x;
-							morphY = y;
-							// Not all moveTos are reflected in morph data.
-							// In that case, decrease morph data index.
-							j--;
-						}
-						segment2.morphMoveTo(x, y, morphX, morphY);
-					}
-				}
-				if (pathL) {
-
-					segmentL = PathSegment.FromDefaults(isMorph);
-					pathL.addSegment(segmentL);
-				
-					if (!isMorph) {
-						segmentL.moveTo(x, y);
-						//console.log("segment1.moveTo" ,x/20, y/20);
-					} else {
-						if (morphRecord.type === 0) {
-							morphX = morphRecord.moveX | 0;
-							morphY = morphRecord.moveY | 0;
-						} else {
-							morphX = x;
-							morphY = y;
-							// Not all moveTos are reflected in morph data.
-							// In that case, decrease morph data index.
-							j--;
-						}
-						segmentL.morphMoveTo(x, y, morphX, morphY);
-					}
-				}
-				//segment1.isReversed=true;
-				//segment2.isReversed=true;
-				//if(styles.fill1 && styles.fill0 && styles.fill1 !== styles.fill0){
-					//console.log("IGNORED SEGMENT");
-				//}
-
-*/
 			}
 			// type 1 is a StraightEdge or CurvedEdge record
 			else {
@@ -1922,41 +1836,6 @@ export class Graphics extends AssetBase
 							entry.segment.morphLineTo(x, y, entry.lastMorphX, entry.lastMorphY);
 						}
 					}
-/*
-					if (segment1 && !isMorph) {
-						segment1.lineTo(x, y);
-						//console.log("segment1.lineTo" ,x/20, y/20);
-					} else if (segment1){
-						morphX += morphRecord.deltaX | 0;
-						morphY += morphRecord.deltaY | 0;
-						
-						console.log("segment1.mlt" , morphX, morphY);
-						
-						segment1.morphLineTo(x, y, morphX, morphY);
-					}
-					if (segment2 && !isMorph) {
-						segment2.lineTo(x, y);
-						//console.log("segment1.lineTo" ,x/20, y/20);
-					} else if (segment2){
-						morphX += morphRecord.deltaX | 0;
-						morphY += morphRecord.deltaY | 0;
-
-						console.log("segment2.mlt" , morphX, morphY);
-
-						segment2.morphLineTo(x, y, morphX, morphY);
-					}
-					if (segmentL && !isMorph) {
-						segmentL.lineTo(x, y);
-						//console.log("segment1.lineTo" ,x/20, y/20);
-					} else if (segmentL){
-						morphX += morphRecord.deltaX | 0;
-						morphY += morphRecord.deltaY | 0;
-
-						console.log("segmentL.mlt" , morphX, morphY);
-
-						segmentL.morphLineTo(x, y, morphX, morphY);
-					}
-*/
 				} else {
 					let cx, cy;
 					let deltaX, deltaY;
@@ -1988,86 +1867,31 @@ export class Graphics extends AssetBase
 							s.curveTo(cx, cy, x, y);
 						} else {		
 							let morphCX, morphCY;
-							
+							let mX = e.lastMorphX, mY = e.lastMorphY;
+
 							if (!(morphRecord.flags & ShapeRecordFlags.IsStraight)) {
 								morphCX = e.lastMorphX + morphRecord.controlDeltaX | 0;
 								morphCY = e.lastMorphY + morphRecord.controlDeltaY | 0;
 								
-								e.lastMorphX = morphCX + morphRecord.anchorDeltaX | 0;
-								e.lastMorphY = morphCY + morphRecord.anchorDeltaY | 0;
+								mX = morphCX + morphRecord.anchorDeltaX | 0;
+								mY = morphCY + morphRecord.anchorDeltaY | 0;
 							} else {
 								deltaX = morphRecord.deltaX | 0;
 								deltaY = morphRecord.deltaY | 0;
-								
-								morphCX = morphX + (deltaX >> 1);
-								morphCY = morphY + (deltaY >> 1);
-								
-								e.lastMorphX += deltaX;
-								e.lastMorphY += deltaY;
+
+								morphCX = mX + (deltaX >> 1);
+								morphCY = mY + (deltaY >> 1);
+
+								mX += deltaX;
+								mY += deltaY;
 							}
 
-							s.morphCurveTo(cx, cy, x, y, morphCX, morphCY, e.lastMorphX, e.lastMorphY);
+							e.lastMorphX = mX;
+							e.lastMorphY = mY;
+
+							s.morphCurveTo(cx, cy, x, y, morphCX, morphCY, mX, mY);
 						}
 					}
-/*
-					if (segment1 && !isMorph) {
-						segment1.curveTo(cx, cy, x, y);
-						//console.log("segment1.curveTo",cx/20, cy/20, x/20, y/20);
-					} else if(segment1) {
-						if (!(morphRecord.flags & ShapeRecordFlags.IsStraight)) {
-							var morphCX = morphX + morphRecord.controlDeltaX | 0;
-							var morphCY = morphY + morphRecord.controlDeltaY | 0;
-							morphX = morphCX + morphRecord.anchorDeltaX | 0;
-							morphY = morphCY + morphRecord.anchorDeltaY | 0;
-						} else {
-							deltaX = morphRecord.deltaX | 0;
-							deltaY = morphRecord.deltaY | 0;
-							var morphCX = morphX + (deltaX >> 1);
-							var morphCY = morphY + (deltaY >> 1);
-							morphX += deltaX;
-							morphY += deltaY;
-						}
-						segment1.morphCurveTo(cx, cy, x, y, morphCX, morphCY, morphX, morphY);
-					}
-					if (segment2 && !isMorph) {
-						segment2.curveTo(cx, cy, x, y);
-						//console.log("segment1.curveTo",cx/20, cy/20, x/20, y/20);
-					} else if(segment2) {
-						if (!(morphRecord.flags & ShapeRecordFlags.IsStraight)) {
-							var morphCX = morphX + morphRecord.controlDeltaX | 0;
-							var morphCY = morphY + morphRecord.controlDeltaY | 0;
-							morphX = morphCX + morphRecord.anchorDeltaX | 0;
-							morphY = morphCY + morphRecord.anchorDeltaY | 0;
-						} else {
-							deltaX = morphRecord.deltaX | 0;
-							deltaY = morphRecord.deltaY | 0;
-							var morphCX = morphX + (deltaX >> 1);
-							var morphCY = morphY + (deltaY >> 1);
-							morphX += deltaX;
-							morphY += deltaY;
-						}
-						segment2.morphCurveTo(cx, cy, x, y, morphCX, morphCY, morphX, morphY);
-					}
-					if (segmentL && !isMorph) {
-						segmentL.curveTo(cx, cy, x, y);
-						//console.log("segment1.curveTo",cx/20, cy/20, x/20, y/20);
-					} else if(segmentL) {
-						if (!(morphRecord.flags & ShapeRecordFlags.IsStraight)) {
-							var morphCX = morphX + morphRecord.controlDeltaX | 0;
-							var morphCY = morphY + morphRecord.controlDeltaY | 0;
-							morphX = morphCX + morphRecord.anchorDeltaX | 0;
-							morphY = morphCY + morphRecord.anchorDeltaY | 0;
-						} else {
-							deltaX = morphRecord.deltaX | 0;
-							deltaY = morphRecord.deltaY | 0;
-							var morphCX = morphX + (deltaX >> 1);
-							var morphCY = morphY + (deltaY >> 1);
-							morphX += deltaX;
-							morphY += deltaY;
-						}
-						segmentL.morphCurveTo(cx, cy, x, y, morphCX, morphCY, morphX, morphY);
-					}
-*/
 				}
 			}
 		}
