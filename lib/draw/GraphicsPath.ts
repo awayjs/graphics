@@ -57,6 +57,13 @@ export class GraphicsPath implements IGraphicsData {
 	private _cur_point: Point;
 	private _style: IGraphicsData;
 
+	private _lastDirtyID = 0;
+	private _dirtyID = -1;
+
+	get dirty() {
+		return this._lastDirtyID !== this._dirtyID;
+	}
+
 	constructor(
 		commands: Array<number> = null,
 		data: Array<number> = null,
@@ -90,8 +97,10 @@ export class GraphicsPath implements IGraphicsData {
 	public get style(): IGraphicsData {
 		return this._style;
 	}
+
 	public set style(value: IGraphicsData) {
 		this._style = value;
+		this._dirtyID ++;
 	}
 
 	public get fill(): IGraphicsData {
@@ -99,6 +108,7 @@ export class GraphicsPath implements IGraphicsData {
 		if (this._style.data_type == GraphicsFillStyle.data_type) return this._style;
 		return null;
 	}
+
 	public get stroke(): GraphicsStrokeStyle {
 		if (this._style == null) return null;
 		if (this._style.data_type == GraphicsStrokeStyle.data_type) return <GraphicsStrokeStyle>this._style;
@@ -189,6 +199,8 @@ export class GraphicsPath implements IGraphicsData {
 		this._data[this._data.length - 1].push(anchorY);
 		this._cur_point.x = anchorX;
 		this._cur_point.y = anchorY;
+
+		this._dirtyID ++;
 	}
 
 	public cubicCurveTo(
@@ -217,7 +229,10 @@ export class GraphicsPath implements IGraphicsData {
 		this._data[this._data.length - 1].push(anchorY);
 		this._cur_point.x = anchorX;
 		this._cur_point.y = anchorY;
+
+		this._dirtyID ++;
 	}
+
 	public lineTo(x: number, y: number) {
 		
 		/*
@@ -240,6 +255,8 @@ export class GraphicsPath implements IGraphicsData {
 
 		this._cur_point.x = x;
 		this._cur_point.y = y;
+
+		this._dirtyID ++;
 	}
 
 	public moveTo(x: number, y: number) {
@@ -256,6 +273,8 @@ export class GraphicsPath implements IGraphicsData {
 		this._startPoint.y = y;
 		this._cur_point.x = x;
 		this._cur_point.y = y;
+
+		this._dirtyID ++;
 	}
 
 	public wideLineTo(x: number, y: number) {}
@@ -363,6 +382,14 @@ export class GraphicsPath implements IGraphicsData {
 	public forceClose: boolean = false;
 
 	public prepare(): void {
+
+		// was not mutated internaly
+		if(this._dirtyID === this._lastDirtyID) {
+			return;
+		}
+
+		this._lastDirtyID = this._dirtyID;
+
 		var closed: boolean;
 		var commands: number[];
 		var isValidCommand: number[][] = [];
@@ -494,6 +521,7 @@ export class GraphicsPath implements IGraphicsData {
 
 	public invalidate() {
 		this._orientedBoxBoundsDirty = true;
+		this._dirtyID ++;
 	}
 
 	public getBoxBounds(matrix3D: Matrix3D = null, cache: Box = null, target: Box = null): Box {
