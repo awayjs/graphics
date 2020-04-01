@@ -1,5 +1,5 @@
 
-console.debug("AwayJS - Graphics - 0.5.3");
+console.debug("AwayJS - Graphics - 0.5.4");
 export {AnimationElements}				from "./lib/animators/data/AnimationElements";
 export {ColorSegmentPoint}				from "./lib/animators/data/ColorSegmentPoint";
 export {JointPose}						from "./lib/animators/data/JointPose";
