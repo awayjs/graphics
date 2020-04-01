@@ -1636,8 +1636,6 @@ export class Graphics extends AssetBase
 		interface IPathElement {
 			segment?: PathSegment | undefined,
 			path: SegmentedPath | undefined,
-			lastMorphX: number,
-			lastMorphY: number,
 		}
 
 		const psPool: Array<IPathElement | undefined> = [];
@@ -1655,6 +1653,9 @@ export class Graphics extends AssetBase
 		var numRecords = records.length;
 		var x: number = 0;
 		var y: number = 0;
+
+		var mX: number = 0;
+		var mY: number = 0;
 
 		//console.log("numRecords", numRecords);
 		for (let i = 0, j = 0; i < numRecords; i++) {
@@ -1710,7 +1711,6 @@ export class Graphics extends AssetBase
 				if (styles.fill0) {
 					psPool[0] = {
 						path: fillPaths[styles.fill0 - 1],
-						lastMorphX:0, lastMorphY: 0,
 					}
 					//path1 = fillPaths[styles.fill0 - 1];
 				}
@@ -1718,7 +1718,6 @@ export class Graphics extends AssetBase
 				if (styles.fill1) {
 					psPool[1] = {
 						path: fillPaths[styles.fill1 - 1],
-						lastMorphX:0, lastMorphY: 0,
 					}
 					//path2 = fillPaths[styles.fill1 - 1];
 				}
@@ -1726,14 +1725,13 @@ export class Graphics extends AssetBase
 				if (styles.line) {
 					psPool[2] = {
 						path: linePaths[styles.line - 1],
-						lastMorphX:0, lastMorphY: 0,
 					}
 					//pathL = linePaths[styles.line - 1];
 				}
 				
 				if (record.flags & ShapeRecordFlags.Move) {
 					x = record.moveX | 0;
-					y = record.moveY | 0;				
+					y = record.moveY | 0;
 					// When morphed, StyleChangeRecords/MoveTo might not have a
 					// corresponding record in the start or end shape --
 					// processing morphRecord below before converting type 1 records.
@@ -1744,6 +1742,19 @@ export class Graphics extends AssetBase
 					psPool[0] = psPool[1] = undefined;
 				}
 				
+				if(isMorph) {
+					
+					if(morphRecord.type === 0 ){
+						mX = morphRecord.moveX | 0;
+						mY = morphRecord.moveY | 0;
+					} else {
+						//mX = x;
+						//mY = y;
+ 
+						j --;
+					}
+				}
+
 				for(let i = 0; i < 3; i ++) {
 					const entry = psPool[i];
 
@@ -1758,45 +1769,13 @@ export class Graphics extends AssetBase
 						entry.segment.moveTo(x, y);
 						//console.log("segment1.moveTo" ,x/20, y/20);
 					} else {
-						if (morphRecord.type === 0) {
-							entry.lastMorphX = morphRecord.moveX | 0;
-							entry.lastMorphY = morphRecord.moveY | 0;
-						} else {
-							entry.lastMorphX = x | 0;
-							entry.lastMorphY = y | 0;
-
-							// Not all moveTos are reflected in morph data.
-							// In that case, decrease morph data index.
-							j--;
-						}
-						entry.segment.morphMoveTo(x, y, entry.lastMorphX, entry.lastMorphY);
+						entry.segment.morphMoveTo( x, y, mX, mY);
 					}
-
 				}
 			}
 			// type 1 is a StraightEdge or CurvedEdge record
 			else {
-				//console.log("record.type !== 0");
 				assert(record.type === 1);
-				
-				if (!psPool[0]) {
-					//console.log("no segment1")
-					/*if (!defaultPath) {
-						var style = {color: {red: 0, green: 0, blue: 0, alpha: 0}, width: 20};
-						defaultPath = new SegmentedPath(null, processStyle(style, true, isMorph, dependencies), parser);
-					}
-					segment1 = PathSegment.FromDefaults(isMorph);
-					defaultPath.addSegment(segment1);
-					if (!isMorph) {
-						segment1.moveTo(x, y);
-						//console.log("segment1.moveTo" ,x/20, y/20);
-					} else {
-						segment1.morphMoveTo(x, y, morphX, morphY);
-					}*/
-				}
-				if (!psPool[1]) {
-					//console.log("no segment2")
-				}
 
 				if (isMorph) {
 					// An invalid SWF might contain a move in the EndEdges list where the
@@ -1818,6 +1797,10 @@ export class Graphics extends AssetBase
 					x += record.deltaX | 0;
 					y += record.deltaY | 0;
 
+					if(isMorph) {
+						mX += morphRecord.deltaX | 0;
+						mY += morphRecord.deltaY | 0;
+					}
 
 					for(let i = 0; i < 3; i++) {
 						const entry = psPool[i];
@@ -1830,30 +1813,23 @@ export class Graphics extends AssetBase
 							entry.segment.lineTo(x,y);
 						} else {
 							
-							entry.lastMorphX += morphRecord.deltaX | 0;
-							entry.lastMorphY += morphRecord.deltaY | 0;
-							
-							entry.segment.morphLineTo(x, y, entry.lastMorphX, entry.lastMorphY);
+							entry.segment.morphLineTo(x, y, mX, mY);
 						}
 					}
 				} else {
-					let cx, cy;
-					let deltaX, deltaY;
+					let data = this.transformCurve(record, x, y);
 
-					if (!(record.flags & ShapeRecordFlags.IsStraight)) {
-						cx = x + record.controlDeltaX | 0;
-						cy = y + record.controlDeltaY | 0;
-						x = cx + record.anchorDeltaX | 0;
-						y = cy + record.anchorDeltaY | 0;
-					} else {
-						deltaX = record.deltaX | 0;
-						deltaY = record.deltaY | 0;
-						cx = x + (deltaX >> 1);
-						cy = y + (deltaY >> 1);
-						x += deltaX;
-						y += deltaY;
+					x = data.x;
+					y = data.y;
+
+					let mData;
+					if(isMorph) {
+						mData = this.transformCurve(morphRecord, mX, mY);
+
+						mX = mData.x;
+						mY = mData.y;
 					}
-					
+
 					for(let i = 0; i < 3; i++) {
 						const e = psPool[i];
 
@@ -1864,32 +1840,9 @@ export class Graphics extends AssetBase
 						const s = e.segment;
 
 						if(!isMorph) {
-							s.curveTo(cx, cy, x, y);
+							s.curveTo(data.cx, data.cy, x, y);
 						} else {		
-							let morphCX, morphCY;
-							let mX = e.lastMorphX, mY = e.lastMorphY;
-
-							if (!(morphRecord.flags & ShapeRecordFlags.IsStraight)) {
-								morphCX = e.lastMorphX + morphRecord.controlDeltaX | 0;
-								morphCY = e.lastMorphY + morphRecord.controlDeltaY | 0;
-								
-								mX = morphCX + morphRecord.anchorDeltaX | 0;
-								mY = morphCY + morphRecord.anchorDeltaY | 0;
-							} else {
-								deltaX = morphRecord.deltaX | 0;
-								deltaY = morphRecord.deltaY | 0;
-
-								morphCX = mX + (deltaX >> 1);
-								morphCY = mY + (deltaY >> 1);
-
-								mX += deltaX;
-								mY += deltaY;
-							}
-
-							e.lastMorphX = mX;
-							e.lastMorphY = mY;
-
-							s.morphCurveTo(cx, cy, x, y, morphCX, morphCY, mX, mY);
+							s.morphCurveTo(data.cx, data.cy, x, y, mData.cx, mData.cy, mX, mY);
 						}
 					}
 				}
@@ -1950,6 +1903,26 @@ export class Graphics extends AssetBase
 		}
 	}
 
+
+	private transformCurve(record: ShapeRecord, x: number, y: number) {
+		let cx, cy;
+		if (!(record.flags & ShapeRecordFlags.IsStraight)) {
+			cx = x + record.controlDeltaX | 0;
+			cy = y + record.controlDeltaY | 0;
+			x = cx + record.anchorDeltaX | 0;
+			y = cy + record.anchorDeltaY | 0;
+		}
+		else {
+			let deltaX = record.deltaX | 0;
+			let deltaY = record.deltaY | 0;
+			cx = x + (deltaX >> 1);
+			cy = y + (deltaY >> 1);
+			x += deltaX;
+			y += deltaY;
+		}
+
+		return { cx, cy, x, y };
+	}
 }
 
 
