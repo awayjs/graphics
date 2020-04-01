@@ -1855,19 +1855,6 @@ export class Graphics extends AssetBase
 
 		allPaths = (allPaths || []).concat(fillPaths || [], linePaths || [], defaultPath ||[]);
 
-		/*
-		if (allPaths) {
-			this.push.apply(allPaths, fillPaths);
-		} else {
-			allPaths = fillPaths;
-		}
-
-		this.push.apply(allPaths, linePaths);
-
-		if (defaultPath) {
-			allPaths.push(defaultPath);
-		}*/
-		
 		let shapeAJS;
 		let morphShapeAJS;
 
