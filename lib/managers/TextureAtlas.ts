@@ -84,7 +84,7 @@ export class TextureAtlas
 	}
 	
 	constructor(){
-		this.bitmap = new BitmapImage2D(256, 256, false, 0xff0000);
+		this.bitmap = new BitmapImage2D(256, 256, true, 0xff0000);
 		this.availableRows=256;
 		this.availableColors=0;
 	}
