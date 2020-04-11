@@ -584,14 +584,25 @@ export class ABCBlock {
 	data: Uint8Array;
 }
 
+export class EncryptedBlock {
+	constructor(
+		public data: Uint8Array,
+		public size: ui32,
+		public bytePos: ui32,
+		public rawTagId: ui8 = 0
+	){}
+}
+
 export class ActionBlock {
 	actionsData: Uint8Array;
 	precedence: number;
+	encryptedData?: EncryptedBlock;
 }
 
 export class InitActionBlock {
 	spriteId: number;
 	actionsData: Uint8Array;
+	encryptedData?: EncryptedBlock;
 }
 
 export class SymbolExport {

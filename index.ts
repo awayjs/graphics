@@ -91,6 +91,7 @@ export {LzmaDecoder}						    from "./lib/data/lzma";
 export {assert, ensureTypedArrayCapacity, clamp, Bounds,
 	IDataDecoder,
 	ABCBlock,
+	EncryptedBlock,
 	ActionBlock,
 	InitActionBlock,
 	SymbolExport,
