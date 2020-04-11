@@ -15,6 +15,7 @@ import {LineScaleMode} from "../draw/LineScaleMode";
 import {Graphics} from "../Graphics";
 import { ElementsBase } from '../elements/ElementsBase';
 import { LineElements } from '../elements/LineElements';
+import { MaterialManager } from '../managers/MaterialManager';
 
 /**
  * The Graphics class contains a set of methods that you can use to create a
@@ -37,9 +38,10 @@ export class GraphicsFactoryStrokes
 		var len=targetGraphics.queued_stroke_pathes.length;
 		var i=0;
 		for(i=0; i<len; i++){
+			
 			var strokePath:GraphicsPath=targetGraphics.queued_stroke_pathes[i];
 			var strokeStyle:GraphicsStrokeStyle=(<GraphicsStrokeStyle>strokePath.style);
-			var obj:any = Graphics.get_material_for_color(strokeStyle.color, strokeStyle.alpha);
+			var obj:any = MaterialManager.get_material_for_color(strokeStyle.color, strokeStyle.alpha);
 			var material:IMaterial=obj.material;
 
 			var final_vert_list:number[]=[];

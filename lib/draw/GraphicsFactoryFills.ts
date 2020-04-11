@@ -26,6 +26,7 @@ import { GraphicsPathCommand } from "./GraphicsPathCommand";
 import { Graphics } from "../Graphics";
 
 import Tess2 from "tess2";
+import { MaterialManager } from '../managers/MaterialManager';
 
 /**
  * The Graphics class contains a set of methods that you can use to create a
@@ -61,7 +62,7 @@ export class GraphicsFactoryFills {
 				var style: Style;
 				var material: IMaterial;
 				if (targetGraphics.queued_fill_pathes[cp].style.data_type == GraphicsFillStyle.data_type) {
-					var obj = Graphics.get_material_for_color(
+					var obj = MaterialManager.get_material_for_color(
 						(<GraphicsFillStyle>targetGraphics.queued_fill_pathes[cp].style).color,
 						(<GraphicsFillStyle>targetGraphics.queued_fill_pathes[cp].style).alpha,
 					);
@@ -79,7 +80,7 @@ export class GraphicsFactoryFills {
 					var gradientStyle: GradientFillStyle = <GradientFillStyle>(
 						targetGraphics.queued_fill_pathes[cp].style
 					);
-					var obj = Graphics.get_material_for_gradient(gradientStyle);
+					var obj = MaterialManager.get_material_for_gradient(gradientStyle);
 					material = obj.material;
 
 					var shape: Shape = <Shape>targetGraphics.addShape(Shape.getShape(elements, material));

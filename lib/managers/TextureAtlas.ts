@@ -3,12 +3,19 @@ import {Point, ColorUtils, Rectangle} from "@awayjs/core";
 import {BitmapImage2D} from "@awayjs/stage";
 
 import {GradientFillStyle} from "../draw/GradientFillStyle";
+import { IMaterial } from '@awayjs/renderer';
 
+export interface ITextureAtlasEntry{
+	material?:IMaterial;
+	bitmap?:BitmapImage2D;
+	colorPos?:Point;
+	uvRectangle?:Rectangle;
+}
 export class TextureAtlas
 {
 	private static _allTextureAtlas:TextureAtlas[]=[];
-	private static _allGradients:any={};
-	private static _allColors:any={};
+	private static _allGradients:StringMap<ITextureAtlasEntry> ={};
+	private static _allColors:StringMap<ITextureAtlasEntry> ={};
 
 	public static clearAllMaterials()
 	{
@@ -20,7 +27,7 @@ export class TextureAtlas
 		}
 	}
 
-	public static getTextureForColor(color:number, alpha):any
+	public static getTextureForColor(color:number, alpha):ITextureAtlasEntry
 	{
 		var colorString:string=color.toString()+"#"+alpha.toString()
 		if(TextureAtlas._allColors.hasOwnProperty(colorString)){
@@ -41,10 +48,12 @@ export class TextureAtlas
 			textureAtlas=new TextureAtlas();
 			TextureAtlas._allTextureAtlas.push(textureAtlas);
 		}
-		var newColorObj:any={};
-		newColorObj.colorPos=textureAtlas.draw_color(color, alpha);
-		newColorObj.bitmap=textureAtlas.bitmap;
-
+		var newColorObj:ITextureAtlasEntry={
+			colorPos:textureAtlas.draw_color(color, alpha),
+			bitmap:textureAtlas.bitmap,
+			material:null,
+			uvRectangle:null
+		};
 		TextureAtlas._allColors[colorString]=newColorObj;
 		return newColorObj;
 	}
@@ -69,15 +78,17 @@ export class TextureAtlas
 			textureAtlas=new TextureAtlas();
 			TextureAtlas._allTextureAtlas.push(textureAtlas);
 		}
-		var newColorObj:any={};
 
 		textureAtlas.draw_gradient(gradient);
-		newColorObj.uvRectangle=new Rectangle();
+
+		var newColorObj:ITextureAtlasEntry={
+			colorPos:null,
+			bitmap:textureAtlas.bitmap,
+			material:null,
+			uvRectangle:new Rectangle()
+		};
 		
 		newColorObj.uvRectangle.copyFrom(gradient.uvRectangle);
-
-		newColorObj.bitmap=textureAtlas.bitmap;
-
 		TextureAtlas._allGradients[gradientStr]=newColorObj;
 		return newColorObj;
 

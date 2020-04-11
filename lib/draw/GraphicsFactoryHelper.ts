@@ -14,6 +14,7 @@ import {GraphicsStrokeStyle} from "../draw/GraphicsStrokeStyle";
 import {LineScaleMode} from "../draw/LineScaleMode";
 import {Graphics} from "../Graphics";
 import {CapsStyle} from "../draw/CapsStyle";
+import { MaterialManager } from '../managers/MaterialManager';
 
 export class GraphicsFactoryHelper
 {
@@ -54,7 +55,7 @@ export class GraphicsFactoryHelper
 			final_vert_list[outCnt++]=x+w;
 			final_vert_list[outCnt++]=y+h;
 		}
-		var obj:any = Graphics.get_material_for_color(color, alpha);
+		var obj:any = MaterialManager.get_material_for_color(color, alpha);
 		var material:IMaterial=obj.material;
 		var attributesView:AttributesView = new AttributesView(Float32Array, material.curves?3:2);
 		attributesView.set(final_vert_list);

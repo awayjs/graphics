@@ -136,6 +136,7 @@ export {TriangleElements, _Render_TriangleElements, _Stage_TriangleElements} fro
 
 export {AnimationSetError} from "./lib/errors/AnimationSetError";
 
+export {MaterialManager} from "./lib/managers/MaterialManager";
 export {TextureAtlas} from "./lib/managers/TextureAtlas";
 
 export {Shape, _Render_Shape} from "./lib/renderables/Shape";

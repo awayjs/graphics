@@ -32,6 +32,7 @@ import { ShapeMatrix } from './data/ShapeData';
 import { PathSegment } from './data/PathSegment';
 import { assert } from './data/utilities';
 
+
 /**
  *
  * Graphics is a collection of Shapes, each of which contain the actual geometrical data such as vertices,
@@ -47,13 +48,6 @@ import { assert } from './data/utilities';
 export class Graphics extends AssetBase
 {
 	private static _pool:Array<Graphics> = new Array<Graphics>();
-
-	public static get_material_for_color:Function=function(color:number, alpha:number):any{
-		return {material:MaterialUtils.getDefaultColorMaterial()};
-	};
-	public static get_material_for_gradient:Function=function(gradient:GradientFillStyle):any{
-		return {material:MaterialUtils.getDefaultTextureMaterial()};
-	};
 
 	public static getGraphics():Graphics
 	{
