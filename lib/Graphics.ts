@@ -91,8 +91,35 @@ export class Graphics extends AssetBase
 
 	public usages:number = 0;
 
-	public start:GraphicsPath[];
-	public end:GraphicsPath[];
+	public _start:GraphicsPath[];
+	public _end:GraphicsPath[];
+
+	// graphics, from it was copied
+	public sourceGraphics: Graphics;
+
+	get start(): GraphicsPath[] {
+		if(!this._start && this.sourceGraphics) {
+			return this.sourceGraphics.start;
+		}
+
+		return this._start;
+	}
+	
+	get end(): GraphicsPath[] {
+		if(!this._end && this.sourceGraphics) {
+			return this.sourceGraphics.end;
+		}
+
+		return this._end;
+	}
+
+	set start(v: GraphicsPath[]) {
+		this._start = v;
+	}
+
+	set end(v: GraphicsPath[]) {
+		this._end = v;
+	}
 
 	// public getSpriteScale(view:View = null):Vector3D
 	// {
@@ -294,6 +321,8 @@ export class Graphics extends AssetBase
 			graphics.minSlice9Height = this.minSlice9Height;
 
 		}
+
+		graphics.sourceGraphics = this;
 
 		graphics._addShapes(this._shapes, cloneShapes);
 	}
