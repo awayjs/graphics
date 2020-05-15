@@ -158,7 +158,10 @@ export class SegmentedPath {
 					shape.style=new BitmapFillStyle(style.material, awayMatrix, style.repeat, style.smooth);
 					//shape.beginBitmap(command, style.bitmapIndex, style.transform, style.repeat, style.smooth);
 					if (morph) {
-						console.log("writeMorphBitmap not handled yet");
+						//console.log("writeMorphBitmap not handled yet");
+						var awayMatrix:Matrix=new Matrix(morph.transform.a, morph.transform.b, morph.transform.c, morph.transform.d, morph.transform.tx, morph.transform.ty);
+						morphShape.style=new BitmapFillStyle(style.material, awayMatrix, style.repeat, style.smooth);
+
 						//writeMorphBitmap(morph, shape);
 					}
 

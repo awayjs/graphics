@@ -15,12 +15,14 @@ export class BitmapFillStyle implements IGraphicsData
 	public imgHeight:number;
 	public matrix:Matrix;
 	public repeat:boolean;
+	public smooth:boolean;
 
     constructor(material:IMaterial, matrix:Matrix, repeat:boolean,  smooth:boolean)
     {
         this.material=material;
 		this.matrix=matrix;
 		this.repeat=repeat;
+		this.smooth = smooth;
     }
 
     public get data_type():string
