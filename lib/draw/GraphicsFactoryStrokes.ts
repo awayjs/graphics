@@ -67,6 +67,7 @@ export class GraphicsFactoryStrokes
 				var sampler:ImageSampler = new ImageSampler();
 				material.animateUVs=true;
 				shape.style.addSamplerAt(sampler, material.getTextureAt(0));
+				material.style.sampler=sampler;
 
 				shape.style.uvMatrix = new Matrix(0, 0, 0, 0, obj.colorPos.x, obj.colorPos.y);
 			}

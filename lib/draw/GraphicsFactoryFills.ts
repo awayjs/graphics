@@ -110,6 +110,7 @@ export class GraphicsFactoryFills {
 					sampler.smooth = true;
 					sampler.repeat = bitmapStyle.repeat;
 					shape.style.addSamplerAt(sampler, material.getTextureAt(0));
+					material.style.sampler=sampler;
 					material.animateUVs = true;
 					shape.style.uvMatrix = bitmapStyle.getUVMatrix();
 				}
