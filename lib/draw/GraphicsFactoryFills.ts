@@ -106,7 +106,6 @@ export class GraphicsFactoryFills {
 
 					shape.style = new Style();
 					sampler = new ImageSampler();
-					sampler.mipmap = true;
 					//sampler.smooth = true;
 					sampler.repeat = bitmapStyle.repeat;
 					shape.style.addSamplerAt(sampler, material.getTextureAt(0));
