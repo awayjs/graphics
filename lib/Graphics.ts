@@ -31,6 +31,7 @@ import { FillType } from './data/FillType';
 import { ShapeMatrix } from './data/ShapeData';
 import { PathSegment } from './data/PathSegment';
 import { assert } from './data/utilities';
+import { MaterialManager } from './managers/MaterialManager';
 
 
 /**
@@ -75,7 +76,7 @@ export class Graphics extends AssetBase
 	private _active_fill_path:GraphicsPath;
 	private _active_stroke_path:GraphicsPath;
 	private _lineStyle:GraphicsFillStyle;
-	private _fillStyle:GraphicsFillStyle;
+	private _fillStyle:IGraphicsData;
 
 	private _current_position:Point=new Point();
 
@@ -472,10 +473,8 @@ export class Graphics extends AssetBase
 	 */
 	public beginBitmapFill(bitmap:BitmapImage2D, matrix:Matrix = null, repeat:boolean = true, smooth:boolean = false):void
 	{
-		this.draw_fills();
-        this._drawingDirty=true;
-        
-        this._fillStyle=new GraphicsFillStyle(0xffffff, 1);
+		this.draw_fills();		
+        this._fillStyle=new BitmapFillStyle(MaterialManager.get_material_for_BitmapImage2D(bitmap), matrix, repeat, smooth);
 	}
 
 	/**
@@ -587,8 +586,6 @@ export class Graphics extends AssetBase
 	public beginGradientFill(type:GradientType, colors:number[], alphas:number[], ratios:number[], matrix:Matrix = null, spreadMethod:string = "pad", interpolationMethod:string = "rgb", focalPointRatio:number = 0):void
 	{
 		this.draw_fills();
-		// start a new fill path
-		this._drawingDirty=true;
         this._fillStyle=new GradientFillStyle(type, colors, alphas, ratios, matrix, spreadMethod, interpolationMethod, focalPointRatio);
 	}
 
@@ -1996,6 +1993,12 @@ function processStyle(style, isLineStyle: boolean, isMorph: boolean, parser:any)
 			}*/
 			shapeStyle.material = parser.getMaterial(style.bitmapId);
 			scale = 0.05;
+			if (style.matrix) {
+				style.matrix.a= (style.matrix.a/20);
+				style.matrix.b= (style.matrix.b/20);
+				style.matrix.c= (style.matrix.c/20);
+				style.matrix.d= (style.matrix.d/20);
+			}
 			break;
 		default:
 			console.log('shape parser encountered invalid fill style ' + style.type);
@@ -2007,16 +2010,10 @@ function processStyle(style, isLineStyle: boolean, isMorph: boolean, parser:any)
 	var matrix = style.matrix;
 	shapeStyle.transform = {
 
-		/*a: (matrix.a * scale),
-		b: (matrix.b * scale),
-		c: (matrix.c * scale),
-		d: (matrix.d * scale),
-		tx: matrix.tx/20,
-		ty: matrix.ty/20*/
-		a: (matrix.a ),
-		b: (matrix.b ),
-		c: (matrix.c ),
-		d: (matrix.d ),
+		a: matrix.a,
+		b: matrix.b,
+		c: matrix.c,
+		d: matrix.d,
 		tx: matrix.tx/20,
 		ty: matrix.ty/20
 	};

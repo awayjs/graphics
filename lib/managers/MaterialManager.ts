@@ -1,6 +1,7 @@
 import { GradientFillStyle } from '../draw/GradientFillStyle';
 import { TextureAtlas, ITextureAtlasEntry } from './TextureAtlas';
 import { IMaterial } from '@awayjs/renderer';
+import { BitmapImage2D } from '@awayjs/stage';
 
 
 export class MaterialManager{
@@ -10,6 +11,7 @@ export class MaterialManager{
 	private static _useTextureAtlasForColors: boolean = true;
 
 	public static materialClass:any;
+	public static textureClass:any;
 
 	public static get_material_for_color=function(color:number, alpha:number=1):ITextureAtlasEntry{
 		if(color==0){
@@ -73,5 +75,13 @@ export class MaterialManager{
 		texObj.material=newmat;
 		return texObj;
 	};
+	public static get_material_for_BitmapImage2D=function(bitmap:BitmapImage2D):IMaterial{
+		var newmat=new MaterialManager.materialClass(bitmap);
+		newmat.ambientMethod.texture = new MaterialManager.textureClass(bitmap);		
+		newmat.alphaBlending = true;
+		newmat.useColorTransform = true;
+		newmat.bothSides = true;
+		return newmat;
+	}
 
 }
