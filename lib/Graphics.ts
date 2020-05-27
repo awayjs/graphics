@@ -67,6 +67,8 @@ export class Graphics extends AssetBase
 
 	private _onInvalidateDelegate:(event:AssetEvent) => void;
 
+	private _bitmapFillPool: NumberMap<BitmapFillStyle> = {};
+
 	private _queuedShapeTags:ShapeTag[] = [];
 	private _shapes:Array<Shape> = [];
 	private _style:Style;
@@ -471,10 +473,21 @@ export class Graphics extends AssetBase
 	 *               using a bilinear algorithm. Rendering by using the nearest
 	 *               neighbor algorithm is faster.
 	 */
+
 	public beginBitmapFill(bitmap:BitmapImage2D, matrix:Matrix = null, repeat:boolean = true, smooth:boolean = false):void
 	{
-		this.draw_fills();		
-        this._fillStyle=new BitmapFillStyle(MaterialManager.get_material_for_BitmapImage2D(bitmap), matrix, repeat, smooth);
+		this.draw_fills();
+		let fill = this._bitmapFillPool[bitmap.id];
+
+		if(!fill) {
+			fill = this._bitmapFillPool[bitmap.id] = new BitmapFillStyle(MaterialManager.get_material_for_BitmapImage2D(bitmap), matrix, repeat, smooth)
+		} else {
+			fill.matrix = matrix;
+			fill.repeat = repeat;
+			fill.smooth = smooth;
+		}
+	
+        this._fillStyle = fill;
 	}
 
 	/**
