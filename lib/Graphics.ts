@@ -379,6 +379,16 @@ export class Graphics extends AssetBase
 	{	
 		this.clear();
 
+		if(this._bitmapFillPool) {
+			for(let k in this._bitmapFillPool) {
+				this._bitmapFillPool[k].material.dispose();
+			}
+
+			this._bitmapFillPool = null
+		}
+
+		this._bitmapFillPool = null;
+
 		Graphics._pool.push(this);
 	}
 
@@ -477,6 +487,10 @@ export class Graphics extends AssetBase
 	public beginBitmapFill(bitmap:BitmapImage2D, matrix:Matrix = null, repeat:boolean = true, smooth:boolean = false):void
 	{
 		this.draw_fills();
+
+		if(!this._bitmapFillPool) {
+			this._bitmapFillPool = {};
+		}
 		let fill = this._bitmapFillPool[bitmap.id];
 
 		if(!fill) {
