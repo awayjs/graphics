@@ -2003,7 +2003,7 @@ function processStyle(style, isLineStyle: boolean, isMorph: boolean, parser:any)
 					ratios.push(record.ratio);
 				}
 			}
-			scale = 819.2;
+			scale = 1;
 			break;
 		case FillType.RepeatingBitmap:
 		case FillType.ClippedBitmap:
@@ -2019,13 +2019,7 @@ function processStyle(style, isLineStyle: boolean, isMorph: boolean, parser:any)
 				dependencies.push(style.bitmapId);
 			}*/
 			shapeStyle.material = parser.getMaterial(style.bitmapId);
-			scale = 0.05;
-			if (style.matrix) {
-				style.matrix.a= (style.matrix.a/20);
-				style.matrix.b= (style.matrix.b/20);
-				style.matrix.c= (style.matrix.c/20);
-				style.matrix.d= (style.matrix.d/20);
-			}
+			scale = 1/20;
 			break;
 		default:
 			console.log('shape parser encountered invalid fill style ' + style.type);
@@ -2036,11 +2030,10 @@ function processStyle(style, isLineStyle: boolean, isMorph: boolean, parser:any)
 	}
 	var matrix = style.matrix;
 	shapeStyle.transform = {
-
-		a: matrix.a,
-		b: matrix.b,
-		c: matrix.c,
-		d: matrix.d,
+		a: matrix.a * scale,
+		b: matrix.b * scale,
+		c: matrix.c * scale,
+		d: matrix.d * scale,
 		tx: matrix.tx/20,
 		ty: matrix.ty/20
 	};
@@ -2084,13 +2077,13 @@ function processMorphStyle(style, isLineStyle: boolean): ShapeStyle {
 				colors.push(record.colorMorph);
 				ratios.push(record.ratioMorph);
 			}
-			scale = 819.2;
+			scale = 1;
 			break;
 		case FillType.RepeatingBitmap:
 		case FillType.ClippedBitmap:
 		case FillType.NonsmoothedRepeatingBitmap:
 		case FillType.NonsmoothedClippedBitmap:
-			scale = 0.05;
+			scale = 1/20;
 			break;
 		default:
 			console.log('shape parser encountered invalid fill style');
@@ -2101,17 +2094,10 @@ function processMorphStyle(style, isLineStyle: boolean): ShapeStyle {
 	}
 	var matrix = style.matrixMorph;
 	morphStyle.transform = {
-		/*
 		a: (matrix.a * scale),
 		b: (matrix.b * scale),
 		c: (matrix.c * scale),
 		d: (matrix.d * scale),
-		tx: matrix.tx/20,
-		ty: matrix.ty/20*/
-		a: (matrix.a ),
-		b: (matrix.b ),
-		c: (matrix.c ),
-		d: (matrix.d ),
 		tx: matrix.tx/20,
 		ty: matrix.ty/20
 	};
