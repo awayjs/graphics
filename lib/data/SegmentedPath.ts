@@ -222,6 +222,7 @@ export class SegmentedPath {
 					var gradientType:GradientType = style.type === FillType.LinearGradient ?
 						GradientType.LINEAR :
 						GradientType.RADIAL;
+					var alphas:number[]=[];
 					for(var i:number=0; i<style.colors.length; i++) {
 						style.colors[i]=this.rgbaToArgb(style.colors[i]);
 						alphas[i]=1;
