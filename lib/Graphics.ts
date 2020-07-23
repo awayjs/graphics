@@ -366,7 +366,9 @@ export class Graphics extends AssetBase
 		this._active_fill_path=null;
 		this._active_stroke_path=null;
 		this._queued_fill_pathes.length = 0;
-		this._queued_stroke_pathes.length = 0;
+		this._queued_stroke_pathes.length = 0;		
+		this._current_position.x=0;
+		this._current_position.y=0;
         this._drawingDirty=false;
         this._lineStyle=null;
         this._fillStyle=null;
@@ -1239,7 +1241,7 @@ export class Graphics extends AssetBase
 		this._active_fill_path=null;
         this._active_stroke_path=null;
         //this._lineStyle=null;
-        this._fillStyle=null;
+		this._fillStyle=null;
 		//this.invalidate();
 		//this.invalidateElements();
 
