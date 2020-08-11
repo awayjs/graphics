@@ -711,8 +711,14 @@ import {LzmaDecoder} from "./lzma";
     }
 
     writeMultiByte(value: string, charSet: string): void {
-      value = axCoerceString(value); charSet = axCoerceString(charSet);
-      console.log("packageInternal flash.utils.ObjectOutput::writeMultiByte"); return;
+	  value = axCoerceString(value); charSet = axCoerceString(charSet);
+	  if(charSet=="UTF-8"){
+		var bytes = utf8decode(value);
+		this.writeRawBytes(bytes);
+	  }
+	  else{
+		console.log("packageInternal flash.utils.ObjectOutput::writeMultiByte only encoding supported is UTF-8");
+	  }
     }
 
     readMultiByte(length: number /*uint*/, charSet: string): string {
