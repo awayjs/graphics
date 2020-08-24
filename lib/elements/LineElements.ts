@@ -394,8 +394,9 @@ export class _Stage_LineElements extends _Stage_ElementsBase
         this.activateVertexBufferVO(renderElements.secondaryPositionIndex, this._lineElements.positions, 3, 12);
         this.activateVertexBufferVO(renderElements.thicknessIndex, this._lineElements.thickness);
 
-		if (shader.uvIndex >= 0)
+		if (shader.uvIndex >= 0) {
 			this.activateVertexBufferVO(shader.uvIndex, this._lineElements.positions, 2);
+		}
 
 		const {
 			oConst01n1,
@@ -403,8 +404,6 @@ export class _Stage_LineElements extends _Stage_ElementsBase
 		} = renderElements.uOffsets;
 
 		var data:Float32Array = shader.vertexConstantData;
-
-		//console.log(dataOffset, constOneOffset, constNegOneOffset, miscOffset);
 
         data[oConst01n1 + 0] = 0;
         data[oConst01n1 + 1] = 1;
