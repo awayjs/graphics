@@ -115,7 +115,7 @@ export class GraphicsFactoryFills {
 				}
 			}
 		}
-		targetGraphics.queued_fill_pathes.length = 0;
+		//targetGraphics.queued_fill_pathes.length = 0;
 	}
 
 	public static pathToAttributesBuffer(graphicsPath: GraphicsPath, closePath: boolean = true): AttributesBuffer {

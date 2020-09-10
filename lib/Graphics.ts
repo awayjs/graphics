@@ -2,7 +2,7 @@ import {ArgumentError, RangeError, PartialImplementationError, Point, Vector3D, 
 
 import {BitmapImage2D} from "@awayjs/stage";
 
-import { IEntityTraverser } from '@awayjs/view';
+import { IEntityTraverser, PickEntity } from '@awayjs/view';
 
 import {IMaterial, Style, MaterialUtils, RenderableEvent} from "@awayjs/renderer";
 
@@ -90,6 +90,7 @@ export class Graphics extends AssetBase
 	private _scaleX:number = 0;
 	private _scaleY:number = 0;
 
+	private _lastPrebuildedShapes: Shape[] = [];
 	private _drawingDirty:boolean = false;
 
 	public usages:number = 0;
@@ -343,6 +344,8 @@ export class Graphics extends AssetBase
 
 	public clear():void
 	{
+		this._lastPrebuildedShapes.length = 0;
+
 		var shape:Shape;
 		var len:number = this._shapes.length;
 		for (var i:number = 0; i < len; i++) {
@@ -424,8 +427,24 @@ export class Graphics extends AssetBase
 
 	public _acceptTraverser(traverser:IEntityTraverser):void
 	{
-		if(this._drawingDirty)
-			this.endFill();
+		// this is important
+		// not close shape when request bounds
+		// otherwise it will corrupt rendering flow
+		if(this._drawingDirty) {
+			
+			// need to drop shapes that was pre-built but not a closed (_endFillInternal(false))	
+			// because shape was corrupted when a bounds calculation requested between commands
+			for(let s of this._lastPrebuildedShapes) {
+				this.removeShape(s);
+			}
+
+			if(traverser instanceof PickEntity) {
+				// build shape construct shapes but not close graphics
+				this._endFillInternal(false);
+			} else {
+				this.endFill();
+			}
+		}
 		
 		var len:number = this._shapes.length;
 
@@ -439,15 +458,23 @@ export class Graphics extends AssetBase
 		this.invalidate();
 	}
 
-	public draw_fills() {
+	public draw_fills(clear = true) {
         GraphicsFactoryFills.draw_pathes(this);
-        this._active_fill_path=null;
+		if(clear){
+			this._active_fill_path = null;
+			this._queued_fill_pathes.length = 0;
+		}
 	}
-	public draw_strokes(){
+	
+	public draw_strokes(clear = true){
 		GraphicsFactoryStrokes.draw_pathes(this);
-        this._active_stroke_path=null;
-
+		
+		if(clear){
+			this._active_stroke_path = null;
+			this._queued_stroke_pathes.length = 0;
+		}
 	}
+
 	/**
 	 * Fills a drawing area with a bitmap image. The bitmap can be repeated or
 	 * tiled to fill the area. The fill remains in effect until you call the
@@ -1218,6 +1245,23 @@ export class Graphics extends AssetBase
 	 */
 	public endFill():void
 	{
+	
+		//todo: this is a hack for getting stroke pathes closed if a fill_path exists. needs refactor to make this work correctly
+		if(this._active_stroke_path && this._active_fill_path){
+			this._active_stroke_path.forceClose = true;
+		}
+
+		this._endFillInternal(true);
+
+		this._active_fill_path=null;
+        this._active_stroke_path=null;
+        //this._lineStyle=null;
+		this._fillStyle=null;
+		//this.invalidate();
+		//this.invalidateElements();
+	}
+
+	private _endFillInternal(clear = false) {
 		//execute any queued shapetags
 		if (this._queuedShapeTags.length) {
 			var localQueue:ShapeTag[] = this._queuedShapeTags;
@@ -1229,22 +1273,21 @@ export class Graphics extends AssetBase
 			localQueue.length = 0;
 		}
 
-		this._drawingDirty=false;
+		const lastShapes = this._shapes.length;
 
-		//todo: this is a hack for getting stroke pathes closed if a fill_path exists. needs refactor to make this work correctly
-		if(this._active_stroke_path && this._active_fill_path){
-			this._active_stroke_path.forceClose=true;
+		this.draw_fills(clear);
+		this.draw_strokes(clear);
+
+		if(!clear) {
+			for(let i = lastShapes; i < this._shapes.length; i ++) {
+				this._lastPrebuildedShapes[i - lastShapes] = this._shapes[i];
+			}
+			this._lastPrebuildedShapes.length = this._shapes.length - lastShapes;
+		} else {
+			this._lastPrebuildedShapes.length = 0;
 		}
 
-		this.draw_fills();
-		this.draw_strokes();
-		this._active_fill_path=null;
-        this._active_stroke_path=null;
-        //this._lineStyle=null;
-		this._fillStyle=null;
-		//this.invalidate();
-		//this.invalidateElements();
-
+		this._drawingDirty = false;
 	}
 
 	/**

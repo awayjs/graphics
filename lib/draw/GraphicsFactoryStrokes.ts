@@ -72,8 +72,7 @@ export class GraphicsFactoryStrokes
 				shape.style.uvMatrix = new Matrix(0, 0, 0, 0, obj.colorPos.x, obj.colorPos.y);
 			}
 		}
-		targetGraphics.queued_stroke_pathes.length=0;
-
+		//targetGraphics.queued_stroke_pathes.length=0;
 
 	}
 	// public static updateStrokesForShape(shape:Shape, scale:Vector3D, scaleMode:string ){
