@@ -68,73 +68,83 @@ export class GraphicsFactoryFills {
 
 	public static draw_pathes(targetGraphics: Graphics) {
 		//return;
-		var len = targetGraphics.queued_fill_pathes.length;
-		var cp = 0;
-		for (cp = 0; cp < len; cp++) {
-			var newBuffer: AttributesBuffer = GraphicsFactoryFills.pathToAttributesBuffer(
-				targetGraphics.queued_fill_pathes[cp],
-			);
+		const pathes = targetGraphics.queued_fill_pathes;
+		const len = pathes.length;
+
+		for (let cp = 0; cp < len; cp++) 
+		{
+			const path = pathes[cp];
+			const pathStyle = path.style;
+			const newBuffer = this.pathToAttributesBuffer(path);
+	
 			if (newBuffer && newBuffer.length > 0) {
-				var elements: TriangleElements = new TriangleElements(newBuffer);
+				const elements = new TriangleElements(newBuffer);
 				elements.setPositions(new Float2Attributes(newBuffer));
 				//elements.setCustomAttributes("curves", new Float3Attributes(attributesBuffer));
 				//elements.setUVs(new Float2Attributes(attributesBuffer));
 
-				var sampler: ImageSampler;
-				var style: Style;
-				var material: IMaterial;
-				if (targetGraphics.queued_fill_pathes[cp].style.data_type == GraphicsFillStyle.data_type) {
-					var obj = MaterialManager.get_material_for_color(
-						(<GraphicsFillStyle>targetGraphics.queued_fill_pathes[cp].style).color,
-						(<GraphicsFillStyle>targetGraphics.queued_fill_pathes[cp].style).alpha,
-					);
-					material = obj.material;
-					var shape: Shape = <Shape>targetGraphics.addShape(Shape.getShape(elements, material));
-					if (obj.colorPos) {
-						shape.style = new Style();
-						sampler = new ImageSampler();
+				let material: IMaterial;
+				let sampler: ImageSampler = new ImageSampler();
+				let style: Style = new Style();
+			
+				switch(pathStyle.data_type) {	
+					case GraphicsFillStyle.data_type: 
+					{
+						const obj = MaterialManager.get_material_for_color(
+							(<GraphicsFillStyle>pathStyle).color,
+							(<GraphicsFillStyle>pathStyle).alpha
+						);
+
+						material = obj.material;
+
+						if (obj.colorPos) {
+							material.animateUVs = true;
+
+							style.addSamplerAt(sampler, material.getTextureAt(0));
+							style.uvMatrix = new Matrix(0, 0, 0, 0, obj.colorPos.x, obj.colorPos.y);
+						} else {
+							style = sampler = null;
+						}
+						break;
+					}
+					case GradientFillStyle.data_type: 
+					{
+						const gradientStyle = <GradientFillStyle>(pathStyle);
+						const obj = MaterialManager.get_material_for_gradient(gradientStyle);
+
+						material = obj.material;
 						material.animateUVs = true;
-						shape.style.addSamplerAt(sampler, material.getTextureAt(0));
 
-						shape.style.uvMatrix = new Matrix(0, 0, 0, 0, obj.colorPos.x, obj.colorPos.y);
+						style.addSamplerAt(sampler, material.getTextureAt(0));
+						style.uvMatrix = gradientStyle.getUVMatrix();
+
+						if (gradientStyle.type == GradientType.LINEAR) {
+							material.getTextureAt(0).mappingMode = MappingMode.LINEAR;
+						} else if (gradientStyle.type == GradientType.RADIAL) {
+							sampler.imageRect = gradientStyle.uvRectangle;
+							material.imageRect = true;
+							material.getTextureAt(0).mappingMode = MappingMode.RADIAL;
+						}
+						break;
 					}
-				} else if (targetGraphics.queued_fill_pathes[cp].style.data_type == GradientFillStyle.data_type) {
-					var gradientStyle: GradientFillStyle = <GradientFillStyle>(
-						targetGraphics.queued_fill_pathes[cp].style
-					);
-					var obj = MaterialManager.get_material_for_gradient(gradientStyle);
-					material = obj.material;
+					case BitmapFillStyle.data_type: 
+					{
+						const bitmapStyle = <BitmapFillStyle>pathStyle;
+						
+						material = bitmapStyle.material; //new ITexture(ImageUtils.getDefaultImage2D());//bitmapStyle.texture;
+						//sampler.smooth = true;
+						sampler.repeat = bitmapStyle.repeat;
+						material.style.sampler = sampler;
+						material.animateUVs = true;
 
-					var shape: Shape = <Shape>targetGraphics.addShape(Shape.getShape(elements, material));
-
-					shape.style = new Style();
-					sampler = new ImageSampler();
-					shape.style.addSamplerAt(sampler, material.getTextureAt(0));
-					material.animateUVs = true;
-					shape.style.uvMatrix = gradientStyle.getUVMatrix();
-
-					if (gradientStyle.type == GradientType.LINEAR)
-						material.getTextureAt(0).mappingMode = MappingMode.LINEAR;
-					else if (gradientStyle.type == GradientType.RADIAL) {
-						sampler.imageRect = gradientStyle.uvRectangle;
-						material.imageRect = true;
-						material.getTextureAt(0).mappingMode = MappingMode.RADIAL;
+						style.addSamplerAt(sampler, material.getTextureAt(0));
+						style.uvMatrix = bitmapStyle.getUVMatrix();
+						break;
 					}
-				} else if (targetGraphics.queued_fill_pathes[cp].style.data_type == BitmapFillStyle.data_type) {
-					var bitmapStyle: BitmapFillStyle = <BitmapFillStyle>targetGraphics.queued_fill_pathes[cp].style;
-
-					var material = bitmapStyle.material; //new ITexture(ImageUtils.getDefaultImage2D());//bitmapStyle.texture;
-					var shape: Shape = <Shape>targetGraphics.addShape(Shape.getShape(elements, material));
-
-					shape.style = new Style();
-					sampler = new ImageSampler();
-					//sampler.smooth = true;
-					sampler.repeat = bitmapStyle.repeat;
-					shape.style.addSamplerAt(sampler, material.getTextureAt(0));
-					material.style.sampler=sampler;
-					material.animateUVs = true;
-					shape.style.uvMatrix = bitmapStyle.getUVMatrix();
 				}
+
+				const shape = <Shape>targetGraphics.addShape(Shape.getShape(elements, material));
+				shape.style = style;
 			}
 		}
 		//targetGraphics.queued_fill_pathes.length = 0;
