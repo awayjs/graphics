@@ -140,31 +140,20 @@ export class GraphicsFactoryFills {
 		//targetGraphics.queued_fill_pathes.length = 0;
 	}
 
-	public static pathToAttributesBuffer(graphicsPath: GraphicsPath, closePath: boolean = true): AttributesBuffer {
+	private static _prepareContours(graphicsPath: GraphicsPath, applyFix: boolean = false): number[][]
+	{
 		graphicsPath.prepare();
 
-		var contour_data: number[][] = graphicsPath._positions;
-		var i: number = 0;
-		var finalVerts: number[] = [];
-		var final_vert_cnt: number = 0;
-		var finalContours: number[][] = [];
-		var res;
+		const contours: number[][] = graphicsPath._positions;
+		const finalContours: number[][] = [];
 
-		var numElems: number = 0;
-		var p1x: number = 0;
-		var p1y: number = 0;
-		var p2x: number = 0;
-		var p2y: number = 0;
-		var p3x: number = 0;
-		var p3y: number = 0;
-
-		for (let k = 0; k < contour_data.length; k++) {
+		for (let k = 0; k < contours.length; k++) {
 			
-			const contour = contour_data[k];
+			const contour = contours[k];
 
 			// same as map, but without allocation 
 
-			const closed = GraphicsFactoryFills.nearest(
+			const closed = this.nearest(
 					contour[0], contour[1], 
 					contour[contour.length - 2], contour[contour.length - 1]);
 
@@ -178,9 +167,9 @@ export class GraphicsFactoryFills {
 			// we only want to make sure that each contour contains at least 3 pairs of x/y positions
 			// otherwise there is no way they can form a shape
 
-			if (contour.length > 5) {
+			if (contour.length >= 6) {
 
-				if(GraphicsFactoryFills.USE_TESS_FIX) 
+				if(applyFix) 
 				{
 					// tess2 fix
 					// there are problems with small shapes
@@ -189,7 +178,7 @@ export class GraphicsFactoryFills {
 
 					for(let i = 0, l = contour.length; i < l; i ++ ) 
 					{
-						fixed[i] = GraphicsFactoryFills.toFixed(contour[i] * GraphicsFactoryFills.TESS_SCALE);
+						fixed[i] = this.toFixed(contour[i] * this.TESS_SCALE);
 					}
 
 					finalContours.push(fixed);
@@ -199,7 +188,27 @@ export class GraphicsFactoryFills {
 			}
 		}
 
+		return finalContours;
+	}
+
+	public static pathToAttributesBuffer(
+			graphicsPath: GraphicsPath, 
+			closePath: boolean = true, 
+			target: AttributesBuffer = null): AttributesBuffer 
+	{
+		
+		const finalContours = this._prepareContours(graphicsPath, this.USE_TESS_FIX);
+
+		if(finalContours.length === 0) {
+			return null;
+		} 
+
 		//console.log("execute Tess2 = ", finalContours);
+
+		let resultVertexSize = graphicsPath.verts.length;
+		let tesselatedVertexSize = 0;
+		let res = null;
+
 		try {
 			res = Tess2.tesselate({
 				contours: finalContours,
@@ -209,63 +218,77 @@ export class GraphicsFactoryFills {
 				vertexSize: 2,
 				debug: true
 			});
-			//console.timeEnd("time Tess2.tesselate");
 
-			numElems = res.elements.length / 3;
-			p1x = 0;
-			p1y = 0;
-			p2x = 0;
-			p2y = 0;
-			p3x = 0;
-			p3y = 0;
-			for (i = 0; i < numElems; ++i) {
-				p1x = res.vertices[res.elements[i * 3] * 2];
-				p1y = res.vertices[res.elements[i * 3] * 2 + 1];
-				p2x = res.vertices[res.elements[i * 3 + 1] * 2];
-				p2y = res.vertices[res.elements[i * 3 + 1] * 2 + 1];
-				p3x = res.vertices[res.elements[i * 3 + 2] * 2];
-				p3y = res.vertices[res.elements[i * 3 + 2] * 2 + 1];
-
-				if (GraphicsFactoryHelper.isClockWiseXY(p1x, p1y, p2x, p2y, p3x, p3y)) {
-					finalVerts[final_vert_cnt++] = p3x;
-					finalVerts[final_vert_cnt++] = p3y;
-					finalVerts[final_vert_cnt++] = p2x;
-					finalVerts[final_vert_cnt++] = p2y;
-					finalVerts[final_vert_cnt++] = p1x;
-					finalVerts[final_vert_cnt++] = p1y;
-				} else {
-					finalVerts[final_vert_cnt++] = p1x;
-					finalVerts[final_vert_cnt++] = p1y;
-					finalVerts[final_vert_cnt++] = p2x;
-					finalVerts[final_vert_cnt++] = p2y;
-					finalVerts[final_vert_cnt++] = p3x;
-					finalVerts[final_vert_cnt++] = p3y;
-				}
-			}
+			tesselatedVertexSize = res.elements.length * 2;
+			resultVertexSize += tesselatedVertexSize;
 		} catch (e) {
+			res = null;
 			console.log("error when trying to tesselate", finalContours);
 		}
-		//}
 
-		if(GraphicsFactoryFills.USE_TESS_FIX){
-			// divide to avoid increase shape size
-			for(let i = 0, l = final_vert_cnt; i < l; i ++) 
-			{
-				finalVerts[i] = finalVerts[i] / GraphicsFactoryFills.TESS_SCALE;
+		// drop when nothing exist
+		if (resultVertexSize === 0) {
+			return null;
+		}
+
+		const vertexSize = 2;
+
+		if (!target) {
+			target = new AttributesBuffer(Float32Array.BYTES_PER_ELEMENT * vertexSize, (resultVertexSize / vertexSize) | 0);
+		}
+		// resize is safe, it not rebuild buffer when count is same.
+		// count - count of 2 dimension vertex, divide on 2 
+		target.count = (resultVertexSize / vertexSize) | 0;
+
+		// fill direct to Float32Array
+		const finalVerts = new Float32Array(target.buffer);
+
+		if (res && tesselatedVertexSize) {
+
+			const numElems = res.elements.length;
+			const scale = this.USE_TESS_FIX ? (1 / this.TESS_SCALE) : 1;
+
+			let vindex = 0; 
+			let p1x = 0;
+			let p1y = 0;
+			let p2x = 0;
+			let p2y = 0;
+			let p3x = 0;
+			let p3y = 0;
+			
+			for (let i = 0; i < numElems; i += 3) {
+				p1x = scale * res.vertices[res.elements[i + 0] * 2 + 0];
+				p1y = scale * res.vertices[res.elements[i + 0] * 2 + 1];
+				p2x = scale * res.vertices[res.elements[i + 1] * 2 + 0];
+				p2y = scale * res.vertices[res.elements[i + 1] * 2 + 1];
+				p3x = scale * res.vertices[res.elements[i + 2] * 2 + 0];
+				p3y = scale * res.vertices[res.elements[i + 2] * 2 + 1];
+
+				if (GraphicsFactoryHelper.isClockWiseXY(p1x, p1y, p2x, p2y, p3x, p3y)) {
+					finalVerts[vindex++] = p3x;
+					finalVerts[vindex++] = p3y;
+					finalVerts[vindex++] = p2x;
+					finalVerts[vindex++] = p2y;
+					finalVerts[vindex++] = p1x;
+					finalVerts[vindex++] = p1y;
+				} else {
+					finalVerts[vindex++] = p1x;
+					finalVerts[vindex++] = p1y;
+					finalVerts[vindex++] = p2x;
+					finalVerts[vindex++] = p2y;
+					finalVerts[vindex++] = p3x;
+					finalVerts[vindex++] = p3y;
+				}
 			}
 		}
 
-		finalVerts = finalVerts.concat(graphicsPath.verts);
+		// merge poly vertex
+		const vs = graphicsPath.verts.length;
 
-		if (finalVerts.length > 0) {
-			const attributesView = new AttributesView(Float32Array, 2);
-			attributesView.set(finalVerts);
-			
-			const attributesBuffer = attributesView.attributesBuffer.cloneBufferView();
-			attributesView.dispose();
-			
-			return attributesBuffer;
+		for(let i = 0; i < vs; i ++) {
+			finalVerts [tesselatedVertexSize + i] = graphicsPath.verts[i]; 
 		}
-		return null;
+	
+		return target;
 	}
 }
