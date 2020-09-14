@@ -43,7 +43,29 @@ import { MaterialManager } from '../managers/MaterialManager';
  * <p>The Graphics class is final; it cannot be subclassed.</p>
  */
 
+const FIXED_BASE = 1000;
+
 export class GraphicsFactoryFills {
+
+	public static TESS_SCALE = 20;
+	public static USE_TESS_FIX = true;
+
+	public static EPS = 1.0 / FIXED_BASE;
+
+	public static toFixed(val: number) {
+		return (val * FIXED_BASE | 0) / FIXED_BASE
+	}
+
+	public static nearest(x0: number, y0: number, x1: number, y1: number) {
+		let dx = (x0 - x1);
+			(dx < 0) && (dx = -dx);
+
+		let dy = (y0 - y1);
+			(dy < 0) && (dy = -dy);
+		
+		return (dx + dy) < this.EPS;
+	}
+
 	public static draw_pathes(targetGraphics: Graphics) {
 		//return;
 		var len = targetGraphics.queued_fill_pathes.length;
@@ -122,10 +144,8 @@ export class GraphicsFactoryFills {
 		graphicsPath.prepare();
 
 		var contour_data: number[][] = graphicsPath._positions;
-		var contour: number[];
 		var i: number = 0;
-		var k: number = 0;
-		var final_vert_list: number[] = [];
+		var finalVerts: number[] = [];
 		var final_vert_cnt: number = 0;
 		var finalContours: number[][] = [];
 		var res;
@@ -137,27 +157,6 @@ export class GraphicsFactoryFills {
 		var p2y: number = 0;
 		var p3x: number = 0;
 		var p3y: number = 0;
-		var attributesView: AttributesView;
-		var attributesBuffer: AttributesBuffer;
-
-		const tessFix = 20;
-		const fixedPoints = 3;
-		const fixedBase = Math.pow(10, fixedPoints);
-		const eps = 1 / fixedBase;
-
-		const useTessFix = true;
-
-		const toFixed = (value: number) =>{
-			return Math.round(value * fixedBase) / fixedBase;
-		}
-
-        const nearestCheck = (ax : number, ay : number, bx : number, by : number) =>{
-            // manhattan distance, fast check for nearest point
-            const mah = Math.abs(ax-bx) + Math.abs(ay-by);
-
-            return mah <= eps;
-		}
-
 
 		for (let k = 0; k < contour_data.length; k++) {
 			
@@ -165,7 +164,9 @@ export class GraphicsFactoryFills {
 
 			// same as map, but without allocation 
 
-			const closed = nearestCheck(contour[0], contour[1], contour[contour.length - 2], contour[contour.length - 1]);
+			const closed = GraphicsFactoryFills.nearest(
+					contour[0], contour[1], 
+					contour[contour.length - 2], contour[contour.length - 1]);
 
 			// make sure start and end point of a contour are not the same
 			if (closed) {
@@ -179,10 +180,18 @@ export class GraphicsFactoryFills {
 
 			if (contour.length > 5) {
 
-				if(useTessFix){
+				if(GraphicsFactoryFills.USE_TESS_FIX) 
+				{
 					// tess2 fix
 					// there are problems with small shapes
-					const fixed =  contour.map((e)=> toFixed(e) * tessFix);
+					// encrease a size 
+					const fixed = new Array(contour.length);
+
+					for(let i = 0, l = contour.length; i < l; i ++ ) 
+					{
+						fixed[i] = GraphicsFactoryFills.toFixed(contour[i] * GraphicsFactoryFills.TESS_SCALE);
+					}
+
 					finalContours.push(fixed);
 				} else {
 					finalContours.push(contour);
@@ -218,19 +227,19 @@ export class GraphicsFactoryFills {
 				p3y = res.vertices[res.elements[i * 3 + 2] * 2 + 1];
 
 				if (GraphicsFactoryHelper.isClockWiseXY(p1x, p1y, p2x, p2y, p3x, p3y)) {
-					final_vert_list[final_vert_cnt++] = p3x;
-					final_vert_list[final_vert_cnt++] = p3y;
-					final_vert_list[final_vert_cnt++] = p2x;
-					final_vert_list[final_vert_cnt++] = p2y;
-					final_vert_list[final_vert_cnt++] = p1x;
-					final_vert_list[final_vert_cnt++] = p1y;
+					finalVerts[final_vert_cnt++] = p3x;
+					finalVerts[final_vert_cnt++] = p3y;
+					finalVerts[final_vert_cnt++] = p2x;
+					finalVerts[final_vert_cnt++] = p2y;
+					finalVerts[final_vert_cnt++] = p1x;
+					finalVerts[final_vert_cnt++] = p1y;
 				} else {
-					final_vert_list[final_vert_cnt++] = p1x;
-					final_vert_list[final_vert_cnt++] = p1y;
-					final_vert_list[final_vert_cnt++] = p2x;
-					final_vert_list[final_vert_cnt++] = p2y;
-					final_vert_list[final_vert_cnt++] = p3x;
-					final_vert_list[final_vert_cnt++] = p3y;
+					finalVerts[final_vert_cnt++] = p1x;
+					finalVerts[final_vert_cnt++] = p1y;
+					finalVerts[final_vert_cnt++] = p2x;
+					finalVerts[final_vert_cnt++] = p2y;
+					finalVerts[final_vert_cnt++] = p3x;
+					finalVerts[final_vert_cnt++] = p3y;
 				}
 			}
 		} catch (e) {
@@ -238,19 +247,23 @@ export class GraphicsFactoryFills {
 		}
 		//}
 
-
-		if(useTessFix){
+		if(GraphicsFactoryFills.USE_TESS_FIX){
 			// divide to avoid increase shape size
-			final_vert_list.forEach((e, i) => final_vert_list[i] = e / tessFix);
+			for(let i = 0, l = final_vert_cnt; i < l; i ++) 
+			{
+				finalVerts[i] = finalVerts[i] / GraphicsFactoryFills.TESS_SCALE;
+			}
 		}
 
-		final_vert_list = final_vert_list.concat(graphicsPath.verts);
+		finalVerts = finalVerts.concat(graphicsPath.verts);
 
-		if (final_vert_list.length > 0) {
-			attributesView = new AttributesView(Float32Array, 2);
-			attributesView.set(final_vert_list);
-			attributesBuffer = attributesView.attributesBuffer.cloneBufferView();
+		if (finalVerts.length > 0) {
+			const attributesView = new AttributesView(Float32Array, 2);
+			attributesView.set(finalVerts);
+			
+			const attributesBuffer = attributesView.attributesBuffer.cloneBufferView();
 			attributesView.dispose();
+			
 			return attributesBuffer;
 		}
 		return null;
