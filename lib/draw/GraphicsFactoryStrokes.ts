@@ -13,9 +13,9 @@ import {GraphicsFactoryHelper} from "../draw/GraphicsFactoryHelper";
 import {GraphicsStrokeStyle} from "../draw/GraphicsStrokeStyle";
 import {LineScaleMode} from "../draw/LineScaleMode";
 import {Graphics} from "../Graphics";
-import { ElementsBase } from '../elements/ElementsBase';
 import { LineElements } from '../elements/LineElements';
 import { MaterialManager } from '../managers/MaterialManager';
+import { GraphicsFactoryFills } from './GraphicsFactoryFills';
 
 /**
  * The Graphics class contains a set of methods that you can use to create a
@@ -35,20 +35,23 @@ export class GraphicsFactoryStrokes
 {
 	public static draw_pathes(targetGraphics:Graphics){
 		//return;
-		var len=targetGraphics.queued_stroke_pathes.length;
-		var i=0;
-		for(i=0; i<len; i++){
-			
-			var strokePath:GraphicsPath=targetGraphics.queued_stroke_pathes[i];
-			var strokeStyle:GraphicsStrokeStyle=(<GraphicsStrokeStyle>strokePath.style);
-			var obj:any = MaterialManager.get_material_for_color(strokeStyle.color, strokeStyle.alpha);
-			var material:IMaterial=obj.material;
+		const paths = targetGraphics.queued_stroke_pathes;
+		const len = paths.length;
 
-			var final_vert_list:number[]=[];
-			strokePath.prepare();
-			var elements:LineElements;
+		for(let i = 0; i < len; i++){
+			const path = paths[i];
+			const pathStyle = (<GraphicsStrokeStyle>path.style);
+			const obj:any = MaterialManager.get_material_for_color(pathStyle.color, pathStyle.alpha);
+			const material:IMaterial = obj.material;
+
+			let shape;// = targetGraphics.popEmptyStrokeShape();
+			let style: Style;
+			let sampler: ImageSampler;
+
+			path.prepare();
+			let elements:LineElements;
 			// if (targetGraphics.scaleStrokes != null) { //use LineElements
-				elements = GraphicsFactoryStrokes.getLineElements([strokePath], material.curves, strokePath.stroke.scaleMode);
+				elements = GraphicsFactoryStrokes.fillLineElements([path], material.curves, path.stroke.scaleMode, <LineElements>shape?.elements);
 			// } else { // use TriangleELements
 			// 	elements = GraphicsFactoryStrokes.getTriangleElements([strokePath], material.curves);
 			// }
@@ -56,25 +59,32 @@ export class GraphicsFactoryStrokes
 			if (!elements)
 				continue;
 
-			elements.stroke = strokePath.stroke;
-			//	if(material.curves)
-			//		elements.setCustomAttributes("curves", new Byte4Attributes(attributesBuffer, false));
-			//	material.alpha=(<GraphicsStrokeStyle>this.queued_stroke_pathes[i].style).alpha;
-			var shape:Shape=<Shape>targetGraphics.addShape(Shape.getShape(elements, material));
+			elements.stroke = path.stroke;
 
-			if(obj.colorPos){
-				shape.style = new Style();
-				var sampler:ImageSampler = new ImageSampler();
-				material.animateUVs=true;
-				shape.style.addSamplerAt(sampler, material.getTextureAt(0));
+			if (obj.colorPos) {
+				style = new Style();
+				sampler = new ImageSampler();
+
+				material.animateUVs = true;
 				material.style.sampler=sampler;
 
-				shape.style.uvMatrix = new Matrix(0, 0, 0, 0, obj.colorPos.x, obj.colorPos.y);
+				style.addSamplerAt(sampler, material.getTextureAt(0));
+				style.uvMatrix = new Matrix(0, 0, 0, 0, obj.colorPos.x, obj.colorPos.y);
 			}
+
+			if(shape) {
+				shape.material = material;
+				shape.style = style;
+			} else {
+				shape = Shape.getShape(elements, material, style);
+			}
+
+			targetGraphics.addShapeInternal(shape);
+
 		}
 		//targetGraphics.queued_stroke_pathes.length=0;
-
 	}
+
 	// public static updateStrokesForShape(shape:Shape, scale:Vector3D, scaleMode:string ){
 	// 	//return;
 
@@ -90,16 +100,15 @@ export class GraphicsFactoryStrokes
 
 	// }
 
-	public static getLineElements(graphic_pathes:Array<GraphicsPath>, curves:boolean, scaleMode:LineScaleMode=LineScaleMode.NORMAL):LineElements
+	public static fillLineElements(
+		graphic_pathes:Array<GraphicsPath>, 
+		curves:boolean, 
+		scaleMode:LineScaleMode=LineScaleMode.NORMAL, 
+		target: LineElements = null) : LineElements
 	{
-		var final_vert_list:number[]=[];
+		var finalVerts:number[]=[];
 		var final_thickness_list:number[]=[];
-		var len=graphic_pathes.length;
-		var positions:number[][];
-		var strokeStyle:GraphicsStrokeStyle;
 		var data:number[];
-		var i:number=0;
-		var k:number=0;
 
 		var end_x:number = 0;
 		var end_y:number = 0;
@@ -109,35 +118,37 @@ export class GraphicsFactoryStrokes
 		var pos_count:number = 0;
 		var thickness_count:number = 0;
 
-		var half_thickness:number=0;
+		for(let cp = 0, l0 = graphic_pathes.length; cp < l0; cp++){
+			
+			const path = graphic_pathes[cp];
 
-		var cp=0;
-		for(cp=0; cp<len; cp++){
+			path.prepare();
 
-			positions = graphic_pathes[cp]._positions;
-			strokeStyle = graphic_pathes[cp].stroke;
-			half_thickness = (scaleMode != LineScaleMode.HAIRLINE)? strokeStyle.half_thickness : 0.5;
+			const positions = path._positions;
+			const strokeStyle = path.stroke;
+			const half_thickness = (scaleMode != LineScaleMode.HAIRLINE) ? strokeStyle.half_thickness : 0.5;
 
-			for(k=0; k<positions.length; k++) {
+			for(let k = 0, l1 = positions.length; k < l1; k++) {
 				//commands = contour_commands[k];
 				data = positions[k];
 
-				prev_x=data[0]; 
-				prev_y=data[1];
+				prev_x = data[0]; 
+				prev_y = data[1];
 
-				for (i = 2; i < data.length; i+=2) {
+				for (let i = 2, l2 = data.length; i < l2; i += 2) {
 
-					end_x = data[i];
-					end_y = data[i+1];
+					end_x = data[i + 0];
+					end_y = data[i + 1];
 
+					const near = GraphicsFactoryFills.nearest(end_x, end_y, prev_x, prev_y);
 					// if the points are the same, we dont need to do anything.
-					if((end_x != prev_x)||(end_y != prev_y)){
-						final_vert_list[pos_count++] = prev_x;
-						final_vert_list[pos_count++] = prev_y;
-						final_vert_list[pos_count++] = 0;
-						final_vert_list[pos_count++] = end_x;
-						final_vert_list[pos_count++] = end_y;
-						final_vert_list[pos_count++] = 0;
+					if (!near) {
+						finalVerts[pos_count++] = prev_x;
+						finalVerts[pos_count++] = prev_y;
+						finalVerts[pos_count++] = 0;
+						finalVerts[pos_count++] = end_x;
+						finalVerts[pos_count++] = end_y;
+						finalVerts[pos_count++] = 0;
 						final_thickness_list[thickness_count++] = half_thickness;
 					}
 
@@ -147,11 +158,11 @@ export class GraphicsFactoryStrokes
 			}
 		}
 
-		if(final_vert_list.length==0)
-			return;
+		if(finalVerts.length == 0)
+			return null;
 
-		var elements:LineElements = new LineElements(new AttributesBuffer());
-		elements.setPositions(final_vert_list);
+		const elements = target || new LineElements(new AttributesBuffer());
+		elements.setPositions(finalVerts);
 		elements.setThickness(final_thickness_list);
 
 		return elements;
