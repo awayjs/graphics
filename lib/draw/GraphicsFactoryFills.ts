@@ -75,77 +75,95 @@ export class GraphicsFactoryFills {
 		{
 			const path = pathes[cp];
 			const pathStyle = path.style;
-			const newBuffer = this.pathToAttributesBuffer(path);
-	
-			if (newBuffer && newBuffer.length > 0) {
-				const elements = new TriangleElements(newBuffer);
-				elements.setPositions(new Float2Attributes(newBuffer));
-				//elements.setCustomAttributes("curves", new Float3Attributes(attributesBuffer));
-				//elements.setUVs(new Float2Attributes(attributesBuffer));
 
-				let material: IMaterial;
-				let sampler: ImageSampler = new ImageSampler();
-				let style: Style = new Style();
+			// there are a bug with shapes 
+			let shape = null;// targetGraphics.popEmptyFillShape();
+			let elements = shape ? <TriangleElements>shape.elements: null;
+
+			const target = elements ? elements.concatenatedBuffer : null;
+			const newBuffer = this.pathToAttributesBuffer(path, false, target);
 			
-				switch(pathStyle.data_type) {	
-					case GraphicsFillStyle.data_type: 
-					{
-						const obj = MaterialManager.get_material_for_color(
-							(<GraphicsFillStyle>pathStyle).color,
-							(<GraphicsFillStyle>pathStyle).alpha
-						);
-
-						material = obj.material;
-
-						if (obj.colorPos) {
-							material.animateUVs = true;
-
-							style.addSamplerAt(sampler, material.getTextureAt(0));
-							style.uvMatrix = new Matrix(0, 0, 0, 0, obj.colorPos.x, obj.colorPos.y);
-						} else {
-							style = sampler = null;
-						}
-						break;
-					}
-					case GradientFillStyle.data_type: 
-					{
-						const gradientStyle = <GradientFillStyle>(pathStyle);
-						const obj = MaterialManager.get_material_for_gradient(gradientStyle);
-
-						material = obj.material;
-						material.animateUVs = true;
-
-						style.addSamplerAt(sampler, material.getTextureAt(0));
-						style.uvMatrix = gradientStyle.getUVMatrix();
-
-						if (gradientStyle.type == GradientType.LINEAR) {
-							material.getTextureAt(0).mappingMode = MappingMode.LINEAR;
-						} else if (gradientStyle.type == GradientType.RADIAL) {
-							sampler.imageRect = gradientStyle.uvRectangle;
-							material.imageRect = true;
-							material.getTextureAt(0).mappingMode = MappingMode.RADIAL;
-						}
-						break;
-					}
-					case BitmapFillStyle.data_type: 
-					{
-						const bitmapStyle = <BitmapFillStyle>pathStyle;
-						
-						material = bitmapStyle.material; //new ITexture(ImageUtils.getDefaultImage2D());//bitmapStyle.texture;
-						//sampler.smooth = true;
-						sampler.repeat = bitmapStyle.repeat;
-						material.style.sampler = sampler;
-						material.animateUVs = true;
-
-						style.addSamplerAt(sampler, material.getTextureAt(0));
-						style.uvMatrix = bitmapStyle.getUVMatrix();
-						break;
-					}
-				}
-
-				const shape = <Shape>targetGraphics.addShape(Shape.getShape(elements, material));
-				shape.style = style;
+			if(!newBuffer || !newBuffer.length) {
+				continue;
 			}
+
+			if(!elements) {
+				elements = new TriangleElements(newBuffer);
+				elements.setPositions(new Float2Attributes(newBuffer));
+			} else {
+				elements.invalidate();
+				elements._numVertices = newBuffer.count;
+			}
+
+			//elements.setCustomAttributes("curves", new Float3Attributes(attributesBuffer));
+			//elements.setUVs(new Float2Attributes(attributesBuffer));
+
+			let material: IMaterial;
+			let sampler: ImageSampler = new ImageSampler();
+			let style: Style = new Style();
+		
+			switch(pathStyle.data_type) {	
+				case GraphicsFillStyle.data_type: 
+				{
+					const obj = MaterialManager.get_material_for_color(
+						(<GraphicsFillStyle>pathStyle).color,
+						(<GraphicsFillStyle>pathStyle).alpha
+					);
+
+					material = obj.material;
+
+					if (obj.colorPos) {
+						material.animateUVs = true;
+
+						style.addSamplerAt(sampler, material.getTextureAt(0));
+						style.uvMatrix = new Matrix(0, 0, 0, 0, obj.colorPos.x, obj.colorPos.y);
+					} else {
+						style = sampler = null;
+					}
+					break;
+				}
+				case GradientFillStyle.data_type: 
+				{
+					const gradientStyle = <GradientFillStyle>(pathStyle);
+					const obj = MaterialManager.get_material_for_gradient(gradientStyle);
+
+					material = obj.material;
+					material.animateUVs = true;
+
+					style.addSamplerAt(sampler, material.getTextureAt(0));
+					style.uvMatrix = gradientStyle.getUVMatrix();
+
+					if (gradientStyle.type == GradientType.LINEAR) {
+						material.getTextureAt(0).mappingMode = MappingMode.LINEAR;
+					} else if (gradientStyle.type == GradientType.RADIAL) {
+						sampler.imageRect = gradientStyle.uvRectangle;
+						material.imageRect = true;
+						material.getTextureAt(0).mappingMode = MappingMode.RADIAL;
+					}
+					break;
+				}
+				case BitmapFillStyle.data_type: 
+				{
+					const bitmapStyle = <BitmapFillStyle>pathStyle;
+					
+					material = bitmapStyle.material; //new ITexture(ImageUtils.getDefaultImage2D());//bitmapStyle.texture;
+					//sampler.smooth = true;
+					sampler.repeat = bitmapStyle.repeat;
+					material.style.sampler = sampler;
+					material.animateUVs = true;
+
+					style.addSamplerAt(sampler, material.getTextureAt(0));
+					style.uvMatrix = bitmapStyle.getUVMatrix();
+					break;
+				}
+			}
+
+			shape = shape || Shape.getShape(elements);
+
+			shape.style = style;
+			shape.material = material;
+
+			targetGraphics.addShapeInternal(shape);
 		}
 		//targetGraphics.queued_fill_pathes.length = 0;
 	}
@@ -209,32 +227,30 @@ export class GraphicsFactoryFills {
 		
 		const finalContours = this._prepareContours(graphicsPath, this.USE_TESS_FIX);
 
-		if(finalContours.length === 0) {
-			return null;
-		} 
-
 		//console.log("execute Tess2 = ", finalContours);
 
 		let resultVertexSize = graphicsPath.verts.length;
 		let tesselatedVertexSize = 0;
 		let res = null;
 
-		try {
-			res = Tess2.tesselate({
-				contours: finalContours,
-				windingRule: Tess2.WINDING_ODD,
-				elementType: Tess2.POLYGONS,
-				polySize: 3,
-				vertexSize: 2,
-				debug: true
-			});
+		if (finalContours.length > 0) {
+			try {
+				res = Tess2.tesselate({
+					contours: finalContours,
+					windingRule: Tess2.WINDING_ODD,
+					elementType: Tess2.POLYGONS,
+					polySize: 3,
+					vertexSize: 2,
+					debug: true
+				});
 
-			tesselatedVertexSize = res.elements.length * 2;
-			resultVertexSize += tesselatedVertexSize;
-		} catch (e) {
-			res = null;
-			console.log("error when trying to tesselate", finalContours);
-		}
+				tesselatedVertexSize = res.elements.length * 2;
+				resultVertexSize += tesselatedVertexSize;
+			} catch (e) {
+				res = null;
+				console.log("error when trying to tesselate", finalContours);
+			}
+		}	
 
 		// drop when nothing exist
 		if (resultVertexSize === 0) {

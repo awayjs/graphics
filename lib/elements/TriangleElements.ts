@@ -41,8 +41,6 @@ export class TriangleElements extends ElementsBase
 	public slice9Indices:number[];
 	public initialSlice9Positions:number[];
 
-
-
 	public updateSlice9(width:number, height:number){
 
 	}

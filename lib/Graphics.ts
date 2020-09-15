@@ -98,6 +98,10 @@ export class Graphics extends AssetBase
 	public _start:GraphicsPath[];
 	public _end:GraphicsPath[];
 
+	private _internalShape: Shape[] = [];
+	private _releasedFillShape: Shape[] = [];
+	private _releasedStrokeShape: Shape[] = [];
+
 	// graphics, from it was copied
 	public sourceGraphics: Graphics;
 
@@ -233,6 +237,19 @@ export class Graphics extends AssetBase
 		
 	}
 
+	public popEmptyFillShape() {
+		return this._releasedFillShape.pop();
+	}
+
+	public popEmptyStrokeShape() {
+		return this._releasedStrokeShape.pop();
+	}
+
+	/* internal */ addShapeInternal(shape: Shape) {
+		this.addShape(shape);
+		this._internalShape.push(shape);
+	}
+
 	/**
 	 * Adds a GraphicBase wrapping a Elements.
 	 *
@@ -358,8 +375,22 @@ export class Graphics extends AssetBase
 
 			shape.usages--;
 
-			if (!shape.usages)
-				shape.dispose();
+			if (!shape.usages) {
+
+				const index = this._internalShape.indexOf(shape);
+		
+				if(index > -1) {
+					if(shape.elements.assetType === TriangleElements.assetType) {
+						this._releasedFillShape[this._releasedFillShape.length] = shape;
+					} else {
+						this._releasedStrokeShape[this._releasedStrokeShape.length] = shape;
+					}
+
+					this._internalShape.splice(index, 1);
+				} else {
+					shape.dispose();
+				}
+			}
 		}
 
 		this._shapes.length = 0;
@@ -392,7 +423,12 @@ export class Graphics extends AssetBase
 			this._bitmapFillPool = null
 		}
 
-		this._bitmapFillPool = null;
+		this._bitmapFillPool = null
+		
+		/* we can not release shapes for this, it was a store elements that can be reused then */
+
+		for(let s of this._releasedFillShape) s.dispose();
+		for(let s of this._releasedStrokeShape) s.dispose();
 
 		Graphics._pool.push(this);
 	}
