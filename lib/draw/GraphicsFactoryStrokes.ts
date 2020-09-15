@@ -44,7 +44,7 @@ export class GraphicsFactoryStrokes
 			const obj:any = MaterialManager.get_material_for_color(pathStyle.color, pathStyle.alpha);
 			const material:IMaterial = obj.material;
 
-			let shape;// = targetGraphics.popEmptyStrokeShape();
+			let shape = targetGraphics.popEmptyStrokeShape();
 			let style: Style;
 			let sampler: ImageSampler;
 
