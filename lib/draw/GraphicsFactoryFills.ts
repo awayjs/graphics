@@ -77,7 +77,7 @@ export class GraphicsFactoryFills {
 			const pathStyle = path.style;
 
 			// there are a bug with shapes 
-			let shape = null;// targetGraphics.popEmptyFillShape();
+			let shape = targetGraphics.popEmptyFillShape();
 			let elements = shape ? <TriangleElements>shape.elements: null;
 
 			const target = elements ? elements.concatenatedBuffer : null;

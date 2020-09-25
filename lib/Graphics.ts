@@ -1,4 +1,4 @@
-import {ArgumentError, RangeError, PartialImplementationError, Point, Vector3D, Matrix, Matrix3D, AssetBase, Rectangle, AssetEvent} from "@awayjs/core";
+import {ArgumentError, RangeError, PartialImplementationError, Point, Vector3D, Matrix, Matrix3D, AssetBase, Rectangle, AssetEvent, IgnoreConflictStrategy} from "@awayjs/core";
 
 import {BitmapImage2D} from "@awayjs/stage";
 
@@ -32,7 +32,11 @@ import { ShapeMatrix } from './data/ShapeData';
 import { PathSegment } from './data/PathSegment';
 import { assert } from './data/utilities';
 import { MaterialManager } from './managers/MaterialManager';
+import { LineElements } from './elements/LineElements';
+import { ManagedPool } from './ManagedPool';
 
+const USE_FILL_POOL = false;
+const USE_STROKE_POOL = true;
 
 /**
  *
@@ -48,6 +52,7 @@ import { MaterialManager } from './managers/MaterialManager';
  */
 export class Graphics extends AssetBase
 {
+	private static CLEARS_BEFORE_POOLING = 10;
 	private static _pool:Array<Graphics> = new Array<Graphics>();
 
 	public static getGraphics():Graphics
@@ -98,9 +103,10 @@ export class Graphics extends AssetBase
 	public _start:GraphicsPath[];
 	public _end:GraphicsPath[];
 
-	private _internalShape: Shape[] = [];
-	private _releasedFillShape: Shape[] = [];
-	private _releasedStrokeShape: Shape[] = [];
+	private _clearCount: number = 0;
+	private _internalShapesId: number[] = [];
+	private _releasedFillShape: ManagedPool<Shape> = new ManagedPool<Shape>(Shape, 100, false);
+	private _releasedStrokeShape: ManagedPool<Shape> = new ManagedPool<Shape>(Shape, 100, false);
 
 	// graphics, from it was copied
 	public sourceGraphics: Graphics;
@@ -247,7 +253,7 @@ export class Graphics extends AssetBase
 
 	/* internal */ addShapeInternal(shape: Shape) {
 		this.addShape(shape);
-		this._internalShape.push(shape);
+		this._internalShapesId.push(shape.id);
 	}
 
 	/**
@@ -301,10 +307,13 @@ export class Graphics extends AssetBase
 		shape.removeEventListener(RenderableEvent.INVALIDATE_STYLE, this._onInvalidateDelegate);
 		shape.removeEventListener(AssetEvent.INVALIDATE, this._onInvalidateDelegate);
 
-		shape.usages--;
+		shape.usages--;		
 
-		if (!shape.usages)
-			shape.dispose();
+		if (!shape.usages) {
+			if(!this.tryPoolShape(shape)) {
+				shape.dispose();
+			}
+		}
 
 		this.invalidate();
 	}
@@ -359,9 +368,45 @@ export class Graphics extends AssetBase
 			this._shapes[i].scale(scale);
 	}
 
+	private tryPoolShape(shape: Shape): boolean {
+		// not works atm
+		// text is bugged
+		const canPooledTriangle = shape.elements.assetType === TriangleElements.assetType;
+		const canPooledLine = shape.elements.assetType === LineElements.assetType;
+
+		if(!canPooledLine && !canPooledTriangle) {
+			return false;
+		}
+
+		const index = this._internalShapesId.indexOf(shape.id);
+
+		if(index === -1) {
+			return false;
+		}
+
+		if(canPooledTriangle) { 
+			return this._releasedFillShape.store(shape);
+		}
+
+		if(canPooledLine) {
+			return this._releasedStrokeShape.store(shape);
+		}
+
+		return false;
+	}
+
 	public clear():void
 	{
+		this._clearCount ++;
 		this._lastPrebuildedShapes.length = 0;
+
+		const requireShapePool = this._internalShapesId.length > 0 && this._clearCount >= Graphics.CLEARS_BEFORE_POOLING;
+
+		if(requireShapePool && !this._releasedStrokeShape.enabled && (USE_STROKE_POOL || USE_FILL_POOL)) {
+			console.warn("[Graphics] To many clears, pooling shapes internally!", this.id);
+			this._releasedFillShape.enabled = USE_FILL_POOL;
+			this._releasedStrokeShape.enabled = USE_STROKE_POOL;
+		}
 
 		var shape:Shape;
 		var len:number = this._shapes.length;
@@ -376,23 +421,13 @@ export class Graphics extends AssetBase
 			shape.usages--;
 
 			if (!shape.usages) {
-
-				const index = this._internalShape.indexOf(shape);
-		
-				if(index > -1) {
-					if(shape.elements.assetType === TriangleElements.assetType) {
-						this._releasedFillShape[this._releasedFillShape.length] = shape;
-					} else {
-						this._releasedStrokeShape[this._releasedStrokeShape.length] = shape;
-					}
-
-					this._internalShape.splice(index, 1);
-				} else {
+				if(!this.tryPoolShape(shape)) {
 					shape.dispose();
 				}
 			}
 		}
 
+		this._internalShapesId.length = 0;
 		this._shapes.length = 0;
 
 		this.invalidate();
@@ -400,7 +435,7 @@ export class Graphics extends AssetBase
 		this._active_fill_path=null;
 		this._active_stroke_path=null;
 		this._queued_fill_pathes.length = 0;
-		this._queued_stroke_pathes.length = 0;		
+		this._queued_stroke_pathes.length = 0;
 		this._current_position.x=0;
 		this._current_position.y=0;
         this._drawingDirty=false;
@@ -427,8 +462,10 @@ export class Graphics extends AssetBase
 		
 		/* we can not release shapes for this, it was a store elements that can be reused then */
 
-		for(let s of this._releasedFillShape) s.dispose();
-		for(let s of this._releasedStrokeShape) s.dispose();
+		this._releasedFillShape.clear();
+		this._releasedStrokeShape.clear();
+		this._internalShapesId.length = 0;
+		this._clearCount = 0;
 
 		Graphics._pool.push(this);
 	}
