@@ -403,7 +403,7 @@ export class Graphics extends AssetBase
 		const requireShapePool = this._internalShapesId.length > 0 && this._clearCount >= Graphics.CLEARS_BEFORE_POOLING;
 
 		if(requireShapePool && !this._releasedStrokeShape.enabled && (USE_STROKE_POOL || USE_FILL_POOL)) {
-			console.warn("[Graphics] To many clears, pooling shapes internally!", this.id);
+			console.warn("[Graphics] To many clears, pooling shapes internally!", this.id, this._internalShapesId.length);
 			this._releasedFillShape.enabled = USE_FILL_POOL;
 			this._releasedStrokeShape.enabled = USE_STROKE_POOL;
 		}
@@ -1337,9 +1337,12 @@ export class Graphics extends AssetBase
 	private _endFillInternal(clear = false) {
 		//execute any queued shapetags
 		if (this._queuedShapeTags.length) {
-			var localQueue:ShapeTag[] = this._queuedShapeTags;
-			var len:number = localQueue.length;
+			
+			const localQueue = this._queuedShapeTags;
+			const len = localQueue.length;
+			
 			this._queuedShapeTags = [];
+
 			for (var i:number = 0; i < len; i++)
 				this.convertRecordsToShapeData(localQueue[i]);
 
@@ -1788,6 +1791,12 @@ export class Graphics extends AssetBase
 	*/
 	public convertRecordsToShapeData(tag:ShapeTag):void
 	{
+		// run parser 
+		if(tag.needParse) {
+			//console.log("Run lazy Graphics parser", tag.id);
+			tag.lazyParser();
+		}
+
 		var records: ShapeRecord[] = tag.records;
 		var fillStyles: FillStyle[] = tag.fillStyles;
 		var lineStyles: LineStyle[] = tag.lineStyles;
@@ -2338,6 +2347,8 @@ export interface SwfTag {
 
 export interface DefinitionTag extends SwfTag {
   id: number;
+  lazyParser: () => any;
+  needParse: boolean;
 }
 
 export const enum ShapeRecordFlags {
