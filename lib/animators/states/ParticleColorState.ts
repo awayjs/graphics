@@ -1,63 +1,60 @@
-import {Vector3D, ColorTransform, ProjectionBase} from "@awayjs/core";
+import { Vector3D, ColorTransform, ProjectionBase } from '@awayjs/core';
 
-import {Stage, ContextGLVertexBufferFormat} from "@awayjs/stage";
+import { Stage, ContextGLVertexBufferFormat } from '@awayjs/stage';
 
-import {ShaderBase, _Render_RenderableBase, AnimationRegisterData} from "@awayjs/renderer";
+import { ShaderBase, _Render_RenderableBase, AnimationRegisterData } from '@awayjs/renderer';
 
-import {AnimationElements} from "../data/AnimationElements";
-import {ParticlePropertiesMode} from "../data/ParticlePropertiesMode";
-import {ParticleColorNode} from "../nodes/ParticleColorNode";
+import { AnimationElements } from '../data/AnimationElements';
+import { ParticlePropertiesMode } from '../data/ParticlePropertiesMode';
+import { ParticleColorNode } from '../nodes/ParticleColorNode';
 
-import {ParticleAnimator} from "../ParticleAnimator";
+import { ParticleAnimator } from '../ParticleAnimator';
 
-import {ParticleStateBase} from "./ParticleStateBase";
+import { ParticleStateBase } from './ParticleStateBase';
 
 /**
  * ...
  * @author ...
  */
-export class ParticleColorState extends ParticleStateBase
-{
+export class ParticleColorState extends ParticleStateBase {
 	/** @private */
-	public static START_MULTIPLIER_INDEX:number = 0;
+	public static START_MULTIPLIER_INDEX: number = 0;
 
 	/** @private */
-	public static DELTA_MULTIPLIER_INDEX:number = 1;
+	public static DELTA_MULTIPLIER_INDEX: number = 1;
 
 	/** @private */
-	public static START_OFFSET_INDEX:number = 2;
+	public static START_OFFSET_INDEX: number = 2;
 
 	/** @private */
-	public static DELTA_OFFSET_INDEX:number = 3;
+	public static DELTA_OFFSET_INDEX: number = 3;
 
 	/** @private */
-	public static CYCLE_INDEX:number = 4;
+	public static CYCLE_INDEX: number = 4;
 
-	private _particleColorNode:ParticleColorNode;
-	private _usesMultiplier:boolean;
-	private _usesOffset:boolean;
-	private _usesCycle:boolean;
-	private _usesPhase:boolean;
-	private _startColor:ColorTransform;
-	private _endColor:ColorTransform;
-	private _cycleDuration:number;
-	private _cyclePhase:number;
-	private _cycleData:Vector3D;
-	private _startMultiplierData:Vector3D;
-	private _deltaMultiplierData:Vector3D;
-	private _startOffsetData:Vector3D;
-	private _deltaOffsetData:Vector3D;
+	private _particleColorNode: ParticleColorNode;
+	private _usesMultiplier: boolean;
+	private _usesOffset: boolean;
+	private _usesCycle: boolean;
+	private _usesPhase: boolean;
+	private _startColor: ColorTransform;
+	private _endColor: ColorTransform;
+	private _cycleDuration: number;
+	private _cyclePhase: number;
+	private _cycleData: Vector3D;
+	private _startMultiplierData: Vector3D;
+	private _deltaMultiplierData: Vector3D;
+	private _startOffsetData: Vector3D;
+	private _deltaOffsetData: Vector3D;
 
 	/**
 	 * Defines the start color transform of the state, when in global mode.
 	 */
-	public get startColor():ColorTransform
-	{
+	public get startColor(): ColorTransform {
 		return this._startColor;
 	}
 
-	public set startColor(value:ColorTransform)
-	{
+	public set startColor(value: ColorTransform) {
 		this._startColor = value;
 
 		this.updateColorData();
@@ -66,13 +63,11 @@ export class ParticleColorState extends ParticleStateBase
 	/**
 	 * Defines the end color transform of the state, when in global mode.
 	 */
-	public get endColor():ColorTransform
-	{
+	public get endColor(): ColorTransform {
 		return this._endColor;
 	}
 
-	public set endColor(value:ColorTransform)
-	{
+	public set endColor(value: ColorTransform) {
 		this._endColor = value;
 
 		this.updateColorData();
@@ -81,13 +76,11 @@ export class ParticleColorState extends ParticleStateBase
 	/**
 	 * Defines the duration of the animation in seconds, used as a period independent of particle duration when in global mode. Defaults to 1.
 	 */
-	public get cycleDuration():number
-	{
+	public get cycleDuration(): number {
 		return this._cycleDuration;
 	}
 
-	public set cycleDuration(value:number)
-	{
+	public set cycleDuration(value: number) {
 		this._cycleDuration = value;
 
 		this.updateColorData();
@@ -96,20 +89,17 @@ export class ParticleColorState extends ParticleStateBase
 	/**
 	 * Defines the phase of the cycle in degrees, used as the starting offset of the cycle when in global mode. Defaults to 0.
 	 */
-	public get cyclePhase():number
-	{
+	public get cyclePhase(): number {
 		return this._cyclePhase;
 	}
 
-	public set cyclePhase(value:number)
-	{
+	public set cyclePhase(value: number) {
 		this._cyclePhase = value;
 
 		this.updateColorData();
 	}
 
-	constructor(animator:ParticleAnimator, particleColorNode:ParticleColorNode)
-	{
+	constructor(animator: ParticleAnimator, particleColorNode: ParticleColorNode) {
 		super(animator, particleColorNode);
 
 		this._particleColorNode = particleColorNode;
@@ -125,11 +115,10 @@ export class ParticleColorState extends ParticleStateBase
 		this.updateColorData();
 	}
 
-	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData):void
-	{
+	public setRenderState(shader: ShaderBase, renderable: _Render_RenderableBase, animationElements: AnimationElements, animationRegisterData: AnimationRegisterData): void {
 		if (shader.usesFragmentAnimation) {
-			var dataOffset:number = this._particleColorNode._iDataOffset;
-			var index:number;
+			let dataOffset: number = this._particleColorNode._iDataOffset;
+			let index: number;
 			if (this._usesCycle)
 				shader.setVertexConst(animationRegisterData.getRegisterIndex(this._pAnimationNode, ParticleColorState.CYCLE_INDEX), this._cycleData.x, this._cycleData.y, this._cycleData.z, this._cycleData.w);
 
@@ -157,23 +146,22 @@ export class ParticleColorState extends ParticleStateBase
 		}
 	}
 
-	private updateColorData():void
-	{
+	private updateColorData(): void {
 		if (this._usesCycle) {
 			if (this._cycleDuration <= 0)
-				throw(new Error("the cycle duration must be greater than zero"));
-			this._cycleData = new Vector3D(Math.PI*2/this._cycleDuration, this._cyclePhase*Math.PI/180, 0, 0);
+				throw (new Error('the cycle duration must be greater than zero'));
+			this._cycleData = new Vector3D(Math.PI * 2 / this._cycleDuration, this._cyclePhase * Math.PI / 180, 0, 0);
 		}
 		if (this._particleColorNode.mode == ParticlePropertiesMode.GLOBAL) {
 			if (this._usesCycle) {
 				if (this._usesMultiplier) {
-					this._startMultiplierData = new Vector3D((this._startColor.redMultiplier + this._endColor.redMultiplier)/2, (this._startColor.greenMultiplier + this._endColor.greenMultiplier)/2, (this._startColor.blueMultiplier + this._endColor.blueMultiplier)/2, (this._startColor.alphaMultiplier + this._endColor.alphaMultiplier)/2);
-					this._deltaMultiplierData = new Vector3D((this._endColor.redMultiplier - this._startColor.redMultiplier)/2, (this._endColor.greenMultiplier - this._startColor.greenMultiplier)/2, (this._endColor.blueMultiplier - this._startColor.blueMultiplier)/2, (this._endColor.alphaMultiplier - this._startColor.alphaMultiplier)/2);
+					this._startMultiplierData = new Vector3D((this._startColor.redMultiplier + this._endColor.redMultiplier) / 2, (this._startColor.greenMultiplier + this._endColor.greenMultiplier) / 2, (this._startColor.blueMultiplier + this._endColor.blueMultiplier) / 2, (this._startColor.alphaMultiplier + this._endColor.alphaMultiplier) / 2);
+					this._deltaMultiplierData = new Vector3D((this._endColor.redMultiplier - this._startColor.redMultiplier) / 2, (this._endColor.greenMultiplier - this._startColor.greenMultiplier) / 2, (this._endColor.blueMultiplier - this._startColor.blueMultiplier) / 2, (this._endColor.alphaMultiplier - this._startColor.alphaMultiplier) / 2);
 				}
 
 				if (this._usesOffset) {
-					this._startOffsetData = new Vector3D((this._startColor.redOffset + this._endColor.redOffset)/(255*2), (this._startColor.greenOffset + this._endColor.greenOffset)/(255*2), (this._startColor.blueOffset + this._endColor.blueOffset)/(255*2), (this._startColor.alphaOffset + this._endColor.alphaOffset)/(255*2));
-					this._deltaOffsetData = new Vector3D((this._endColor.redOffset - this._startColor.redOffset)/(255*2), (this._endColor.greenOffset - this._startColor.greenOffset)/(255*2), (this._endColor.blueOffset - this._startColor.blueOffset)/(255*2), (this._endColor.alphaOffset - this._startColor.alphaOffset)/(255*2));
+					this._startOffsetData = new Vector3D((this._startColor.redOffset + this._endColor.redOffset) / (255 * 2), (this._startColor.greenOffset + this._endColor.greenOffset) / (255 * 2), (this._startColor.blueOffset + this._endColor.blueOffset) / (255 * 2), (this._startColor.alphaOffset + this._endColor.alphaOffset) / (255 * 2));
+					this._deltaOffsetData = new Vector3D((this._endColor.redOffset - this._startColor.redOffset) / (255 * 2), (this._endColor.greenOffset - this._startColor.greenOffset) / (255 * 2), (this._endColor.blueOffset - this._startColor.blueOffset) / (255 * 2), (this._endColor.alphaOffset - this._startColor.alphaOffset) / (255 * 2));
 				}
 			} else {
 				if (this._usesMultiplier) {
@@ -182,8 +170,8 @@ export class ParticleColorState extends ParticleStateBase
 				}
 
 				if (this._usesOffset) {
-					this._startOffsetData = new Vector3D(this._startColor.redOffset/255, this._startColor.greenOffset/255, this._startColor.blueOffset/255, this._startColor.alphaOffset/255);
-					this._deltaOffsetData = new Vector3D((this._endColor.redOffset - this._startColor.redOffset)/255, (this._endColor.greenOffset - this._startColor.greenOffset)/255, (this._endColor.blueOffset - this._startColor.blueOffset )/255, (this._endColor.alphaOffset - this._startColor.alphaOffset)/255);
+					this._startOffsetData = new Vector3D(this._startColor.redOffset / 255, this._startColor.greenOffset / 255, this._startColor.blueOffset / 255, this._startColor.alphaOffset / 255);
+					this._deltaOffsetData = new Vector3D((this._endColor.redOffset - this._startColor.redOffset) / 255, (this._endColor.greenOffset - this._startColor.greenOffset) / 255, (this._endColor.blueOffset - this._startColor.blueOffset) / 255, (this._endColor.alphaOffset - this._startColor.alphaOffset) / 255);
 				}
 			}
 		}

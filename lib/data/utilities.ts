@@ -1,17 +1,17 @@
 
-export function assert(condition: any, message: any = "assertion failed") {
-  if (condition === "") {     // avoid inadvertent false positive
-    condition = true;
-  }
-  if (!condition) {
-    if (typeof console !== 'undefined' && 'assert' in console) {
-      console.assert(false, message);
-      throw new Error(message);
-    } else {
-      //Debug.error(message.toString());
-      throw new Error(message);
-    }
-  }
+export function assert(condition: any, message: any = 'assertion failed') {
+	if (condition === '') {     // avoid inadvertent false positive
+		condition = true;
+	}
+	if (!condition) {
+		if (typeof console !== 'undefined' && 'assert' in console) {
+			console.assert(false, message);
+			throw new Error(message);
+		} else {
+			//Debug.error(message.toString());
+			throw new Error(message);
+		}
+	}
 }
 
 export interface IDataDecoder {
@@ -41,145 +41,146 @@ export function memCopy(destination: any, source: any, doffset: number = 0,
 	}
 }
 
-
 /**
  * Faster release version of bounds.
  */
 export class Bounds {
-  xMin:number;
-  yMin:number;
-  xMax:number;
-  yMax:number;
+	xMin: number;
+	yMin: number;
+	xMax: number;
+	yMax: number;
 
-  constructor(xMin:number, yMin:number, xMax:number, yMax:number) {
-    this.xMin = xMin | 0;
-    this.yMin = yMin | 0;
-    this.xMax = xMax | 0;
-    this.yMax = yMax | 0;
-  }
-  //static FromUntyped(source:UntypedBounds):Bounds {
-  static FromUntyped(source:any):Bounds {
-    return new Bounds(source.xMin, source.yMin, source.xMax, source.yMax);
-  }
-    //static FromRectangle(source:ASRectangle):Bounds {
-  static FromRectangle(source:any):Bounds {
-    return new Bounds(source.x * 20 | 0, source.y * 20 | 0, (source.x + source.width) * 20 | 0,
-        (source.y + source.height) * 20 | 0);
-  }
+	constructor(xMin: number, yMin: number, xMax: number, yMax: number) {
+		this.xMin = xMin | 0;
+		this.yMin = yMin | 0;
+		this.xMax = xMax | 0;
+		this.yMax = yMax | 0;
+	}
 
-  setElements(xMin:number, yMin:number, xMax:number, yMax:number):void {
-    this.xMin = xMin;
-    this.yMin = yMin;
-    this.xMax = xMax;
-    this.yMax = yMax;
-  }
+	//static FromUntyped(source:UntypedBounds):Bounds {
+	static FromUntyped(source: any): Bounds {
+		return new Bounds(source.xMin, source.yMin, source.xMax, source.yMax);
+	}
 
-  copyFrom(source:Bounds):void {
-    this.setElements(source.xMin, source.yMin, source.xMax, source.yMax);
-  }
+	//static FromRectangle(source:ASRectangle):Bounds {
+	static FromRectangle(source: any): Bounds {
+		return new Bounds(source.x * 20 | 0, source.y * 20 | 0, (source.x + source.width) * 20 | 0,
+			(source.y + source.height) * 20 | 0);
+	}
 
-  contains(x:number, y:number):boolean {
-    return x < this.xMin !== x < this.xMax &&
+	setElements(xMin: number, yMin: number, xMax: number, yMax: number): void {
+		this.xMin = xMin;
+		this.yMin = yMin;
+		this.xMax = xMax;
+		this.yMax = yMax;
+	}
+
+	copyFrom(source: Bounds): void {
+		this.setElements(source.xMin, source.yMin, source.xMax, source.yMax);
+	}
+
+	contains(x: number, y: number): boolean {
+		return x < this.xMin !== x < this.xMax &&
         y < this.yMin !== y < this.yMax;
-  }
+	}
 
-  unionInPlace(other:Bounds):void {
-    if (other.isEmpty()) {
-      return;
-    }
-    this.extendByPoint(other.xMin, other.yMin);
-    this.extendByPoint(other.xMax, other.yMax);
-  }
+	unionInPlace(other: Bounds): void {
+		if (other.isEmpty()) {
+			return;
+		}
+		this.extendByPoint(other.xMin, other.yMin);
+		this.extendByPoint(other.xMax, other.yMax);
+	}
 
-  extendByPoint(x:number, y:number):void {
-    this.extendByX(x);
-    this.extendByY(y);
-  }
+	extendByPoint(x: number, y: number): void {
+		this.extendByX(x);
+		this.extendByY(y);
+	}
 
-  extendByX(x:number):void {
-    // Exclude default values.
-    if (this.xMin === 0x8000000) {
-      this.xMin = this.xMax = x;
-      return;
-    }
-    this.xMin = Math.min(this.xMin, x);
-    this.xMax = Math.max(this.xMax, x);
-  }
+	extendByX(x: number): void {
+		// Exclude default values.
+		if (this.xMin === 0x8000000) {
+			this.xMin = this.xMax = x;
+			return;
+		}
+		this.xMin = Math.min(this.xMin, x);
+		this.xMax = Math.max(this.xMax, x);
+	}
 
-  extendByY(y:number):void {
-    // Exclude default values.
-    if (this.yMin === 0x8000000) {
-      this.yMin = this.yMax = y;
-      return;
-    }
-    this.yMin = Math.min(this.yMin, y);
-    this.yMax = Math.max(this.yMax, y);
-  }
+	extendByY(y: number): void {
+		// Exclude default values.
+		if (this.yMin === 0x8000000) {
+			this.yMin = this.yMax = y;
+			return;
+		}
+		this.yMin = Math.min(this.yMin, y);
+		this.yMax = Math.max(this.yMax, y);
+	}
 
-  public intersects(toIntersect:Bounds):boolean {
-    return this.contains(toIntersect.xMin, toIntersect.yMin) ||
+	public intersects(toIntersect: Bounds): boolean {
+		return this.contains(toIntersect.xMin, toIntersect.yMin) ||
         this.contains(toIntersect.xMax, toIntersect.yMax);
-  }
+	}
 
-  isEmpty():boolean {
-    return this.xMax <= this.xMin || this.yMax <= this.yMin;
-  }
+	isEmpty(): boolean {
+		return this.xMax <= this.xMin || this.yMax <= this.yMin;
+	}
 
-  get width():number {
-    return this.xMax - this.xMin;
-  }
+	get width(): number {
+		return this.xMax - this.xMin;
+	}
 
-  set width(value:number) {
-    this.xMax = this.xMin + value;
-  }
+	set width(value: number) {
+		this.xMax = this.xMin + value;
+	}
 
-  get height():number {
-    return this.yMax - this.yMin;
-  }
+	get height(): number {
+		return this.yMax - this.yMin;
+	}
 
-  set height(value:number) {
-    this.yMax = this.yMin + value;
-  }
+	set height(value: number) {
+		this.yMax = this.yMin + value;
+	}
 
-  public getBaseWidth(angle:number):number {
-    var u = Math.abs(Math.cos(angle));
-    var v = Math.abs(Math.sin(angle));
-    return u * (this.xMax - this.xMin) + v * (this.yMax - this.yMin);
-  }
+	public getBaseWidth(angle: number): number {
+		const u = Math.abs(Math.cos(angle));
+		const v = Math.abs(Math.sin(angle));
+		return u * (this.xMax - this.xMin) + v * (this.yMax - this.yMin);
+	}
 
-  public getBaseHeight(angle:number):number {
-    var u = Math.abs(Math.cos(angle));
-    var v = Math.abs(Math.sin(angle));
-    return v * (this.xMax - this.xMin) + u * (this.yMax - this.yMin);
-  }
+	public getBaseHeight(angle: number): number {
+		const u = Math.abs(Math.cos(angle));
+		const v = Math.abs(Math.sin(angle));
+		return v * (this.xMax - this.xMin) + u * (this.yMax - this.yMin);
+	}
 
-  setEmpty():void {
-    this.xMin = this.yMin = this.xMax = this.yMax = 0;
-  }
+	setEmpty(): void {
+		this.xMin = this.yMin = this.xMax = this.yMax = 0;
+	}
 
-  /**
+	/**
    * Set all fields to the sentinel value 0x8000000.
    *
    * This is what Flash uses to indicate uninitialized bounds. Important for bounds calculation
    * in `Graphics` instances, which start out with empty bounds but must not just extend them
    * from an 0,0 origin.
    */
-  setToSentinels():void {
-    this.xMin = this.yMin = this.xMax = this.yMax = 0x8000000;
-  }
+	setToSentinels(): void {
+		this.xMin = this.yMin = this.xMax = this.yMax = 0x8000000;
+	}
 
-  clone():Bounds {
-    return new Bounds(this.xMin, this.yMin, this.xMax, this.yMax);
-  }
+	clone(): Bounds {
+		return new Bounds(this.xMin, this.yMin, this.xMax, this.yMax);
+	}
 
-  toString():string {
-    return "{ " +
-        "xMin: " + this.xMin + ", " +
-        "xMin: " + this.yMin + ", " +
-        "xMax: " + this.xMax + ", " +
-        "xMax: " + this.yMax +
-        " }";
-  }
+	toString(): string {
+		return '{ ' +
+        'xMin: ' + this.xMin + ', ' +
+        'xMin: ' + this.yMin + ', ' +
+        'xMax: ' + this.xMax + ', ' +
+        'xMax: ' + this.yMax +
+        ' }';
+	}
 }
 
 export enum ImageType {
@@ -205,37 +206,34 @@ export enum ImageType {
 	GIF
 }
 
-
 export function clamp(value: number, min: number, max: number) {
 	return Math.max(min, Math.min(max, value));
 }
-
 
 export function roundToMultipleOfFour(x: number) {
 	return (x + 3) & ~0x3;
 }
 
 export function isObject(value): boolean {
-	return typeof value === "object" || typeof value === 'function';
+	return typeof value === 'object' || typeof value === 'function';
 }
-
 
 export function isNullOrUndefined(value) {
 	return value == undefined;
 }
 
 export function utf8decode(str: string): Uint8Array {
-	var bytes = new Uint8Array(str.length * 4);
-	var b = 0;
-	for (var i = 0, j = str.length; i < j; i++) {
-		var code = str.charCodeAt(i);
+	const bytes = new Uint8Array(str.length * 4);
+	let b = 0;
+	for (let i = 0, j = str.length; i < j; i++) {
+		let code = str.charCodeAt(i);
 		if (code <= 0x7f) {
 			bytes[b++] = code;
 			continue;
 		}
 
 		if (0xD800 <= code && code <= 0xDBFF) {
-			var codeLow = str.charCodeAt(i + 1);
+			const codeLow = str.charCodeAt(i + 1);
 			if (0xDC00 <= codeLow && codeLow <= 0xDFFF) {
 				// convert only when both high and low surrogates are present
 				code = ((code & 0x3FF) << 10) + (codeLow & 0x3FF) + 0x10000;
@@ -267,17 +265,17 @@ export function utf8decode(str: string): Uint8Array {
 }
 
 export function utf8encode(bytes: Uint8Array): string {
-	var j = 0, str = "";
+	let j = 0, str = '';
 	while (j < bytes.length) {
-		var b1 = bytes[j++] & 0xFF;
+		const b1 = bytes[j++] & 0xFF;
 		if (b1 <= 0x7F) {
 			str += String.fromCharCode(b1);
 		} else {
-			var currentPrefix = 0xC0;
-			var validBits = 5;
+			let currentPrefix = 0xC0;
+			let validBits = 5;
 			do {
-				var mask = (currentPrefix >> 1) | 0x80;
-				if((b1 & mask) === currentPrefix) break;
+				const mask = (currentPrefix >> 1) | 0x80;
+				if ((b1 & mask) === currentPrefix) break;
 				currentPrefix = (currentPrefix >> 1) | 0x80;
 				--validBits;
 			} while (validBits >= 0);
@@ -287,10 +285,10 @@ export function utf8encode(bytes: Uint8Array): string {
 				str += String.fromCharCode(b1);
 				continue;
 			}
-			var code = (b1 & ((1 << validBits) - 1));
-			var invalid = false;
+			let code = (b1 & ((1 << validBits) - 1));
+			let invalid = false;
 			for (var i = 5; i >= validBits; --i) {
-				var bi = bytes[j++];
+				const bi = bytes[j++];
 				if ((bi & 0xC0) != 0x80) {
 					// Invalid UTF8 character sequence
 					invalid = true;
@@ -300,7 +298,7 @@ export function utf8encode(bytes: Uint8Array): string {
 			}
 			if (invalid) {
 				// Copying invalid sequence as is
-				for (var k = j - (7 - i); k < j; ++k) {
+				for (let k = j - (7 - i); k < j; ++k) {
 					str += String.fromCharCode(bytes[k] & 255);
 				}
 				continue;
@@ -338,9 +336,9 @@ export class ArrayBufferPool {
 	 */
 	public acquire(length: number): ArrayBuffer {
 		if (ArrayBufferPool._enabled) {
-			var list = this._list;
-			for (var i = 0; i < list.length; i++) {
-				var buffer = list[i];
+			const list = this._list;
+			for (let i = 0; i < list.length; i++) {
+				const buffer = list[i];
 				if (buffer.byteLength >= length) {
 					list.splice(i, 1);
 					return buffer;
@@ -355,7 +353,7 @@ export class ArrayBufferPool {
 	 */
 	public release(buffer: ArrayBuffer) {
 		if (ArrayBufferPool._enabled) {
-			var list = this._list;
+			const list = this._list;
 			//release || Debug.assert(ArrayUtilities.indexOf(list, buffer) < 0);
 			if (list.length === this._maxSize) {
 				list.shift();
@@ -371,8 +369,8 @@ export class ArrayBufferPool {
 		if (array.length >= length) {
 			return array;
 		}
-		var newLength = Math.max(array.length + length, ((array.length * 3) >> 1) + 1);
-		var newArray = new Uint8Array(this.acquire(newLength), 0, newLength);
+		const newLength = Math.max(array.length + length, ((array.length * 3) >> 1) + 1);
+		const newArray = new Uint8Array(this.acquire(newLength), 0, newLength);
 		newArray.set(array);
 		this.release(array.buffer);
 		return newArray;
@@ -385,8 +383,8 @@ export class ArrayBufferPool {
 		if (array.length >= length) {
 			return array;
 		}
-		var newLength = Math.max(array.length + length, ((array.length * 3) >> 1) + 1);
-		var newArray = new Float64Array(this.acquire(newLength * Float64Array.BYTES_PER_ELEMENT), 0, newLength);
+		const newLength = Math.max(array.length + length, ((array.length * 3) >> 1) + 1);
+		const newArray = new Float64Array(this.acquire(newLength * Float64Array.BYTES_PER_ELEMENT), 0, newLength);
 		newArray.set(array);
 		this.release(array.buffer);
 		return newArray;
@@ -401,7 +399,7 @@ export class ArrayBufferPool {
 export function ensureTypedArrayCapacity(array: any, capacity: number): any {
 
 	if (array.length < capacity) {
-		var oldArray = array;
+		const oldArray = array;
 		array = new (<any>array).constructor(IntegerUtilities.nearestPowerOfTwo(capacity));
 		array.set(oldArray, 0);
 	}
@@ -414,7 +412,7 @@ interface Math {
 	 * Returns the number of leading zeros of a number.
 	 * @param x A numeric expression.
 	 */
-	/*clz32(x: number): number;
+/*clz32(x: number): number;
 }*/
 
 export module IntegerUtilities {
@@ -499,14 +497,14 @@ export module IntegerUtilities {
 	}
 
 	export function getFlags(i: number, flags: string[]): string {
-		var str = "";
+		let str = '';
 		for (var i = 0; i < flags.length; i++) {
 			if (i & (1 << i)) {
-				str += flags[i] + " ";
+				str += flags[i] + ' ';
 			}
 		}
 		if (str.length === 0) {
-			return "";
+			return '';
 		}
 		return str.trim();
 	}
@@ -520,31 +518,25 @@ export module IntegerUtilities {
 	}
 
 	export function nearestPowerOfTwo(x: number) {
-		x --;
+		x--;
 		x |= x >> 1;
 		x |= x >> 2;
 		x |= x >> 4;
 		x |= x >> 8;
 		x |= x >> 16;
-		x ++;
+		x++;
 		return x;
 	}
 
 	export function roundToMultipleOfPowerOfTwo(i: number, powerOfTwo: number) {
-		var x = (1 << powerOfTwo) - 1;
+		const x = (1 << powerOfTwo) - 1;
 		return (i + x) & ~x; // Round up to multiple of power of two.
 	}
 
-
-
-
 	export function toHEX(i: number) {
 		var i = (i < 0 ? 0xFFFFFFFF + i + 1 : i);
-		return "0x" + ("00000000" + i.toString(16)).substr(-8);
+		return '0x' + ('00000000' + i.toString(16)).substr(-8);
 	}
-
-
-
 
 	/**
 	 * Polyfill imul.
@@ -577,7 +569,6 @@ export module IntegerUtilities {
 	}*/
 }
 
-
 export class ABCBlock {
 	name: string;
 	flags: number;
@@ -590,7 +581,7 @@ export class EncryptedBlock {
 		public size: ui32,
 		public bytePos: ui32,
 		public rawTagId: ui8 = 0
-	){}
+	) {}
 }
 
 export class ActionBlock {
@@ -638,7 +629,7 @@ export class EagerlyParsedDictionaryEntry extends DictionaryEntry {
  * of "null" or "undefined".
  */
 export function axCoerceString(x): string {
-	if (typeof x === "string") {
+	if (typeof x === 'string') {
 		return x;
 	} else if (x == undefined) {
 		return null;
@@ -651,29 +642,29 @@ export var Errors = {
 	 */
 
 	//  OutOfMemoryError                     : {code: 1000, message: "The system is out of memory."},
-	NotImplementedError                  : {code: 1001, message: "The method %1 is not implemented."},
-	InvalidPrecisionError                : {code: 1002, message: "Number.toPrecision has a range of 1 to 21. Number.toFixed and Number.toExponential have a range of 0 to 20. Specified value is not within expected range."},
-	InvalidRadixError                    : {code: 1003, message: "The radix argument must be between 2 and 36; got %1."},
-	InvokeOnIncompatibleObjectError      : {code: 1004, message: "Method %1 was invoked on an incompatible object."},
-	ArrayIndexNotIntegerError            : {code: 1005, message: "Array index is not a positive integer (%1)."},
-	CallOfNonFunctionError               : {code: 1006, message: "%1 is not a function."},
-	ConstructOfNonFunctionError          : {code: 1007, message: "Instantiation attempted on a non-constructor."},
+	NotImplementedError                  : { code: 1001, message: 'The method %1 is not implemented.' },
+	InvalidPrecisionError                : { code: 1002, message: 'Number.toPrecision has a range of 1 to 21. Number.toFixed and Number.toExponential have a range of 0 to 20. Specified value is not within expected range.' },
+	InvalidRadixError                    : { code: 1003, message: 'The radix argument must be between 2 and 36; got %1.' },
+	InvokeOnIncompatibleObjectError      : { code: 1004, message: 'Method %1 was invoked on an incompatible object.' },
+	ArrayIndexNotIntegerError            : { code: 1005, message: 'Array index is not a positive integer (%1).' },
+	CallOfNonFunctionError               : { code: 1006, message: '%1 is not a function.' },
+	ConstructOfNonFunctionError          : { code: 1007, message: 'Instantiation attempted on a non-constructor.' },
 	//  AmbiguousBindingError                : {code: 1008, message: "%1 is ambiguous; Found more than one matching binding."},
-	ConvertNullToObjectError             : {code: 1009, message: "Cannot access a property or method of a null object reference."},
-	ConvertUndefinedToObjectError        : {code: 1010, message: "A term is undefined and has no properties."},
+	ConvertNullToObjectError             : { code: 1009, message: 'Cannot access a property or method of a null object reference.' },
+	ConvertUndefinedToObjectError        : { code: 1010, message: 'A term is undefined and has no properties.' },
 	//  IllegalOpcodeError                   : {code: 1011, message: "Method %1 contained illegal opcode %2 at offset %3."},
 	//  LastInstExceedsCodeSizeError         : {code: 1012, message: "The last instruction exceeded code size."},
 	//  FindVarWithNoScopeError              : {code: 1013, message: "Cannot call OP_findproperty when scopeDepth is 0."},
-	ClassNotFoundError                   : {code: 1014, message: "Class %1 could not be found."},
+	ClassNotFoundError                   : { code: 1014, message: 'Class %1 could not be found.' },
 	//  IllegalSetDxns                       : {code: 1015, message: "Method %1 cannot set default xml namespace"},
-	DescendentsError                     : {code: 1016, message: "Descendants operator (..) not supported on type %1."},
+	DescendentsError                     : { code: 1016, message: 'Descendants operator (..) not supported on type %1.' },
 	//  ScopeStackOverflowError              : {code: 1017, message: "Scope stack overflow occurred."},
 	//  ScopeStackUnderflowError             : {code: 1018, message: "Scope stack underflow occurred."},
 	//  GetScopeObjectBoundsError            : {code: 1019, message: "Getscopeobject %1 is out of bounds."},
 	//  CannotFallOffMethodError             : {code: 1020, message: "Code cannot fall off the end of a method."},
 	//  InvalidBranchTargetError             : {code: 1021, message: "At least one branch target was not on a valid instruction in the method."},
 	//  IllegalVoidError                     : {code: 1022, message: "Type void may only be used as a function return type."},
-	StackOverflowError                   : {code: 1023, message: "Stack overflow occurred."},
+	StackOverflowError                   : { code: 1023, message: 'Stack overflow occurred.' },
 	//  StackUnderflowError                  : {code: 1024, message: "Stack underflow occurred."},
 	//  InvalidRegisterError                 : {code: 1025, message: "An invalid register %1 was accessed."},
 	//  SlotExceedsCountError                : {code: 1026, message: "Slot %1 exceeds slotCount=%2 of %3."},
@@ -682,45 +673,45 @@ export var Errors = {
 	//  DispIdUndefinedError                 : {code: 1029, message: "Disp_id %1 is undefined on %2."},
 	//  StackDepthUnbalancedError            : {code: 1030, message: "Stack depth is unbalanced. %1 != %2."},
 	//  ScopeDepthUnbalancedError            : {code: 1031, message: "Scope depth is unbalanced. %1 != %2."},
-	CpoolIndexRangeError                 : {code: 1032, message: "Cpool index %1 is out of range %2."},
-	CpoolEntryWrongTypeError             : {code: 1033, message: "Cpool entry %1 is wrong type."},
-	CheckTypeFailedError                 : {code: 1034, message: "Type Coercion failed: cannot convert %1 to %2."},
+	CpoolIndexRangeError                 : { code: 1032, message: 'Cpool index %1 is out of range %2.' },
+	CpoolEntryWrongTypeError             : { code: 1033, message: 'Cpool entry %1 is wrong type.' },
+	CheckTypeFailedError                 : { code: 1034, message: 'Type Coercion failed: cannot convert %1 to %2.' },
 	//  IllegalSuperCallError                : {code: 1035, message: "Illegal super expression found in method %1."},
-	CannotAssignToMethodError            : {code: 1037, message: "Cannot assign to a method %1 on %2."},
+	CannotAssignToMethodError            : { code: 1037, message: 'Cannot assign to a method %1 on %2.' },
 	//  RedefinedError                       : {code: 1038, message: "%1 is already defined."},
 	//  CannotVerifyUntilReferencedError     : {code: 1039, message: "Cannot verify method until it is referenced."},
-	CantUseInstanceofOnNonObjectError    : {code: 1040, message: "The right-hand side of instanceof must be a class or function."},
-	IsTypeMustBeClassError               : {code: 1041, message: "The right-hand side of operator must be a class."},
-	InvalidMagicError                    : {code: 1042, message: "Not an ABC file.  major_version=%1 minor_version=%2."},
+	CantUseInstanceofOnNonObjectError    : { code: 1040, message: 'The right-hand side of instanceof must be a class or function.' },
+	IsTypeMustBeClassError               : { code: 1041, message: 'The right-hand side of operator must be a class.' },
+	InvalidMagicError                    : { code: 1042, message: 'Not an ABC file.  major_version=%1 minor_version=%2.' },
 	//  InvalidCodeLengthError               : {code: 1043, message: "Invalid code_length=%1."},
 	//  InvalidMethodInfoFlagsError          : {code: 1044, message: "MethodInfo-%1 unsupported flags=%2."},
-	UnsupportedTraitsKindError           : {code: 1045, message: "Unsupported traits kind=%1."},
+	UnsupportedTraitsKindError           : { code: 1045, message: 'Unsupported traits kind=%1.' },
 	//  MethodInfoOrderError                 : {code: 1046, message: "MethodInfo-%1 referenced before definition."},
 	//  MissingEntryPointError               : {code: 1047, message: "No entry point was found."},
-	PrototypeTypeError                   : {code: 1049, message: "Prototype objects must be vanilla Objects."},
-	ConvertToPrimitiveError              : {code: 1050, message: "Cannot convert %1 to primitive."},
+	PrototypeTypeError                   : { code: 1049, message: 'Prototype objects must be vanilla Objects.' },
+	ConvertToPrimitiveError              : { code: 1050, message: 'Cannot convert %1 to primitive.' },
 	//  IllegalEarlyBindingError             : {code: 1051, message: "Illegal early binding access to %1."},
-	InvalidURIError                      : {code: 1052, message: "Invalid URI passed to %1 function."},
+	InvalidURIError                      : { code: 1052, message: 'Invalid URI passed to %1 function.' },
 	//  IllegalOverrideError                 : {code: 1053, message: "Illegal override of %1 in %2."},
 	//  IllegalExceptionHandlerError         : {code: 1054, message: "Illegal range or target offsets in exception handler."},
-	WriteSealedError                     : {code: 1056, message: "Cannot create property %1 on %2."},
+	WriteSealedError                     : { code: 1056, message: 'Cannot create property %1 on %2.' },
 	//  IllegalSlotError                     : {code: 1057, message: "%1 can only contain methods."},
 	//  IllegalOperandTypeError              : {code: 1058, message: "Illegal operand type: %1 must be %2."},
 	//  ClassInfoOrderError                  : {code: 1059, message: "ClassInfo-%1 is referenced before definition."},
 	//  ClassInfoExceedsCountError           : {code: 1060, message: "ClassInfo %1 exceeds class_count=%2."},
 	//  NumberOutOfRangeError                : {code: 1061, message: "The value %1 cannot be converted to %2 without losing precision."},
-	WrongArgumentCountError              : {code: 1063, message: "Argument count mismatch on %1. Expected %2, got %3."},
+	WrongArgumentCountError              : { code: 1063, message: 'Argument count mismatch on %1. Expected %2, got %3.' },
 	//  CannotCallMethodAsConstructor        : {code: 1064, message: "Cannot call method %1 as constructor."},
-	UndefinedVarError                    : {code: 1065, message: "Variable %1 is not defined."},
+	UndefinedVarError                    : { code: 1065, message: 'Variable %1 is not defined.' },
 	//  FunctionConstructorError             : {code: 1066, message: "The form function('function body') is not supported."},
 	//  IllegalNativeMethodBodyError         : {code: 1067, message: "Native method %1 has illegal method body."},
 	//  CannotMergeTypesError                : {code: 1068, message: "%1 and %2 cannot be reconciled."},
-	ReadSealedError                      : {code: 1069, message: "Property %1 not found on %2 and there is no default value."},
+	ReadSealedError                      : { code: 1069, message: 'Property %1 not found on %2 and there is no default value.' },
 	//  CallNotFoundError                    : {code: 1070, message: "Method %1 not found on %2"},
 	//  AlreadyBoundError                    : {code: 1071, message: "Function %1 has already been bound to %2."},
 	//  ZeroDispIdError                      : {code: 1072, message: "Disp_id 0 is illegal."},
 	//  DuplicateDispIdError                 : {code: 1073, message: "Non-override method %1 replaced because of duplicate disp_id %2."},
-	ConstWriteError                      : {code: 1074, message: "Illegal write to read-only property %1 on %2."},
+	ConstWriteError                      : { code: 1074, message: 'Illegal write to read-only property %1 on %2.' },
 	//  MathNotFunctionError                 : {code: 1075, message: "Math is not a function."},
 	//  MathNotConstructorError              : {code: 1076, message: "Math is not a constructor."},
 	//  WriteOnlyError                       : {code: 1077, message: "Illegal read of write-only property %1 on %2."},
@@ -729,29 +720,29 @@ export var Errors = {
 	//  IllegalNamespaceError                : {code: 1080, message: "Illegal value for namespace."},
 	//  ReadSealedErrorNs                    : {code: 1081, message: "Property %1 not found on %2 and there is no default value."},
 	//  NoDefaultNamespaceError              : {code: 1082, message: "No default namespace has been set."},
-	XMLPrefixNotBound                    : {code: 1083, message: "The prefix \"%1\" for element \"%2\" is not bound."},
+	XMLPrefixNotBound                    : { code: 1083, message: 'The prefix "%1" for element "%2" is not bound.' },
 	//  XMLBadQName                          : {code: 1084, message: "Element or attribute (\"%1\") does not match QName production: QName::=(NCName':')?NCName."},
-	XMLUnterminatedElementTag            : {code: 1085, message: "The element type \"%1\" must be terminated by the matching end-tag \"</%2>\"."},
-	XMLOnlyWorksWithOneItemLists         : {code: 1086, message: "The %1 method only works on lists containing one item."},
-	XMLAssignmentToIndexedXMLNotAllowed  : {code: 1087, message: "Assignment to indexed XML is not allowed."},
-	XMLMarkupMustBeWellFormed            : {code: 1088, message: "The markup in the document following the root element must be well-formed."},
-	XMLAssigmentOneItemLists             : {code: 1089, message: "Assignment to lists with more than one item is not supported."},
-	XMLMalformedElement                  : {code: 1090, message: "XML parser failure: element is malformed."},
-	XMLUnterminatedCData                 : {code: 1091, message: "XML parser failure: Unterminated CDATA section."},
-	XMLUnterminatedXMLDecl               : {code: 1092, message: "XML parser failure: Unterminated XML declaration."},
-	XMLUnterminatedDocTypeDecl           : {code: 1093, message: "XML parser failure: Unterminated DOCTYPE declaration."},
-	XMLUnterminatedComment               : {code: 1094, message: "XML parser failure: Unterminated comment."},
+	XMLUnterminatedElementTag            : { code: 1085, message: 'The element type "%1" must be terminated by the matching end-tag "</%2>".' },
+	XMLOnlyWorksWithOneItemLists         : { code: 1086, message: 'The %1 method only works on lists containing one item.' },
+	XMLAssignmentToIndexedXMLNotAllowed  : { code: 1087, message: 'Assignment to indexed XML is not allowed.' },
+	XMLMarkupMustBeWellFormed            : { code: 1088, message: 'The markup in the document following the root element must be well-formed.' },
+	XMLAssigmentOneItemLists             : { code: 1089, message: 'Assignment to lists with more than one item is not supported.' },
+	XMLMalformedElement                  : { code: 1090, message: 'XML parser failure: element is malformed.' },
+	XMLUnterminatedCData                 : { code: 1091, message: 'XML parser failure: Unterminated CDATA section.' },
+	XMLUnterminatedXMLDecl               : { code: 1092, message: 'XML parser failure: Unterminated XML declaration.' },
+	XMLUnterminatedDocTypeDecl           : { code: 1093, message: 'XML parser failure: Unterminated DOCTYPE declaration.' },
+	XMLUnterminatedComment               : { code: 1094, message: 'XML parser failure: Unterminated comment.' },
 	//  XMLUnterminatedAttribute             : {code: 1095, message: "XML parser failure: Unterminated attribute."},
-	XMLUnterminatedElement               : {code: 1096, message: "XML parser failure: Unterminated element."},
+	XMLUnterminatedElement               : { code: 1096, message: 'XML parser failure: Unterminated element.' },
 	//  XMLUnterminatedProcessingInstruction : {code: 1097, message: "XML parser failure: Unterminated processing instruction."},
-	XMLNamespaceWithPrefixAndNoURI       : {code: 1098, message: "Illegal prefix %1 for no namespace."},
-	RegExpFlagsArgumentError             : {code: 1100, message: "Cannot supply flags when constructing one RegExp from another."},
+	XMLNamespaceWithPrefixAndNoURI       : { code: 1098, message: 'Illegal prefix %1 for no namespace.' },
+	RegExpFlagsArgumentError             : { code: 1100, message: 'Cannot supply flags when constructing one RegExp from another.' },
 	//  NoScopeError                         : {code: 1101, message: "Cannot verify method %1 with unknown scope."},
 	//  IllegalDefaultValue                  : {code: 1102, message: "Illegal default value for type %1."},
 	//  CannotExtendFinalClass               : {code: 1103, message: "Class %1 cannot extend final base class."},
 	//  XMLDuplicateAttribute                : {code: 1104, message: "Attribute \"%1\" was already specified for element \"%2\"."},
 	//  CorruptABCError                      : {code: 1107, message: "The ABC data is corrupt, attempt to read out of bounds."},
-	InvalidBaseClassError                : {code: 1108, message: "The OP_newclass opcode was used with the incorrect base class."},
+	InvalidBaseClassError                : { code: 1108, message: 'The OP_newclass opcode was used with the incorrect base class.' },
 	//  DanglingFunctionError                : {code: 1109, message: "Attempt to directly call unbound function %1 from method %2."},
 	//  CannotExtendError                    : {code: 1110, message: "%1 cannot extend %2."},
 	//  CannotImplementError                 : {code: 1111, message: "%1 cannot implement %2."},
@@ -760,49 +751,49 @@ export var Errors = {
 	//  NoGlobalScopeError                   : {code: 1114, message: "OP_getglobalslot or OP_setglobalslot used with no global scope."},
 	//  NotConstructorError                  : {code: 1115, message: "%1 is not a constructor."},
 	//  ApplyError                           : {code: 1116, message: "second argument to Function.prototype.apply must be an array."},
-	XMLInvalidName                       : {code: 1117, message: "Invalid XML name: %1."},
-	XMLIllegalCyclicalLoop               : {code: 1118, message: "Illegal cyclical loop between nodes."},
+	XMLInvalidName                       : { code: 1117, message: 'Invalid XML name: %1.' },
+	XMLIllegalCyclicalLoop               : { code: 1118, message: 'Illegal cyclical loop between nodes.' },
 	//  DeleteTypeError                      : {code: 1119, message: "Delete operator is not supported with operand of type %1."},
 	//  DeleteSealedError                    : {code: 1120, message: "Cannot delete property %1 on %2."},
 	//  DuplicateMethodBodyError             : {code: 1121, message: "Method %1 has a duplicate method body."},
 	//  IllegalInterfaceMethodBodyError      : {code: 1122, message: "Interface method %1 has illegal method body."},
-	FilterError                          : {code: 1123, message: "Filter operator not supported on type %1."},
+	FilterError                          : { code: 1123, message: 'Filter operator not supported on type %1.' },
 	//  InvalidHasNextError                  : {code: 1124, message: "OP_hasnext2 requires object and index to be distinct registers."},
-	OutOfRangeError                      : {code: 1125, message: "The index %1 is out of range %2."},
-	VectorFixedError                     : {code: 1126, message: "Cannot change the length of a fixed Vector."},
-	TypeAppOfNonParamType                : {code: 1127, message: "Type application attempted on a non-parameterized type."},
-	WrongTypeArgCountError               : {code: 1128, message: "Incorrect number of type parameters for %1. Expected %2, got %3."},
-	JSONCyclicStructure                  : {code: 1129, message: "Cyclic structure cannot be converted to JSON string."},
-	JSONInvalidReplacer                  : {code: 1131, message: "Replacer argument to JSON stringifier must be an array or a two parameter function."},
-	JSONInvalidParseInput                : {code: 1132, message: "Invalid JSON parse input."},
+	OutOfRangeError                      : { code: 1125, message: 'The index %1 is out of range %2.' },
+	VectorFixedError                     : { code: 1126, message: 'Cannot change the length of a fixed Vector.' },
+	TypeAppOfNonParamType                : { code: 1127, message: 'Type application attempted on a non-parameterized type.' },
+	WrongTypeArgCountError               : { code: 1128, message: 'Incorrect number of type parameters for %1. Expected %2, got %3.' },
+	JSONCyclicStructure                  : { code: 1129, message: 'Cyclic structure cannot be converted to JSON string.' },
+	JSONInvalidReplacer                  : { code: 1131, message: 'Replacer argument to JSON stringifier must be an array or a two parameter function.' },
+	JSONInvalidParseInput                : { code: 1132, message: 'Invalid JSON parse input.' },
 	//  FileOpenError                        : {code: 1500, message: "Error occurred opening file %1."},
 	//  FileWriteError                       : {code: 1501, message: "Error occurred writing to file %1."},
 	//  ScriptTimeoutError                   : {code: 1502, message: "A script has executed for longer than the default timeout period of 15 seconds."},
 	//  ScriptTerminatedError                : {code: 1503, message: "A script failed to exit after 30 seconds and was terminated."},
 	//  EndOfFileError                       : {code: 1504, message: "End of file."},
 	//  StringIndexOutOfBoundsError          : {code: 1505, message: "The string index %1 is out of bounds; must be in range %2 to %3."},
-	InvalidRangeError                    : {code: 1506, message: "The specified range is invalid."},
-	NullArgumentError                    : {code: 1507, message: "Argument %1 cannot be null."},
-	InvalidArgumentError                 : {code: 1508, message: "The value specified for argument %1 is invalid."},
-	ArrayFilterNonNullObjectError        : {code: 1510, message: "When the callback argument is a method of a class, the optional this argument must be null."},
-	InvalidParamError                    : {code: 2004, message: "One of the parameters is invalid."},
-	ParamRangeError                      : {code: 2006, message: "The supplied index is out of bounds."},
-	NullPointerError                     : {code: 2007, message: "Parameter %1 must be non-null."},
-	InvalidEnumError                     : {code: 2008, message: "Parameter %1 must be one of the accepted values."},
-	CantInstantiateError                 : {code: 2012, message: "%1 class cannot be instantiated."},
-	InvalidBitmapData                    : {code: 2015, message: "Invalid BitmapData."},
-	EOFError                             : {code: 2030, message: "End of file was encountered.", fqn: 'flash.errors.EOFError'},
-	CompressedDataError                  : {code: 2058, message: "There was an error decompressing the data.", fqn: 'flash.errors.IOError'},
-	EmptyStringError                     : {code: 2085, message: "Parameter %1 must be non-empty string."},
-	ProxyGetPropertyError                : {code: 2088, message: "The Proxy class does not implement getProperty. It must be overridden by a subclass."},
-	ProxySetPropertyError                : {code: 2089, message: "The Proxy class does not implement setProperty. It must be overridden by a subclass."},
-	ProxyCallPropertyError               : {code: 2090, message: "The Proxy class does not implement callProperty. It must be overridden by a subclass."},
-	ProxyHasPropertyError                : {code: 2091, message: "The Proxy class does not implement hasProperty. It must be overridden by a subclass."},
-	ProxyDeletePropertyError             : {code: 2092, message: "The Proxy class does not implement deleteProperty. It must be overridden by a subclass."},
-	ProxyGetDescendantsError             : {code: 2093, message: "The Proxy class does not implement getDescendants. It must be overridden by a subclass."},
-	ProxyNextNameIndexError              : {code: 2105, message: "The Proxy class does not implement nextNameIndex. It must be overridden by a subclass."},
-	ProxyNextNameError                   : {code: 2106, message: "The Proxy class does not implement nextName. It must be overridden by a subclass."},
-	ProxyNextValueError                  : {code: 2107, message: "The Proxy class does not implement nextValue. It must be overridden by a subclass."},
+	InvalidRangeError                    : { code: 1506, message: 'The specified range is invalid.' },
+	NullArgumentError                    : { code: 1507, message: 'Argument %1 cannot be null.' },
+	InvalidArgumentError                 : { code: 1508, message: 'The value specified for argument %1 is invalid.' },
+	ArrayFilterNonNullObjectError        : { code: 1510, message: 'When the callback argument is a method of a class, the optional this argument must be null.' },
+	InvalidParamError                    : { code: 2004, message: 'One of the parameters is invalid.' },
+	ParamRangeError                      : { code: 2006, message: 'The supplied index is out of bounds.' },
+	NullPointerError                     : { code: 2007, message: 'Parameter %1 must be non-null.' },
+	InvalidEnumError                     : { code: 2008, message: 'Parameter %1 must be one of the accepted values.' },
+	CantInstantiateError                 : { code: 2012, message: '%1 class cannot be instantiated.' },
+	InvalidBitmapData                    : { code: 2015, message: 'Invalid BitmapData.' },
+	EOFError                             : { code: 2030, message: 'End of file was encountered.', fqn: 'flash.errors.EOFError' },
+	CompressedDataError                  : { code: 2058, message: 'There was an error decompressing the data.', fqn: 'flash.errors.IOError' },
+	EmptyStringError                     : { code: 2085, message: 'Parameter %1 must be non-empty string.' },
+	ProxyGetPropertyError                : { code: 2088, message: 'The Proxy class does not implement getProperty. It must be overridden by a subclass.' },
+	ProxySetPropertyError                : { code: 2089, message: 'The Proxy class does not implement setProperty. It must be overridden by a subclass.' },
+	ProxyCallPropertyError               : { code: 2090, message: 'The Proxy class does not implement callProperty. It must be overridden by a subclass.' },
+	ProxyHasPropertyError                : { code: 2091, message: 'The Proxy class does not implement hasProperty. It must be overridden by a subclass.' },
+	ProxyDeletePropertyError             : { code: 2092, message: 'The Proxy class does not implement deleteProperty. It must be overridden by a subclass.' },
+	ProxyGetDescendantsError             : { code: 2093, message: 'The Proxy class does not implement getDescendants. It must be overridden by a subclass.' },
+	ProxyNextNameIndexError              : { code: 2105, message: 'The Proxy class does not implement nextNameIndex. It must be overridden by a subclass.' },
+	ProxyNextNameError                   : { code: 2106, message: 'The Proxy class does not implement nextName. It must be overridden by a subclass.' },
+	ProxyNextValueError                  : { code: 2107, message: 'The Proxy class does not implement nextValue. It must be overridden by a subclass.' },
 	//  InvalidArrayLengthError              : {code: 2108, message: "The value %1 is not a valid Array length."},
 	//  ReadExternalNotImplementedError      : {code: 2173, message: "Unable to read object in stream.  The class %1 does not implement flash.utils.IExternalizable but is aliased to an externalizable class."},
 
@@ -810,13 +801,13 @@ export var Errors = {
 	 * Player Error Codes
 	 */
 	//  NoSecurityContextError                                    : { code: 2000, message: "No active security context."},
-	TooFewArgumentsError                                      : { code: 2001, message: "Too few arguments were specified; got %1, %2 expected."},
+	TooFewArgumentsError                                      : { code: 2001, message: 'Too few arguments were specified; got %1, %2 expected.' },
 	//  InvalidSocketError                                        : { code: 2002, message: "Operation attempted on invalid socket."},
 	//  InvalidSocketPortError                                    : { code: 2003, message: "Invalid socket port number specified."},
-	ParamTypeError                                            : { code: 2005, message: "Parameter %1 is of the incorrect type. Should be type %2."},
+	ParamTypeError                                            : { code: 2005, message: 'Parameter %1 is of the incorrect type. Should be type %2.' },
 	//  HasStyleSheetError                                        : { code: 2009, message: "This method cannot be used on a text field with a style sheet."},
 	//  SocketLocalFileSecurityError                              : { code: 2010, message: "Local-with-filesystem SWF files are not permitted to use sockets."},
-	SocketConnectError                                        : { code: 2011, message: "Socket connection failed to %1:%2."},
+	SocketConnectError                                        : { code: 2011, message: 'Socket connection failed to %1:%2.' },
 	//  AuthoringOnlyFeatureError                                 : { code: 2013, message: "Feature can only be used in Flash Authoring."},
 	//  FeatureNotAvailableError                                  : { code: 2014, message: "Feature is not available at this time."},
 	//  InvalidBitmapDataError                                    : { code: 2015, message: "Invalid BitmapData."},
@@ -827,8 +818,8 @@ export var Errors = {
 	//  ObjectCreationError                                       : { code: 2021, message: "Object creation failed."},
 	//  NotDisplayObjectError                                     : { code: 2022, message: "Class %1 must inherit from DisplayObject to link to a symbol."},
 	//  NotSpriteError                                            : { code: 2023, message: "Class %1 must inherit from Sprite to link to the root."},
-	CantAddSelfError                                          : { code: 2024, message: "An object cannot be added as a child of itself."},
-	NotAChildError                                            : { code: 2025, message: "The supplied DisplayObject must be a child of the caller."},
+	CantAddSelfError                                          : { code: 2024, message: 'An object cannot be added as a child of itself.' },
+	NotAChildError                                            : { code: 2025, message: 'The supplied DisplayObject must be a child of the caller.' },
 	//  NavigateURLError                                          : { code: 2026, message: "An error occurred navigating to the URL %1."},
 	//  MustBeNonNegativeError                                    : { code: 2027, message: "Parameter %1 must be a non-negative number; got %2."},
 	//  LocalSecurityError                                        : { code: 2028, message: "Local-with-filesystem SWF file %1 cannot access Internet URL %2."},
@@ -844,13 +835,13 @@ export var Errors = {
 	//  RemoteURLError                                            : { code: 2039, message: "Invalid remote URL protocol. The remote URL protocol must be HTTP or HTTPS."},
 	//  BrowseInProgressError                                     : { code: 2041, message: "Only one file browsing session may be performed at a time."},
 	//  DigestNotSupportedError                                   : { code: 2042, message: "The digest property is not supported by this load operation."},
-	UnhandledError                                            : { code: 2044, message: "Unhandled %1:."},
+	UnhandledError                                            : { code: 2044, message: 'Unhandled %1:.' },
 	//  FileVerificationError                                     : { code: 2046, message: "The loaded file did not have a valid signature."},
 	//  DisplayListSecurityError                                  : { code: 2047, message: "Security sandbox violation: %1: %2 cannot access %3."},
 	//  DownloadSecurityError                                     : { code: 2048, message: "Security sandbox violation: %1 cannot load data from %2."},
 	//  UploadSecurityError                                       : { code: 2049, message: "Security sandbox violation: %1 cannot upload data to %2."},
 	//  OutboundScriptingSecurityError                            : { code: 2051, message: "Security sandbox violation: %1 cannot evaluate scripting URLs within %2 (allowScriptAccess is %3). Attempted URL was %4."},
-	AllowDomainArgumentError                                  : { code: 2052, message: "Only String arguments are permitted for allowDomain and allowInsecureDomain."},
+	AllowDomainArgumentError                                  : { code: 2052, message: 'Only String arguments are permitted for allowDomain and allowInsecureDomain.' },
 	//  IntervalSecurityError                                     : { code: 2053, message: "Security sandbox violation: %1 cannot clear an interval timer set by %2."},
 	//  ExactSettingsError                                        : { code: 2054, message: "The value of Security.exactSettings cannot be changed after it has been used."},
 	//  PrintJobStartError                                        : { code: 2055, message: "The print job could not be started."},
@@ -862,35 +853,35 @@ export var Errors = {
 	//  NoCloneMethodError                                        : { code: 2062, message: "Children of Event must override clone() {return new MyEventClass (...);}."},
 	//  IMEError                                                  : { code: 2063, message: "Error attempting to execute IME command."},
 	//  FocusNotSetError                                          : { code: 2065, message: "The focus cannot be set for this target."},
-	DelayRangeError                                           : { code: 2066, message: "The Timer delay specified is out of range."},
-	ExternalInterfaceNotAvailableError                        : { code: 2067, message: "The ExternalInterface is not available in this container. ExternalInterface requires Internet Explorer ActiveX, Firefox, Mozilla 1.7.5 and greater, or other browsers that support NPRuntime."},
+	DelayRangeError                                           : { code: 2066, message: 'The Timer delay specified is out of range.' },
+	ExternalInterfaceNotAvailableError                        : { code: 2067, message: 'The ExternalInterface is not available in this container. ExternalInterface requires Internet Explorer ActiveX, Firefox, Mozilla 1.7.5 and greater, or other browsers that support NPRuntime.' },
 	//  InvalidSoundError                                         : { code: 2068, message: "Invalid sound."},
-	InvalidLoaderMethodError                                  : { code: 2069, message: "The Loader class does not implement this method."},
+	InvalidLoaderMethodError                                  : { code: 2069, message: 'The Loader class does not implement this method.' },
 	//  StageOwnerSecurityError                                   : { code: 2070, message: "Security sandbox violation: caller %1 cannot access Stage owned by %2."},
-	InvalidStageMethodError                                   : { code: 2071, message: "The Stage class does not implement this property or method."},
+	InvalidStageMethodError                                   : { code: 2071, message: 'The Stage class does not implement this property or method.' },
 	//  ProductManagerDiskError                                   : { code: 2073, message: "There was a problem saving the application to disk."},
 	//  ProductManagerStageError                                  : { code: 2074, message: "The stage is too small to fit the download ui."},
 	//  ProductManagerVerifyError                                 : { code: 2075, message: "The downloaded file is invalid."},
 	//  FilterFailedError                                         : { code: 2077, message: "This filter operation cannot be performed with the specified input parameters."},
-	TimelineObjectNameSealedError                             : { code: 2078, message: "The name property of a Timeline-placed object cannot be modified."},
+	TimelineObjectNameSealedError                             : { code: 2078, message: 'The name property of a Timeline-placed object cannot be modified.' },
 	//  BitmapNotAssociatedWithBitsCharError                      : { code: 2079, message: "Classes derived from Bitmap can only be associated with defineBits characters (bitmaps)."},
-	AlreadyConnectedError                                     : { code: 2082, message: "Connect failed because the object is already connected."},
-	CloseNotConnectedError                                    : { code: 2083, message: "Close failed because the object is not connected."},
-	ArgumentSizeError                                         : { code: 2084, message: "The AMF encoding of the arguments cannot exceed 40K."},
+	AlreadyConnectedError                                     : { code: 2082, message: 'Connect failed because the object is already connected.' },
+	CloseNotConnectedError                                    : { code: 2083, message: 'Close failed because the object is not connected.' },
+	ArgumentSizeError                                         : { code: 2084, message: 'The AMF encoding of the arguments cannot exceed 40K.' },
 	//  FileReferenceProhibitedError                              : { code: 2086, message: "A setting in the mms.cfg file prohibits this FileReference request."},
 	//  DownloadFileNameProhibitedError                           : { code: 2087, message: "The FileReference.download() file name contains prohibited characters."},
 	//  EventDispatchRecursionError                               : { code: 2094, message: "Event dispatch recursion overflow."},
-	AsyncError                                                : { code: 2095, message: "%1 was unable to invoke callback %2."},
+	AsyncError                                                : { code: 2095, message: '%1 was unable to invoke callback %2.' },
 	//  DisallowedHTTPHeaderError                                 : { code: 2096, message: "The HTTP request header %1 cannot be set via ActionScript."},
 	//  FileFilterError                                           : { code: 2097, message: "The FileFilter Array is not in the correct format."},
-	LoadingObjectNotSWFError                                  : { code: 2098, message: "The loading object is not a .swf file, you cannot request SWF properties from it."},
-	LoadingObjectNotInitializedError                          : { code: 2099, message: "The loading object is not sufficiently loaded to provide this information."},
+	LoadingObjectNotSWFError                                  : { code: 2098, message: 'The loading object is not a .swf file, you cannot request SWF properties from it.' },
+	LoadingObjectNotInitializedError                          : { code: 2099, message: 'The loading object is not sufficiently loaded to provide this information.' },
 	//  EmptyByteArrayError                                       : { code: 2100, message: "The ByteArray parameter in Loader.loadBytes() must have length greater than 0."},
-	DecodeParamError                                          : { code: 2101, message: "The String passed to URLVariables.decode() must be a URL-encoded query string containing name/value pairs."},
+	DecodeParamError                                          : { code: 2101, message: 'The String passed to URLVariables.decode() must be a URL-encoded query string containing name/value pairs.' },
 	//  NotAnXMLChildError                                        : { code: 2102, message: "The before XMLNode parameter must be a child of the caller."},
 	//  XMLRecursionError                                         : { code: 2103, message: "XML recursion failure: new child would create infinite loop."},
-	SceneNotFoundError                                        : { code: 2108, message: "Scene %1 was not found."},
-	FrameLabelNotFoundError                                   : { code: 2109, message: "Frame label %1 not found in scene %2."},
+	SceneNotFoundError                                        : { code: 2108, message: 'Scene %1 was not found.' },
+	FrameLabelNotFoundError                                   : { code: 2109, message: 'Frame label %1 not found in scene %2.' },
 	//  DisableAVM1LoadingError                                   : { code: 2110, message: "The value of Security.disableAVM1Loading cannot be set unless the caller can access the stage and is in an ActionScript 3.0 SWF file."},
 	//  AVM1LoadingError                                          : { code: 2111, message: "Security.disableAVM1Loading is true so the current load of the ActionScript 1.0/2.0 SWF file has been blocked."},
 	//  ApplicationDomainSecurityError                            : { code: 2112, message: "Provided parameter LoaderContext.ApplicationDomain is from a disallowed domain."},
@@ -898,12 +889,12 @@ export var Errors = {
 	//  NonNullPointerError                                       : { code: 2114, message: "Parameter %1 must be null."},
 	//  TrueParamError                                            : { code: 2115, message: "Parameter %1 must be false."},
 	//  FalseParamError                                           : { code: 2116, message: "Parameter %1 must be true."},
-	InvalidLoaderInfoMethodError                              : { code: 2118, message: "The LoaderInfo class does not implement this method."},
+	InvalidLoaderInfoMethodError                              : { code: 2118, message: 'The LoaderInfo class does not implement this method.' },
 	//  LoaderInfoAppDomainSecurityError                          : { code: 2119, message: "Security sandbox violation: caller %1 cannot access LoaderInfo.applicationDomain owned by %2."},
-	SecuritySwfNotAllowedError                                : { code: 2121, message: "Security sandbox violation: %1: %2 cannot access %3. This may be worked around by calling Security.allowDomain."},
+	SecuritySwfNotAllowedError                                : { code: 2121, message: 'Security sandbox violation: %1: %2 cannot access %3. This may be worked around by calling Security.allowDomain.' },
 	//  SecurityNonSwfIncompletePolicyFilesError                  : { code: 2122, message: "Security sandbox violation: %1: %2 cannot access %3. A policy file is required, but the checkPolicyFile flag was not set when this media was loaded."},
 	//  SecurityNonSwfNotAllowedError                             : { code: 2123, message: "Security sandbox violation: %1: %2 cannot access %3. No policy files granted access."},
-	UnknownFileTypeError                                      : { code: 2124, message: "Loaded file is an unknown type."},
+	UnknownFileTypeError                                      : { code: 2124, message: 'Loaded file is an unknown type.' },
 	//  SecurityCrossVMNotAllowedError                            : { code: 2125, message: "Security sandbox violation: %1 cannot use Runtime Shared Library %2 because crossing the boundary between ActionScript 3.0 and ActionScript 1.0/2.0 objects is not allowed."},
 	//  NotConnectedError                                         : { code: 2126, message: "NetConnection object must be connected."},
 	//  FileRefBadPostDataTypeError                               : { code: 2127, message: "FileReference POST data cannot be type ByteArray."},
@@ -927,7 +918,7 @@ export var Errors = {
 	//  ForbiddenProtocolError                                    : { code: 2147, message: "Forbidden protocol in URL %1."},
 	//  RemoteToLocalSecurityError                                : { code: 2148, message: "SWF file %1 cannot access local resource %2. Only local-with-filesystem and trusted local SWF files may access local resources."},
 	//  FsCommandSecurityError                                    : { code: 2149, message: "Security sandbox violation: %1 cannot make fscommand calls to %2 (allowScriptAccess is %3)."},
-	CantAddParentError                                        : { code: 2150, message: "An object cannot be added as a child to one of it's children (or children's children, etc.)."},
+	CantAddParentError                                        : { code: 2150, message: 'An object cannot be added as a child to one of it\'s children (or children\'s children, etc.).' },
 	//  FullScreenSecurityError                                   : { code: 2151, message: "You cannot enter full screen mode when the settings dialog is visible."},
 	//  FullScreenNotAllowedError                                 : { code: 2152, message: "Full screen mode is not allowed."},
 	//  URLRequestInvalidHeader                                   : { code: 2153, message: "The URLRequest.requestHeaders array must contain only non-NULL URLRequestHeader objects."},
@@ -965,14 +956,14 @@ export var Errors = {
 	//  PerspectiveFocalLengthInvalid                             : { code: 2186, message: "Invalid focalLength %1."},
 	//  Matrix3DDecomposeTypeInvalid                              : { code: 2187, message: "Invalid orientation style %1.  Value must be one of 'Orientation3D.EULER_ANGLES', 'Orientation3D.AXIS_ANGLE', or 'Orientation3D.QUATERNION'."},
 	//  MatrixNonInvertibleError                                  : { code: 2188, message: "Invalid raw matrix. Matrix must be invertible."},
-	Matrix3DRefCannontBeShared                                : { code: 2189, message: "A Matrix3D can not be assigned to more than one DisplayObject."},
+	Matrix3DRefCannontBeShared                                : { code: 2189, message: 'A Matrix3D can not be assigned to more than one DisplayObject.' },
 	//  ForceDownloadSecurityError                                : { code: 2190, message: "The attempted load of %1 failed as it had a Content-Disposition of attachment set."},
 	//  ClipboardDisallowedWrite                                  : { code: 2191, message: "The Clipboard.generalClipboard object may only be written to as the result of user interaction, for example by a mouse click or button press."},
 	//  MalformedUnicodeError                                     : { code: 2192, message: "An unpaired Unicode surrogate was encountered in the input."},
 	//  SecurityContentAccessDeniedError                          : { code: 2193, message: "Security sandbox violation: %1: %2 cannot access %3."},
 	//  LoaderParamError                                          : { code: 2194, message: "Parameter %1 cannot be a Loader."},
 	//  LoaderAsyncError                                          : { code: 2195, message: "Error thrown as Loader called %1."},
-	ObjectWithStringsParamError                               : { code: 2196, message: "Parameter %1 must be an Object with only String values."},
+	ObjectWithStringsParamError                               : { code: 2196, message: 'Parameter %1 must be an Object with only String values.' },
 	//  SystemUpdaterPlayerNotSupportedError                      : { code: 2200, message: "The SystemUpdater class is not supported by this player."},
 	//  SystemUpdaterOSNotSupportedError                          : { code: 2201, message: "The requested update type is not supported on this operating system."},
 	//  SystemUpdaterBusy                                         : { code: 2202, message: "Only one SystemUpdater action is allowed at a time."},
@@ -1068,7 +1059,7 @@ export var Errors = {
 	//  DNSResolverLookupError                                    : { code: 3223, message: "DNS lookup error: platform error %1"},
 	//  SocketMessageTooLongError                                 : { code: 3224, message: "Socket message too long"},
 	//  SocketCannotSendDataToAddressAfterConnect                 : { code: 3225, message: "Cannot send data to a location when connected."},
-	AllowCodeImportError                                      : { code: 3226, message: "Cannot import a SWF file when LoaderContext.allowCodeImport is false."},
+	AllowCodeImportError                                      : { code: 3226, message: 'Cannot import a SWF file when LoaderContext.allowCodeImport is false.' },
 	//  BackgroundLaunchError                                     : { code: 3227, message: "Cannot launch another application from background."},
 	//  StageWebViewLoadError                                     : { code: 3228, message: "StageWebView encountered an error during the load operation."},
 	//  StageWebViewProtocolNotSupported                          : { code: 3229, message: "The protocol is not supported.:"},
@@ -1088,7 +1079,7 @@ export var Errors = {
 	//  VoucherIntegrityError                                     : { code: 3312, message: "Verification of voucher failed."},
 	//  WriteFileSystemFailed                                     : { code: 3313, message: "Write to the file system failed."},
 	//  FLVHeaderIntegrityFailed                                  : { code: 3314, message: "Verification of FLV/F4V header file failed."},
-	PermissionDenied                                          : { code: 3315, message: "The current security context does not allow this operation."},
+	PermissionDenied                                          : { code: 3315, message: 'The current security context does not allow this operation.' },
 	//  LocalConnectionUserScopedLocked                           : { code: 3316, message: "The value of LocalConnection.isPerUser cannot be changed because it has already been locked by a call to LocalConnection.connect, .send, or .close."},
 	//  LoadAdobeCPFailed                                         : { code: 3317, message: "Failed to load Flash Access module."},
 	//  IncompatibleAdobeCPVersion                                : { code: 3318, message: "Incompatible version of Flash Access module found."},
@@ -1116,7 +1107,7 @@ export var Errors = {
 	//  NoAnalogProtectionAvail                                   : { code: 3340, message: "Can't play back because connected analog device doesn't have the correct capabilities."},
 	//  NoDigitalPlaybackAllowed                                  : { code: 3341, message: "Can't play back on digital device."},
 	//  NoDigitalProtectionAvail                                  : { code: 3342, message: "The connected digital device doesn't have the correct capabilities."},
-	InternalErrorIV                                           : { code: 3343, message: "Internal Error."}
+	InternalErrorIV                                           : { code: 3343, message: 'Internal Error.' }
 	//  MissingAdobeCPModule                                      : { code: 3344, message: "Missing Flash Access module."},
 	//  DRMNoAccessError                                          : { code: 3345, message: "This operation is not permitted with content protected using Flash Access."},
 	//  DRMDataMigrationFailed                                    : { code: 3346, message: "Failed migrating local DRM data, all locally cached DRM vouchers are lost."},

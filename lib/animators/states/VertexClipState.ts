@@ -1,28 +1,26 @@
 import { ElementsBase } from '../../elements/ElementsBase';
 
-import {VertexAnimator} from "../VertexAnimator";
-import {VertexClipNode} from "../nodes/VertexClipNode";
+import { VertexAnimator } from '../VertexAnimator';
+import { VertexClipNode } from '../nodes/VertexClipNode';
 
-import {AnimationClipState} from "./AnimationClipState";
-import {IVertexAnimationState} from "./IVertexAnimationState";
+import { AnimationClipState } from './AnimationClipState';
+import { IVertexAnimationState } from './IVertexAnimationState';
 
-import {AnimatorBase} from "../AnimatorBase";
+import { AnimatorBase } from '../AnimatorBase';
 
 /**
  *
  */
-export class VertexClipState extends AnimationClipState implements IVertexAnimationState
-{
-	private _frames:Array<ElementsBase>;
-	private _vertexClipNode:VertexClipNode;
-	private _currentGraphics:ElementsBase;
-	private _nextGraphics:ElementsBase;
+export class VertexClipState extends AnimationClipState implements IVertexAnimationState {
+	private _frames: Array<ElementsBase>;
+	private _vertexClipNode: VertexClipNode;
+	private _currentGraphics: ElementsBase;
+	private _nextGraphics: ElementsBase;
 
 	/**
 	 * @inheritDoc
 	 */
-	public get currentElements():ElementsBase
-	{
+	public get currentElements(): ElementsBase {
 		if (this._pFramesDirty)
 			this._pUpdateFrames();
 
@@ -32,16 +30,14 @@ export class VertexClipState extends AnimationClipState implements IVertexAnimat
 	/**
 	 * @inheritDoc
 	 */
-	public get nextElements():ElementsBase
-	{
+	public get nextElements(): ElementsBase {
 		if (this._pFramesDirty)
 			this._pUpdateFrames();
 
 		return this._nextGraphics;
 	}
 
-	constructor(animator:AnimatorBase, vertexClipNode:VertexClipNode)
-	{
+	constructor(animator: AnimatorBase, vertexClipNode: VertexClipNode) {
 		super(animator, vertexClipNode);
 
 		this._vertexClipNode = vertexClipNode;
@@ -51,8 +47,7 @@ export class VertexClipState extends AnimationClipState implements IVertexAnimat
 	/**
 	 * @inheritDoc
 	 */
-	public _pUpdateFrames():void
-	{
+	public _pUpdateFrames(): void {
 		super._pUpdateFrames();
 
 		this._currentGraphics = this._frames[this._pCurrentFrame];
@@ -67,8 +62,7 @@ export class VertexClipState extends AnimationClipState implements IVertexAnimat
 	/**
 	 * @inheritDoc
 	 */
-	public _pUpdatePositionDelta():void
-	{
+	public _pUpdatePositionDelta(): void {
 		//TODO:implement positiondelta functionality for vertex animations
 	}
 }

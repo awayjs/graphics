@@ -3,7 +3,7 @@
  * parameter in the <code>Graphics.lineStyle()</code> method.
  */
 export enum LineScaleMode
-{
+	{
 	/**
 	 * With this setting used as the <code>scaleMode</code> parameter of the
 	 * <code>lineStyle()</code> method, the thickness of the line scales
@@ -40,7 +40,7 @@ export enum LineScaleMode
 	VERTICAL,
 
 	/**
-	 * 
+	 *
 	 */
 	HAIRLINE
 }

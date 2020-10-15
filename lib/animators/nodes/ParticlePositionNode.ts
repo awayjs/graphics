@@ -1,31 +1,30 @@
-import {Vector3D} from "@awayjs/core";
+import { Vector3D } from '@awayjs/core';
 
-import {ShaderRegisterCache, ShaderRegisterElement} from "@awayjs/stage";
+import { ShaderRegisterCache, ShaderRegisterElement } from '@awayjs/stage';
 
-import {ShaderBase, AnimationRegisterData} from "@awayjs/renderer";
+import { ShaderBase, AnimationRegisterData } from '@awayjs/renderer';
 
-import {ParticleProperties} from "../data/ParticleProperties";
-import {ParticlePropertiesMode} from "../data/ParticlePropertiesMode";
-import {ParticlePositionState} from "../states/ParticlePositionState";
+import { ParticleProperties } from '../data/ParticleProperties';
+import { ParticlePropertiesMode } from '../data/ParticlePropertiesMode';
+import { ParticlePositionState } from '../states/ParticlePositionState';
 
-import {ParticleAnimationSet} from "../ParticleAnimationSet";
-import {AnimatorBase} from "../AnimatorBase";
+import { ParticleAnimationSet } from '../ParticleAnimationSet';
+import { AnimatorBase } from '../AnimatorBase';
 
-import {ParticleNodeBase} from "./ParticleNodeBase";
+import { ParticleNodeBase } from './ParticleNodeBase';
 
 /**
  * A particle animation node used to set the starting position of a particle.
  */
-export class ParticlePositionNode extends ParticleNodeBase
-{
+export class ParticlePositionNode extends ParticleNodeBase {
 	/** @private */
-	public _iPosition:Vector3D;
+	public _iPosition: Vector3D;
 
 	/**
 	 * Reference for position node properties on a single particle (when in local property mode).
 	 * Expects a <code>Vector3D</code> object representing position of the particle.
 	 */
-	public static POSITION_VECTOR3D:string = "PositionVector3D";
+	public static POSITION_VECTOR3D: string = 'PositionVector3D';
 
 	/**
 	 * Creates a new <code>ParticlePositionNode</code>
@@ -33,9 +32,8 @@ export class ParticlePositionNode extends ParticleNodeBase
 	 * @param               mode            Defines whether the mode of operation acts on local properties of a particle or global properties of the node.
 	 * @param    [optional] position        Defines the default position of the particle when in global mode. Defaults to 0,0,0.
 	 */
-	constructor(mode:number, position:Vector3D = null)
-	{
-		super("ParticlePosition", mode, 3);
+	constructor(mode: number, position: Vector3D = null) {
+		super('ParticlePosition', mode, 3);
 
 		this._pStateClass = ParticlePositionState;
 
@@ -45,30 +43,27 @@ export class ParticlePositionNode extends ParticleNodeBase
 	/**
 	 * @inheritDoc
 	 */
-	public getAGALVertexCode(shader:ShaderBase, animationSet:ParticleAnimationSet, registerCache:ShaderRegisterCache, animationRegisterData:AnimationRegisterData):string
-	{
-		var positionAttribute:ShaderRegisterElement = (this._pMode == ParticlePropertiesMode.GLOBAL)? registerCache.getFreeVertexConstant() : registerCache.getFreeVertexAttribute();
+	public getAGALVertexCode(shader: ShaderBase, animationSet: ParticleAnimationSet, registerCache: ShaderRegisterCache, animationRegisterData: AnimationRegisterData): string {
+		const positionAttribute: ShaderRegisterElement = (this._pMode == ParticlePropertiesMode.GLOBAL) ? registerCache.getFreeVertexConstant() : registerCache.getFreeVertexAttribute();
 		animationRegisterData.setRegisterIndex(this, ParticlePositionState.POSITION_INDEX, positionAttribute.index);
 
-		return "add " + animationRegisterData.positionTarget + ".xyz," + positionAttribute + ".xyz," + animationRegisterData.positionTarget + ".xyz\n";
+		return 'add ' + animationRegisterData.positionTarget + '.xyz,' + positionAttribute + '.xyz,' + animationRegisterData.positionTarget + '.xyz\n';
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public getAnimationState(animator:AnimatorBase):ParticlePositionState
-	{
+	public getAnimationState(animator: AnimatorBase): ParticlePositionState {
 		return <ParticlePositionState> animator.getAnimationState(this);
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public _iGeneratePropertyOfOneParticle(param:ParticleProperties):void
-	{
-		var offset:Vector3D = param[ParticlePositionNode.POSITION_VECTOR3D];
+	public _iGeneratePropertyOfOneParticle(param: ParticleProperties): void {
+		const offset: Vector3D = param[ParticlePositionNode.POSITION_VECTOR3D];
 		if (!offset)
-			throw(new Error("there is no " + ParticlePositionNode.POSITION_VECTOR3D + " in param!"));
+			throw (new Error('there is no ' + ParticlePositionNode.POSITION_VECTOR3D + ' in param!'));
 
 		this._pOneData[0] = offset.x;
 		this._pOneData[1] = offset.y;

@@ -1,36 +1,34 @@
-import {Vector3D, ColorTransform, ProjectionBase} from "@awayjs/core";
+import { Vector3D, ColorTransform, ProjectionBase } from '@awayjs/core';
 
-import {Stage, ContextGLVertexBufferFormat} from "@awayjs/stage";
+import { Stage, ContextGLVertexBufferFormat } from '@awayjs/stage';
 
-import {ShaderBase, _Render_RenderableBase, AnimationRegisterData} from "@awayjs/renderer";
+import { ShaderBase, _Render_RenderableBase, AnimationRegisterData } from '@awayjs/renderer';
 
-import {AnimationElements} from "../data/AnimationElements";
-import {ParticlePropertiesMode} from "../data/ParticlePropertiesMode";
-import {ParticleInitialColorNode} from "../nodes/ParticleInitialColorNode";
+import { AnimationElements } from '../data/AnimationElements';
+import { ParticlePropertiesMode } from '../data/ParticlePropertiesMode';
+import { ParticleInitialColorNode } from '../nodes/ParticleInitialColorNode';
 
-import {ParticleAnimator} from "../ParticleAnimator";
+import { ParticleAnimator } from '../ParticleAnimator';
 
-import {ParticleStateBase} from "./ParticleStateBase";
+import { ParticleStateBase } from './ParticleStateBase';
 
 /**
 *
 */
-export class ParticleInitialColorState extends ParticleStateBase
-{
+export class ParticleInitialColorState extends ParticleStateBase {
 	/** @private */
-	public static MULTIPLIER_INDEX:number = 0;
+	public static MULTIPLIER_INDEX: number = 0;
 	/** @private */
-	public static OFFSET_INDEX:number = 1;
+	public static OFFSET_INDEX: number = 1;
 
-	private _particleInitialColorNode:ParticleInitialColorNode;
-	private _usesMultiplier:boolean;
-	private _usesOffset:boolean;
-	private _initialColor:ColorTransform;
-	private _multiplierData:Vector3D;
-	private _offsetData:Vector3D;
+	private _particleInitialColorNode: ParticleInitialColorNode;
+	private _usesMultiplier: boolean;
+	private _usesOffset: boolean;
+	private _initialColor: ColorTransform;
+	private _multiplierData: Vector3D;
+	private _offsetData: Vector3D;
 
-	constructor(animator:ParticleAnimator, particleInitialColorNode:ParticleInitialColorNode)
-	{
+	constructor(animator: ParticleAnimator, particleInitialColorNode: ParticleInitialColorNode) {
 		super(animator, particleInitialColorNode);
 
 		this._particleInitialColorNode = particleInitialColorNode;
@@ -44,25 +42,22 @@ export class ParticleInitialColorState extends ParticleStateBase
 	/**
 	 * Defines the initial color transform of the state, when in global mode.
 	 */
-	public get initialColor():ColorTransform
-	{
+	public get initialColor(): ColorTransform {
 		return this._initialColor;
 	}
 
-	public set initialColor(value:ColorTransform)
-	{
+	public set initialColor(value: ColorTransform) {
 		this._initialColor = value;
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData):void
-	{
+	public setRenderState(shader: ShaderBase, renderable: _Render_RenderableBase, animationElements: AnimationElements, animationRegisterData: AnimationRegisterData): void {
 		if (shader.usesFragmentAnimation) {
-			var index:number;
+			let index: number;
 			if (this._particleInitialColorNode.mode == ParticlePropertiesMode.LOCAL_STATIC) {
-				var dataOffset:number = this._particleInitialColorNode._iDataOffset;
+				let dataOffset: number = this._particleInitialColorNode._iDataOffset;
 				if (this._usesMultiplier) {
 					animationElements.activateVertexBuffer(animationRegisterData.getRegisterIndex(this._pAnimationNode, ParticleInitialColorState.MULTIPLIER_INDEX), dataOffset, shader.stage, ContextGLVertexBufferFormat.FLOAT_4);
 					dataOffset += 4;
@@ -78,13 +73,12 @@ export class ParticleInitialColorState extends ParticleStateBase
 		}
 	}
 
-	private updateColorData():void
-	{
+	private updateColorData(): void {
 		if (this._particleInitialColorNode.mode == ParticlePropertiesMode.GLOBAL) {
 			if (this._usesMultiplier)
 				this._multiplierData = new Vector3D(this._initialColor.redMultiplier, this._initialColor.greenMultiplier, this._initialColor.blueMultiplier, this._initialColor.alphaMultiplier);
 			if (this._usesOffset)
-				this._offsetData = new Vector3D(this._initialColor.redOffset/255, this._initialColor.greenOffset/255, this._initialColor.blueOffset/255, this._initialColor.alphaOffset/255);
+				this._offsetData = new Vector3D(this._initialColor.redOffset / 255, this._initialColor.greenOffset / 255, this._initialColor.blueOffset / 255, this._initialColor.alphaOffset / 255);
 		}
 	}
 

@@ -1,30 +1,30 @@
-import {ArgumentError, RangeError, PartialImplementationError, Point, Vector3D, Matrix, Matrix3D, AssetBase, Rectangle, AssetEvent, IgnoreConflictStrategy} from "@awayjs/core";
+import { ArgumentError, RangeError, PartialImplementationError, Point, Vector3D, Matrix, Matrix3D, AssetBase, Rectangle, AssetEvent, IgnoreConflictStrategy } from '@awayjs/core';
 
-import {BitmapImage2D} from "@awayjs/stage";
+import { BitmapImage2D } from '@awayjs/stage';
 
 import { IEntityTraverser, PickEntity } from '@awayjs/view';
 
-import {IMaterial, Style, MaterialUtils, RenderableEvent} from "@awayjs/renderer";
+import { IMaterial, Style, MaterialUtils, RenderableEvent } from '@awayjs/renderer';
 
-import {GraphicsPath} from "./draw/GraphicsPath";
-import {GraphicsFactoryFills} from "./draw/GraphicsFactoryFills";
-import {GraphicsFactoryStrokes} from "./draw/GraphicsFactoryStrokes";
-import {GraphicsFactoryHelper} from "./draw/GraphicsFactoryHelper";
-import {InterpolationMethod} from "./draw/InterpolationMethod";
-import {JointStyle} from "./draw/JointStyle";
-import {LineScaleMode} from "./draw/LineScaleMode";
-import {TriangleCulling} from "./draw/TriangleCulling";
-import {SpreadMethod} from "./draw/SpreadMethod";
-import {CapsStyle} from "./draw/CapsStyle";
-import {GradientType} from "./draw/GradientType";
-import {BitmapFillStyle} from "./draw/BitmapFillStyle";
-import {GraphicsPathWinding} from "./draw/GraphicsPathWinding";
-import {IGraphicsData} from "./draw/IGraphicsData";
-import {GraphicsStrokeStyle} from "./draw/GraphicsStrokeStyle";
-import {GraphicsFillStyle} from "./draw/GraphicsFillStyle";
-import {GradientFillStyle} from "./draw/GradientFillStyle";
-import {TriangleElements} from "./elements/TriangleElements";
-import {TriangleElementsUtils} from "./utils/TriangleElementsUtils";
+import { GraphicsPath } from './draw/GraphicsPath';
+import { GraphicsFactoryFills } from './draw/GraphicsFactoryFills';
+import { GraphicsFactoryStrokes } from './draw/GraphicsFactoryStrokes';
+import { GraphicsFactoryHelper } from './draw/GraphicsFactoryHelper';
+import { InterpolationMethod } from './draw/InterpolationMethod';
+import { JointStyle } from './draw/JointStyle';
+import { LineScaleMode } from './draw/LineScaleMode';
+import { TriangleCulling } from './draw/TriangleCulling';
+import { SpreadMethod } from './draw/SpreadMethod';
+import { CapsStyle } from './draw/CapsStyle';
+import { GradientType } from './draw/GradientType';
+import { BitmapFillStyle } from './draw/BitmapFillStyle';
+import { GraphicsPathWinding } from './draw/GraphicsPathWinding';
+import { IGraphicsData } from './draw/IGraphicsData';
+import { GraphicsStrokeStyle } from './draw/GraphicsStrokeStyle';
+import { GraphicsFillStyle } from './draw/GraphicsFillStyle';
+import { GradientFillStyle } from './draw/GradientFillStyle';
+import { TriangleElements } from './elements/TriangleElements';
+import { TriangleElementsUtils } from './utils/TriangleElementsUtils';
 import { Shape } from './renderables/Shape';
 import { SegmentedPath } from './data/SegmentedPath';
 import { FillType } from './data/FillType';
@@ -50,58 +50,55 @@ const USE_STROKE_POOL = true;
  *
  * @class Graphics
  */
-export class Graphics extends AssetBase
-{
+export class Graphics extends AssetBase {
 	private static CLEARS_BEFORE_POOLING = 10;
-	private static _pool:Array<Graphics> = new Array<Graphics>();
+	private static _pool: Array<Graphics> = new Array<Graphics>();
 
-	public static getGraphics():Graphics
-	{
+	public static getGraphics(): Graphics {
 		if (Graphics._pool.length)
 			return Graphics._pool.pop();
 
 		return new Graphics();
 	}
-	public static clearPool()
-	{
-		Graphics._pool=[];
+
+	public static clearPool() {
+		Graphics._pool = [];
 	}
 
+	public static assetType: string = '[asset Graphics]';
 
-	public static assetType:string = "[asset Graphics]";
-
-	private _onInvalidateDelegate:(event:AssetEvent) => void;
+	private _onInvalidateDelegate: (event: AssetEvent) => void;
 
 	private _bitmapFillPool: NumberMap<BitmapFillStyle> = {};
 
-	private _queuedShapeTags:ShapeTag[] = [];
-	private _shapes:Array<Shape> = [];
-	private _style:Style;
+	private _queuedShapeTags: ShapeTag[] = [];
+	private _shapes: Array<Shape> = [];
+	private _style: Style;
 
-	private _queued_fill_pathes:Array<GraphicsPath>;
-	private _queued_stroke_pathes:Array<GraphicsPath>;
-	private _active_fill_path:GraphicsPath;
-	private _active_stroke_path:GraphicsPath;
-	private _lineStyle:GraphicsFillStyle;
-	private _fillStyle:IGraphicsData;
+	private _queued_fill_pathes: Array<GraphicsPath>;
+	private _queued_stroke_pathes: Array<GraphicsPath>;
+	private _active_fill_path: GraphicsPath;
+	private _active_stroke_path: GraphicsPath;
+	private _lineStyle: GraphicsFillStyle;
+	private _fillStyle: IGraphicsData;
 
-	private _current_position:Point=new Point();
+	private _current_position: Point=new Point();
 
-	public slice9Rectangle:Rectangle;
-	public originalSlice9Size:Rectangle;
-	public minSlice9Width:number;
-	public minSlice9Height:number;
-	private _scale:Vector3D = new Vector3D();
-	private _scaleX:number = 0;
-	private _scaleY:number = 0;
+	public slice9Rectangle: Rectangle;
+	public originalSlice9Size: Rectangle;
+	public minSlice9Width: number;
+	public minSlice9Height: number;
+	private _scale: Vector3D = new Vector3D();
+	private _scaleX: number = 0;
+	private _scaleY: number = 0;
 
 	private _lastPrebuildedShapes: Shape[] = [];
-	private _drawingDirty:boolean = false;
+	private _drawingDirty: boolean = false;
 
-	public usages:number = 0;
+	public usages: number = 0;
 
-	public _start:GraphicsPath[];
-	public _end:GraphicsPath[];
+	public _start: GraphicsPath[];
+	public _end: GraphicsPath[];
 
 	private _clearCount: number = 0;
 	private _internalShapesId: number[] = [];
@@ -112,15 +109,15 @@ export class Graphics extends AssetBase
 	public sourceGraphics: Graphics;
 
 	get start(): GraphicsPath[] {
-		if(!this._start && this.sourceGraphics) {
+		if (!this._start && this.sourceGraphics) {
 			return this.sourceGraphics.start;
 		}
 
 		return this._start;
 	}
-	
+
 	get end(): GraphicsPath[] {
-		if(!this._end && this.sourceGraphics) {
+		if (!this._end && this.sourceGraphics) {
 			return this.sourceGraphics.end;
 		}
 
@@ -158,63 +155,57 @@ export class Graphics extends AssetBase
 
 	// 	if (scale.x == prevScaleX && scale.y == prevScaleY)
 	// 	 	return;
-		
+
 	// 	var len:number = this._shapes.length;
 	// 	for (var i:number = 0; i < len; i++)
 	// 		if(this._shapes[i].isStroke && this._shapes[i].strokePath.stroke() && this._shapes[i].strokePath.stroke().scaleMode != LineScaleMode.NORMAL)
 	// 			GraphicsFactoryStrokes.updateStrokesForShape(this._shapes[i], scale, this.scaleStrokes);
 	// }
-	public updateSlice9(scaleX:number, scaleY:number)
-	{
+	public updateSlice9(scaleX: number, scaleY: number) {
 		if (this._scaleX == scaleX && this._scaleY == scaleY)
 			return;
 
 		this._scaleX = scaleX;
 		this._scaleY = scaleY;
 
-		var len:number = this._shapes.length;
-		for (var i:number = 0; i < len; i++)
-			TriangleElementsUtils.updateTriangleGraphicsSlice9((<TriangleElements>this._shapes[i].elements), this.originalSlice9Size, scaleX, scaleY);
-		
+		const len: number = this._shapes.length;
+		for (let i: number = 0; i < len; i++)
+			TriangleElementsUtils.updateTriangleGraphicsSlice9((<TriangleElements> this._shapes[i].elements), this.originalSlice9Size, scaleX, scaleY);
+
 		this.invalidate();
 	}
-	
-	public get assetType():string
-	{
+
+	public get assetType(): string {
 		return Graphics.assetType;
 	}
 
-	public get count():number
-	{
+	public get count(): number {
 		return (this._shapes.length + this._queued_stroke_pathes.length + this._queued_fill_pathes.length + this._queuedShapeTags.length);
 	}
 
-	public get queued_stroke_pathes():Array<GraphicsPath>
-	{
+	public get queued_stroke_pathes(): Array<GraphicsPath> {
 		return this._queued_stroke_pathes;
 	}
 
-	public set queued_stroke_pathes(value:Array<GraphicsPath>)
-	{
-		this._queued_stroke_pathes=value
+	public set queued_stroke_pathes(value: Array<GraphicsPath>) {
+		this._queued_stroke_pathes = value;
 	}
-	public get queued_fill_pathes():Array<GraphicsPath>
-	{
+
+	public get queued_fill_pathes(): Array<GraphicsPath> {
 		return this._queued_fill_pathes;
 	}
 
-	public set queued_fill_pathes(value:Array<GraphicsPath>)
-	{
-		this._queued_fill_pathes=value
+	public set queued_fill_pathes(value: Array<GraphicsPath>) {
+		this._queued_fill_pathes = value;
 	}
-	public add_queued_path(value:GraphicsPath)
-	{
-		if(value.style) {
+
+	public add_queued_path(value: GraphicsPath) {
+		if (value.style) {
 			if (value.style.data_type == GraphicsFillStyle.data_type || value.style.data_type == GradientFillStyle.data_type || value.style.data_type == BitmapFillStyle.data_type) {
 				this._drawingDirty = true;
 				this._queued_fill_pathes.push(value);
 			}
-			if (value.style.data_type == GraphicsStrokeStyle.data_type){
+			if (value.style.data_type == GraphicsStrokeStyle.data_type) {
 				this._queued_stroke_pathes.push(value);
 				this.endFill();
 			}
@@ -224,23 +215,22 @@ export class Graphics extends AssetBase
 	/**
 	 * Creates a new Graphics object.
 	 */
-	constructor()
-	{
+	constructor() {
 		super();
 
 		//store associated entity object, otherwise assign itself as entity
 
-		this._drawingDirty=false;
-		this._current_position=new Point();
-		this._queued_fill_pathes=[];
-		this._queued_stroke_pathes=[];
-		this._active_fill_path=null;
-        this._active_stroke_path=null;
-        this._fillStyle=null;
-        this._lineStyle=null;
+		this._drawingDirty = false;
+		this._current_position = new Point();
+		this._queued_fill_pathes = [];
+		this._queued_stroke_pathes = [];
+		this._active_fill_path = null;
+		this._active_stroke_path = null;
+		this._fillStyle = null;
+		this._lineStyle = null;
 
-		this._onInvalidateDelegate = (event:AssetEvent | RenderableEvent) => this._onInvalidate(event);
-		
+		this._onInvalidateDelegate = (event: AssetEvent | RenderableEvent) => this._onInvalidate(event);
+
 	}
 
 	public popEmptyFillShape() {
@@ -261,12 +251,11 @@ export class Graphics extends AssetBase
 	 *
 	 * @param elements
 	 */
-	public addShape(shape:Shape):Shape
-	{
+	public addShape(shape: Shape): Shape {
 		shape.usages++;
 
-		var shapeIndex:number = this.getShapeIndex(shape);
-		
+		const shapeIndex: number = this.getShapeIndex(shape);
+
 		if (shapeIndex != -1)
 			this.removeShapeAt(shapeIndex);
 
@@ -285,32 +274,30 @@ export class Graphics extends AssetBase
 		return shape;
 	}
 
-	public removeShape(shape:Shape):void
-	{
-		var shapeIndex:number = this.getShapeIndex(shape);
-		
+	public removeShape(shape: Shape): void {
+		const shapeIndex: number = this.getShapeIndex(shape);
+
 		if (shapeIndex == -1)
-			throw new ArgumentError("Shape parameter is not a shape of the caller");
+			throw new ArgumentError('Shape parameter is not a shape of the caller');
 
 		this.removeShapeAt(shapeIndex);
 	}
 
-	public removeShapeAt(index:number):void
-	{
+	public removeShapeAt(index: number): void {
 		if (index < 0 || index >= this._shapes.length)
-			throw new RangeError("Index is out of range");
+			throw new RangeError('Index is out of range');
 
-		var shape:Shape = this._shapes.splice(index, 1)[0];
+		const shape: Shape = this._shapes.splice(index, 1)[0];
 
 		shape.removeEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateDelegate);
 		shape.removeEventListener(RenderableEvent.INVALIDATE_MATERIAL, this._onInvalidateDelegate);
 		shape.removeEventListener(RenderableEvent.INVALIDATE_STYLE, this._onInvalidateDelegate);
 		shape.removeEventListener(AssetEvent.INVALIDATE, this._onInvalidateDelegate);
 
-		shape.usages--;		
+		shape.usages--;
 
 		if (!shape.usages) {
-			if(!this.tryPoolShape(shape)) {
+			if (!this.tryPoolShape(shape)) {
 				shape.dispose();
 			}
 		}
@@ -318,34 +305,30 @@ export class Graphics extends AssetBase
 		this.invalidate();
 	}
 
-	public getShapeAt(index:number):Shape
-	{
+	public getShapeAt(index: number): Shape {
 		return this._shapes[index];
 	}
-	
-	public getShapeIndex(shape:Shape):number
-	{
+
+	public getShapeIndex(shape: Shape): number {
 		return this._shapes.indexOf(shape);
 	}
 
-	public applyTransformation(transform:Matrix3D):void
-	{
-		var len:number = this._shapes.length;
-		for (var i:number = 0; i < len; ++i){
+	public applyTransformation(transform: Matrix3D): void {
+		const len: number = this._shapes.length;
+		for (let i: number = 0; i < len; ++i) {
 			this._shapes[i].applyTransformation(transform);
 
 		}
 	}
 
-	public copyTo(graphics:Graphics, cloneShapes:boolean = false):void
-	{
+	public copyTo(graphics: Graphics, cloneShapes: boolean = false): void {
 		if (this._drawingDirty)
 			this.endFill();
 
-		if(this.slice9Rectangle){
-			graphics.slice9Rectangle=new Rectangle();
+		if (this.slice9Rectangle) {
+			graphics.slice9Rectangle = new Rectangle();
 			graphics.slice9Rectangle.copyFrom(this.slice9Rectangle);
-			graphics.originalSlice9Size=new Rectangle();
+			graphics.originalSlice9Size = new Rectangle();
 			graphics.originalSlice9Size.copyFrom(this.originalSlice9Size);
 			graphics.minSlice9Width = this.minSlice9Width;
 			graphics.minSlice9Height = this.minSlice9Height;
@@ -361,10 +344,9 @@ export class Graphics extends AssetBase
 	 * Scales the geometry.
 	 * @param scale The amount by which to scale.
 	 */
-	public scale(scale:number):void
-	{
-		var len:number = this._shapes.length;
-		for (var i:number = 0; i < len; ++i)
+	public scale(scale: number): void {
+		const len: number = this._shapes.length;
+		for (let i: number = 0; i < len; ++i)
 			this._shapes[i].scale(scale);
 	}
 
@@ -374,43 +356,42 @@ export class Graphics extends AssetBase
 		const canPooledTriangle = shape.elements.assetType === TriangleElements.assetType;
 		const canPooledLine = shape.elements.assetType === LineElements.assetType;
 
-		if(!canPooledLine && !canPooledTriangle) {
+		if (!canPooledLine && !canPooledTriangle) {
 			return false;
 		}
 
 		const index = this._internalShapesId.indexOf(shape.id);
 
-		if(index === -1) {
+		if (index === -1) {
 			return false;
 		}
 
-		if(canPooledTriangle) { 
+		if (canPooledTriangle) {
 			return this._releasedFillShape.store(shape);
 		}
 
-		if(canPooledLine) {
+		if (canPooledLine) {
 			return this._releasedStrokeShape.store(shape);
 		}
 
 		return false;
 	}
 
-	public clear():void
-	{
-		this._clearCount ++;
+	public clear(): void {
+		this._clearCount++;
 		this._lastPrebuildedShapes.length = 0;
 
 		const requireShapePool = this._internalShapesId.length > 0 && this._clearCount >= Graphics.CLEARS_BEFORE_POOLING;
 
-		if(requireShapePool && !this._releasedStrokeShape.enabled && (USE_STROKE_POOL || USE_FILL_POOL)) {
-			console.warn("[Graphics] To many clears, pooling shapes internally!", this.id, this._internalShapesId.length);
+		if (requireShapePool && !this._releasedStrokeShape.enabled && (USE_STROKE_POOL || USE_FILL_POOL)) {
+			console.warn('[Graphics] To many clears, pooling shapes internally!', this.id, this._internalShapesId.length);
 			this._releasedFillShape.enabled = USE_FILL_POOL;
 			this._releasedStrokeShape.enabled = USE_STROKE_POOL;
 		}
 
-		var shape:Shape;
-		var len:number = this._shapes.length;
-		for (var i:number = 0; i < len; i++) {
+		let shape: Shape;
+		const len: number = this._shapes.length;
+		for (let i: number = 0; i < len; i++) {
 			shape = this._shapes[i];
 
 			shape.removeEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateDelegate);
@@ -421,7 +402,7 @@ export class Graphics extends AssetBase
 			shape.usages--;
 
 			if (!shape.usages) {
-				if(!this.tryPoolShape(shape)) {
+				if (!this.tryPoolShape(shape)) {
 					shape.dispose();
 				}
 			}
@@ -432,34 +413,34 @@ export class Graphics extends AssetBase
 
 		this.invalidate();
 
-		this._active_fill_path=null;
-		this._active_stroke_path=null;
+		this._active_fill_path = null;
+		this._active_stroke_path = null;
 		this._queued_fill_pathes.length = 0;
 		this._queued_stroke_pathes.length = 0;
-		this._current_position.x=0;
-		this._current_position.y=0;
-        this._drawingDirty=false;
-        this._lineStyle=null;
-        this._fillStyle=null;
+		this._current_position.x = 0;
+		this._current_position.y = 0;
+		this._drawingDirty = false;
+		this._lineStyle = null;
+		this._fillStyle = null;
 		//this.invalidateElements();
 	}
+
 	/**
 	 * Clears all resources used by the Graphics object, including SubGeometries.
 	 */
-	public dispose():void
-	{	
+	public dispose(): void {
 		this.clear();
 
-		if(this._bitmapFillPool) {
-			for(let k in this._bitmapFillPool) {
+		if (this._bitmapFillPool) {
+			for (const k in this._bitmapFillPool) {
 				this._bitmapFillPool[k].material.dispose();
 			}
 
-			this._bitmapFillPool = null
+			this._bitmapFillPool = null;
 		}
 
-		this._bitmapFillPool = null
-		
+		this._bitmapFillPool = null;
+
 		/* we can not release shapes for this, it was a store elements that can be reused then */
 
 		this._releasedFillShape.clear();
@@ -475,11 +456,10 @@ export class Graphics extends AssetBase
 	 * @param scaleU The amount by which to scale on the u axis. Default is 1;
 	 * @param scaleV The amount by which to scale on the v axis. Default is 1;
 	 */
-	public scaleUV(scaleU:number = 1, scaleV:number = 1):void
-	{
-		var len:number = this._shapes.length;
+	public scaleUV(scaleU: number = 1, scaleV: number = 1): void {
+		const len: number = this._shapes.length;
 
-		for (var i:number = 0; i < len; ++i)
+		for (let i: number = 0; i < len; ++i)
 			this._shapes[i].scaleUV(scaleU, scaleV);
 	}
 
@@ -490,7 +470,6 @@ export class Graphics extends AssetBase
 	// 		this._shapes[i].invalidateMaterial();
 	// }
 
-
 	// public invalidateElements():void
 	// {
 	// 	var len:number = this._shapes.length;
@@ -498,51 +477,49 @@ export class Graphics extends AssetBase
 	// 		this._shapes[i].invalidateElements();
 	// }
 
-	public _acceptTraverser(traverser:IEntityTraverser):void
-	{
+	public _acceptTraverser(traverser: IEntityTraverser): void {
 		// this is important
 		// not close shape when request bounds
 		// otherwise it will corrupt rendering flow
-		if(this._drawingDirty) {
-			
-			// need to drop shapes that was pre-built but not a closed (_endFillInternal(false))	
+		if (this._drawingDirty) {
+
+			// need to drop shapes that was pre-built but not a closed (_endFillInternal(false))
 			// because shape was corrupted when a bounds calculation requested between commands
-			for(let s of this._lastPrebuildedShapes) {
+			for (const s of this._lastPrebuildedShapes) {
 				this.removeShape(s);
 			}
 
-			if(traverser instanceof PickEntity) {
+			if (traverser instanceof PickEntity) {
 				// build shape construct shapes but not close graphics
 				this._endFillInternal(false);
 			} else {
 				this.endFill();
 			}
 		}
-		
-		var len:number = this._shapes.length;
 
-		for (var i:number = len - 1; i >= 0; i--)
+		const len: number = this._shapes.length;
+
+		for (let i: number = len - 1; i >= 0; i--)
 			traverser.applyTraversable(this._shapes[i]);
 
 	}
 
-	private _onInvalidate(event:AssetEvent | RenderableEvent):void
-	{
+	private _onInvalidate(event: AssetEvent | RenderableEvent): void {
 		this.invalidate();
 	}
 
 	public draw_fills(clear = true) {
-        GraphicsFactoryFills.draw_pathes(this);
-		if(clear){
+		GraphicsFactoryFills.draw_pathes(this);
+		if (clear) {
 			this._active_fill_path = null;
 			this._queued_fill_pathes.length = 0;
 		}
 	}
-	
-	public draw_strokes(clear = true){
+
+	public draw_strokes(clear = true) {
 		GraphicsFactoryStrokes.draw_pathes(this);
-		
-		if(clear){
+
+		if (clear) {
 			this._active_stroke_path = null;
 			this._queued_stroke_pathes.length = 0;
 		}
@@ -586,24 +563,23 @@ export class Graphics extends AssetBase
 	 *               neighbor algorithm is faster.
 	 */
 
-	public beginBitmapFill(bitmap:BitmapImage2D, matrix:Matrix = null, repeat:boolean = true, smooth:boolean = false):void
-	{
+	public beginBitmapFill(bitmap: BitmapImage2D, matrix: Matrix = null, repeat: boolean = true, smooth: boolean = false): void {
 		this.draw_fills();
 
-		if(!this._bitmapFillPool) {
+		if (!this._bitmapFillPool) {
 			this._bitmapFillPool = {};
 		}
 		let fill = this._bitmapFillPool[bitmap.id];
 
-		if(!fill) {
-			fill = this._bitmapFillPool[bitmap.id] = new BitmapFillStyle(MaterialManager.get_material_for_BitmapImage2D(bitmap), matrix, repeat, smooth)
+		if (!fill) {
+			fill = this._bitmapFillPool[bitmap.id] = new BitmapFillStyle(MaterialManager.get_material_for_BitmapImage2D(bitmap), matrix, repeat, smooth);
 		} else {
 			fill.matrix = matrix;
 			fill.repeat = repeat;
 			fill.smooth = smooth;
 		}
-	
-        this._fillStyle = fill;
+
+		this._fillStyle = fill;
 	}
 
 	/**
@@ -620,13 +596,12 @@ export class Graphics extends AssetBase
 	 * @param color The color of the fill(0xRRGGBB).
 	 * @param alpha The alpha value of the fill(0.0 to 1.0).
 	 */
-	public beginFill(color:number /*int*/, alpha:number = 1):void
-	{
-		if(color==0){
-			color=0x010101;
+	public beginFill(color: number /*int*/, alpha: number = 1): void {
+		if (color == 0) {
+			color = 0x010101;
 		}
 		this.draw_fills();
-        this._fillStyle=new GraphicsFillStyle(color, alpha);
+		this._fillStyle = new GraphicsFillStyle(color, alpha);
 	}
 
 	/**
@@ -712,10 +687,9 @@ export class Graphics extends AssetBase
 	 *                            a <code>focalPointRatio</code> set to 0.75:
 	 * @throws ArgumentError If the <code>type</code> parameter is not valid.
 	 */
-	public beginGradientFill(type:GradientType, colors:number[], alphas:number[], ratios:number[], matrix:Matrix = null, spreadMethod:string = "pad", interpolationMethod:string = "rgb", focalPointRatio:number = 0):void
-	{
+	public beginGradientFill(type: GradientType, colors: number[], alphas: number[], ratios: number[], matrix: Matrix = null, spreadMethod: string = 'pad', interpolationMethod: string = 'rgb', focalPointRatio: number = 0): void {
 		this.draw_fills();
-        this._fillStyle=new GradientFillStyle(type, colors, alphas, ratios, matrix, spreadMethod, interpolationMethod, focalPointRatio);
+		this._fillStyle = new GradientFillStyle(type, colors, alphas, ratios, matrix, spreadMethod, interpolationMethod, focalPointRatio);
 	}
 
 	/**
@@ -725,8 +699,7 @@ export class Graphics extends AssetBase
 	 * @param sourceGraphics The Graphics object from which to copy the drawing
 	 *                       commands.
 	 */
-	public copyFrom(sourceGraphics:Graphics):void
-	{
+	public copyFrom(sourceGraphics: Graphics): void {
 		sourceGraphics.copyTo(this);
 	}
 
@@ -780,10 +753,9 @@ export class Graphics extends AssetBase
 	 *                  relative to the registration point of the parent display
 	 *                  object.
 	 */
-	public cubicCurveTo(controlX1:number, controlY1:number, controlX2:number, controlY2:number, anchorX:number, anchorY:number):void
-	{
+	public cubicCurveTo(controlX1: number, controlY1: number, controlX2: number, controlY2: number, anchorX: number, anchorY: number): void {
 
-		throw new PartialImplementationError("cubicCurveTo");
+		throw new PartialImplementationError('cubicCurveTo');
 		/*
 		 t = 0.5; // given example value
 		 x = (1 - t) * (1 - t) * p[0].x + 2 * (1 - t) * t * p[1].x + t * t * p[2].x;
@@ -834,21 +806,20 @@ export class Graphics extends AssetBase
 	 *                 anchor point relative to the registration point of the
 	 *                 parent display object.
 	 */
-	public curveTo(controlX:number, controlY:number, anchorX:number, anchorY:number):void
-	{
+	public curveTo(controlX: number, controlY: number, anchorX: number, anchorY: number): void {
 
-        this._drawingDirty=true;
-        
-        this._createGraphicPathes();
+		this._drawingDirty = true;
 
-		if(this._active_fill_path!=null){
+		this._createGraphicPathes();
+
+		if (this._active_fill_path != null) {
 			this._active_fill_path.curveTo(controlX, controlY, anchorX, anchorY);
 		}
-		if(this._active_stroke_path!=null){
+		if (this._active_stroke_path != null) {
 			this._active_stroke_path.curveTo(controlX, controlY, anchorX, anchorY);
 		}
-		this._current_position.x=anchorX;
-		this._current_position.y=anchorY;
+		this._current_position.x = anchorX;
+		this._current_position.y = anchorY;
 		this.invalidate();
 	}
 
@@ -867,12 +838,11 @@ export class Graphics extends AssetBase
 	 *               pixels).
 	 * @param radius The radius of the circle(in pixels).
 	 */
-	public drawCircle(x:number, y:number, radius:number):void
-	{
-		this._drawingDirty=true;
-        this._createGraphicPathes();
+	public drawCircle(x: number, y: number, radius: number): void {
+		this._drawingDirty = true;
+		this._createGraphicPathes();
 		//var radius2=radius*1.065;
-		if(this._active_fill_path!=null){
+		if (this._active_fill_path != null) {
 			this._active_fill_path.moveTo(x, y);
 			/*
 			for(var i=8; i>=0;i--){
@@ -881,23 +851,23 @@ export class Graphics extends AssetBase
 				var degree2 = degree + ((360/16)*Math.PI/180);
 				this._active_fill_path.curveTo(x-(Math.cos(degree2)*radius2), y+(Math.sin(degree2)*radius2),x-(Math.cos(degree)*radius), y+(Math.sin(degree)*radius));
 			}*/
-			var r=radius;
-			if(this._active_stroke_path!=null) {
-				r-=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness/2;
+			let r = radius;
+			if (this._active_stroke_path != null) {
+				r -= (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2;
 			}
 			GraphicsFactoryHelper.drawElipse(x, y, r, r, this._active_fill_path.verts, 0, 360, 5, false);
 
 		}
-		if(this._active_stroke_path!=null){
+		if (this._active_stroke_path != null) {
 			this._active_stroke_path.moveTo(x, y);
-/*
+			/*
 			var radius2=radius*0.93;
 			this._active_stroke_path.curveTo(x-(radius2), y+(radius2), x-radius, y);
 			this._active_stroke_path.curveTo(x-(radius2), y-(radius2), x, y-radius);
 			this._active_stroke_path.curveTo(x+(radius2), y-(radius2), x+radius, y);
 			this._active_stroke_path.curveTo(x+(radius2), y+(radius2), x, y+radius);
 			*/
-			GraphicsFactoryHelper.drawElipseStrokes(x,y, radius, radius, this._active_stroke_path.verts, 0, 360, 5, (<GraphicsStrokeStyle>this._active_stroke_path.style).thickness/2, false);
+			GraphicsFactoryHelper.drawElipseStrokes(x,y, radius, radius, this._active_stroke_path.verts, 0, 360, 5, (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2, false);
 
 		}
 		this.invalidate();
@@ -919,12 +889,11 @@ export class Graphics extends AssetBase
 	 * @param width  The width of the ellipse(in pixels).
 	 * @param height The height of the ellipse(in pixels).
 	 */
-	public drawEllipse(x:number, y:number, width:number, height:number):void
-	{
-		this._drawingDirty=true;
-        this._createGraphicPathes();
+	public drawEllipse(x: number, y: number, width: number, height: number): void {
+		this._drawingDirty = true;
+		this._createGraphicPathes();
 		//var radius2=radius*1.065;
-		if(this._active_fill_path!=null){
+		if (this._active_fill_path != null) {
 			this._active_fill_path.moveTo(x, y);
 			/*
 			 for(var i=8; i>=0;i--){
@@ -934,20 +903,19 @@ export class Graphics extends AssetBase
 			 this._active_fill_path.curveTo(x-(Math.cos(degree2)*radius2), y+(Math.sin(degree2)*radius2),x-(Math.cos(degree)*radius), y+(Math.sin(degree)*radius));
 			 }*/
 
-			var w=width;
-			var h=height;
-			if(this._active_stroke_path!=null) {
-				w-=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness/2;
-				h-=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness/2;
+			let w = width;
+			let h = height;
+			if (this._active_stroke_path != null) {
+				w -= (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2;
+				h -= (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2;
 			}
 			GraphicsFactoryHelper.drawElipse(x, y, w, h, this._active_fill_path.verts, 0, 360, 5, false);
 
-
 		}
-		if(this._active_stroke_path!=null){
+		if (this._active_stroke_path != null) {
 			this._active_stroke_path.moveTo(x, y);
 
-			GraphicsFactoryHelper.drawElipseStrokes(x,y, width, height, this._active_stroke_path.verts, 0, 360, 5, (<GraphicsStrokeStyle>this._active_stroke_path.style).thickness/2, false);
+			GraphicsFactoryHelper.drawElipseStrokes(x,y, width, height, this._active_stroke_path.verts, 0, 360, 5, (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2, false);
 
 			/*
 			 var radius2=radius*0.93;
@@ -973,8 +941,7 @@ export class Graphics extends AssetBase
 	 * sub-paths are rendered during this operation. </p>
 	 *
 	 */
-	public drawGraphicsData(graphicsData:Array<IGraphicsData>):void
-	{
+	public drawGraphicsData(graphicsData: Array<IGraphicsData>): void {
 		//this.draw_fills();
 		/*
 		 for (var i:number=0; i<graphicsData.length; i++){
@@ -1042,8 +1009,7 @@ export class Graphics extends AssetBase
 	 * @param winding Specifies the winding rule using a value defined in the
 	 *                GraphicsPathWinding class.
 	 */
-	public drawPath(commands:Array<number /*int*/>, data:Array<number>, winding:GraphicsPathWinding):void
-	{
+	public drawPath(commands: Array<number /*int*/>, data: Array<number>, winding: GraphicsPathWinding): void {
 		//todo
 		/*
 		 if(this._active_fill_path!=null){
@@ -1075,11 +1041,10 @@ export class Graphics extends AssetBase
 	 *                       parameters are not a number
 	 *                      (<code>Number.NaN</code>).
 	 */
-	public drawRect(x:number, y:number, width:number, height:number):void
-	{
-		this._drawingDirty=true;
-        this._createGraphicPathes();
-		if(this._active_fill_path!=null){
+	public drawRect(x: number, y: number, width: number, height: number): void {
+		this._drawingDirty = true;
+		this._createGraphicPathes();
+		if (this._active_fill_path != null) {
 			this._active_fill_path.moveTo(x, y);
 			/*
 			this._active_fill_path.lineTo(x+width, y);
@@ -1087,24 +1052,22 @@ export class Graphics extends AssetBase
 			this._active_fill_path.lineTo(x, y+height);
 			this._active_fill_path.lineTo(x, y);
 			*/
-			var w:number=width;
-			var h:number=height;
-			var t:number=0;
-			if(this._active_stroke_path!=null) {
-				t=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness/2;
-				w-=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness;
-				h-=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness;
+			let w: number = width;
+			let h: number = height;
+			let t: number = 0;
+			if (this._active_stroke_path != null) {
+				t = (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2;
+				w -= (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness;
+				h -= (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness;
 			}
-			GraphicsFactoryHelper.addTriangle(x+t,y+h+t,  x+t,y+t,x+w+t, y+t, 0, this._active_fill_path.verts, false);
-			GraphicsFactoryHelper.addTriangle(x+t,y+h+t, x+t+w,y+t, x+w+t, y+h+t,0, this._active_fill_path.verts, false);
-				
-
+			GraphicsFactoryHelper.addTriangle(x + t,y + h + t,  x + t,y + t,x + w + t, y + t, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + t,y + h + t, x + t + w,y + t, x + w + t, y + h + t,0, this._active_fill_path.verts, false);
 
 		}
-		if(this._active_stroke_path!=null){
+		if (this._active_stroke_path != null) {
 			this._active_stroke_path.moveTo(x, y);
 			//var t:number=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness/2;
-			
+
 			// todo: respect Jointstyle here (?)
 			/*
 			GraphicsFactoryHelper.addTriangle(x-t, y+height+t, x-t, y-t, x+t, y+t, 0, this._active_stroke_path.verts, false);
@@ -1120,11 +1083,11 @@ export class Graphics extends AssetBase
 			GraphicsFactoryHelper.addTriangle(x+t, y+height-t, x+width+t, y+height+t, x+width-t, y+height-t, 0, this._active_stroke_path.verts, false);
 			*/
 
-			this._active_stroke_path.lineTo(x+width, y);
-			this._active_stroke_path.lineTo(x+width, y+height);
-			this._active_stroke_path.lineTo(x, y+height);
+			this._active_stroke_path.lineTo(x + width, y);
+			this._active_stroke_path.lineTo(x + width, y + height);
+			this._active_stroke_path.lineTo(x, y + height);
 			this._active_stroke_path.lineTo(x, y);
-			
+
 		}
 		this.invalidate();
 	}
@@ -1155,121 +1118,120 @@ export class Graphics extends AssetBase
 	 *                       <code>ellipseHeight</code> parameters are not a
 	 *                       number(<code>Number.NaN</code>).
 	 */
-	public drawRoundRect(x:number, y:number, width:number, height:number, ellipseWidth:number, ellipseHeight:number = NaN):void
-	{
-		this._drawingDirty=true;
-        this._createGraphicPathes();
-		if(isNaN(ellipseHeight)){
-			ellipseHeight=ellipseWidth;
+	public drawRoundRect(x: number, y: number, width: number, height: number, ellipseWidth: number, ellipseHeight: number = NaN): void {
+		this._drawingDirty = true;
+		this._createGraphicPathes();
+		if (isNaN(ellipseHeight)) {
+			ellipseHeight = ellipseWidth;
 		}
-		var w:number=width;
-		var h:number=height;
-		var ew:number=ellipseWidth/2;
-		var eh:number=ellipseHeight/2;
-		var t:number=0;
+		let w: number = width;
+		let h: number = height;
+		const ew: number = ellipseWidth / 2;
+		const eh: number = ellipseHeight / 2;
+		let t: number = 0;
 
-		if(this._active_fill_path!=null){
+		if (this._active_fill_path != null) {
 			this._active_fill_path.moveTo(x, y);
-			if(this._active_stroke_path!=null) {
-				t=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness/2;
-				w-=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness;
-				h-=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness;
+			if (this._active_stroke_path != null) {
+				t = (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2;
+				w -= (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness;
+				h -= (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness;
 			}
-			GraphicsFactoryHelper.addTriangle(x+t,y+h-eh, x+t,y+eh, x+w-t, y+eh,0, this._active_fill_path.verts, false);
-			GraphicsFactoryHelper.addTriangle(x+t,y+h-eh,  x+w-t,y+eh,x+w-t, y+h-eh, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + t,y + h - eh, x + t,y + eh, x + w - t, y + eh,0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + t,y + h - eh,  x + w - t,y + eh,x + w - t, y + h - eh, 0, this._active_fill_path.verts, false);
 
-			GraphicsFactoryHelper.addTriangle(x+ew,y+t, x+w-ew, y+eh,x+ew,y+eh, 0, this._active_fill_path.verts, false);
-			GraphicsFactoryHelper.addTriangle(x+ew,y+t, x+w-ew, y+t, x+w-ew,y+eh,0, this._active_fill_path.verts, false);
-			GraphicsFactoryHelper.addTriangle(x+ew,y+h-eh, x+w-ew, y+h-t,x+ew,y+h-t, 0, this._active_fill_path.verts, false);
-			GraphicsFactoryHelper.addTriangle(x+ew,y+h-eh, x+w-ew, y+h-eh, x+w-ew,y+h-t,0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + ew,y + t, x + w - ew, y + eh,x + ew,y + eh, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + ew,y + t, x + w - ew, y + t, x + w - ew,y + eh,0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + ew,y + h - eh, x + w - ew, y + h - t,x + ew,y + h - t, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + ew,y + h - eh, x + w - ew, y + h - eh, x + w - ew,y + h - t,0, this._active_fill_path.verts, false);
 
-			GraphicsFactoryHelper.drawElipse(x+ew,y+eh, ew-t, eh-t, this._active_fill_path.verts, 180, 270, 5, false);
-			GraphicsFactoryHelper.drawElipse(x+w-ew,y+eh, ew-t, eh-t, this._active_fill_path.verts, 270, 360, 5, false);
-			GraphicsFactoryHelper.drawElipse(x+w-ew,y+h-eh, ew-t, eh-t, this._active_fill_path.verts, 0, 90, 5, false);
-			GraphicsFactoryHelper.drawElipse(x+ew,y+h-eh, ew-t, eh-t, this._active_fill_path.verts, 90, 180, 5, false);
+			GraphicsFactoryHelper.drawElipse(x + ew,y + eh, ew - t, eh - t, this._active_fill_path.verts, 180, 270, 5, false);
+			GraphicsFactoryHelper.drawElipse(x + w - ew,y + eh, ew - t, eh - t, this._active_fill_path.verts, 270, 360, 5, false);
+			GraphicsFactoryHelper.drawElipse(x + w - ew,y + h - eh, ew - t, eh - t, this._active_fill_path.verts, 0, 90, 5, false);
+			GraphicsFactoryHelper.drawElipse(x + ew,y + h - eh, ew - t, eh - t, this._active_fill_path.verts, 90, 180, 5, false);
 		}
-		if(this._active_stroke_path!=null){
+		if (this._active_stroke_path != null) {
 			this._active_stroke_path.moveTo(x, y);
-			t=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness/2;
+			t = (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2;
 
-			GraphicsFactoryHelper.addTriangle(x-t, y+h-eh, x-t, y+eh, x+t, y+eh, 0, this._active_stroke_path.verts, false);
-			GraphicsFactoryHelper.addTriangle(x-t, y+h-eh, x+t, y+h-eh, x+t, y+eh, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x - t, y + h - eh, x - t, y + eh, x + t, y + eh, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x - t, y + h - eh, x + t, y + h - eh, x + t, y + eh, 0, this._active_stroke_path.verts, false);
 
-			GraphicsFactoryHelper.addTriangle(x+ew, y-t, x+w-ew, y-t, x+ew, y+t, 0, this._active_stroke_path.verts, false);
-			GraphicsFactoryHelper.addTriangle(x+ew, y+t, x+w-ew, y-t, x+w-ew, y+t, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + ew, y - t, x + w - ew, y - t, x + ew, y + t, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + ew, y + t, x + w - ew, y - t, x + w - ew, y + t, 0, this._active_stroke_path.verts, false);
 
-			GraphicsFactoryHelper.addTriangle(x+w-t, y+h-eh, x+w-t, y+eh, x+w+t, y+h-eh, 0, this._active_stroke_path.verts, false);
-			GraphicsFactoryHelper.addTriangle(x+w+t, y+h-eh, x+w+t, y+eh, x+w-t, y+eh, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + w - t, y + h - eh, x + w - t, y + eh, x + w + t, y + h - eh, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + w + t, y + h - eh, x + w + t, y + eh, x + w - t, y + eh, 0, this._active_stroke_path.verts, false);
 
-			GraphicsFactoryHelper.addTriangle(x+ew, y+h+t, x+w-ew, y+h+t, x+ew, y+h-t, 0, this._active_stroke_path.verts, false);
-			GraphicsFactoryHelper.addTriangle(x+ew, y+h-t, x+w-ew, y+h+t, x+w-ew, y+h-t, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + ew, y + h + t, x + w - ew, y + h + t, x + ew, y + h - t, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + ew, y + h - t, x + w - ew, y + h + t, x + w - ew, y + h - t, 0, this._active_stroke_path.verts, false);
 
-			GraphicsFactoryHelper.drawElipseStrokes(x+ew,y+eh, ew, eh, this._active_stroke_path.verts, 180, 270, 5, t, false);
-			GraphicsFactoryHelper.drawElipseStrokes(x+w-ew,y+eh, ew, eh, this._active_stroke_path.verts, 270, 360, 5, t, false);
-			GraphicsFactoryHelper.drawElipseStrokes(x+w-ew,y+h-eh, ew, eh, this._active_stroke_path.verts, 0, 90, 5, t, false);
-			GraphicsFactoryHelper.drawElipseStrokes(x+ew,y+h-eh, ew, eh, this._active_stroke_path.verts, 90, 180, 5, t, false);
+			GraphicsFactoryHelper.drawElipseStrokes(x + ew,y + eh, ew, eh, this._active_stroke_path.verts, 180, 270, 5, t, false);
+			GraphicsFactoryHelper.drawElipseStrokes(x + w - ew,y + eh, ew, eh, this._active_stroke_path.verts, 270, 360, 5, t, false);
+			GraphicsFactoryHelper.drawElipseStrokes(x + w - ew,y + h - eh, ew, eh, this._active_stroke_path.verts, 0, 90, 5, t, false);
+			GraphicsFactoryHelper.drawElipseStrokes(x + ew,y + h - eh, ew, eh, this._active_stroke_path.verts, 90, 180, 5, t, false);
 
 		}
 		this.invalidate();
 	}
 
-	public drawRoundRectComplex(x:number, y:number, width:number, height:number, topLeftRadius:number, topRightRadius:number, bottomLeftRadius:number, bottomRightRadius:number){
-		var w:number=width;
-		var h:number=height;
-		var tl:number=topLeftRadius;
-		var tr:number=topRightRadius;
-		var bl:number=bottomLeftRadius;
-		var br:number=bottomRightRadius;
-		this._drawingDirty=true;
-        this._createGraphicPathes();
-		var t:number=0;
-		if(this._active_fill_path!=null){
+	public drawRoundRectComplex(x: number, y: number, width: number, height: number, topLeftRadius: number, topRightRadius: number, bottomLeftRadius: number, bottomRightRadius: number) {
+		let w: number = width;
+		let h: number = height;
+		const tl: number = topLeftRadius;
+		const tr: number = topRightRadius;
+		const bl: number = bottomLeftRadius;
+		const br: number = bottomRightRadius;
+		this._drawingDirty = true;
+		this._createGraphicPathes();
+		let t: number = 0;
+		if (this._active_fill_path != null) {
 			this._active_fill_path.moveTo(x, y);
-			if(this._active_stroke_path!=null) {
-				t=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness/2;
-				w-=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness;
-				h-=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness;
+			if (this._active_stroke_path != null) {
+				t = (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2;
+				w -= (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness;
+				h -= (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness;
 			}
-			GraphicsFactoryHelper.addTriangle(x+tl,y+tl, x+w-tr, y+tr, x+w-br, y+h-br, 0, this._active_fill_path.verts, false);
-			GraphicsFactoryHelper.addTriangle(x+tl,y+tl,  x+w-br, y+h-br, x+bl, y+h-bl, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + tl,y + tl, x + w - tr, y + tr, x + w - br, y + h - br, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + tl,y + tl,  x + w - br, y + h - br, x + bl, y + h - bl, 0, this._active_fill_path.verts, false);
 
-			GraphicsFactoryHelper.addTriangle(x+t,y+tl,x+tl,y+tl, x+t,y+h-bl, 0, this._active_fill_path.verts, false);
-			GraphicsFactoryHelper.addTriangle(x+tl,y+tl, x+t,y+h-bl,  x+bl,y+h-bl, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + t,y + tl,x + tl,y + tl, x + t,y + h - bl, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + tl,y + tl, x + t,y + h - bl,  x + bl,y + h - bl, 0, this._active_fill_path.verts, false);
 
-			GraphicsFactoryHelper.addTriangle(x+tl,y+t,x+tl,y+tl, x+w-tr,y+t, 0, this._active_fill_path.verts, false);
-			GraphicsFactoryHelper.addTriangle(x+tl,y+tl, x+w-tr,y+tr,  x+w-tr,y+t, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + tl,y + t,x + tl,y + tl, x + w - tr,y + t, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + tl,y + tl, x + w - tr,y + tr,  x + w - tr,y + t, 0, this._active_fill_path.verts, false);
 
-			GraphicsFactoryHelper.addTriangle(x+w-t,y+tr,x+w-tr,y+tr, x+w-t,y+h-br, 0, this._active_fill_path.verts, false);
-			GraphicsFactoryHelper.addTriangle(x+w-tr,y+tr,  x+w-br,y+h-br, x+w-t,y+h-br, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + w - t,y + tr,x + w - tr,y + tr, x + w - t,y + h - br, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + w - tr,y + tr,  x + w - br,y + h - br, x + w - t,y + h - br, 0, this._active_fill_path.verts, false);
 
-			GraphicsFactoryHelper.addTriangle(x+bl,y+h-t, x+w-br,y+h-t,x+bl,y+h-bl, 0, this._active_fill_path.verts, false);
-			GraphicsFactoryHelper.addTriangle(x+bl,y+h-bl,  x+w-br,y+h-t, x+w-br,y+h-br, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + bl,y + h - t, x + w - br,y + h - t,x + bl,y + h - bl, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + bl,y + h - bl,  x + w - br,y + h - t, x + w - br,y + h - br, 0, this._active_fill_path.verts, false);
 
-			GraphicsFactoryHelper.drawElipse(x+tl,y+tl, tl-t, tl-t, this._active_fill_path.verts, 180, 270, 5, false);
-			GraphicsFactoryHelper.drawElipse(x+w-tr,y+tr, tr-t, tr-t, this._active_fill_path.verts, 270, 360, 5, false);
-			GraphicsFactoryHelper.drawElipse(x+w-br,y+h-br, br-t, br-t, this._active_fill_path.verts, 0, 90, 5, false);
-			GraphicsFactoryHelper.drawElipse(x+bl,y+h-bl, bl-t, bl-t, this._active_fill_path.verts, 90, 180, 5, false);
+			GraphicsFactoryHelper.drawElipse(x + tl,y + tl, tl - t, tl - t, this._active_fill_path.verts, 180, 270, 5, false);
+			GraphicsFactoryHelper.drawElipse(x + w - tr,y + tr, tr - t, tr - t, this._active_fill_path.verts, 270, 360, 5, false);
+			GraphicsFactoryHelper.drawElipse(x + w - br,y + h - br, br - t, br - t, this._active_fill_path.verts, 0, 90, 5, false);
+			GraphicsFactoryHelper.drawElipse(x + bl,y + h - bl, bl - t, bl - t, this._active_fill_path.verts, 90, 180, 5, false);
 		}
-		if(this._active_stroke_path!=null){
+		if (this._active_stroke_path != null) {
 			this._active_stroke_path.moveTo(x, y);
-			t=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness/2;
+			t = (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2;
 
-			GraphicsFactoryHelper.addTriangle(x-t, y+h-bl, x-t, y+tl, x+t, y+tl, 0, this._active_stroke_path.verts, false);
-			GraphicsFactoryHelper.addTriangle(x-t, y+h-bl, x+t, y+h-bl, x+t, y+tl, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x - t, y + h - bl, x - t, y + tl, x + t, y + tl, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x - t, y + h - bl, x + t, y + h - bl, x + t, y + tl, 0, this._active_stroke_path.verts, false);
 
-			GraphicsFactoryHelper.addTriangle(x+tl, y-t, x+w-tr, y-t, x+tr, y+t, 0, this._active_stroke_path.verts, false);
-			GraphicsFactoryHelper.addTriangle(x+tl, y+t, x+w-tr, y-t, x+w-tr, y+t, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + tl, y - t, x + w - tr, y - t, x + tr, y + t, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + tl, y + t, x + w - tr, y - t, x + w - tr, y + t, 0, this._active_stroke_path.verts, false);
 
-			GraphicsFactoryHelper.addTriangle(x+w-t, y+h-br, x+w-t, y+tr, x+w+t, y+h-br, 0, this._active_stroke_path.verts, false);
-			GraphicsFactoryHelper.addTriangle(x+w+t, y+h-br, x+w+t, y+tr, x+w-t, y+tr, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + w - t, y + h - br, x + w - t, y + tr, x + w + t, y + h - br, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + w + t, y + h - br, x + w + t, y + tr, x + w - t, y + tr, 0, this._active_stroke_path.verts, false);
 
-			GraphicsFactoryHelper.addTriangle(x+bl, y+h+t, x+w-br, y+h+t, x+bl, y+h-t, 0, this._active_stroke_path.verts, false);
-			GraphicsFactoryHelper.addTriangle(x+bl, y+h-t, x+w-br, y+h+t, x+w-br, y+h-t, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + bl, y + h + t, x + w - br, y + h + t, x + bl, y + h - t, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + bl, y + h - t, x + w - br, y + h + t, x + w - br, y + h - t, 0, this._active_stroke_path.verts, false);
 
-			GraphicsFactoryHelper.drawElipseStrokes(x+tl,y+tl, tl, tl, this._active_stroke_path.verts, 180, 270, 5, t, false);
-			GraphicsFactoryHelper.drawElipseStrokes(x+w-tr,y+tr, tr, tr, this._active_stroke_path.verts, 270, 360, 5, t, false);
-			GraphicsFactoryHelper.drawElipseStrokes(x+w-br,y+h-br, br, br, this._active_stroke_path.verts, 0, 90, 5, t, false);
-			GraphicsFactoryHelper.drawElipseStrokes(x+bl,y+h-bl, bl, bl, this._active_stroke_path.verts, 90, 180, 5, t, false);
+			GraphicsFactoryHelper.drawElipseStrokes(x + tl,y + tl, tl, tl, this._active_stroke_path.verts, 180, 270, 5, t, false);
+			GraphicsFactoryHelper.drawElipseStrokes(x + w - tr,y + tr, tr, tr, this._active_stroke_path.verts, 270, 360, 5, t, false);
+			GraphicsFactoryHelper.drawElipseStrokes(x + w - br,y + h - br, br, br, this._active_stroke_path.verts, 0, 90, 5, t, false);
+			GraphicsFactoryHelper.drawElipseStrokes(x + bl,y + h - bl, bl, bl, this._active_stroke_path.verts, 90, 180, 5, t, false);
 
 		}
 		this.invalidate();
@@ -1293,13 +1255,12 @@ export class Graphics extends AssetBase
 	 *                parameter can be set to any value defined by the
 	 *                TriangleCulling class.
 	 */
-	public drawTriangles(vertices:Array<number>, indices:Array<number /*int*/> = null, uvtData:Array<number> = null, culling:TriangleCulling = null):void
-	{
-		this._drawingDirty=true;
-		if(this._active_fill_path!=null){
+	public drawTriangles(vertices: Array<number>, indices: Array<number /*int*/> = null, uvtData: Array<number> = null, culling: TriangleCulling = null): void {
+		this._drawingDirty = true;
+		if (this._active_fill_path != null) {
 			//todo
 		}
-		if(this._active_stroke_path!=null){
+		if (this._active_stroke_path != null) {
 			//todo
 		}
 
@@ -1316,20 +1277,19 @@ export class Graphics extends AssetBase
 	 * defined, the path is closed with a line and then filled.
 	 *
 	 */
-	public endFill():void
-	{
-	
+	public endFill(): void {
+
 		//todo: this is a hack for getting stroke pathes closed if a fill_path exists. needs refactor to make this work correctly
-		if(this._active_stroke_path && this._active_fill_path){
+		if (this._active_stroke_path && this._active_fill_path) {
 			this._active_stroke_path.forceClose = true;
 		}
 
 		this._endFillInternal(true);
 
-		this._active_fill_path=null;
-        this._active_stroke_path=null;
-        //this._lineStyle=null;
-		this._fillStyle=null;
+		this._active_fill_path = null;
+		this._active_stroke_path = null;
+		//this._lineStyle=null;
+		this._fillStyle = null;
 		//this.invalidate();
 		//this.invalidateElements();
 	}
@@ -1337,13 +1297,13 @@ export class Graphics extends AssetBase
 	private _endFillInternal(clear = false) {
 		//execute any queued shapetags
 		if (this._queuedShapeTags.length) {
-			
+
 			const localQueue = this._queuedShapeTags;
 			const len = localQueue.length;
-			
+
 			this._queuedShapeTags = [];
 
-			for (var i:number = 0; i < len; i++)
+			for (let i: number = 0; i < len; i++)
 				this.convertRecordsToShapeData(localQueue[i]);
 
 			localQueue.length = 0;
@@ -1354,8 +1314,8 @@ export class Graphics extends AssetBase
 		this.draw_fills(clear);
 		this.draw_strokes(clear);
 
-		if(!clear) {
-			for(let i = lastShapes; i < this._shapes.length; i ++) {
+		if (!clear) {
+			for (let i = lastShapes; i < this._shapes.length; i++) {
 				this._lastPrebuildedShapes[i - lastShapes] = this._shapes[i];
 			}
 			this._lastPrebuildedShapes.length = this._shapes.length - lastShapes;
@@ -1395,10 +1355,9 @@ export class Graphics extends AssetBase
 	 * @param repeat Whether to repeat the bitmap in a tiled fashion.
 	 * @param smooth Whether smoothing should be applied to the bitmap.
 	 */
-	public lineBitmapStyle(bitmap:BitmapImage2D, matrix:Matrix = null, repeat:boolean = true, smooth:boolean = false):void
-	{
+	public lineBitmapStyle(bitmap: BitmapImage2D, matrix: Matrix = null, repeat: boolean = true, smooth: boolean = false): void {
 		//this._drawingDirty=true;
-        //this._lineStyle=new  GraphicsStrokeStyle(colors[0], alphas[0], 1);
+		//this._lineStyle=new  GraphicsStrokeStyle(colors[0], alphas[0], 1);
 		// start a new stroke path
 	}
 
@@ -1472,10 +1431,9 @@ export class Graphics extends AssetBase
 	 *                            image shows a gradient with a
 	 *                            <code>focalPointRatio</code> of -0.75:
 	 */
-	public lineGradientStyle(type:GradientType, colors:Array<number /*int*/>, alphas:Array<number>, ratios:Array<number>, matrix:Matrix = null, spreadMethod:SpreadMethod = null, interpolationMethod:InterpolationMethod = null, focalPointRatio:number = 0):void
-	{
-        this._drawingDirty=true;
-        this._lineStyle=new  GraphicsStrokeStyle(colors[0], alphas[0], 1);
+	public lineGradientStyle(type: GradientType, colors: Array<number /*int*/>, alphas: Array<number>, ratios: Array<number>, matrix: Matrix = null, spreadMethod: SpreadMethod = null, interpolationMethod: InterpolationMethod = null, focalPointRatio: number = 0): void {
+		this._drawingDirty = true;
+		this._lineStyle = new  GraphicsStrokeStyle(colors[0], alphas[0], 1);
 	}
 
 	/**
@@ -1505,10 +1463,10 @@ export class Graphics extends AssetBase
 	 *               otherwise manipulate the bitmap before applying it to the
 	 *               line style.
 	 */
-//		public lineShaderStyle(shader:Shader, matrix:Matrix = null)
-//		{
-//
-//		}
+	//		public lineShaderStyle(shader:Shader, matrix:Matrix = null)
+	//		{
+	//
+	//		}
 
 	/**
 	 * Specifies a line style used for subsequent calls to Graphics methods such
@@ -1649,11 +1607,10 @@ export class Graphics extends AssetBase
 	 *                     has a specific maximum angle for which the miter is
 	 *                     cut off. The following table lists some examples:</p>
 	 */
-	public lineStyle(thickness:number = 0, color:number /*int*/ = 0, alpha:number = 1, pixelHinting:boolean = false, scaleMode:LineScaleMode = null, capstyle:number = CapsStyle.NONE, jointstyle:number = JointStyle.MITER, miterLimit:number = 100):void
-	{
-		this._drawingDirty=true;
-        this._lineStyle = new  GraphicsStrokeStyle(color, alpha, thickness, jointstyle, capstyle, miterLimit);
-		
+	public lineStyle(thickness: number = 0, color: number /*int*/ = 0, alpha: number = 1, pixelHinting: boolean = false, scaleMode: LineScaleMode = null, capstyle: number = CapsStyle.NONE, jointstyle: number = JointStyle.MITER, miterLimit: number = 100): void {
+		this._drawingDirty = true;
+		this._lineStyle = new  GraphicsStrokeStyle(color, alpha, thickness, jointstyle, capstyle, miterLimit);
+
 	}
 
 	/**
@@ -1672,18 +1629,17 @@ export class Graphics extends AssetBase
 	 * @param y A number that indicates the vertical position relative to the
 	 *          registration point of the parent display object(in pixels).
 	 */
-	public lineTo(x:number, y:number):void
-	{
-		this._drawingDirty=true;
-        this._createGraphicPathes();
-		if(this._active_fill_path!=null){
+	public lineTo(x: number, y: number): void {
+		this._drawingDirty = true;
+		this._createGraphicPathes();
+		if (this._active_fill_path != null) {
 			this._active_fill_path.lineTo(x, y);
 		}
-		if(this._active_stroke_path!=null){
+		if (this._active_stroke_path != null) {
 			this._active_stroke_path.lineTo(x, y);
 		}
-		this._current_position.x=x;
-		this._current_position.y=y;
+		this._current_position.x = x;
+		this._current_position.y = y;
 		this.invalidate();
 
 	}
@@ -1698,65 +1654,63 @@ export class Graphics extends AssetBase
 	 * @param y A number that indicates the vertical position relative to the
 	 *          registration point of the parent display object(in pixels).
 	 */
-	public moveTo(x:number, y:number):void
-	{
-        this._drawingDirty=true;
-        this._createGraphicPathes();
+	public moveTo(x: number, y: number): void {
+		this._drawingDirty = true;
+		this._createGraphicPathes();
 
-		if(this._active_fill_path!=null){
+		if (this._active_fill_path != null) {
 			this._active_fill_path.moveTo(x, y);
 		}
-		if(this._active_stroke_path!=null){
+		if (this._active_stroke_path != null) {
 			this._active_stroke_path.moveTo(x, y);
 		}
-		this._current_position.x=x;
-		this._current_position.y=y;
+		this._current_position.x = x;
+		this._current_position.y = y;
 		this.invalidate();
 	}
 
-	public queueShapeTag(shapeTag:ShapeTag):void
-	{
+	public queueShapeTag(shapeTag: ShapeTag): void {
 		this._queuedShapeTags.push(shapeTag);
 
 		this._drawingDirty = true;
 	}
 
-    private _createGraphicPathes(){
+	private _createGraphicPathes() {
 
-        if(this._fillStyle!=null && (this._active_fill_path==null ||  this._active_fill_path.style!=this._fillStyle)){
-            this._active_fill_path=new GraphicsPath();
-            this._active_fill_path.style = this._fillStyle;
-            if(this._current_position.x!=0 || this._current_position.y!=0)
-                this._active_fill_path.moveTo(this._current_position.x, this._current_position.y);
-            this._queued_fill_pathes.push(this._active_fill_path);
-        }
-        if(this._lineStyle!=null && (this._active_stroke_path==null ||  this._active_stroke_path.style!=this._lineStyle)){
-            this._active_stroke_path=new GraphicsPath();
-            this._active_stroke_path.style = this._lineStyle;
-            if(this._current_position.x!=0 || this._current_position.y!=0)
-                this._active_stroke_path.moveTo(this._current_position.x, this._current_position.y);
-            this._queued_stroke_pathes.push(this._active_stroke_path);
-        }
-    }
-	private _addShapes(shapes:Array<Shape>, cloneShapes:boolean = false):void
-	{
-		var shape:Shape;
-		var len:number = shapes.length;
-		for (var i:number = 0; i < len; i++) {
+		if (this._fillStyle != null && (this._active_fill_path == null ||  this._active_fill_path.style != this._fillStyle)) {
+			this._active_fill_path = new GraphicsPath();
+			this._active_fill_path.style = this._fillStyle;
+			if (this._current_position.x != 0 || this._current_position.y != 0)
+				this._active_fill_path.moveTo(this._current_position.x, this._current_position.y);
+			this._queued_fill_pathes.push(this._active_fill_path);
+		}
+		if (this._lineStyle != null && (this._active_stroke_path == null ||  this._active_stroke_path.style != this._lineStyle)) {
+			this._active_stroke_path = new GraphicsPath();
+			this._active_stroke_path.style = this._lineStyle;
+			if (this._current_position.x != 0 || this._current_position.y != 0)
+				this._active_stroke_path.moveTo(this._current_position.x, this._current_position.y);
+			this._queued_stroke_pathes.push(this._active_stroke_path);
+		}
+	}
+
+	private _addShapes(shapes: Array<Shape>, cloneShapes: boolean = false): void {
+		let shape: Shape;
+		const len: number = shapes.length;
+		for (let i: number = 0; i < len; i++) {
 			shape = shapes[i];
-			if(this.slice9Rectangle) { // todo: this is a dirty workaround to get the slice9-shapes cloned:
+			if (this.slice9Rectangle) { // todo: this is a dirty workaround to get the slice9-shapes cloned:
 				shape = Shape.getShape(TriangleElementsUtils.updateTriangleGraphicsSlice9(<TriangleElements> shape.elements, this.originalSlice9Size, 1, 1, false, true), shape.material, shape.style);
-			} else if (cloneShapes){
+			} else if (cloneShapes) {
 				shape = Shape.getShape(shape.elements, shape.material, shape.style, shape.count, shape.offset);
 			}
 
-            shape.particleCollection = shapes[i].particleCollection;
+			shape.particleCollection = shapes[i].particleCollection;
 
-            shape.addEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateDelegate);
+			shape.addEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateDelegate);
 			shape.addEventListener(RenderableEvent.INVALIDATE_MATERIAL, this._onInvalidateDelegate);
 			shape.addEventListener(RenderableEvent.INVALIDATE_STYLE, this._onInvalidateDelegate);
 			shape.addEventListener(AssetEvent.INVALIDATE, this._onInvalidateDelegate);
-			
+
 			this._shapes.push(shape);
 
 			shape.usages++;
@@ -1769,16 +1723,14 @@ export class Graphics extends AssetBase
 		this.invalidate();
 	}
 
-	public _isShapeMaterial(material:IMaterial):boolean
-	{
-		var len:number = this._shapes.length;
-		for (var i:number = 0; i < len; i++)
+	public _isShapeMaterial(material: IMaterial): boolean {
+		const len: number = this._shapes.length;
+		for (let i: number = 0; i < len; i++)
 			if (material == this._shapes[i].material)
 				return true;
 
 		return false;
 	}
-
 
 	public push = Array.prototype.push;
 
@@ -1789,23 +1741,22 @@ export class Graphics extends AssetBase
 	* See http://blogs.msdn.com/b/mswanson/archive/2006/02/27/539749.aspx and
 	* http://wahlers.com.br/claus/blog/hacking-swf-1-shapes-in-flash/ for details.
 	*/
-	public convertRecordsToShapeData(tag:ShapeTag):void
-	{
-		// run parser 
-		if(tag.needParse) {
+	public convertRecordsToShapeData(tag: ShapeTag): void {
+		// run parser
+		if (tag.needParse) {
 			//console.log("Run lazy Graphics parser", tag.id);
 			tag.lazyParser();
 		}
 
-		var records: ShapeRecord[] = tag.records;
-		var fillStyles: FillStyle[] = tag.fillStyles;
-		var lineStyles: LineStyle[] = tag.lineStyles;
-		var recordsMorph: ShapeRecord[] = tag.recordsMorph || null;
-		var parser:any = tag.parser;
-		var fillPaths:SegmentedPath[] = createPathsList(fillStyles, false, !!recordsMorph, parser);
-		var linePaths:SegmentedPath[] = createPathsList(lineStyles, true, !!recordsMorph, parser);
-		var isMorph:boolean = recordsMorph !== null;
-		var styles = {fill0: 0, fill1: 0, line: 0};
+		const records: ShapeRecord[] = tag.records;
+		const fillStyles: FillStyle[] = tag.fillStyles;
+		const lineStyles: LineStyle[] = tag.lineStyles;
+		const recordsMorph: ShapeRecord[] = tag.recordsMorph || null;
+		const parser: any = tag.parser;
+		let fillPaths: SegmentedPath[] = createPathsList(fillStyles, false, !!recordsMorph, parser);
+		let linePaths: SegmentedPath[] = createPathsList(lineStyles, true, !!recordsMorph, parser);
+		const isMorph: boolean = recordsMorph !== null;
+		let styles = { fill0: 0, fill1: 0, line: 0 };
 
 		interface IPathElement {
 			segment?: PathSegment | undefined,
@@ -1814,41 +1765,40 @@ export class Graphics extends AssetBase
 
 		const psPool: Array<IPathElement | undefined> = [];
 
-
 		// Fill- and line styles can be added by style change records in the middle of
 		// a shape records list. This also causes the previous paths to be treated as
 		// a group, so the lines don't get moved on top of any following fills.
 		// To support this, we just append all current fill and line paths to a list
 		// when new styles are introduced.
-		var allPaths: SegmentedPath[];
+		let allPaths: SegmentedPath[];
 		// If no style is set for a segment1 of a path1, a 1px transparent line is used.
-		var defaultPath: SegmentedPath;
+		let defaultPath: SegmentedPath;
 
-		var numRecords = records.length;
-		var x: number = 0;
-		var y: number = 0;
+		const numRecords = records.length;
+		let x: number = 0;
+		let y: number = 0;
 
-		var mX: number = 0;
-		var mY: number = 0;
+		let mX: number = 0;
+		let mY: number = 0;
 
 		//console.log("numRecords", numRecords);
 		for (let i = 0, j = 0; i < numRecords; i++) {
-			var record: ShapeRecord = records[i];
+			const record: ShapeRecord = records[i];
 			//console.log("record", i, record.type);
 			var morphRecord: ShapeRecord;
-			
+
 			if (isMorph) {
 				morphRecord = recordsMorph[j++];
 			}
-			
+
 			// type 0 is a StyleChange record
 			if (record.type === 0) {
 
-				// reset segment pool 
-				for(let i = 0; i <  3; i++) {
+				// reset segment pool
+				for (let i = 0; i <  3; i++) {
 					psPool[i] = undefined;
-				};
-				
+				}
+
 				if (record.flags & ShapeRecordFlags.HasNewStyles) {
 					if (!allPaths) {
 						allPaths = [];
@@ -1856,17 +1806,17 @@ export class Graphics extends AssetBase
 
 					this.push.apply(allPaths, fillPaths);
 					fillPaths = createPathsList(record.fillStyles, false, isMorph, parser);
-					
+
 					this.push.apply(allPaths, linePaths);
-					
+
 					linePaths = createPathsList(record.lineStyles, true, isMorph, parser);
-					
+
 					if (defaultPath) {
 						allPaths.push(defaultPath);
 						defaultPath = null;
 					}
 
-					styles = {fill0: 0, fill1: 0, line: 0};
+					styles = { fill0: 0, fill1: 0, line: 0 };
 				}
 
 				if (record.flags & ShapeRecordFlags.HasFillStyle0) {
@@ -1881,28 +1831,28 @@ export class Graphics extends AssetBase
 				// reset all segments and pathes to null, and than reset them based on new styles
 				// path1 = path2 = pathL=null;
 				// segment1 = segment2 = segmentL=null;
-				
+
 				if (styles.fill0) {
 					psPool[0] = {
 						path: fillPaths[styles.fill0 - 1],
-					}
+					};
 					//path1 = fillPaths[styles.fill0 - 1];
 				}
-				
+
 				if (styles.fill1) {
 					psPool[1] = {
 						path: fillPaths[styles.fill1 - 1],
-					}
+					};
 					//path2 = fillPaths[styles.fill1 - 1];
 				}
 
 				if (styles.line) {
 					psPool[2] = {
 						path: linePaths[styles.line - 1],
-					}
+					};
 					//pathL = linePaths[styles.line - 1];
 				}
-				
+
 				if (record.flags & ShapeRecordFlags.Move) {
 					x = record.moveX | 0;
 					y = record.moveY | 0;
@@ -1912,38 +1862,38 @@ export class Graphics extends AssetBase
 				}
 
 				// if a segment1 has same fill on both sides, we want to ignore this segment1 for fills
-				if(styles.fill1 && styles.fill0 && styles.fill0==styles.fill1){
+				if (styles.fill1 && styles.fill0 && styles.fill0 == styles.fill1) {
 					psPool[0] = psPool[1] = undefined;
 				}
-				
-				if(isMorph) {
-					
-					if(morphRecord.type === 0 ){
+
+				if (isMorph) {
+
+					if (morphRecord.type === 0) {
 						mX = morphRecord.moveX | 0;
 						mY = morphRecord.moveY | 0;
 					} else {
 						//mX = x;
 						//mY = y;
- 
-						j --;
+
+						j--;
 					}
 				}
 
-				for(let i = 0; i < 3; i ++) {
+				for (let i = 0; i < 3; i++) {
 					const entry = psPool[i];
 
-					if(!entry) {
+					if (!entry) {
 						continue;
 					}
 
 					entry.segment = PathSegment.FromDefaults(isMorph);
 					entry.path.addSegment(entry.segment);
-					
+
 					if (!isMorph) {
 						entry.segment.moveTo(x, y);
 						//console.log("segment1.moveTo" ,x/20, y/20);
 					} else {
-						entry.segment.morphMoveTo( x, y, mX, mY);
+						entry.segment.morphMoveTo(x, y, mX, mY);
 					}
 				}
 			}
@@ -1967,67 +1917,67 @@ export class Graphics extends AssetBase
 
 				if (record.flags & ShapeRecordFlags.IsStraight &&
 					(!isMorph || (morphRecord.flags & ShapeRecordFlags.IsStraight))) {
-					
+
 					x += record.deltaX | 0;
 					y += record.deltaY | 0;
 
-					if(isMorph) {
+					if (isMorph) {
 						mX += morphRecord.deltaX | 0;
 						mY += morphRecord.deltaY | 0;
 					}
 
-					for(let i = 0; i < 3; i++) {
+					for (let i = 0; i < 3; i++) {
 						const entry = psPool[i];
 
-						if(!entry) {
+						if (!entry) {
 							continue;
 						}
 
-						if(!isMorph) {
+						if (!isMorph) {
 							entry.segment.lineTo(x,y);
 						} else {
-							
+
 							entry.segment.morphLineTo(x, y, mX, mY);
 						}
 					}
 				} else {
-					let data = this.transformCurve(record, x, y);
+					const data = this.transformCurve(record, x, y);
 
 					x = data.x;
 					y = data.y;
 
 					let mData;
-					if(isMorph) {
+					if (isMorph) {
 						mData = this.transformCurve(morphRecord, mX, mY);
 
 						mX = mData.x;
 						mY = mData.y;
 					}
 
-					for(let i = 0; i < 3; i++) {
+					for (let i = 0; i < 3; i++) {
 						const e = psPool[i];
 
-						if(!e) {
+						if (!e) {
 							continue;
 						}
 
 						const s = e.segment;
 
-						if(!isMorph) {
+						if (!isMorph) {
 							s.curveTo(data.cx, data.cy, x, y);
-						} else {		
+						} else {
 							s.morphCurveTo(data.cx, data.cy, x, y, mData.cx, mData.cy, mX, mY);
 						}
 					}
 				}
 			}
 		}
-	//	applySegmentToStyles(segment1, styles, linePaths, fillPaths);
+		//	applySegmentToStyles(segment1, styles, linePaths, fillPaths);
 
 		// All current paths get appended to the allPaths list at the end. First fill,
 		// then line paths.
 
-		allPaths = (allPaths || []).concat(fillPaths || [], linePaths || [], defaultPath ||[]);
+		allPaths = (allPaths || []).concat(fillPaths || [], linePaths || [], defaultPath || []);
 
 		let shapeAJS;
 		let morphShapeAJS;
@@ -2035,14 +1985,14 @@ export class Graphics extends AssetBase
 		if (isMorph) {
 			//shape.morphCoordinates = new Int32Array(shape.coordinates.length);
 			//shape.morphStyles = new DataBuffer(16);
-			this.start=[];
-			this.end=[];
+			this.start = [];
+			this.end = [];
 
 			for (let i = 0; i < allPaths.length; i++) {
 				//allPaths[i].serialize(shape);
 				shapeAJS = new GraphicsPath();
 				morphShapeAJS = new GraphicsPath();
-				
+
 				//shapeAJS.queuePath(allPaths[i], morphShapeAJS)
 				allPaths[i].serializeAJS(shapeAJS, morphShapeAJS);
 
@@ -2054,16 +2004,15 @@ export class Graphics extends AssetBase
 				//console.log("allPaths", i, allPaths[i]);
 				//allPaths[i].serialize(shape);
 				shapeAJS = new GraphicsPath();
-				
+
 				//shapeAJS.queuePath(allPaths[i], null);
 				allPaths[i].serializeAJS(shapeAJS, null);
-				
+
 				//console.log("shapeAJS", shapeAJS);
 				this.add_queued_path(shapeAJS);
 			}
 		}
 	}
-
 
 	private transformCurve(record: ShapeRecord, x: number, y: number) {
 		let cx, cy;
@@ -2072,10 +2021,9 @@ export class Graphics extends AssetBase
 			cy = y + record.controlDeltaY | 0;
 			x = cx + record.anchorDeltaX | 0;
 			y = cy + record.anchorDeltaY | 0;
-		}
-		else {
-			let deltaX = record.deltaX | 0;
-			let deltaY = record.deltaY | 0;
+		} else {
+			const deltaX = record.deltaX | 0;
+			const deltaY = record.deltaY | 0;
 			cx = x + (deltaX >> 1);
 			cy = y + (deltaY >> 1);
 			x += deltaX;
@@ -2086,17 +2034,16 @@ export class Graphics extends AssetBase
 	}
 }
 
-
-var IDENTITY_MATRIX: ShapeMatrix = {a: 1, b: 0, c: 0, d: 1, tx: 0, ty: 0};
-function processStyle(style, isLineStyle: boolean, isMorph: boolean, parser:any): ShapeStyle {
-	var shapeStyle: ShapeStyle = style;
+const IDENTITY_MATRIX: ShapeMatrix = { a: 1, b: 0, c: 0, d: 1, tx: 0, ty: 0 };
+function processStyle(style, isLineStyle: boolean, isMorph: boolean, parser: any): ShapeStyle {
+	const shapeStyle: ShapeStyle = style;
 	if (isMorph) {
 		shapeStyle.morph = processMorphStyle(style, isLineStyle);
 	}
 	if (isLineStyle) {
 		shapeStyle.miterLimit = (style.miterLimitFactor || 1.5) * 2;
 		if (!style.color && style.hasFill) {
-			var fillStyle = processStyle(style.fillStyle, false, false, parser);
+			const fillStyle = processStyle(style.fillStyle, false, false, parser);
 			shapeStyle.type = fillStyle.type;
 			shapeStyle.transform = fillStyle.transform;
 			shapeStyle.colors = fillStyle.colors;
@@ -2115,7 +2062,7 @@ function processStyle(style, isLineStyle: boolean, isMorph: boolean, parser:any)
 	if (style.type === undefined || style.type === FillType.Solid) {
 		return shapeStyle;
 	}
-	var scale;
+	let scale;
 	switch (style.type) {
 		case FillType.LinearGradient:
 		case FillType.RadialGradient:
@@ -2123,9 +2070,9 @@ function processStyle(style, isLineStyle: boolean, isMorph: boolean, parser:any)
 			var records = style.records;
 			var colors = shapeStyle.colors = [];
 			var ratios = shapeStyle.ratios = [];
-			for (var i = 0; i < records.length; i++) {
-				var record = records[i];
-				if(ratios.length==0 || ratios[ratios.length-1]!=record.ratio){
+			for (let i = 0; i < records.length; i++) {
+				const record = records[i];
+				if (ratios.length == 0 || ratios[ratios.length - 1] != record.ratio) {
 					colors.push(record.color);
 					ratios.push(record.ratio);
 				}
@@ -2146,7 +2093,7 @@ function processStyle(style, isLineStyle: boolean, isMorph: boolean, parser:any)
 				dependencies.push(style.bitmapId);
 			}*/
 			shapeStyle.material = parser.getMaterial(style.bitmapId);
-			scale = 1/20;
+			scale = 1 / 20;
 			break;
 		default:
 			console.log('shape parser encountered invalid fill style ' + style.type);
@@ -2155,14 +2102,14 @@ function processStyle(style, isLineStyle: boolean, isMorph: boolean, parser:any)
 		shapeStyle.transform = IDENTITY_MATRIX;
 		return shapeStyle;
 	}
-	var matrix = style.matrix;
+	const matrix = style.matrix;
 	shapeStyle.transform = {
 		a: matrix.a * scale,
 		b: matrix.b * scale,
 		c: matrix.c * scale,
 		d: matrix.d * scale,
-		tx: matrix.tx/20,
-		ty: matrix.ty/20
+		tx: matrix.tx / 20,
+		ty: matrix.ty / 20
 	};
 	// null data that's unused from here on out
 	style.matrix = null;
@@ -2170,11 +2117,11 @@ function processStyle(style, isLineStyle: boolean, isMorph: boolean, parser:any)
 }
 
 function processMorphStyle(style, isLineStyle: boolean): ShapeStyle {
-	var morphStyle: ShapeStyle = Object.create(style);
+	const morphStyle: ShapeStyle = Object.create(style);
 	if (isLineStyle) {
 		morphStyle.width = style.widthMorph;
 		if (!style.color && style.hasFill) {
-			var fillStyle = processMorphStyle(style.fillStyle, false);
+			const fillStyle = processMorphStyle(style.fillStyle, false);
 			morphStyle.transform = fillStyle.transform;
 			morphStyle.colors = fillStyle.colors;
 			morphStyle.ratios = fillStyle.ratios;
@@ -2191,7 +2138,7 @@ function processMorphStyle(style, isLineStyle: boolean): ShapeStyle {
 		morphStyle.color = style.colorMorph;
 		return morphStyle;
 	}
-	var scale;
+	let scale;
 	switch (style.type) {
 		case FillType.LinearGradient:
 		case FillType.RadialGradient:
@@ -2199,8 +2146,8 @@ function processMorphStyle(style, isLineStyle: boolean): ShapeStyle {
 			var records = style.records;
 			var colors = morphStyle.colors = [];
 			var ratios = morphStyle.ratios = [];
-			for (var i = 0; i < records.length; i++) {
-				var record = records[i];
+			for (let i = 0; i < records.length; i++) {
+				const record = records[i];
 				colors.push(record.colorMorph);
 				ratios.push(record.ratioMorph);
 			}
@@ -2210,7 +2157,7 @@ function processMorphStyle(style, isLineStyle: boolean): ShapeStyle {
 		case FillType.ClippedBitmap:
 		case FillType.NonsmoothedRepeatingBitmap:
 		case FillType.NonsmoothedClippedBitmap:
-			scale = 1/20;
+			scale = 1 / 20;
 			break;
 		default:
 			console.log('shape parser encountered invalid fill style');
@@ -2219,14 +2166,14 @@ function processMorphStyle(style, isLineStyle: boolean): ShapeStyle {
 		morphStyle.transform = IDENTITY_MATRIX;
 		return morphStyle;
 	}
-	var matrix = style.matrixMorph;
+	const matrix = style.matrixMorph;
 	morphStyle.transform = {
 		a: (matrix.a * scale),
 		b: (matrix.b * scale),
 		c: (matrix.c * scale),
 		d: (matrix.d * scale),
-		tx: matrix.tx/20,
-		ty: matrix.ty/20
+		tx: matrix.tx / 20,
+		ty: matrix.ty / 20
 	};
 	return morphStyle;
 }
@@ -2236,11 +2183,10 @@ function processMorphStyle(style, isLineStyle: boolean): ShapeStyle {
 * all the paths for a certain fill or line style.
 */
 function createPathsList(styles: any[], isLineStyle: boolean, isMorph: boolean,
-						parser:any): SegmentedPath[]
-{
-	var paths: SegmentedPath[] = [];
-	for (var i = 0; i < styles.length; i++) {
-		var style = processStyle(styles[i], isLineStyle, isMorph, parser);
+	parser: any): SegmentedPath[] {
+	const paths: SegmentedPath[] = [];
+	for (let i = 0; i < styles.length; i++) {
+		const style = processStyle(styles[i], isLineStyle, isMorph, parser);
 		if (!isLineStyle) {
 			paths[i] = new SegmentedPath(style, null);
 		} else {
@@ -2288,35 +2234,35 @@ export interface ShapeTag extends DefinitionTag {
 	lineStyles: LineStyle[];
 	records: ShapeRecord[];
 	recordsMorph?: ShapeRecord[];
-	parser:any;
-  }
+	parser: any;
+}
 
 export interface Bbox {
-  xMin: number;
-  xMax: number;
-  yMin: number;
-  yMax: number;
+	xMin: number;
+	xMax: number;
+	yMin: number;
+	yMax: number;
 }
 
 export interface FillStyle {
-  type: number;
+	type: number;
 }
 
 export interface LineStyle {
-  width: number;
-  widthMorph?: number;
-  startCapsStyle?: number;
-  jointStyle?: number;
-  hasFill?: number;
-  noHscale?: boolean;
-  noVscale?: boolean;
-  pixelHinting?: boolean;
-  noClose?: boolean;
-  endCapsStyle?: number;
-  miterLimitFactor?: number;
-  fillStyle?: FillStyle;
-  color?: number;
-  colorMorph?: number;
+	width: number;
+	widthMorph?: number;
+	startCapsStyle?: number;
+	jointStyle?: number;
+	hasFill?: number;
+	noHscale?: boolean;
+	noVscale?: boolean;
+	pixelHinting?: boolean;
+	noClose?: boolean;
+	endCapsStyle?: number;
+	miterLimitFactor?: number;
+	fillStyle?: FillStyle;
+	color?: number;
+	colorMorph?: number;
 }
 
 export interface ShapeRecord {
@@ -2339,16 +2285,15 @@ export interface ShapeRecord {
 	fillBits?: number;
 }
 
-
 export interface SwfTag {
-  code: number;
-  ns?: string;
+	code: number;
+	ns?: string;
 }
 
 export interface DefinitionTag extends SwfTag {
-  id: number;
-  lazyParser: () => any;
-  needParse: boolean;
+	id: number;
+	lazyParser: () => any;
+	needParse: boolean;
 }
 
 export const enum ShapeRecordFlags {
@@ -2360,4 +2305,4 @@ export const enum ShapeRecordFlags {
 	IsStraight = 0x20,
 	IsGeneral = 0x40,
 	IsVertical = 0x80
-  }
+}

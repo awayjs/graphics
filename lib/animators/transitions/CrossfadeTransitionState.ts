@@ -1,22 +1,20 @@
-import {AnimationStateEvent} from "../../events/AnimationStateEvent";
+import { AnimationStateEvent } from '../../events/AnimationStateEvent';
 
-import {SkeletonBinaryLERPNode} from "../nodes/SkeletonBinaryLERPNode";
-import {SkeletonBinaryLERPState} from "../states/SkeletonBinaryLERPState";
+import { SkeletonBinaryLERPNode } from '../nodes/SkeletonBinaryLERPNode';
+import { SkeletonBinaryLERPState } from '../states/SkeletonBinaryLERPState';
 
-import {AnimatorBase} from "../AnimatorBase";
+import { AnimatorBase } from '../AnimatorBase';
 
-import {CrossfadeTransitionNode} from "./CrossfadeTransitionNode";
+import { CrossfadeTransitionNode } from './CrossfadeTransitionNode';
 
 /**
  *
  */
-export class CrossfadeTransitionState extends SkeletonBinaryLERPState
-{
-	private _crossfadeTransitionNode:CrossfadeTransitionNode;
-	private _animationStateTransitionComplete:AnimationStateEvent;
+export class CrossfadeTransitionState extends SkeletonBinaryLERPState {
+	private _crossfadeTransitionNode: CrossfadeTransitionNode;
+	private _animationStateTransitionComplete: AnimationStateEvent;
 
-	constructor(animator:AnimatorBase, skeletonAnimationNode:CrossfadeTransitionNode)
-	{
+	constructor(animator: AnimatorBase, skeletonAnimationNode: CrossfadeTransitionNode) {
 		super(animator, <SkeletonBinaryLERPNode> skeletonAnimationNode);
 
 		this._crossfadeTransitionNode = skeletonAnimationNode;
@@ -25,9 +23,8 @@ export class CrossfadeTransitionState extends SkeletonBinaryLERPState
 	/**
 	 * @inheritDoc
 	 */
-	public _pUpdateTime(time:number):void
-	{
-		this.blendWeight = Math.abs(time - this._crossfadeTransitionNode.startBlend)/(1000*this._crossfadeTransitionNode.blendSpeed);
+	public _pUpdateTime(time: number): void {
+		this.blendWeight = Math.abs(time - this._crossfadeTransitionNode.startBlend) / (1000 * this._crossfadeTransitionNode.blendSpeed);
 
 		if (this.blendWeight >= 1) {
 			this.blendWeight = 1;

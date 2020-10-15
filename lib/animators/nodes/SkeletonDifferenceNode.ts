@@ -1,29 +1,27 @@
-import {AnimationNodeBase} from "@awayjs/renderer";
+import { AnimationNodeBase } from '@awayjs/renderer';
 
-import {SkeletonDifferenceState} from "../states/SkeletonDifferenceState";
+import { SkeletonDifferenceState } from '../states/SkeletonDifferenceState';
 
-import {AnimatorBase} from "../AnimatorBase";
+import { AnimatorBase } from '../AnimatorBase';
 
 /**
  * A skeleton animation node that uses a difference input pose with a base input pose to blend a linearly interpolated output of a skeleton pose.
  */
-export class SkeletonDifferenceNode extends AnimationNodeBase
-{
+export class SkeletonDifferenceNode extends AnimationNodeBase {
 	/**
 	 * Defines a base input node to use for the blended output.
 	 */
-	public baseInput:AnimationNodeBase;
+	public baseInput: AnimationNodeBase;
 
 	/**
 	 * Defines a difference input node to use for the blended output.
 	 */
-	public differenceInput:AnimationNodeBase;
+	public differenceInput: AnimationNodeBase;
 
 	/**
 	 * Creates a new <code>SkeletonAdditiveNode</code> object.
 	 */
-	constructor()
-	{
+	constructor() {
 		super();
 
 		this._pStateClass = SkeletonDifferenceState;
@@ -32,10 +30,9 @@ export class SkeletonDifferenceNode extends AnimationNodeBase
 	/**
 	 * @inheritDoc
 	 */
-	public getAnimationState(animator:AnimatorBase):SkeletonDifferenceState
-	{
+	public getAnimationState(animator: AnimatorBase): SkeletonDifferenceState {
 		return <SkeletonDifferenceState> animator.getAnimationState(this);
 	}
 }
 
-export default SkeletonDifferenceNode
+export default SkeletonDifferenceNode;

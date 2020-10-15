@@ -1,12 +1,12 @@
-import {Box, Matrix3D, Sphere, Vector3D, AssetBase} from "@awayjs/core";
+import { Box, Matrix3D, Sphere, Vector3D, AssetBase } from '@awayjs/core';
 
-import {PickingCollision, PickEntity, _Pick_PickableBase, IPickingEntity} from "@awayjs/view";
+import { PickingCollision, PickEntity, _Pick_PickableBase, IPickingEntity } from '@awayjs/view';
 
-import {IMaterial, RenderableEvent, StyleEvent, Style, ElementsEvent, IRenderEntity} from "@awayjs/renderer";
+import { IMaterial, RenderableEvent, StyleEvent, Style, ElementsEvent, IRenderEntity } from '@awayjs/renderer';
 
-import {ParticleCollection} from "../animators/data/ParticleCollection";
-import {ElementsBase} from "../elements/ElementsBase";
-import {TriangleElements} from "../elements/TriangleElements";
+import { ParticleCollection } from '../animators/data/ParticleCollection';
+import { ElementsBase } from '../elements/ElementsBase';
+import { TriangleElements } from '../elements/TriangleElements';
 
 /**
  * Graphic wraps a Elements as a scene graph instantiation. A Graphic is owned by a Sprite object.
@@ -17,14 +17,12 @@ import {TriangleElements} from "../elements/TriangleElements";
  *
  * @class away.base.Graphic
  */
-export class Shape extends AssetBase
-{
-	private static _pool:Array<Shape> = new Array<Shape>();
+export class Shape extends AssetBase {
+	private static _pool: Array<Shape> = new Array<Shape>();
 
-	public static getShape(elements:ElementsBase, material:IMaterial = null, style:Style = null, count:number = 0, offset:number = 0):Shape
-	{
+	public static getShape(elements: ElementsBase, material: IMaterial = null, style: Style = null, count: number = 0, offset: number = 0): Shape {
 		if (Shape._pool.length) {
-			var shape:Shape = Shape._pool.pop();
+			const shape: Shape = Shape._pool.pop();
 			shape.elements = elements;
 			shape.material = material;
 			shape.style = style;
@@ -35,37 +33,36 @@ export class Shape extends AssetBase
 
 		return new Shape(elements, material, style, count, offset);
 	}
-	public static clearPool(){
-		Shape._pool=[];
+
+	public static clearPool() {
+		Shape._pool = [];
 	}
 
-	public static assetType:string = "[asset Shape]";
+	public static assetType: string = '[asset Shape]';
 
-	private _onInvalidatePropertiesDelegate:(event:StyleEvent) => void;
-	private _onInvalidateVerticesDelegate:(event:ElementsEvent) => void;
+	private _onInvalidatePropertiesDelegate: (event: StyleEvent) => void;
+	private _onInvalidateVerticesDelegate: (event: ElementsEvent) => void;
 
-	private _elements:ElementsBase;
-	private _material:IMaterial;
-	private _style:Style;
+	private _elements: ElementsBase;
+	private _material: IMaterial;
+	private _style: Style;
 
-	public usages:number = 0;
+	public usages: number = 0;
 
-	public count:number;
+	public count: number;
 
-	public offset:number;
+	public offset: number;
 
-	public particleCollection:ParticleCollection;
+	public particleCollection: ParticleCollection;
 
 	/**
 	 * The Elements object which provides the geometry data for this Shape.
 	 */
-	public get  elements():ElementsBase
-	{
+	public get  elements(): ElementsBase {
 		return this._elements;
 	}
 
-	public set elements(value:ElementsBase)
-	{
+	public set elements(value: ElementsBase) {
 		if (this._elements == value)
 			return;
 
@@ -76,7 +73,6 @@ export class Shape extends AssetBase
 			if (!this._elements.usages)
 				this._elements.dispose();
 		}
-			
 
 		this._elements = value;
 
@@ -91,21 +87,18 @@ export class Shape extends AssetBase
 	/**
 	 *
 	 */
-	public get assetType():string
-	{
+	public get assetType(): string {
 		return Shape.assetType;
 	}
 
 	/**
 	 * The material used to render the current Shape. If set to null, the containing Graphics's material will be used instead.
 	 */
-	public get material():IMaterial
-	{
+	public get material(): IMaterial {
 		return this._material;
 	}
 
-	public set material(value:IMaterial)
-	{
+	public set material(value: IMaterial) {
 		if (this._material == value)
 			return;
 
@@ -117,13 +110,11 @@ export class Shape extends AssetBase
 	/**
 	 * The style used to render the current Shape. If set to null, its parent Sprite's style will be used instead.
 	 */
-	public get style():Style
-	{
+	public get style(): Style {
 		return this._style;
 	}
 
-	public set style(value:Style)
-	{
+	public set style(value: Style) {
 		if (this._style == value)
 			return;
 
@@ -138,16 +129,14 @@ export class Shape extends AssetBase
 		this.invalidateStyle();
 	}
 
-
 	/**
 	 * Creates a new Shape object
 	 */
-	constructor(elements:ElementsBase, material:IMaterial = null, style:Style = null, count:number = 0, offset:number = 0)
-	{
+	constructor(elements: ElementsBase, material: IMaterial = null, style: Style = null, count: number = 0, offset: number = 0) {
 		super();
 
-		this._onInvalidatePropertiesDelegate = (event:StyleEvent) => this._onInvalidateProperties(event);
-		this._onInvalidateVerticesDelegate = (event:ElementsEvent) => this._onInvalidateVertices(event);
+		this._onInvalidatePropertiesDelegate = (event: StyleEvent) => this._onInvalidateProperties(event);
+		this._onInvalidateVerticesDelegate = (event: ElementsEvent) => this._onInvalidateVertices(event);
 
 		this._elements = elements;
 		this._elements.addEventListener(ElementsEvent.INVALIDATE_VERTICES, this._onInvalidateVerticesDelegate);
@@ -166,8 +155,7 @@ export class Shape extends AssetBase
 	/**
 	 *
 	 */
-	public dispose():void
-	{
+	public dispose(): void {
 		super.clear();
 
 		this.usages = 0;
@@ -175,35 +163,30 @@ export class Shape extends AssetBase
 		this.material = null;
 		this.style = null;
 		this.particleCollection = null;
-		
+
 		Shape._pool.push(this);
 	}
-	
-	public invalidateElements():void
-	{
+
+	public invalidateElements(): void {
 		this.dispatchEvent(new RenderableEvent(RenderableEvent.INVALIDATE_ELEMENTS, this));
 	}
 
-	public invalidateMaterial():void
-	{
+	public invalidateMaterial(): void {
 		this.dispatchEvent(new RenderableEvent(RenderableEvent.INVALIDATE_MATERIAL, this));
 	}
-	
-	public invalidateStyle():void
-	{
+
+	public invalidateStyle(): void {
 		this.dispatchEvent(new RenderableEvent(RenderableEvent.INVALIDATE_STYLE, this));
 	}
 
-	private _onInvalidateProperties(event:StyleEvent):void
-	{
+	private _onInvalidateProperties(event: StyleEvent): void {
 		this.invalidateStyle();
 	}
 
-	private _onInvalidateVertices(event:ElementsEvent):void
-	{
+	private _onInvalidateVertices(event: ElementsEvent): void {
 		if (event.attributesView != (<TriangleElements> event.target).positions)
 			return;
-		
+
 		this.invalidate();
 	}
 
@@ -217,40 +200,36 @@ export class Shape extends AssetBase
 	 * @internal
 	 */
 
-	public applyTransformation(transform:Matrix3D):void
-	{
+	public applyTransformation(transform: Matrix3D): void {
 		this._elements.applyTransformation(transform, this.count, this.offset);
 	}
 
-	public scale(scale:number):void
-	{
+	public scale(scale: number): void {
 		this._elements.scale(scale, this.count, this.offset);
 	}
 
-	public scaleUV(scaleU:number = 1, scaleV:number = 1):void
-	{
+	public scaleUV(scaleU: number = 1, scaleV: number = 1): void {
 		this._elements.scaleUV(scaleU, scaleV, this.count, this.offset);
 	}
 }
 
-import {AssetEvent} from "@awayjs/core";
+import { AssetEvent } from '@awayjs/core';
 
-import {_Render_RenderableBase, RenderEntity, _Stage_ElementsBase, _Render_MaterialBase, MaterialUtils} from "@awayjs/renderer";
+import { _Render_RenderableBase, RenderEntity, _Stage_ElementsBase, _Render_MaterialBase, MaterialUtils } from '@awayjs/renderer';
 
-import {AnimatorBase} from "../animators/AnimatorBase";
-import {LineElements} from "../elements/LineElements";
+import { AnimatorBase } from '../animators/AnimatorBase';
+import { LineElements } from '../elements/LineElements';
 
 /**
  * @class away.pool._Render_Shape
  */
-export class _Render_Shape extends _Render_RenderableBase
-{
-    /**
+export class _Render_Shape extends _Render_RenderableBase {
+	/**
      *
      */
-    public shape:Shape;
+	public shape: Shape;
 
-    /**
+	/**
      * //TODO
      *
      * @param renderEntity
@@ -258,63 +237,55 @@ export class _Render_Shape extends _Render_RenderableBase
      * @param level
      * @param indexOffset
      */
-    constructor(shape:Shape, renderEntity:RenderEntity)
-    {
-        super(shape, renderEntity);
+	constructor(shape: Shape, renderEntity: RenderEntity) {
+		super(shape, renderEntity);
 
-        this.shape = shape;
-    }
+		this.shape = shape;
+	}
 
-    public onClear(event:AssetEvent):void
-    {
-        super.onClear(event);
+	public onClear(event: AssetEvent): void {
+		super.onClear(event);
 
-        this.shape = null;
-    }
+		this.shape = null;
+	}
 
-    /**
+	/**
      *
      * @returns {ElementsBase}
      * @protected
      */
-    protected _getStageElements():_Stage_ElementsBase
-    {
-        this._offset = this.shape.offset;
-        this._count = this.shape.count;
+	protected _getStageElements(): _Stage_ElementsBase {
+		this._offset = this.shape.offset;
+		this._count = this.shape.count;
 
-        return <_Stage_ElementsBase> this._stage.getAbstraction((this.sourceEntity.animator)? (<AnimatorBase> this.sourceEntity.animator).getRenderableElements(this, this.shape.elements) : this.shape.elements);
-    }
-
-    protected _getRenderMaterial():_Render_MaterialBase
-    {
-        return this.renderGroup.getRenderElements(this.shape.elements).getAbstraction((<Shape> this._asset).material || this.sourceEntity.material || this.getDefaultMaterial());
+		return <_Stage_ElementsBase> this._stage.getAbstraction((this.sourceEntity.animator) ? (<AnimatorBase> this.sourceEntity.animator).getRenderableElements(this, this.shape.elements) : this.shape.elements);
 	}
-	
-	protected _getStyle():Style
-    {
-        return (<Shape> this._asset).style || this.sourceEntity.style;
-    }
 
-    protected getDefaultMaterial():IMaterial
-    {
-        return (this.stageElements.elements instanceof LineElements)? MaterialUtils.getDefaultColorMaterial() : MaterialUtils.getDefaultTextureMaterial();
-    }
+	protected _getRenderMaterial(): _Render_MaterialBase {
+		return this.renderGroup.getRenderElements(this.shape.elements).getAbstraction((<Shape> this._asset).material || this.sourceEntity.material || this.getDefaultMaterial());
+	}
+
+	protected _getStyle(): Style {
+		return (<Shape> this._asset).style || this.sourceEntity.style;
+	}
+
+	protected getDefaultMaterial(): IMaterial {
+		return (this.stageElements.elements instanceof LineElements) ? MaterialUtils.getDefaultColorMaterial() : MaterialUtils.getDefaultTextureMaterial();
+	}
 }
-
 
 /**
  * @class away.pool._Render_Shape
  */
-export class _Pick_Shape extends _Pick_PickableBase
-{
-	private _orientedBoxBounds:Box;
-	private _orientedBoxBoundsDirty:boolean = true;
-	private _orientedSphereBounds:Sphere;
+export class _Pick_Shape extends _Pick_PickableBase {
+	private _orientedBoxBounds: Box;
+	private _orientedBoxBoundsDirty: boolean = true;
+	private _orientedSphereBounds: Sphere;
 	private _orientedSphereBoundsDirty = true;
 
-	private _onInvalidateElementsDelegate:(event:RenderableEvent) => void;
+	private _onInvalidateElementsDelegate: (event: RenderableEvent) => void;
 
-    /**
+	/**
      * //TODO
      *
      * @param renderEntity
@@ -322,49 +293,43 @@ export class _Pick_Shape extends _Pick_PickableBase
      * @param level
      * @param indexOffset
      */
-    constructor(shape:Shape, pickEntity:PickEntity)
-    {
+	constructor(shape: Shape, pickEntity: PickEntity) {
 		super(shape, pickEntity);
 
-		this._onInvalidateElementsDelegate = (event:RenderableEvent) => this._onInvalidateElements(event);
-		
+		this._onInvalidateElementsDelegate = (event: RenderableEvent) => this._onInvalidateElements(event);
+
 		this._asset.addEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateElementsDelegate);
-    }
+	}
 
-    public onInvalidate(event:AssetEvent):void
-    {
-        super.onInvalidate(event);
+	public onInvalidate(event: AssetEvent): void {
+		super.onInvalidate(event);
 
 		this._orientedBoxBoundsDirty = true;
 		this._orientedSphereBoundsDirty = true;
 	}
 
-	private _onInvalidateElements(event:RenderableEvent):void
-    {
+	private _onInvalidateElements(event: RenderableEvent): void {
 		this._orientedBoxBoundsDirty = true;
 		this._orientedSphereBoundsDirty = true;
 	}
-	
-    public onClear(event:AssetEvent):void
-    {
+
+	public onClear(event: AssetEvent): void {
 		this._asset.removeEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateElementsDelegate);
 
-        super.onClear(event);
+		super.onClear(event);
 	}
-	
-	public hitTestPoint(x:number, y:number, z:number):boolean
-	{
-		var box:Box = this.getBoxBounds();
+
+	public hitTestPoint(x: number, y: number, z: number): boolean {
+		const box: Box = this.getBoxBounds();
 
 		//early out for box test
-		if(box == null || !box.contains(x, y, z))
+		if (box == null || !box.contains(x, y, z))
 			return false;
 
 		return (<Shape> this._asset).elements.hitTestPoint(this._view, <IPickingEntity> this.sourceEntity, x, y, z, box, (<Shape> this._asset).count, (<Shape> this._asset).offset);
 	}
 
-	public getBoxBounds(matrix3D:Matrix3D = null, strokeFlag:boolean = true, cache:Box = null, target:Box = null):Box
-	{
+	public getBoxBounds(matrix3D: Matrix3D = null, strokeFlag: boolean = true, cache: Box = null, target: Box = null): Box {
 		if (matrix3D)
 			return (<Shape> this._asset).elements.getBoxBounds(this._view, <IPickingEntity> this.sourceEntity, strokeFlag, matrix3D, cache, target, (<Shape> this._asset).count, (<Shape> this._asset).offset);
 
@@ -380,8 +345,7 @@ export class _Pick_Shape extends _Pick_PickableBase
 		return target;
 	}
 
-	public getSphereBounds(center:Vector3D, matrix3D:Matrix3D = null, strokeFlag:boolean = true, cache:Sphere = null, target:Sphere = null):Sphere
-	{
+	public getSphereBounds(center: Vector3D, matrix3D: Matrix3D = null, strokeFlag: boolean = true, cache: Sphere = null, target: Sphere = null): Sphere {
 		if (matrix3D)
 			return (<Shape> this._asset).elements.getSphereBounds(this._view, center, matrix3D, strokeFlag, cache, target, (<Shape> this._asset).count, (<Shape> this._asset).offset);
 
@@ -397,12 +361,11 @@ export class _Pick_Shape extends _Pick_PickableBase
 		return target;
 	}
 
-	public testCollision(collision:PickingCollision, findClosestCollision:boolean):boolean
-	{
-		var box:Box = this.getBoxBounds();
+	public testCollision(collision: PickingCollision, findClosestCollision: boolean): boolean {
+		const box: Box = this.getBoxBounds();
 
 		//early out for box test
-		if(box == null || !box.rayIntersection(collision.rayPosition, collision.rayDirection))
+		if (box == null || !box.rayIntersection(collision.rayPosition, collision.rayDirection))
 			return false;
 
 		return (<Shape> this._asset).elements.testCollision(this._view, collision, box, findClosestCollision, (<Shape> this._asset).material || (<IRenderEntity> collision.entity).material, (<Shape> this._asset).count || (<Shape> this._asset).elements.numVertices, (<Shape> this._asset).offset);

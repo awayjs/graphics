@@ -1,27 +1,26 @@
-import {Quaternion, Vector3D} from "@awayjs/core";
+import { Quaternion, Vector3D } from '@awayjs/core';
 
-import {JointPose} from "../data/JointPose";
-import {Skeleton} from "../data/Skeleton";
-import {SkeletonPose} from "../data/SkeletonPose";
-import {SkeletonDifferenceNode} from "../nodes/SkeletonDifferenceNode";
+import { JointPose } from '../data/JointPose';
+import { Skeleton } from '../data/Skeleton';
+import { SkeletonPose } from '../data/SkeletonPose';
+import { SkeletonDifferenceNode } from '../nodes/SkeletonDifferenceNode';
 
-import {AnimationStateBase} from "./AnimationStateBase";
-import {ISkeletonAnimationState} from "./ISkeletonAnimationState";
+import { AnimationStateBase } from './AnimationStateBase';
+import { ISkeletonAnimationState } from './ISkeletonAnimationState';
 
-import {AnimatorBase} from "../AnimatorBase";
+import { AnimatorBase } from '../AnimatorBase';
 
 /**
  *
  */
-export class SkeletonDifferenceState extends AnimationStateBase implements ISkeletonAnimationState
-{
-	private _blendWeight:number = 0;
-	private static _tempQuat:Quaternion = new Quaternion();
-	private _skeletonAnimationNode:SkeletonDifferenceNode;
-	private _skeletonPose:SkeletonPose = new SkeletonPose();
-	private _skeletonPoseDirty:boolean = true;
-	private _baseInput:ISkeletonAnimationState;
-	private _differenceInput:ISkeletonAnimationState;
+export class SkeletonDifferenceState extends AnimationStateBase implements ISkeletonAnimationState {
+	private _blendWeight: number = 0;
+	private static _tempQuat: Quaternion = new Quaternion();
+	private _skeletonAnimationNode: SkeletonDifferenceNode;
+	private _skeletonPose: SkeletonPose = new SkeletonPose();
+	private _skeletonPoseDirty: boolean = true;
+	private _baseInput: ISkeletonAnimationState;
+	private _differenceInput: ISkeletonAnimationState;
 
 	/**
 	 * Defines a fractional value between 0 and 1 representing the blending ratio between the base input (0) and difference input (1),
@@ -30,21 +29,18 @@ export class SkeletonDifferenceState extends AnimationStateBase implements ISkel
 	 * @see #baseInput
 	 * @see #differenceInput
 	 */
-	public get blendWeight():number
-	{
+	public get blendWeight(): number {
 		return this._blendWeight;
 	}
 
-	public set blendWeight(value:number)
-	{
+	public set blendWeight(value: number) {
 		this._blendWeight = value;
 
 		this._pPositionDeltaDirty = true;
 		this._skeletonPoseDirty = true;
 	}
 
-	constructor(animator:AnimatorBase, skeletonAnimationNode:SkeletonDifferenceNode)
-	{
+	constructor(animator: AnimatorBase, skeletonAnimationNode: SkeletonDifferenceNode) {
 		super(animator, skeletonAnimationNode);
 
 		this._skeletonAnimationNode = skeletonAnimationNode;
@@ -56,8 +52,7 @@ export class SkeletonDifferenceState extends AnimationStateBase implements ISkel
 	/**
 	 * @inheritDoc
 	 */
-	public phase(value:number):void
-	{
+	public phase(value: number): void {
 		this._skeletonPoseDirty = true;
 
 		this._pPositionDeltaDirty = true;
@@ -69,8 +64,7 @@ export class SkeletonDifferenceState extends AnimationStateBase implements ISkel
 	/**
 	 * @inheritDoc
 	 */
-	public _pUpdateTime(time:number):void
-	{
+	public _pUpdateTime(time: number): void {
 		this._skeletonPoseDirty = true;
 
 		this._baseInput.update(time);
@@ -82,8 +76,7 @@ export class SkeletonDifferenceState extends AnimationStateBase implements ISkel
 	/**
 	 * Returns the current skeleton pose of the animation in the clip based on the internal playhead position.
 	 */
-	public getSkeletonPose(skeleton:Skeleton):SkeletonPose
-	{
+	public getSkeletonPose(skeleton: Skeleton): SkeletonPose {
 		if (this._skeletonPoseDirty)
 			this.updateSkeletonPose(skeleton);
 
@@ -93,16 +86,15 @@ export class SkeletonDifferenceState extends AnimationStateBase implements ISkel
 	/**
 	 * @inheritDoc
 	 */
-	public _pUpdatePositionDelta():void
-	{
+	public _pUpdatePositionDelta(): void {
 		this._pPositionDeltaDirty = false;
 
-		var deltA:Vector3D = this._baseInput.positionDelta;
-		var deltB:Vector3D = this._differenceInput.positionDelta;
+		const deltA: Vector3D = this._baseInput.positionDelta;
+		const deltB: Vector3D = this._differenceInput.positionDelta;
 
-		this.positionDelta.x = deltA.x + this._blendWeight*deltB.x;
-		this.positionDelta.y = deltA.y + this._blendWeight*deltB.y;
-		this.positionDelta.z = deltA.z + this._blendWeight*deltB.z;
+		this.positionDelta.x = deltA.x + this._blendWeight * deltB.x;
+		this.positionDelta.y = deltA.y + this._blendWeight * deltB.y;
+		this.positionDelta.z = deltA.z + this._blendWeight * deltB.z;
 	}
 
 	/**
@@ -110,24 +102,23 @@ export class SkeletonDifferenceState extends AnimationStateBase implements ISkel
 	 *
 	 * @param skeleton The skeleton used by the animator requesting the ouput pose.
 	 */
-	private updateSkeletonPose(skeleton:Skeleton):void
-	{
+	private updateSkeletonPose(skeleton: Skeleton): void {
 		this._skeletonPoseDirty = false;
 
-		var endPose:JointPose;
-		var endPoses:Array<JointPose> = this._skeletonPose.jointPoses;
-		var basePoses:Array<JointPose> = this._baseInput.getSkeletonPose(skeleton).jointPoses;
-		var diffPoses:Array<JointPose> = this._differenceInput.getSkeletonPose(skeleton).jointPoses;
-		var base:JointPose, diff:JointPose;
-		var basePos:Vector3D, diffPos:Vector3D;
-		var tr:Vector3D;
-		var numJoints:number = skeleton.numJoints;
+		let endPose: JointPose;
+		const endPoses: Array<JointPose> = this._skeletonPose.jointPoses;
+		const basePoses: Array<JointPose> = this._baseInput.getSkeletonPose(skeleton).jointPoses;
+		const diffPoses: Array<JointPose> = this._differenceInput.getSkeletonPose(skeleton).jointPoses;
+		let base: JointPose, diff: JointPose;
+		let basePos: Vector3D, diffPos: Vector3D;
+		let tr: Vector3D;
+		const numJoints: number = skeleton.numJoints;
 
 		// :s
 		if (endPoses.length != numJoints)
 			endPoses.length = numJoints;
 
-		for (var i:number = 0; i < numJoints; ++i) {
+		for (let i: number = 0; i < numJoints; ++i) {
 			endPose = endPoses[i];
 
 			if (endPose == null)
@@ -142,9 +133,9 @@ export class SkeletonDifferenceState extends AnimationStateBase implements ISkel
 			endPose.orientation.lerp(base.orientation, SkeletonDifferenceState._tempQuat, this._blendWeight);
 
 			tr = endPose.translation;
-			tr.x = basePos.x + this._blendWeight*diffPos.x;
-			tr.y = basePos.y + this._blendWeight*diffPos.y;
-			tr.z = basePos.z + this._blendWeight*diffPos.z;
+			tr.x = basePos.x + this._blendWeight * diffPos.x;
+			tr.y = basePos.y + this._blendWeight * diffPos.y;
+			tr.z = basePos.z + this._blendWeight * diffPos.z;
 		}
 	}
 }

@@ -1,29 +1,27 @@
-import {Vector3D} from "@awayjs/core";
+import { Vector3D } from '@awayjs/core';
 
-import {AnimationNodeBase} from "@awayjs/renderer";
+import { AnimationNodeBase } from '@awayjs/renderer';
 
-import {IAnimationState} from "./IAnimationState";
+import { IAnimationState } from './IAnimationState';
 
-import {AnimatorBase} from "../AnimatorBase";
+import { AnimatorBase } from '../AnimatorBase';
 
 /**
  *
  */
-export class AnimationStateBase implements IAnimationState
-{
-	public _pAnimationNode:AnimationNodeBase;
-	public _pRootDelta:Vector3D = new Vector3D();
-	public _pPositionDeltaDirty:boolean = true;
+export class AnimationStateBase implements IAnimationState {
+	public _pAnimationNode: AnimationNodeBase;
+	public _pRootDelta: Vector3D = new Vector3D();
+	public _pPositionDeltaDirty: boolean = true;
 
-	public _pTime:number;
-	public _pStartTime:number = 0;
-	public _pAnimator:AnimatorBase;
+	public _pTime: number;
+	public _pStartTime: number = 0;
+	public _pAnimator: AnimatorBase;
 
 	/**
 	 * Returns a 3d vector representing the translation delta of the animating entity for the current timestep of animation
 	 */
-	public get positionDelta():Vector3D
-	{
+	public get positionDelta(): Vector3D {
 		if (this._pPositionDeltaDirty) {
 
 			this._pUpdatePositionDelta();
@@ -33,8 +31,7 @@ export class AnimationStateBase implements IAnimationState
 
 	}
 
-	constructor(animator:AnimatorBase, animationNode:AnimationNodeBase)
-	{
+	constructor(animator: AnimatorBase, animationNode: AnimationNodeBase) {
 		this._pAnimator = animator;
 		this._pAnimationNode = animationNode;
 	}
@@ -44,8 +41,7 @@ export class AnimationStateBase implements IAnimationState
 	 *
 	 * @param startTime The absolute start time (in milliseconds) of the node's starting time.
 	 */
-	public offset(startTime:number):void
-	{
+	public offset(startTime: number): void {
 		this._pStartTime = startTime;
 
 		this._pPositionDeltaDirty = true;
@@ -58,8 +54,7 @@ export class AnimationStateBase implements IAnimationState
 	 *
 	 * @see AnimatorBase#update()
 	 */
-	public update(time:number):void
-	{
+	public update(time: number): void {
 		if (this._pTime == time - this._pStartTime) {
 
 			return;
@@ -75,8 +70,7 @@ export class AnimationStateBase implements IAnimationState
 	 *
 	 * @param value The phase value to use. 0 represents the beginning of an animation clip, 1 represents the end.
 	 */
-	public phase(value:number):void
-	{
+	public phase(value: number): void {
 
 	}
 
@@ -85,8 +79,7 @@ export class AnimationStateBase implements IAnimationState
 	 *
 	 * @param time The local time (in milliseconds) of the node's playhead position.
 	 */
-	public _pUpdateTime(time:number):void
-	{
+	public _pUpdateTime(time: number): void {
 		this._pTime = time - this._pStartTime;
 
 		this._pPositionDeltaDirty = true;
@@ -95,7 +88,6 @@ export class AnimationStateBase implements IAnimationState
 	/**
 	 * Updates the node's root delta position
 	 */
-	public _pUpdatePositionDelta():void
-	{
+	public _pUpdatePositionDelta(): void {
 	}
 }

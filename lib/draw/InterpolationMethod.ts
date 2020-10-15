@@ -5,8 +5,7 @@
  * <code>Graphics.lineGradientStyle()</code> methods. This parameter
  * determines the RGB space to use when rendering the gradient.
  */
-export class InterpolationMethod
-{
+export class InterpolationMethod {
 
 	/**
 	 * Specifies that the RGB interpolation method should be used. This means
@@ -20,7 +19,7 @@ export class InterpolationMethod
 	 * <code>SpreadMethod.REFLECT</code>). The different interpolation methods
 	 * affect the appearance as follows: </p>
 	 */
-	public static LINEAR_RGB:string = "linearRGB";
+	public static LINEAR_RGB: string = 'linearRGB';
 
 	/**
 	 * Specifies that the RGB interpolation method should be used. This means
@@ -34,5 +33,5 @@ export class InterpolationMethod
 	 * <code>SpreadMethod.REFLECT</code>). The different interpolation methods
 	 * affect the appearance as follows: </p>
 	 */
-	public static RGB:string = "rgb";
+	public static RGB: string = 'rgb';
 }

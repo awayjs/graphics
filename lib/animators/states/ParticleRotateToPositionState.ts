@@ -1,57 +1,52 @@
-import {Matrix3D, Vector3D, ProjectionBase} from "@awayjs/core";
+import { Matrix3D, Vector3D, ProjectionBase } from '@awayjs/core';
 
-import {Stage, ContextGLVertexBufferFormat} from "@awayjs/stage";
+import { Stage, ContextGLVertexBufferFormat } from '@awayjs/stage';
 
-import {ShaderBase, _Render_RenderableBase, AnimationRegisterData} from "@awayjs/renderer";
+import { ShaderBase, _Render_RenderableBase, AnimationRegisterData } from '@awayjs/renderer';
 
-import {AnimationElements} from "../data/AnimationElements";
-import {ParticlePropertiesMode} from "../data/ParticlePropertiesMode";
-import {ParticleRotateToPositionNode} from "../nodes/ParticleRotateToPositionNode";
+import { AnimationElements } from '../data/AnimationElements';
+import { ParticlePropertiesMode } from '../data/ParticlePropertiesMode';
+import { ParticleRotateToPositionNode } from '../nodes/ParticleRotateToPositionNode';
 
-import {ParticleAnimator} from "../ParticleAnimator";
-import {ParticleAnimationSet} from "../ParticleAnimationSet";
+import { ParticleAnimator } from '../ParticleAnimator';
+import { ParticleAnimationSet } from '../ParticleAnimationSet';
 
-import {ParticleStateBase} from "./ParticleStateBase";
+import { ParticleStateBase } from './ParticleStateBase';
 
 /**
  * ...
  */
-export class ParticleRotateToPositionState extends ParticleStateBase
-{
+export class ParticleRotateToPositionState extends ParticleStateBase {
 	/** @private */
-	public static MATRIX_INDEX:number = 0;
+	public static MATRIX_INDEX: number = 0;
 	/** @private */
-	public static POSITION_INDEX:number = 1;
+	public static POSITION_INDEX: number = 1;
 
-	private _particleRotateToPositionNode:ParticleRotateToPositionNode;
-	private _position:Vector3D;
-	private _matrix:Matrix3D = new Matrix3D();
-	private _offset:Vector3D;
+	private _particleRotateToPositionNode: ParticleRotateToPositionNode;
+	private _position: Vector3D;
+	private _matrix: Matrix3D = new Matrix3D();
+	private _offset: Vector3D;
 
 	/**
 	 * Defines the position of the point the particle will rotate to face when in global mode. Defaults to 0,0,0.
 	 */
-	public get position():Vector3D
-	{
+	public get position(): Vector3D {
 		return this._position;
 	}
 
-	public set position(value:Vector3D)
-	{
+	public set position(value: Vector3D) {
 		this._position = value;
 	}
 
-	constructor(animator:ParticleAnimator, particleRotateToPositionNode:ParticleRotateToPositionNode)
-	{
+	constructor(animator: ParticleAnimator, particleRotateToPositionNode: ParticleRotateToPositionNode) {
 		super(animator, particleRotateToPositionNode);
 
 		this._particleRotateToPositionNode = particleRotateToPositionNode;
 		this._position = this._particleRotateToPositionNode._iPosition;
 	}
 
-	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData):void
-	{
-		var index:number = animationRegisterData.getRegisterIndex(this._pAnimationNode, ParticleRotateToPositionState.POSITION_INDEX);
+	public setRenderState(shader: ShaderBase, renderable: _Render_RenderableBase, animationElements: AnimationElements, animationRegisterData: AnimationRegisterData): void {
+		const index: number = animationRegisterData.getRegisterIndex(this._pAnimationNode, ParticleRotateToPositionState.POSITION_INDEX);
 
 		if ((<ParticleAnimationSet> this._pParticleAnimator.animationSet).hasBillboard) {
 			this._matrix.copyFrom(renderable.sourceEntity.transform.concatenatedMatrix3D);

@@ -1,40 +1,37 @@
-import {Vector3D} from "@awayjs/core";
+import { Vector3D } from '@awayjs/core';
 
+import { JointPose } from '../data/JointPose';
+import { Skeleton } from '../data/Skeleton';
+import { SkeletonPose } from '../data/SkeletonPose';
+import { SkeletonDirectionalNode } from '../nodes/SkeletonDirectionalNode';
 
-import {JointPose} from "../data/JointPose";
-import {Skeleton} from "../data/Skeleton";
-import {SkeletonPose} from "../data/SkeletonPose";
-import {SkeletonDirectionalNode} from "../nodes/SkeletonDirectionalNode";
+import { AnimationStateBase } from './AnimationStateBase';
+import { ISkeletonAnimationState } from './ISkeletonAnimationState';
 
-import {AnimationStateBase} from "./AnimationStateBase";
-import {ISkeletonAnimationState} from "./ISkeletonAnimationState";
-
-import {AnimatorBase} from "../AnimatorBase";
+import { AnimatorBase } from '../AnimatorBase';
 
 /**
  *
  */
-export class SkeletonDirectionalState extends AnimationStateBase implements ISkeletonAnimationState
-{
-	private _skeletonAnimationNode:SkeletonDirectionalNode;
-	private _skeletonPose:SkeletonPose = new SkeletonPose();
-	private _skeletonPoseDirty:boolean = true;
-	private _inputA:ISkeletonAnimationState;
-	private _inputB:ISkeletonAnimationState;
-	private _blendWeight:number = 0;
-	private _direction:number = 0;
-	private _blendDirty:boolean = true;
-	private _forward:ISkeletonAnimationState;
-	private _backward:ISkeletonAnimationState;
-	private _left:ISkeletonAnimationState;
-	private _right:ISkeletonAnimationState;
+export class SkeletonDirectionalState extends AnimationStateBase implements ISkeletonAnimationState {
+	private _skeletonAnimationNode: SkeletonDirectionalNode;
+	private _skeletonPose: SkeletonPose = new SkeletonPose();
+	private _skeletonPoseDirty: boolean = true;
+	private _inputA: ISkeletonAnimationState;
+	private _inputB: ISkeletonAnimationState;
+	private _blendWeight: number = 0;
+	private _direction: number = 0;
+	private _blendDirty: boolean = true;
+	private _forward: ISkeletonAnimationState;
+	private _backward: ISkeletonAnimationState;
+	private _left: ISkeletonAnimationState;
+	private _right: ISkeletonAnimationState;
 
 	/**
 	 * Defines the direction in degrees of the aniamtion between the forwards (0), right(90) backwards (180) and left(270) input nodes,
 	 * used to produce the skeleton pose output.
 	 */
-	public set direction(value:number)
-	{
+	public set direction(value: number) {
 		if (this._direction == value)
 			return;
 
@@ -46,13 +43,11 @@ export class SkeletonDirectionalState extends AnimationStateBase implements ISke
 		this._pPositionDeltaDirty = true;
 	}
 
-	public get direction():number
-	{
+	public get direction(): number {
 		return this._direction;
 	}
 
-	constructor(animator:AnimatorBase, skeletonAnimationNode:SkeletonDirectionalNode)
-	{
+	constructor(animator: AnimatorBase, skeletonAnimationNode: SkeletonDirectionalNode) {
 		super(animator, skeletonAnimationNode);
 
 		this._skeletonAnimationNode = skeletonAnimationNode;
@@ -66,8 +61,7 @@ export class SkeletonDirectionalState extends AnimationStateBase implements ISke
 	/**
 	 * @inheritDoc
 	 */
-	public phase(value:number):void
-	{
+	public phase(value: number): void {
 		if (this._blendDirty)
 			this.updateBlend();
 
@@ -82,8 +76,7 @@ export class SkeletonDirectionalState extends AnimationStateBase implements ISke
 	/**
 	 * @inheritDoc
 	 */
-	public _pUdateTime(time:number):void
-	{
+	public _pUdateTime(time: number): void {
 		if (this._blendDirty)
 			this.updateBlend();
 
@@ -98,8 +91,7 @@ export class SkeletonDirectionalState extends AnimationStateBase implements ISke
 	/**
 	 * Returns the current skeleton pose of the animation in the clip based on the internal playhead position.
 	 */
-	public getSkeletonPose(skeleton:Skeleton):SkeletonPose
-	{
+	public getSkeletonPose(skeleton: Skeleton): SkeletonPose {
 		if (this._skeletonPoseDirty)
 			this.updateSkeletonPose(skeleton);
 
@@ -109,19 +101,18 @@ export class SkeletonDirectionalState extends AnimationStateBase implements ISke
 	/**
 	 * @inheritDoc
 	 */
-	public _pUpdatePositionDelta():void
-	{
+	public _pUpdatePositionDelta(): void {
 		this._pPositionDeltaDirty = false;
 
 		if (this._blendDirty)
 			this.updateBlend();
 
-		var deltA:Vector3D = this._inputA.positionDelta;
-		var deltB:Vector3D = this._inputB.positionDelta;
+		const deltA: Vector3D = this._inputA.positionDelta;
+		const deltB: Vector3D = this._inputB.positionDelta;
 
-		this.positionDelta.x = deltA.x + this._blendWeight*(deltB.x - deltA.x);
-		this.positionDelta.y = deltA.y + this._blendWeight*(deltB.y - deltA.y);
-		this.positionDelta.z = deltA.z + this._blendWeight*(deltB.z - deltA.z);
+		this.positionDelta.x = deltA.x + this._blendWeight * (deltB.x - deltA.x);
+		this.positionDelta.y = deltA.y + this._blendWeight * (deltB.y - deltA.y);
+		this.positionDelta.z = deltA.z + this._blendWeight * (deltB.z - deltA.z);
 	}
 
 	/**
@@ -129,27 +120,26 @@ export class SkeletonDirectionalState extends AnimationStateBase implements ISke
 	 *
 	 * @param skeleton The skeleton used by the animator requesting the ouput pose.
 	 */
-	private updateSkeletonPose(skeleton:Skeleton):void
-	{
+	private updateSkeletonPose(skeleton: Skeleton): void {
 		this._skeletonPoseDirty = false;
 
 		if (this._blendDirty)
 			this.updateBlend();
 
-		var endPose:JointPose;
-		var endPoses:Array<JointPose> = this._skeletonPose.jointPoses;
-		var poses1:Array<JointPose> = this._inputA.getSkeletonPose(skeleton).jointPoses;
-		var poses2:Array<JointPose> = this._inputB.getSkeletonPose(skeleton).jointPoses;
-		var pose1:JointPose, pose2:JointPose;
-		var p1:Vector3D, p2:Vector3D;
-		var tr:Vector3D;
-		var numJoints:number = skeleton.numJoints;
+		let endPose: JointPose;
+		const endPoses: Array<JointPose> = this._skeletonPose.jointPoses;
+		const poses1: Array<JointPose> = this._inputA.getSkeletonPose(skeleton).jointPoses;
+		const poses2: Array<JointPose> = this._inputB.getSkeletonPose(skeleton).jointPoses;
+		let pose1: JointPose, pose2: JointPose;
+		let p1: Vector3D, p2: Vector3D;
+		let tr: Vector3D;
+		const numJoints: number = skeleton.numJoints;
 
 		// :s
 		if (endPoses.length != numJoints)
 			endPoses.length = numJoints;
 
-		for (var i:number = 0; i < numJoints; ++i) {
+		for (let i: number = 0; i < numJoints; ++i) {
 			endPose = endPoses[i];
 
 			if (endPose == null)
@@ -163,9 +153,9 @@ export class SkeletonDirectionalState extends AnimationStateBase implements ISke
 			endPose.orientation.lerp(pose1.orientation, pose2.orientation, this._blendWeight);
 
 			tr = endPose.translation;
-			tr.x = p1.x + this._blendWeight*(p2.x - p1.x);
-			tr.y = p1.y + this._blendWeight*(p2.y - p1.y);
-			tr.z = p1.z + this._blendWeight*(p2.z - p1.z);
+			tr.x = p1.x + this._blendWeight * (p2.x - p1.x);
+			tr.y = p1.y + this._blendWeight * (p2.y - p1.y);
+			tr.z = p1.z + this._blendWeight * (p2.z - p1.z);
 		}
 	}
 
@@ -174,8 +164,7 @@ export class SkeletonDirectionalState extends AnimationStateBase implements ISke
 	 *
 	 * @private
 	 */
-	private updateBlend():void
-	{
+	private updateBlend(): void {
 		this._blendDirty = false;
 
 		if (this._direction < 0 || this._direction > 360) {
@@ -187,19 +176,19 @@ export class SkeletonDirectionalState extends AnimationStateBase implements ISke
 		if (this._direction < 90) {
 			this._inputA = this._forward;
 			this._inputB = this._right;
-			this._blendWeight = this._direction/90;
+			this._blendWeight = this._direction / 90;
 		} else if (this._direction < 180) {
 			this._inputA = this._right;
 			this._inputB = this._backward;
-			this._blendWeight = (this._direction - 90)/90;
+			this._blendWeight = (this._direction - 90) / 90;
 		} else if (this._direction < 270) {
 			this._inputA = this._backward;
 			this._inputB = this._left;
-			this._blendWeight = (this._direction - 180)/90;
+			this._blendWeight = (this._direction - 180) / 90;
 		} else {
 			this._inputA = this._left;
 			this._inputB = this._forward;
-			this._blendWeight = (this._direction - 270)/90;
+			this._blendWeight = (this._direction - 270) / 90;
 		}
 	}
 }

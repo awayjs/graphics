@@ -1,49 +1,46 @@
-import {Matrix3D, Vector3D, ProjectionBase} from "@awayjs/core";
+import { Matrix3D, Vector3D, ProjectionBase } from '@awayjs/core';
 
-import {Stage, ContextGLVertexBufferFormat} from "@awayjs/stage";
+import { Stage, ContextGLVertexBufferFormat } from '@awayjs/stage';
 
-import {ShaderBase, _Render_RenderableBase, AnimationRegisterData} from "@awayjs/renderer";
+import { ShaderBase, _Render_RenderableBase, AnimationRegisterData } from '@awayjs/renderer';
 
-import {AnimationElements} from "../data/AnimationElements";
-import {ParticlePropertiesMode} from "../data/ParticlePropertiesMode";
-import {ParticleOrbitNode} from "../nodes/ParticleOrbitNode";
+import { AnimationElements } from '../data/AnimationElements';
+import { ParticlePropertiesMode } from '../data/ParticlePropertiesMode';
+import { ParticleOrbitNode } from '../nodes/ParticleOrbitNode';
 
-import {ParticleAnimator} from "../ParticleAnimator";
+import { ParticleAnimator } from '../ParticleAnimator';
 
-import {ParticleStateBase} from "./ParticleStateBase";
+import { ParticleStateBase } from './ParticleStateBase';
 
 /**
  * ...
  */
-export class ParticleOrbitState extends ParticleStateBase
-{
+export class ParticleOrbitState extends ParticleStateBase {
 	/** @private */
-	public static ORBIT_INDEX:number = 0;
+	public static ORBIT_INDEX: number = 0;
 
 	/** @private */
-	public static EULERS_INDEX:number = 1;
+	public static EULERS_INDEX: number = 1;
 
-	private _particleOrbitNode:ParticleOrbitNode;
-	private _usesEulers:boolean;
-	private _usesCycle:boolean;
-	private _usesPhase:boolean;
-	private _radius:number;
-	private _cycleDuration:number;
-	private _cyclePhase:number;
-	private _eulers:Vector3D;
-	private _orbitData:Vector3D;
-	private _eulersMatrix:Matrix3D;
+	private _particleOrbitNode: ParticleOrbitNode;
+	private _usesEulers: boolean;
+	private _usesCycle: boolean;
+	private _usesPhase: boolean;
+	private _radius: number;
+	private _cycleDuration: number;
+	private _cyclePhase: number;
+	private _eulers: Vector3D;
+	private _orbitData: Vector3D;
+	private _eulersMatrix: Matrix3D;
 
 	/**
 	 * Defines the radius of the orbit when in global mode. Defaults to 100.
 	 */
-	public get radius():number
-	{
+	public get radius(): number {
 		return this._radius;
 	}
 
-	public set radius(value:number)
-	{
+	public set radius(value: number) {
 		this._radius = value;
 
 		this.updateOrbitData();
@@ -52,13 +49,11 @@ export class ParticleOrbitState extends ParticleStateBase
 	/**
 	 * Defines the duration of the orbit in seconds, used as a period independent of particle duration when in global mode. Defaults to 1.
 	 */
-	public get cycleDuration():number
-	{
+	public get cycleDuration(): number {
 		return this._cycleDuration;
 	}
 
-	public set cycleDuration(value:number)
-	{
+	public set cycleDuration(value: number) {
 		this._cycleDuration = value;
 
 		this.updateOrbitData();
@@ -67,13 +62,11 @@ export class ParticleOrbitState extends ParticleStateBase
 	/**
 	 * Defines the phase of the orbit in degrees, used as the starting offset of the cycle when in global mode. Defaults to 0.
 	 */
-	public get cyclePhase():number
-	{
+	public get cyclePhase(): number {
 		return this._cyclePhase;
 	}
 
-	public set cyclePhase(value:number)
-	{
+	public set cyclePhase(value: number) {
 		this._cyclePhase = value;
 
 		this.updateOrbitData();
@@ -82,21 +75,18 @@ export class ParticleOrbitState extends ParticleStateBase
 	/**
 	 * Defines the euler rotation in degrees, applied to the orientation of the orbit when in global mode.
 	 */
-	public get eulers():Vector3D
-	{
+	public get eulers(): Vector3D {
 		return this._eulers;
 	}
 
-	public set eulers(value:Vector3D)
-	{
+	public set eulers(value: Vector3D) {
 		this._eulers = value;
 
 		this.updateOrbitData();
 
 	}
 
-	constructor(animator:ParticleAnimator, particleOrbitNode:ParticleOrbitNode)
-	{
+	constructor(animator: ParticleAnimator, particleOrbitNode: ParticleOrbitNode) {
 		super(animator, particleOrbitNode);
 
 		this._particleOrbitNode = particleOrbitNode;
@@ -110,9 +100,8 @@ export class ParticleOrbitState extends ParticleStateBase
 		this.updateOrbitData();
 	}
 
-	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData):void
-	{
-		var index:number = animationRegisterData.getRegisterIndex(this._pAnimationNode, ParticleOrbitState.ORBIT_INDEX);
+	public setRenderState(shader: ShaderBase, renderable: _Render_RenderableBase, animationElements: AnimationElements, animationRegisterData: AnimationRegisterData): void {
+		const index: number = animationRegisterData.getRegisterIndex(this._pAnimationNode, ParticleOrbitState.ORBIT_INDEX);
 
 		if (this._particleOrbitNode.mode == ParticlePropertiesMode.LOCAL_STATIC) {
 			if (this._usesPhase)
@@ -126,8 +115,7 @@ export class ParticleOrbitState extends ParticleStateBase
 			shader.setVertexConstFromMatrix(animationRegisterData.getRegisterIndex(this._pAnimationNode, ParticleOrbitState.EULERS_INDEX), this._eulersMatrix);
 	}
 
-	private updateOrbitData():void
-	{
+	private updateOrbitData(): void {
 		if (this._usesEulers) {
 			this._eulersMatrix = new Matrix3D();
 			this._eulersMatrix.appendRotation(this._eulers.x, Vector3D.X_AXIS);
@@ -135,13 +123,13 @@ export class ParticleOrbitState extends ParticleStateBase
 			this._eulersMatrix.appendRotation(this._eulers.z, Vector3D.Z_AXIS);
 		}
 		if (this._particleOrbitNode.mode == ParticlePropertiesMode.GLOBAL) {
-			this._orbitData = new Vector3D(this._radius, 0, this._radius*Math.PI*2, this._cyclePhase*Math.PI/180);
+			this._orbitData = new Vector3D(this._radius, 0, this._radius * Math.PI * 2, this._cyclePhase * Math.PI / 180);
 			if (this._usesCycle) {
 				if (this._cycleDuration <= 0)
-					throw(new Error("the cycle duration must be greater than zero"));
-				this._orbitData.y = Math.PI*2/this._cycleDuration;
+					throw (new Error('the cycle duration must be greater than zero'));
+				this._orbitData.y = Math.PI * 2 / this._cycleDuration;
 			} else
-				this._orbitData.y = Math.PI*2;
+				this._orbitData.y = Math.PI * 2;
 		}
 	}
 }

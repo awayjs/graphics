@@ -1,4 +1,4 @@
-import {Matrix3D, Quaternion, Vector3D} from "@awayjs/core";
+import { Matrix3D, Quaternion, Vector3D } from '@awayjs/core';
 
 /**
  * Contains transformation data for a skeleton joint, used for skeleton animation.
@@ -8,25 +8,23 @@ import {Matrix3D, Quaternion, Vector3D} from "@awayjs/core";
  *
  * todo: support (uniform) scale
  */
-export class JointPose
-{
+export class JointPose {
 	/**
 	 * The name of the joint to which the pose is associated
 	 */
-	public name:string; // intention is that this should be used only at load time, not in the main loop
+	public name: string; // intention is that this should be used only at load time, not in the main loop
 
 	/**
 	 * The rotation of the pose stored as a quaternion
 	 */
-	public orientation:Quaternion = new Quaternion();
+	public orientation: Quaternion = new Quaternion();
 
 	/**
 	 * The translation of the pose
 	 */
-	public translation:Vector3D = new Vector3D();
+	public translation: Vector3D = new Vector3D();
 
-	constructor()
-	{
+	constructor() {
 
 	}
 
@@ -36,8 +34,7 @@ export class JointPose
 	 * @param target An optional target matrix to store the transformation. If not provided, it will create a new instance.
 	 * @return The transformation matrix of the pose.
 	 */
-	public toMatrix3D(target:Matrix3D = null):Matrix3D
-	{
+	public toMatrix3D(target: Matrix3D = null): Matrix3D {
 		if (target == null)
 			target = new Matrix3D();
 
@@ -51,10 +48,9 @@ export class JointPose
 	 *
 	 * @param pose The source pose to copy from.
 	 */
-	public copyFrom(pose:JointPose):void
-	{
-		var or:Quaternion = pose.orientation;
-		var tr:Vector3D = pose.translation;
+	public copyFrom(pose: JointPose): void {
+		const or: Quaternion = pose.orientation;
+		const tr: Vector3D = pose.translation;
 		this.orientation.x = or.x;
 		this.orientation.y = or.y;
 		this.orientation.z = or.z;

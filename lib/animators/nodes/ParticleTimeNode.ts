@@ -1,27 +1,26 @@
-import {ShaderRegisterCache, ShaderRegisterElement} from "@awayjs/stage";
+import { ShaderRegisterCache, ShaderRegisterElement } from '@awayjs/stage';
 
-import {ShaderBase, AnimationRegisterData} from "@awayjs/renderer";
+import { ShaderBase, AnimationRegisterData } from '@awayjs/renderer';
 
-import {ParticleProperties} from "../data/ParticleProperties";
-import {ParticlePropertiesMode} from "../data/ParticlePropertiesMode";
-import {ParticleTimeState} from "../states/ParticleTimeState";
+import { ParticleProperties } from '../data/ParticleProperties';
+import { ParticlePropertiesMode } from '../data/ParticlePropertiesMode';
+import { ParticleTimeState } from '../states/ParticleTimeState';
 
-import {ParticleAnimationSet} from "../ParticleAnimationSet";
-import {AnimatorBase} from "../AnimatorBase";
+import { ParticleAnimationSet } from '../ParticleAnimationSet';
+import { AnimatorBase } from '../AnimatorBase';
 
-import {ParticleNodeBase} from "./ParticleNodeBase";
+import { ParticleNodeBase } from './ParticleNodeBase';
 
 /**
  * A particle animation node used as the base node for timekeeping inside a particle. Automatically added to a particle animation set on instatiation.
  */
-export class ParticleTimeNode extends ParticleNodeBase
-{
+export class ParticleTimeNode extends ParticleNodeBase {
 	/** @private */
-	public _iUsesDuration:boolean;
+	public _iUsesDuration: boolean;
 	/** @private */
-	public _iUsesDelay:boolean;
+	public _iUsesDelay: boolean;
 	/** @private */
-	public _iUsesLooping:boolean;
+	public _iUsesLooping: boolean;
 
 	/**
 	 * Creates a new <code>ParticleTimeNode</code>
@@ -30,10 +29,9 @@ export class ParticleTimeNode extends ParticleNodeBase
 	 * @param    [optional] usesDelay       Defines whether the node uses the <code>delay</code> data in the static properties to determine how long a particle is hidden for. Defaults to false. Requires <code>usesDuration</code> to be true.
 	 * @param    [optional] usesLooping     Defines whether the node creates a looping timeframe for each particle determined by the <code>startTime</code>, <code>duration</code> and <code>delay</code> data in the static properties function. Defaults to false. Requires <code>usesLooping</code> to be true.
 	 */
-	constructor(usesDuration:boolean = false, usesLooping:boolean = false, usesDelay:boolean = false)
-	{
-		super("ParticleTime", ParticlePropertiesMode.LOCAL_STATIC, 4, 0);
-		
+	constructor(usesDuration: boolean = false, usesLooping: boolean = false, usesDelay: boolean = false) {
+		super('ParticleTime', ParticlePropertiesMode.LOCAL_STATIC, 4, 0);
+
 		this._pStateClass = ParticleTimeState;
 
 		this._iUsesDuration = usesDuration;
@@ -44,60 +42,57 @@ export class ParticleTimeNode extends ParticleNodeBase
 	/**
 	 * @inheritDoc
 	 */
-	public getAGALVertexCode(shader:ShaderBase, animationSet:ParticleAnimationSet, registerCache:ShaderRegisterCache, animationRegisterData:AnimationRegisterData):string
-	{
-		var timeStreamRegister:ShaderRegisterElement = registerCache.getFreeVertexAttribute(); //timeStreamRegister.x is start，timeStreamRegister.y is during time
+	public getAGALVertexCode(shader: ShaderBase, animationSet: ParticleAnimationSet, registerCache: ShaderRegisterCache, animationRegisterData: AnimationRegisterData): string {
+		const timeStreamRegister: ShaderRegisterElement = registerCache.getFreeVertexAttribute(); //timeStreamRegister.x is start，timeStreamRegister.y is during time
 		animationRegisterData.setRegisterIndex(this, ParticleTimeState.TIME_STREAM_INDEX, timeStreamRegister.index);
-		var timeConst:ShaderRegisterElement = registerCache.getFreeVertexConstant();
+		const timeConst: ShaderRegisterElement = registerCache.getFreeVertexConstant();
 		animationRegisterData.setRegisterIndex(this, ParticleTimeState.TIME_CONSTANT_INDEX, timeConst.index);
 
-		var code:string = "";
-		code += "sub " + animationRegisterData.vertexTime + "," + timeConst + "," + timeStreamRegister + ".x\n";
+		let code: string = '';
+		code += 'sub ' + animationRegisterData.vertexTime + ',' + timeConst + ',' + timeStreamRegister + '.x\n';
 		//if time=0,set the position to zero.
-		var temp:ShaderRegisterElement = registerCache.getFreeVertexSingleTemp();
-		code += "sge " + temp + "," + animationRegisterData.vertexTime + "," + animationRegisterData.vertexZeroConst + "\n";
-		code += "mul " + animationRegisterData.scaleAndRotateTarget + ".xyz," + animationRegisterData.scaleAndRotateTarget + ".xyz," + temp + "\n";
+		const temp: ShaderRegisterElement = registerCache.getFreeVertexSingleTemp();
+		code += 'sge ' + temp + ',' + animationRegisterData.vertexTime + ',' + animationRegisterData.vertexZeroConst + '\n';
+		code += 'mul ' + animationRegisterData.scaleAndRotateTarget + '.xyz,' + animationRegisterData.scaleAndRotateTarget + '.xyz,' + temp + '\n';
 		if (this._iUsesDuration) {
 			if (this._iUsesLooping) {
-				var div:ShaderRegisterElement = registerCache.getFreeVertexSingleTemp();
+				const div: ShaderRegisterElement = registerCache.getFreeVertexSingleTemp();
 				if (this._iUsesDelay) {
-					code += "div " + div + "," + animationRegisterData.vertexTime + "," + timeStreamRegister + ".z\n";
-					code += "frc " + div + "," + div + "\n";
-					code += "mul " + animationRegisterData.vertexTime + "," + div + "," + timeStreamRegister + ".z\n";
-					code += "slt " + div + "," + animationRegisterData.vertexTime + "," + timeStreamRegister + ".y\n";
-					code += "mul " + animationRegisterData.scaleAndRotateTarget + ".xyz," + animationRegisterData.scaleAndRotateTarget + ".xyz," + div + "\n";
+					code += 'div ' + div + ',' + animationRegisterData.vertexTime + ',' + timeStreamRegister + '.z\n';
+					code += 'frc ' + div + ',' + div + '\n';
+					code += 'mul ' + animationRegisterData.vertexTime + ',' + div + ',' + timeStreamRegister + '.z\n';
+					code += 'slt ' + div + ',' + animationRegisterData.vertexTime + ',' + timeStreamRegister + '.y\n';
+					code += 'mul ' + animationRegisterData.scaleAndRotateTarget + '.xyz,' + animationRegisterData.scaleAndRotateTarget + '.xyz,' + div + '\n';
 				} else {
-					code += "mul " + div + "," + animationRegisterData.vertexTime + "," + timeStreamRegister + ".w\n";
-					code += "frc " + div + "," + div + "\n";
-					code += "mul " + animationRegisterData.vertexTime + "," + div + "," + timeStreamRegister + ".y\n";
+					code += 'mul ' + div + ',' + animationRegisterData.vertexTime + ',' + timeStreamRegister + '.w\n';
+					code += 'frc ' + div + ',' + div + '\n';
+					code += 'mul ' + animationRegisterData.vertexTime + ',' + div + ',' + timeStreamRegister + '.y\n';
 				}
 			} else {
-				var sge:ShaderRegisterElement = registerCache.getFreeVertexSingleTemp();
-				code += "sge " + sge + "," + timeStreamRegister + ".y," + animationRegisterData.vertexTime + "\n";
-				code += "mul " + animationRegisterData.scaleAndRotateTarget + ".xyz," + animationRegisterData.scaleAndRotateTarget + ".xyz," + sge + "\n";
+				const sge: ShaderRegisterElement = registerCache.getFreeVertexSingleTemp();
+				code += 'sge ' + sge + ',' + timeStreamRegister + '.y,' + animationRegisterData.vertexTime + '\n';
+				code += 'mul ' + animationRegisterData.scaleAndRotateTarget + '.xyz,' + animationRegisterData.scaleAndRotateTarget + '.xyz,' + sge + '\n';
 			}
 		}
-		code += "mul " + animationRegisterData.vertexLife + "," + animationRegisterData.vertexTime + "," + timeStreamRegister + ".w\n";
+		code += 'mul ' + animationRegisterData.vertexLife + ',' + animationRegisterData.vertexTime + ',' + timeStreamRegister + '.w\n';
 		return code;
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public getAnimationState(animator:AnimatorBase):ParticleTimeState
-	{
+	public getAnimationState(animator: AnimatorBase): ParticleTimeState {
 		return <ParticleTimeState> animator.getAnimationState(this);
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public _iGeneratePropertyOfOneParticle(param:ParticleProperties):void
-	{
+	public _iGeneratePropertyOfOneParticle(param: ParticleProperties): void {
 		this._pOneData[0] = param.startTime;
 		this._pOneData[1] = param.duration;
 		this._pOneData[2] = param.delay + param.duration;
-		this._pOneData[3] = 1/param.duration;
+		this._pOneData[3] = 1 / param.duration;
 
 	}
 }

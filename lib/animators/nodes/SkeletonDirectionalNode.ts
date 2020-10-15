@@ -1,36 +1,34 @@
-import {AnimationNodeBase} from "@awayjs/renderer";
+import { AnimationNodeBase } from '@awayjs/renderer';
 
-import {SkeletonDirectionalState} from "../states/SkeletonDirectionalState";
+import { SkeletonDirectionalState } from '../states/SkeletonDirectionalState';
 
-import {AnimatorBase} from "../AnimatorBase";
+import { AnimatorBase } from '../AnimatorBase';
 
 /**
  * A skeleton animation node that uses four directional input poses with an input direction to blend a linearly interpolated output of a skeleton pose.
  */
-export class SkeletonDirectionalNode extends AnimationNodeBase
-{
+export class SkeletonDirectionalNode extends AnimationNodeBase {
 	/**
 	 * Defines the forward configured input node to use for the blended output.
 	 */
-	public forward:AnimationNodeBase;
+	public forward: AnimationNodeBase;
 
 	/**
 	 * Defines the backwards configured input node to use for the blended output.
 	 */
-	public backward:AnimationNodeBase;
+	public backward: AnimationNodeBase;
 
 	/**
 	 * Defines the left configured input node to use for the blended output.
 	 */
-	public left:AnimationNodeBase;
+	public left: AnimationNodeBase;
 
 	/**
 	 * Defines the right configured input node to use for the blended output.
 	 */
-	public right:AnimationNodeBase;
+	public right: AnimationNodeBase;
 
-	constructor()
-	{
+	constructor() {
 		super();
 
 		this._pStateClass = SkeletonDirectionalState;
@@ -39,8 +37,7 @@ export class SkeletonDirectionalNode extends AnimationNodeBase
 	/**
 	 * @inheritDoc
 	 */
-	public getAnimationState(animator:AnimatorBase):SkeletonDirectionalState
-	{
+	public getAnimationState(animator: AnimatorBase): SkeletonDirectionalState {
 		return <SkeletonDirectionalState> animator.getAnimationState(this);
 	}
 

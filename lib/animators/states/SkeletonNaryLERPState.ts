@@ -1,33 +1,31 @@
-import {Quaternion, Vector3D} from "@awayjs/core";
+import { Quaternion, Vector3D } from '@awayjs/core';
 
-import {JointPose} from "../data/JointPose";
-import {Skeleton} from "../data/Skeleton";
-import {SkeletonPose} from "../data/SkeletonPose";
-import {SkeletonNaryLERPNode} from "../nodes/SkeletonNaryLERPNode";
+import { JointPose } from '../data/JointPose';
+import { Skeleton } from '../data/Skeleton';
+import { SkeletonPose } from '../data/SkeletonPose';
+import { SkeletonNaryLERPNode } from '../nodes/SkeletonNaryLERPNode';
 
-import {AnimationStateBase} from "./AnimationStateBase";
-import {ISkeletonAnimationState} from "./ISkeletonAnimationState";
+import { AnimationStateBase } from './AnimationStateBase';
+import { ISkeletonAnimationState } from './ISkeletonAnimationState';
 
-import {AnimatorBase} from "../AnimatorBase";
+import { AnimatorBase } from '../AnimatorBase';
 
 /**
  *
  */
-export class SkeletonNaryLERPState extends AnimationStateBase implements ISkeletonAnimationState
-{
-	private _skeletonAnimationNode:SkeletonNaryLERPNode;
-	private _skeletonPose:SkeletonPose = new SkeletonPose();
-	private _skeletonPoseDirty:boolean = true;
-	private _blendWeights:Array<number> = new Array<number>();
-	private _inputs:Array<ISkeletonAnimationState> = new Array<ISkeletonAnimationState>();
+export class SkeletonNaryLERPState extends AnimationStateBase implements ISkeletonAnimationState {
+	private _skeletonAnimationNode: SkeletonNaryLERPNode;
+	private _skeletonPose: SkeletonPose = new SkeletonPose();
+	private _skeletonPoseDirty: boolean = true;
+	private _blendWeights: Array<number> = new Array<number>();
+	private _inputs: Array<ISkeletonAnimationState> = new Array<ISkeletonAnimationState>();
 
-	constructor(animator:AnimatorBase, skeletonAnimationNode:SkeletonNaryLERPNode)
-	{
+	constructor(animator: AnimatorBase, skeletonAnimationNode: SkeletonNaryLERPNode) {
 		super(animator, skeletonAnimationNode);
 
 		this._skeletonAnimationNode = skeletonAnimationNode;
 
-		var i:number = this._skeletonAnimationNode.numInputs;
+		let i: number = this._skeletonAnimationNode.numInputs;
 
 		while (i--)
 			this._inputs[i] = <ISkeletonAnimationState> animator.getAnimationState(this._skeletonAnimationNode._iInputs[i]);
@@ -36,13 +34,12 @@ export class SkeletonNaryLERPState extends AnimationStateBase implements ISkelet
 	/**
 	 * @inheritDoc
 	 */
-	public phase(value:number):void
-	{
+	public phase(value: number): void {
 		this._skeletonPoseDirty = true;
 
 		this._pPositionDeltaDirty = true;
 
-		for (var j:number = 0; j < this._skeletonAnimationNode.numInputs; ++j) {
+		for (let j: number = 0; j < this._skeletonAnimationNode.numInputs; ++j) {
 			if (this._blendWeights[j])
 				this._inputs[j].update(value);
 		}
@@ -51,9 +48,8 @@ export class SkeletonNaryLERPState extends AnimationStateBase implements ISkelet
 	/**
 	 * @inheritDoc
 	 */
-	public _pUdateTime(time:number):void
-	{
-		for (var j:number = 0; j < this._skeletonAnimationNode.numInputs; ++j) {
+	public _pUdateTime(time: number): void {
+		for (let j: number = 0; j < this._skeletonAnimationNode.numInputs; ++j) {
 			if (this._blendWeights[j])
 				this._inputs[j].update(time);
 		}
@@ -64,8 +60,7 @@ export class SkeletonNaryLERPState extends AnimationStateBase implements ISkelet
 	/**
 	 * Returns the current skeleton pose of the animation in the clip based on the internal playhead position.
 	 */
-	public getSkeletonPose(skeleton:Skeleton):SkeletonPose
-	{
+	public getSkeletonPose(skeleton: Skeleton): SkeletonPose {
 		if (this._skeletonPoseDirty)
 			this.updateSkeletonPose(skeleton);
 
@@ -77,8 +72,7 @@ export class SkeletonNaryLERPState extends AnimationStateBase implements ISkelet
 	 *
 	 * @param index The input index for which the skeleton animation node blend weight is requested.
 	 */
-	public getBlendWeightAt(index:number):number
-	{
+	public getBlendWeightAt(index: number): number {
 		return this._blendWeights[index];
 	}
 
@@ -88,8 +82,7 @@ export class SkeletonNaryLERPState extends AnimationStateBase implements ISkelet
 	 * @param index The input index on which the skeleton animation node blend weight is to be set.
 	 * @param blendWeight The blend weight value to use for the given skeleton animation node index.
 	 */
-	public setBlendWeightAt(index:number, blendWeight:number):void
-	{
+	public setBlendWeightAt(index: number, blendWeight: number): void {
 		this._blendWeights[index] = blendWeight;
 
 		this._pPositionDeltaDirty = true;
@@ -99,25 +92,24 @@ export class SkeletonNaryLERPState extends AnimationStateBase implements ISkelet
 	/**
 	 * @inheritDoc
 	 */
-	public _pUpdatePositionDelta():void
-	{
+	public _pUpdatePositionDelta(): void {
 		this._pPositionDeltaDirty = false;
 
-		var delta:Vector3D;
-		var weight:number;
+		let delta: Vector3D;
+		let weight: number;
 
 		this.positionDelta.x = 0;
 		this.positionDelta.y = 0;
 		this.positionDelta.z = 0;
 
-		for (var j:number = 0; j < this._skeletonAnimationNode.numInputs; ++j) {
+		for (let j: number = 0; j < this._skeletonAnimationNode.numInputs; ++j) {
 			weight = this._blendWeights[j];
 
 			if (weight) {
 				delta = this._inputs[j].positionDelta;
-				this.positionDelta.x += weight*delta.x;
-				this.positionDelta.y += weight*delta.y;
-				this.positionDelta.z += weight*delta.z;
+				this.positionDelta.x += weight * delta.x;
+				this.positionDelta.y += weight * delta.y;
+				this.positionDelta.z += weight * delta.z;
 			}
 		}
 	}
@@ -127,27 +119,26 @@ export class SkeletonNaryLERPState extends AnimationStateBase implements ISkelet
 	 *
 	 * @param skeleton The skeleton used by the animator requesting the ouput pose.
 	 */
-	private updateSkeletonPose(skeleton:Skeleton):void
-	{
+	private updateSkeletonPose(skeleton: Skeleton): void {
 		this._skeletonPoseDirty = false;
 
-		var weight:number;
-		var endPoses:Array<JointPose> = this._skeletonPose.jointPoses;
-		var poses:Array<JointPose>;
-		var endPose:JointPose, pose:JointPose;
-		var endTr:Vector3D, tr:Vector3D;
-		var endQuat:Quaternion, q:Quaternion;
-		var firstPose:Array<JointPose>;
-		var i:number;
-		var w0:number, x0:number, y0:number, z0:number;
-		var w1:number, x1:number, y1:number, z1:number;
-		var numJoints:number = skeleton.numJoints;
+		let weight: number;
+		const endPoses: Array<JointPose> = this._skeletonPose.jointPoses;
+		let poses: Array<JointPose>;
+		let endPose: JointPose, pose: JointPose;
+		let endTr: Vector3D, tr: Vector3D;
+		let endQuat: Quaternion, q: Quaternion;
+		let firstPose: Array<JointPose>;
+		let i: number;
+		let w0: number, x0: number, y0: number, z0: number;
+		let w1: number, x1: number, y1: number, z1: number;
+		const numJoints: number = skeleton.numJoints;
 
 		// :s
 		if (endPoses.length != numJoints)
 			endPoses.length = numJoints;
 
-		for (var j:number = 0; j < this._skeletonAnimationNode.numInputs; ++j) {
+		for (let j: number = 0; j < this._skeletonAnimationNode.numInputs; ++j) {
 			weight = this._blendWeights[j];
 
 			if (!weight)
@@ -169,15 +160,15 @@ export class SkeletonNaryLERPState extends AnimationStateBase implements ISkelet
 
 					endQuat = endPose.orientation;
 
-					endQuat.x = weight*q.x;
-					endQuat.y = weight*q.y;
-					endQuat.z = weight*q.z;
-					endQuat.w = weight*q.w;
+					endQuat.x = weight * q.x;
+					endQuat.y = weight * q.y;
+					endQuat.z = weight * q.z;
+					endQuat.w = weight * q.w;
 
 					endTr = endPose.translation;
-					endTr.x = weight*tr.x;
-					endTr.y = weight*tr.y;
-					endTr.z = weight*tr.z;
+					endTr.x = weight * tr.x;
+					endTr.y = weight * tr.y;
+					endTr.z = weight * tr.z;
 				}
 			} else {
 				for (i = 0; i < skeleton.numJoints; ++i) {
@@ -198,22 +189,22 @@ export class SkeletonNaryLERPState extends AnimationStateBase implements ISkelet
 					z1 = q.z;
 					w1 = q.w;
 					// find shortest direction
-					if (x0*x1 + y0*y1 + z0*z1 + w0*w1 < 0) {
+					if (x0 * x1 + y0 * y1 + z0 * z1 + w0 * w1 < 0) {
 						x1 = -x1;
 						y1 = -y1;
 						z1 = -z1;
 						w1 = -w1;
 					}
 					endQuat = endPose.orientation;
-					endQuat.x += weight*x1;
-					endQuat.y += weight*y1;
-					endQuat.z += weight*z1;
-					endQuat.w += weight*w1;
+					endQuat.x += weight * x1;
+					endQuat.y += weight * y1;
+					endQuat.z += weight * z1;
+					endQuat.w += weight * w1;
 
 					endTr = endPose.translation;
-					endTr.x += weight*tr.x;
-					endTr.y += weight*tr.y;
-					endTr.z += weight*tr.z;
+					endTr.x += weight * tr.x;
+					endTr.y += weight * tr.y;
+					endTr.z += weight * tr.z;
 				}
 			}
 		}

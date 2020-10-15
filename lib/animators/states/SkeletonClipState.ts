@@ -1,35 +1,33 @@
-import {Vector3D} from "@awayjs/core";
+import { Vector3D } from '@awayjs/core';
 
-import {JointPose} from "../data/JointPose";
-import {Skeleton} from "../data/Skeleton";
-import {SkeletonPose} from "../data/SkeletonPose";
-import {SkeletonClipNode} from "../nodes/SkeletonClipNode";
+import { JointPose } from '../data/JointPose';
+import { Skeleton } from '../data/Skeleton';
+import { SkeletonPose } from '../data/SkeletonPose';
+import { SkeletonClipNode } from '../nodes/SkeletonClipNode';
 
-import {SkeletonAnimator} from "../SkeletonAnimator";
+import { SkeletonAnimator } from '../SkeletonAnimator';
 
-import {AnimationClipState} from "./AnimationClipState";
-import {ISkeletonAnimationState} from "./ISkeletonAnimationState";
+import { AnimationClipState } from './AnimationClipState';
+import { ISkeletonAnimationState } from './ISkeletonAnimationState';
 
-import {AnimatorBase} from "../AnimatorBase";
+import { AnimatorBase } from '../AnimatorBase';
 
 /**
  *
  */
-export class SkeletonClipState extends AnimationClipState implements ISkeletonAnimationState
-{
-	private _rootPos:Vector3D = new Vector3D();
-	private _frames:Array<SkeletonPose>;
-	private _skeletonClipNode:SkeletonClipNode;
-	private _skeletonPose:SkeletonPose = new SkeletonPose();
-	private _skeletonPoseDirty:boolean = true;
-	private _currentPose:SkeletonPose;
-	private _nextPose:SkeletonPose;
+export class SkeletonClipState extends AnimationClipState implements ISkeletonAnimationState {
+	private _rootPos: Vector3D = new Vector3D();
+	private _frames: Array<SkeletonPose>;
+	private _skeletonClipNode: SkeletonClipNode;
+	private _skeletonPose: SkeletonPose = new SkeletonPose();
+	private _skeletonPoseDirty: boolean = true;
+	private _currentPose: SkeletonPose;
+	private _nextPose: SkeletonPose;
 
 	/**
 	 * Returns the current skeleton pose frame of animation in the clip based on the internal playhead position.
 	 */
-	public get currentPose():SkeletonPose
-	{
+	public get currentPose(): SkeletonPose {
 		if (this._pFramesDirty)
 			this._pUpdateFrames();
 
@@ -39,16 +37,14 @@ export class SkeletonClipState extends AnimationClipState implements ISkeletonAn
 	/**
 	 * Returns the next skeleton pose frame of animation in the clip based on the internal playhead position.
 	 */
-	public get nextPose():SkeletonPose
-	{
+	public get nextPose(): SkeletonPose {
 		if (this._pFramesDirty)
 			this._pUpdateFrames();
 
 		return this._nextPose;
 	}
 
-	constructor(animator:AnimatorBase, skeletonClipNode:SkeletonClipNode)
-	{
+	constructor(animator: AnimatorBase, skeletonClipNode: SkeletonClipNode) {
 		super(animator, skeletonClipNode);
 
 		this._skeletonClipNode = skeletonClipNode;
@@ -58,8 +54,7 @@ export class SkeletonClipState extends AnimationClipState implements ISkeletonAn
 	/**
 	 * Returns the current skeleton pose of the animation in the clip based on the internal playhead position.
 	 */
-	public getSkeletonPose(skeleton:Skeleton):SkeletonPose
-	{
+	public getSkeletonPose(skeleton: Skeleton): SkeletonPose {
 		if (this._skeletonPoseDirty)
 			this.updateSkeletonPose(skeleton);
 
@@ -69,8 +64,7 @@ export class SkeletonClipState extends AnimationClipState implements ISkeletonAn
 	/**
 	 * @inheritDoc
 	 */
-	public _pUpdateTime(time:number):void
-	{
+	public _pUpdateTime(time: number): void {
 		this._skeletonPoseDirty = true;
 
 		super._pUpdateTime(time);
@@ -79,8 +73,7 @@ export class SkeletonClipState extends AnimationClipState implements ISkeletonAn
 	/**
 	 * @inheritDoc
 	 */
-	public _pUpdateFrames():void
-	{
+	public _pUpdateFrames(): void {
 		super._pUpdateFrames();
 
 		this._currentPose = this._frames[this._pCurrentFrame];
@@ -97,8 +90,7 @@ export class SkeletonClipState extends AnimationClipState implements ISkeletonAn
 	 *
 	 * @param skeleton The skeleton used by the animator requesting the ouput pose.
 	 */
-	private updateSkeletonPose(skeleton:Skeleton):void
-	{
+	private updateSkeletonPose(skeleton: Skeleton): void {
 		this._skeletonPoseDirty = false;
 
 		if (!this._skeletonClipNode.totalDuration)
@@ -107,23 +99,23 @@ export class SkeletonClipState extends AnimationClipState implements ISkeletonAn
 		if (this._pFramesDirty)
 			this._pUpdateFrames();
 
-		var currentPose:Array<JointPose> = this._currentPose.jointPoses;
-		var nextPose:Array<JointPose> = this._nextPose.jointPoses;
-		var numJoints:number = skeleton.numJoints;
-		var p1:Vector3D, p2:Vector3D;
-		var pose1:JointPose, pose2:JointPose;
-		var endPoses:Array<JointPose> = this._skeletonPose.jointPoses;
-		var endPose:JointPose;
-		var tr:Vector3D;
+		const currentPose: Array<JointPose> = this._currentPose.jointPoses;
+		const nextPose: Array<JointPose> = this._nextPose.jointPoses;
+		const numJoints: number = skeleton.numJoints;
+		let p1: Vector3D, p2: Vector3D;
+		let pose1: JointPose, pose2: JointPose;
+		const endPoses: Array<JointPose> = this._skeletonPose.jointPoses;
+		let endPose: JointPose;
+		let tr: Vector3D;
 
 		// :s
 		if (endPoses.length != numJoints)
 			endPoses.length = numJoints;
 
 		if ((numJoints != currentPose.length) || (numJoints != nextPose.length))
-			throw new Error("joint counts don't match!");
+			throw new Error('joint counts don\'t match!');
 
-		for (var i:number = 0; i < numJoints; ++i) {
+		for (let i: number = 0; i < numJoints; ++i) {
 			endPose = endPoses[i];
 
 			if (endPose == null)
@@ -141,9 +133,9 @@ export class SkeletonClipState extends AnimationClipState implements ISkeletonAn
 
 			if (i > 0) {
 				tr = endPose.translation;
-				tr.x = p1.x + this._pBlendWeight*(p2.x - p1.x);
-				tr.y = p1.y + this._pBlendWeight*(p2.y - p1.y);
-				tr.z = p1.z + this._pBlendWeight*(p2.z - p1.z);
+				tr.x = p1.x + this._pBlendWeight * (p2.x - p1.x);
+				tr.y = p1.y + this._pBlendWeight * (p2.y - p1.y);
+				tr.z = p1.z + this._pBlendWeight * (p2.z - p1.z);
 			}
 		}
 	}
@@ -151,41 +143,40 @@ export class SkeletonClipState extends AnimationClipState implements ISkeletonAn
 	/**
 	 * @inheritDoc
 	 */
-	public _pUpdatePositionDelta():void
-	{
+	public _pUpdatePositionDelta(): void {
 		this._pPositionDeltaDirty = false;
 
 		if (this._pFramesDirty)
 			this._pUpdateFrames();
 
-		var p1:Vector3D, p2:Vector3D, p3:Vector3D;
-		var totalDelta:Vector3D = this._skeletonClipNode.totalDelta;
+		let p1: Vector3D, p2: Vector3D, p3: Vector3D;
+		const totalDelta: Vector3D = this._skeletonClipNode.totalDelta;
 
 		// jumping back, need to reset position
 		if ((this._pTimeDir > 0 && this._pNextFrame < this._pOldFrame) || (this._pTimeDir < 0 && this._pNextFrame > this._pOldFrame)) {
-			this._rootPos.x -= totalDelta.x*this._pTimeDir;
-			this._rootPos.y -= totalDelta.y*this._pTimeDir;
-			this._rootPos.z -= totalDelta.z*this._pTimeDir;
+			this._rootPos.x -= totalDelta.x * this._pTimeDir;
+			this._rootPos.y -= totalDelta.y * this._pTimeDir;
+			this._rootPos.z -= totalDelta.z * this._pTimeDir;
 		}
 
-		var dx:number = this._rootPos.x;
-		var dy:number = this._rootPos.y;
-		var dz:number = this._rootPos.z;
+		const dx: number = this._rootPos.x;
+		const dy: number = this._rootPos.y;
+		const dz: number = this._rootPos.z;
 
 		if (this._skeletonClipNode.stitchFinalFrame && this._pNextFrame == this._skeletonClipNode.lastFrame) {
 			p1 = this._frames[0].jointPoses[0].translation;
 			p2 = this._frames[1].jointPoses[0].translation;
 			p3 = this._currentPose.jointPoses[0].translation;
 
-			this._rootPos.x = p3.x + p1.x + this._pBlendWeight*(p2.x - p1.x);
-			this._rootPos.y = p3.y + p1.y + this._pBlendWeight*(p2.y - p1.y);
-			this._rootPos.z = p3.z + p1.z + this._pBlendWeight*(p2.z - p1.z);
+			this._rootPos.x = p3.x + p1.x + this._pBlendWeight * (p2.x - p1.x);
+			this._rootPos.y = p3.y + p1.y + this._pBlendWeight * (p2.y - p1.y);
+			this._rootPos.z = p3.z + p1.z + this._pBlendWeight * (p2.z - p1.z);
 		} else {
 			p1 = this._currentPose.jointPoses[0].translation;
 			p2 = this._frames[this._pNextFrame].jointPoses[0].translation; //cover the instances where we wrap the pose but still want the final frame translation values
-			this._rootPos.x = p1.x + this._pBlendWeight*(p2.x - p1.x);
-			this._rootPos.y = p1.y + this._pBlendWeight*(p2.y - p1.y);
-			this._rootPos.z = p1.z + this._pBlendWeight*(p2.z - p1.z);
+			this._rootPos.x = p1.x + this._pBlendWeight * (p2.x - p1.x);
+			this._rootPos.y = p1.y + this._pBlendWeight * (p2.y - p1.y);
+			this._rootPos.z = p1.z + this._pBlendWeight * (p2.z - p1.z);
 		}
 
 		this._pRootDelta.x = this._rootPos.x - dx;

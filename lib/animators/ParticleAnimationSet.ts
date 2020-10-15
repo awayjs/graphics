@@ -1,57 +1,56 @@
-import {ShaderRegisterElement, ShaderRegisterCache, ShaderRegisterData} from "@awayjs/stage";
+import { ShaderRegisterElement, ShaderRegisterCache, ShaderRegisterData } from '@awayjs/stage';
 
-import {ShaderBase, AnimationRegisterData, IElements, IAnimationSet, AnimationNodeBase} from "@awayjs/renderer";
+import { ShaderBase, AnimationRegisterData, IElements, IAnimationSet, AnimationNodeBase } from '@awayjs/renderer';
 
-import {ParticleData} from "./data/ParticleData";
-import {ParticleCollection} from "./data/ParticleCollection";
-import {AnimationElements} from "./data/AnimationElements";
-import {ParticleAnimationData} from "./data/ParticleAnimationData";
-import {ParticleProperties} from "./data/ParticleProperties";
-import {ParticlePropertiesMode} from "./data/ParticlePropertiesMode";
-import {ParticleNodeBase} from "./nodes/ParticleNodeBase";
-import {ParticleTimeNode} from "./nodes/ParticleTimeNode";
+import { ParticleData } from './data/ParticleData';
+import { ParticleCollection } from './data/ParticleCollection';
+import { AnimationElements } from './data/AnimationElements';
+import { ParticleAnimationData } from './data/ParticleAnimationData';
+import { ParticleProperties } from './data/ParticleProperties';
+import { ParticlePropertiesMode } from './data/ParticlePropertiesMode';
+import { ParticleNodeBase } from './nodes/ParticleNodeBase';
+import { ParticleTimeNode } from './nodes/ParticleTimeNode';
 
-import {AnimationSetBase} from "./AnimationSetBase";
+import { AnimationSetBase } from './AnimationSetBase';
 
 /**
  * The animation data set used by particle-based animators, containing particle animation data.
  *
  * @see away.animators.ParticleAnimator
  */
-export class ParticleAnimationSet extends AnimationSetBase implements IAnimationSet
-{
+export class ParticleAnimationSet extends AnimationSetBase implements IAnimationSet {
 	/** @private */
-	public _iAnimationRegisterData:AnimationRegisterData;
+	public _iAnimationRegisterData: AnimationRegisterData;
 
 	//all other nodes dependent on it
-	private _timeNode:ParticleTimeNode;
+	private _timeNode: ParticleTimeNode;
 
 	/**
 	 * Property used by particle nodes that require compilers at the end of the shader
 	 */
-	public static POST_PRIORITY:number = 9;
+	public static POST_PRIORITY: number = 9;
 
 	/**
 	 * Property used by particle nodes that require color compilers
 	 */
-	public static COLOR_PRIORITY:number = 18;
+	public static COLOR_PRIORITY: number = 18;
 
-	private _animationElements:Object = new Object();
-	private _particleNodes:Array<ParticleNodeBase> = new Array<ParticleNodeBase>();
-	private _localDynamicNodes:Array<ParticleNodeBase> = new Array<ParticleNodeBase>();
-	private _localStaticNodes:Array<ParticleNodeBase> = new Array<ParticleNodeBase>();
-	private _totalLenOfOneVertex:number = 0;
+	private _animationElements: Object = new Object();
+	private _particleNodes: Array<ParticleNodeBase> = new Array<ParticleNodeBase>();
+	private _localDynamicNodes: Array<ParticleNodeBase> = new Array<ParticleNodeBase>();
+	private _localStaticNodes: Array<ParticleNodeBase> = new Array<ParticleNodeBase>();
+	private _totalLenOfOneVertex: number = 0;
 
 	//set true if has an node which will change UV
-	public hasUVNode:boolean;
+	public hasUVNode: boolean;
 	//set if the other nodes need to access the velocity
-	public needVelocity:boolean;
+	public needVelocity: boolean;
 	//set if has a billboard node.
-	public hasBillboard:boolean;
+	public hasBillboard: boolean;
 	//set if has an node which will apply color multiple operation
-	public hasColorMulNode:boolean;
+	public hasColorMulNode: boolean;
 	//set if has an node which will apply color add operation
-	public hasColorAddNode:boolean;
+	public hasColorAddNode: boolean;
 
 	/**
 	 * Initialiser function for static particle properties. Needs to reference a with the following format
@@ -68,12 +67,12 @@ export class ParticleAnimationSet extends AnimationSetBase implements IAnimation
 	 * <code>startTime</code>, <code>duration</code> and <code>delay</code>. The use of these properties is determined by the setting
 	 * arguments passed in the constructor of the particle animation set. By default, only the <code>startTime</code> property is required.
 	 */
-	public initParticleFunc:Function;
+	public initParticleFunc: Function;
 
 	/**
 	 * Initialiser function scope for static particle properties
 	 */
-	public initParticleScope:Object;
+	public initParticleScope: Object;
 
 	/**
 	 * Creates a new <code>ParticleAnimationSet</code>
@@ -82,8 +81,7 @@ export class ParticleAnimationSet extends AnimationSetBase implements IAnimation
 	 * @param    [optional] usesLooping     Defines whether the animation set uses a looping timeframe for each particle determined by the <code>startTime</code>, <code>duration</code> and <code>delay</code> data in its static properties function. Defaults to false. Requires <code>usesDuration</code> to be true.
 	 * @param    [optional] usesDelay       Defines whether the animation set uses the <code>delay</code> data in its static properties to determine how long a particle is hidden for. Defaults to false. Requires <code>usesLooping</code> to be true.
 	 */
-	constructor(usesDuration:boolean = false, usesLooping:boolean = false, usesDelay:boolean = false)
-	{
+	constructor(usesDuration: boolean = false, usesLooping: boolean = false, usesDelay: boolean = false) {
 		super();
 
 		//automatically add a particle time node to the set
@@ -93,18 +91,16 @@ export class ParticleAnimationSet extends AnimationSetBase implements IAnimation
 	/**
 	 * Returns a vector of the particle animation nodes contained within the set.
 	 */
-	public get particleNodes():Array<ParticleNodeBase>
-	{
+	public get particleNodes(): Array<ParticleNodeBase> {
 		return this._particleNodes;
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public addAnimation(node:AnimationNodeBase):void
-	{
-		var i:number;
-		var n:ParticleNodeBase = <ParticleNodeBase> node;
+	public addAnimation(node: AnimationNodeBase): void {
+		let i: number;
+		const n: ParticleNodeBase = <ParticleNodeBase> node;
 		n._iProcessAnimationSetting(this);
 		if (n.mode == ParticlePropertiesMode.LOCAL_STATIC) {
 			n._iDataOffset = this._totalLenOfOneVertex;
@@ -126,8 +122,7 @@ export class ParticleAnimationSet extends AnimationSetBase implements IAnimation
 	/**
 	 * @inheritDoc
 	 */
-	public getAGALVertexCode(shader:ShaderBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
-	{
+	public getAGALVertexCode(shader: ShaderBase, registerCache: ShaderRegisterCache, sharedRegisters: ShaderRegisterData): string {
 		//grab animationRegisterData from the materialpassbase or create a new one if the first time
 		this._iAnimationRegisterData = shader.animationRegisterData;
 
@@ -137,19 +132,19 @@ export class ParticleAnimationSet extends AnimationSetBase implements IAnimation
 		//reset animationRegisterData
 		this._iAnimationRegisterData.reset(registerCache, sharedRegisters, this.needVelocity);
 
-		var code:string = "";
+		let code: string = '';
 
-		var len:number = sharedRegisters.animatableAttributes.length;
-		for (var i:number = 0; i < len; i++)
-			code += "mov " + sharedRegisters.animationTargetRegisters[i] + "," + sharedRegisters.animatableAttributes[i] + "\n";
+		const len: number = sharedRegisters.animatableAttributes.length;
+		for (var i: number = 0; i < len; i++)
+			code += 'mov ' + sharedRegisters.animationTargetRegisters[i] + ',' + sharedRegisters.animatableAttributes[i] + '\n';
 
-		code += "mov " + this._iAnimationRegisterData.positionTarget + ".xyz," + this._iAnimationRegisterData.vertexZeroConst + "\n";
+		code += 'mov ' + this._iAnimationRegisterData.positionTarget + '.xyz,' + this._iAnimationRegisterData.vertexZeroConst + '\n';
 
 		if (this.needVelocity)
-			code += "mov " + this._iAnimationRegisterData.velocityTarget + ".xyz," + this._iAnimationRegisterData.vertexZeroConst + "\n";
+			code += 'mov ' + this._iAnimationRegisterData.velocityTarget + '.xyz,' + this._iAnimationRegisterData.vertexZeroConst + '\n';
 
-		var node:ParticleNodeBase;
-		var i:number;
+		let node: ParticleNodeBase;
+		var i: number;
 
 		for (i = 0; i < this._particleNodes.length; i++) {
 			node = this._particleNodes[i];
@@ -157,7 +152,7 @@ export class ParticleAnimationSet extends AnimationSetBase implements IAnimation
 				code += node.getAGALVertexCode(shader, this, registerCache, this._iAnimationRegisterData);
 		}
 
-		code += "add " + this._iAnimationRegisterData.scaleAndRotateTarget + ".xyz," + this._iAnimationRegisterData.scaleAndRotateTarget + ".xyz," + this._iAnimationRegisterData.positionTarget + ".xyz\n";
+		code += 'add ' + this._iAnimationRegisterData.scaleAndRotateTarget + '.xyz,' + this._iAnimationRegisterData.scaleAndRotateTarget + '.xyz,' + this._iAnimationRegisterData.positionTarget + '.xyz\n';
 
 		for (i = 0; i < this._particleNodes.length; i++) {
 			node = this._particleNodes[i];
@@ -169,13 +164,13 @@ export class ParticleAnimationSet extends AnimationSetBase implements IAnimation
 			this._iAnimationRegisterData.colorMulTarget = registerCache.getFreeVertexVectorTemp();
 			registerCache.addVertexTempUsages(this._iAnimationRegisterData.colorMulTarget, 1);
 			this._iAnimationRegisterData.colorMulVary = registerCache.getFreeVarying();
-			code += "mov " + this._iAnimationRegisterData.colorMulTarget + "," + this._iAnimationRegisterData.vertexOneConst + "\n";
+			code += 'mov ' + this._iAnimationRegisterData.colorMulTarget + ',' + this._iAnimationRegisterData.vertexOneConst + '\n';
 		}
 		if (this.hasColorAddNode) {
 			this._iAnimationRegisterData.colorAddTarget = registerCache.getFreeVertexVectorTemp();
 			registerCache.addVertexTempUsages(this._iAnimationRegisterData.colorAddTarget, 1);
 			this._iAnimationRegisterData.colorAddVary = registerCache.getFreeVarying();
-			code += "mov " + this._iAnimationRegisterData.colorAddTarget + "," + this._iAnimationRegisterData.vertexZeroConst + "\n";
+			code += 'mov ' + this._iAnimationRegisterData.colorAddTarget + ',' + this._iAnimationRegisterData.vertexZeroConst + '\n';
 		}
 
 		for (i = 0; i < this._particleNodes.length; i++) {
@@ -185,9 +180,9 @@ export class ParticleAnimationSet extends AnimationSetBase implements IAnimation
 		}
 		if (shader.usesFragmentAnimation && (this.hasColorAddNode || this.hasColorMulNode)) {
 			if (this.hasColorMulNode)
-				code += "mov " + this._iAnimationRegisterData.colorMulVary + "," + this._iAnimationRegisterData.colorMulTarget + "\n";
+				code += 'mov ' + this._iAnimationRegisterData.colorMulVary + ',' + this._iAnimationRegisterData.colorMulTarget + '\n';
 			if (this.hasColorAddNode)
-				code += "mov " + this._iAnimationRegisterData.colorAddVary + "," + this._iAnimationRegisterData.colorAddTarget + "\n";
+				code += 'mov ' + this._iAnimationRegisterData.colorAddVary + ',' + this._iAnimationRegisterData.colorAddTarget + '\n';
 		}
 		return code;
 	}
@@ -195,33 +190,31 @@ export class ParticleAnimationSet extends AnimationSetBase implements IAnimation
 	/**
 	 * @inheritDoc
 	 */
-	public getAGALUVCode(shader:ShaderBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
-	{
-		var code:string = "";
+	public getAGALUVCode(shader: ShaderBase, registerCache: ShaderRegisterCache, sharedRegisters: ShaderRegisterData): string {
+		let code: string = '';
 		if (this.hasUVNode) {
 			this._iAnimationRegisterData.setUVSourceAndTarget(sharedRegisters);
-			code += "mov " + this._iAnimationRegisterData.uvTarget + ".xy," + this._iAnimationRegisterData.uvAttribute.toString() + "\n";
-			var node:ParticleNodeBase;
-			for (var i:number = 0; i < this._particleNodes.length; i++)
+			code += 'mov ' + this._iAnimationRegisterData.uvTarget + '.xy,' + this._iAnimationRegisterData.uvAttribute.toString() + '\n';
+			let node: ParticleNodeBase;
+			for (let i: number = 0; i < this._particleNodes.length; i++)
 				node = this._particleNodes[i];
-				code += node.getAGALUVCode(shader, this, registerCache, this._iAnimationRegisterData);
-			code += "mov " + this._iAnimationRegisterData.uvVar + "," + this._iAnimationRegisterData.uvTarget + ".xy\n";
+			code += node.getAGALUVCode(shader, this, registerCache, this._iAnimationRegisterData);
+			code += 'mov ' + this._iAnimationRegisterData.uvVar + ',' + this._iAnimationRegisterData.uvTarget + '.xy\n';
 		} else
-			code += "mov " + sharedRegisters.animatedUV + "," + sharedRegisters.uvInput + "\n";
+			code += 'mov ' + sharedRegisters.animatedUV + ',' + sharedRegisters.uvInput + '\n';
 		return code;
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public getAGALFragmentCode(shader:ShaderBase, registerCache:ShaderRegisterCache, shadedTarget:ShaderRegisterElement):string
-	{
-		var code:string = "";
+	public getAGALFragmentCode(shader: ShaderBase, registerCache: ShaderRegisterCache, shadedTarget: ShaderRegisterElement): string {
+		let code: string = '';
 		if (shader.usesFragmentAnimation && (this.hasColorAddNode || this.hasColorMulNode)) {
 			if (this.hasColorMulNode)
-				code += "mul " + shadedTarget + "," + shadedTarget + "," + this._iAnimationRegisterData.colorMulVary + "\n";
+				code += 'mul ' + shadedTarget + ',' + shadedTarget + ',' + this._iAnimationRegisterData.colorMulVary + '\n';
 			if (this.hasColorAddNode)
-				code += "add " + shadedTarget + "," + shadedTarget + "," + this._iAnimationRegisterData.colorAddVary + "\n";
+				code += 'add ' + shadedTarget + ',' + shadedTarget + ',' + this._iAnimationRegisterData.colorAddVary + '\n';
 		}
 		return code;
 	}
@@ -229,8 +222,7 @@ export class ParticleAnimationSet extends AnimationSetBase implements IAnimation
 	/**
 	 * @inheritDoc
 	 */
-	public doneAGALCode(shader:ShaderBase):void
-	{
+	public doneAGALCode(shader: ShaderBase): void {
 		//set vertexZeroConst,vertexOneConst,vertexTwoConst
 		shader.setVertexConst(this._iAnimationRegisterData.vertexZeroConst.index, 0, 1, 2, 0);
 	}
@@ -238,30 +230,26 @@ export class ParticleAnimationSet extends AnimationSetBase implements IAnimation
 	/**
 	 * @inheritDoc
 	 */
-	public get usesCPU():boolean
-	{
+	public get usesCPU(): boolean {
 		return false;
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public cancelGPUCompatibility():void
-	{
+	public cancelGPUCompatibility(): void {
 
 	}
 
-	public dispose():void
-	{
-		for (var key in this._animationElements)
+	public dispose(): void {
+		for (const key in this._animationElements)
 			(<AnimationElements> this._animationElements[key]).dispose();
 
 		super.dispose();
 	}
 
-	public getAnimationElements(particleCollection:ParticleCollection, elements:IElements):AnimationElements
-	{
-		var animationElements:AnimationElements = this._animationElements[elements.id];
+	public getAnimationElements(particleCollection: ParticleCollection, elements: IElements): AnimationElements {
+		const animationElements: AnimationElements = this._animationElements[elements.id];
 
 		if (animationElements)
 			return animationElements;
@@ -271,18 +259,16 @@ export class ParticleAnimationSet extends AnimationSetBase implements IAnimation
 		return this._animationElements[elements.id];
 	}
 
-
 	/** @private */
-	public _iGenerateAnimationElements(particleCollection:ParticleCollection):void
-	{
+	public _iGenerateAnimationElements(particleCollection: ParticleCollection): void {
 		if (this.initParticleFunc == null)
-			throw(new Error("no initParticleFunc set"));
+			throw (new Error('no initParticleFunc set'));
 
-		var i:number, j:number, k:number;
-		var animationElements:AnimationElements;
-		var newAnimationElements:boolean = false;
-		var elements:IElements;
-		var localNode:ParticleNodeBase;
+		let i: number, j: number, k: number;
+		let animationElements: AnimationElements;
+		let newAnimationElements: boolean = false;
+		let elements: IElements;
+		let localNode: ParticleNodeBase;
 
 		for (i = 0; i < particleCollection.numElements; i++) {
 			elements = particleCollection.elements[i];
@@ -295,28 +281,28 @@ export class ParticleAnimationSet extends AnimationSetBase implements IAnimation
 			//create the vertexData vector that will be used for local node data
 			animationElements.createVertexData(elements.numVertices, this._totalLenOfOneVertex);
 
-            newAnimationElements = true;
+			newAnimationElements = true;
 		}
 
 		if (!newAnimationElements)
 			return;
 
-		var particles:Array<ParticleData> = particleCollection.particles;
-		var particlesLength:number = particles.length;
-		var numParticles:number = particleCollection.numParticles;
-		var particleProperties:ParticleProperties = new ParticleProperties();
-		var particle:ParticleData;
+		const particles: Array<ParticleData> = particleCollection.particles;
+		const particlesLength: number = particles.length;
+		const numParticles: number = particleCollection.numParticles;
+		const particleProperties: ParticleProperties = new ParticleProperties();
+		let particle: ParticleData;
 
-		var oneDataLen:number;
-		var oneDataOffset:number;
-		var counterForVertex:number;
-		var counterForOneData:number;
-		var oneData:Array<number>;
-		var numVertices:number;
-		var vertexData:Float32Array;
-		var vertexLength:number;
-		var startingOffset:number;
-		var vertexOffset:number;
+		let oneDataLen: number;
+		let oneDataOffset: number;
+		let counterForVertex: number;
+		let counterForOneData: number;
+		let oneData: Array<number>;
+		let numVertices: number;
+		let vertexData: Float32Array;
+		let vertexLength: number;
+		let startingOffset: number;
+		let vertexOffset: number;
 
 		//default values for particle param
 		particleProperties.total = numParticles;
@@ -348,8 +334,8 @@ export class ParticleAnimationSet extends AnimationSetBase implements IAnimation
 				}
 				numVertices = particle.numVertices;
 				vertexData = animationElements.vertexData;
-				vertexLength = numVertices*this._totalLenOfOneVertex;
-				startingOffset = animationElements.numProcessedVertices*this._totalLenOfOneVertex;
+				vertexLength = numVertices * this._totalLenOfOneVertex;
+				startingOffset = animationElements.numProcessedVertices * this._totalLenOfOneVertex;
 
 				//loop through each static local node in the animation set
 				for (k = 0; k < this._localStaticNodes.length; k++) {

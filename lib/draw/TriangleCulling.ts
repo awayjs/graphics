@@ -19,21 +19,20 @@
  * <code>TriangleCulling.NEGATIVE</code> algorithm is used, triangles with
  * negative normals will not be rendered. </p>
  */
-export class TriangleCulling
-{
+export class TriangleCulling {
 	/**
 	 * Specifies culling of all triangles facing toward the current view point.
 	 */
-	public static NEGATIVE:string = "negative";
+	public static NEGATIVE: string = 'negative';
 
 	/**
 	 * Specifies no culling. All triangles in the path are rendered.
 	 */
-	public static NONE:string = "none";
+	public static NONE: string = 'none';
 
 	/**
 	 * Specifies culling of all triangles facing away from the current view
 	 * point. This is also known as backface culling.
 	 */
-	public static POSITIVE:string = "positive";
+	public static POSITIVE: string = 'positive';
 }

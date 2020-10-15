@@ -1,28 +1,25 @@
-import {AnimationNodeBase} from "@awayjs/renderer";
+import { AnimationNodeBase } from '@awayjs/renderer';
 
-import {SkeletonNaryLERPState} from "../states/SkeletonNaryLERPState";
+import { SkeletonNaryLERPState } from '../states/SkeletonNaryLERPState';
 
-import {AnimatorBase} from "../AnimatorBase";
+import { AnimatorBase } from '../AnimatorBase';
 
 /**
  * A skeleton animation node that uses an n-dimensional array of animation node inputs to blend a lineraly interpolated output of a skeleton pose.
  */
-export class SkeletonNaryLERPNode extends AnimationNodeBase
-{
-	public _iInputs:Array<AnimationNodeBase> = new Array<AnimationNodeBase>();
+export class SkeletonNaryLERPNode extends AnimationNodeBase {
+	public _iInputs: Array<AnimationNodeBase> = new Array<AnimationNodeBase>();
 
-	private _numInputs:number;
+	private _numInputs: number;
 
-	public get numInputs():number
-	{
+	public get numInputs(): number {
 		return this._numInputs;
 	}
 
 	/**
 	 * Creates a new <code>SkeletonNaryLERPNode</code> object.
 	 */
-	constructor()
-	{
+	constructor() {
 		super();
 
 		this._pStateClass = SkeletonNaryLERPState;
@@ -33,8 +30,7 @@ export class SkeletonNaryLERPNode extends AnimationNodeBase
 	 *
 	 * @param input The skeleton animation node for with the input index is requested.
 	 */
-	public getInputIndex(input:AnimationNodeBase):number
-	{
+	public getInputIndex(input: AnimationNodeBase): number {
 		return this._iInputs.indexOf(input);
 	}
 
@@ -43,26 +39,23 @@ export class SkeletonNaryLERPNode extends AnimationNodeBase
 	 *
 	 * @param index The input index for which the skeleton animation node is requested.
 	 */
-	public getInputAt(index:number):AnimationNodeBase
-	{
+	public getInputAt(index: number): AnimationNodeBase {
 		return this._iInputs[index];
 	}
 
 	/**
 	 * Adds a new skeleton animation node input to the animation node.
 	 */
-	public addInput(input:AnimationNodeBase):void
-	{
+	public addInput(input: AnimationNodeBase): void {
 		this._iInputs[this._numInputs++] = input;
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public getAnimationState(animator:AnimatorBase):SkeletonNaryLERPState
-	{
+	public getAnimationState(animator: AnimatorBase): SkeletonNaryLERPState {
 		return <SkeletonNaryLERPState> animator.getAnimationState(this);
 	}
 }
 
-export default SkeletonNaryLERPNode
+export default SkeletonNaryLERPNode;

@@ -191,12 +191,11 @@ export interface ShapeMatrix {
 
 export class PlainObjectShapeData {
 	constructor(public commands: Uint8Array, public commandsPosition: number,
-				public coordinates: Int32Array, public morphCoordinates: Int32Array,
-				public coordinatesPosition: number,
-				public styles: ArrayBuffer, public stylesLength: number,
-				public morphStyles: ArrayBuffer, public morphStylesLength: number,
-				public hasFills: boolean, public hasLines: boolean)
-	{}
+		public coordinates: Int32Array, public morphCoordinates: Int32Array,
+		public coordinatesPosition: number,
+		public styles: ArrayBuffer, public stylesLength: number,
+		public morphStyles: ArrayBuffer, public morphStylesLength: number,
+		public hasFills: boolean, public hasLines: boolean) {}
 }
 
 enum DefaultSize {
@@ -225,7 +224,7 @@ export class ShapeData {
 	}
 
 	static FromPlainObject(source: PlainObjectShapeData): ShapeData {
-		var data = new ShapeData(false);
+		const data = new ShapeData(false);
 		data.commands = source.commands;
 		data.coordinates = source.coordinates;
 		data.morphCoordinates = source.morphCoordinates;
@@ -267,8 +266,7 @@ export class ShapeData {
 	}
 
 	cubicCurveTo(controlX1: number, controlY1: number, controlX2: number, controlY2: number,
-				 anchorX: number, anchorY: number): void
-	{
+				 anchorX: number, anchorY: number): void {
 		this.ensurePathCapacities(1, 6);
 		this.commands[this.commandsPosition++] = PathCommand.CubicCurveTo;
 		this.coordinates[this.coordinatesPosition++] = controlX1;
@@ -301,13 +299,12 @@ export class ShapeData {
 	}
 
 	lineStyle(thickness: number, color: number, pixelHinting: boolean,
-			  scaleMode: LineScaleMode, caps: number, joints: number, miterLimit: number): void
-	{
+			  scaleMode: LineScaleMode, caps: number, joints: number, miterLimit: number): void {
 		assert(thickness === (thickness|0), thickness >= 0 && thickness <= 0xff * 20);
 		this.ensurePathCapacities(2, 0);
 		this.commands[this.commandsPosition++] = PathCommand.LineStyleSolid;
 		this.coordinates[this.coordinatesPosition++] = thickness;
-		var styles: DataBuffer = this.styles;
+		const styles: DataBuffer = this.styles;
 		styles.writeUnsignedInt(color);
 		styles.writeBoolean(pixelHinting);
 		styles.writeUnsignedByte(scaleMode);
@@ -328,13 +325,12 @@ export class ShapeData {
 	 * be one of BeginBitmapFill and LineStyleBitmap.
 	 */
 	beginBitmap(pathCommand: PathCommand, bitmapId: number, matrix: ShapeMatrix,
-				repeat: boolean, smooth: boolean): void
-	{
+		repeat: boolean, smooth: boolean): void {
 		assert(pathCommand === PathCommand.BeginBitmapFill ||
 			pathCommand === PathCommand.LineStyleBitmap);
 		this.ensurePathCapacities(1, 0);
 		this.commands[this.commandsPosition++] = pathCommand;
-		var styles: DataBuffer = this.styles;
+		const styles: DataBuffer = this.styles;
 		styles.writeUnsignedInt(bitmapId);
 		this._writeStyleMatrix(matrix, false);
 		styles.writeBoolean(repeat);
@@ -353,21 +349,20 @@ export class ShapeData {
 	 */
 	beginGradient(pathCommand: PathCommand, colors: number[], ratios: number[],
 				  gradientType: number, matrix: ShapeMatrix,
-				  spread: number, interpolation: number, focalPointRatio: number)
-	{
+				  spread: number, interpolation: number, focalPointRatio: number) {
 		assert(pathCommand === PathCommand.BeginGradientFill ||
 			pathCommand === PathCommand.LineStyleGradient);
 
 		this.ensurePathCapacities(1, 0);
 		this.commands[this.commandsPosition++] = pathCommand;
-		var styles: DataBuffer = this.styles;
+		const styles: DataBuffer = this.styles;
 		styles.writeUnsignedByte(gradientType);
 		assert(focalPointRatio === (focalPointRatio|0));
 		styles.writeShort(focalPointRatio);
 		this._writeStyleMatrix(matrix, false);
-		var colorStops = colors.length;
+		const colorStops = colors.length;
 		styles.writeByte(colorStops);
-		for (var i = 0; i < colorStops; i++) {
+		for (let i = 0; i < colorStops; i++) {
 			// Ratio must be valid, otherwise we'd have bailed above.
 			styles.writeUnsignedByte(ratios[i]);
 			// Colors are coerced to uint32, with the highest byte stripped.
@@ -380,8 +375,8 @@ export class ShapeData {
 
 	writeMorphGradient(colors: number[], ratios: number[], matrix: ShapeMatrix) {
 		this._writeStyleMatrix(matrix, true);
-		var styles: DataBuffer = this.morphStyles;
-		for (var i = 0; i < colors.length; i++) {
+		const styles: DataBuffer = this.morphStyles;
+		for (let i = 0; i < colors.length; i++) {
 			// Ratio must be valid, otherwise we'd have bailed above.
 			styles.writeUnsignedByte(ratios[i]);
 			// Colors are coerced to uint32, with the highest byte stripped.
@@ -423,7 +418,7 @@ export class ShapeData {
 	}
 
 	clone(): ShapeData {
-		var copy = new ShapeData(false);
+		const copy = new ShapeData(false);
 		copy.commands = new Uint8Array(this.commands);
 		copy.commandsPosition = this.commandsPosition;
 		copy.coordinates = new Int32Array(this.coordinates);
@@ -451,7 +446,7 @@ export class ShapeData {
 	}
 
 	public get buffers(): ArrayBuffer[] {
-		var buffers = [this.commands.buffer, this.coordinates.buffer, this.styles.buffer];
+		const buffers = [this.commands.buffer, this.coordinates.buffer, this.styles.buffer];
 		if (this.morphCoordinates) {
 			buffers.push(this.morphCoordinates.buffer);
 		}
@@ -461,14 +456,12 @@ export class ShapeData {
 		return buffers;
 	}
 
-	private _writeStyleMatrix(matrix: ShapeMatrix, isMorph: boolean)
-	{
-		var styles: DataBuffer = isMorph ? this.morphStyles : this.styles;
+	private _writeStyleMatrix(matrix: ShapeMatrix, isMorph: boolean) {
+		const styles: DataBuffer = isMorph ? this.morphStyles : this.styles;
 		styles.write6Floats(matrix.a, matrix.b, matrix.c, matrix.d, matrix.tx, matrix.ty);
 	}
 
-	private ensurePathCapacities(numCommands: number, numCoordinates: number)
-	{
+	private ensurePathCapacities(numCommands: number, numCoordinates: number) {
 		// ensureTypedArrayCapacity will hopefully be inlined, in which case the field writes
 		// will be optimized out.
 		this.commands = ensureTypedArrayCapacity(this.commands, this.commandsPosition + numCommands);

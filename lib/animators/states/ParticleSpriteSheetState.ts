@@ -1,48 +1,45 @@
-import {ProjectionBase} from "@awayjs/core";
+import { ProjectionBase } from '@awayjs/core';
 
-import {Stage, ContextGLVertexBufferFormat} from "@awayjs/stage";
+import { Stage, ContextGLVertexBufferFormat } from '@awayjs/stage';
 
-import {ShaderBase, _Render_RenderableBase, AnimationRegisterData} from "@awayjs/renderer";
+import { ShaderBase, _Render_RenderableBase, AnimationRegisterData } from '@awayjs/renderer';
 
-import {AnimationElements} from "../data/AnimationElements";
-import {ParticlePropertiesMode} from "../data/ParticlePropertiesMode";
-import {ParticleSpriteSheetNode} from "../nodes/ParticleSpriteSheetNode";
+import { AnimationElements } from '../data/AnimationElements';
+import { ParticlePropertiesMode } from '../data/ParticlePropertiesMode';
+import { ParticleSpriteSheetNode } from '../nodes/ParticleSpriteSheetNode';
 
-import {ParticleAnimator} from "../ParticleAnimator";
+import { ParticleAnimator } from '../ParticleAnimator';
 
-import {ParticleStateBase} from "./ParticleStateBase";
+import { ParticleStateBase } from './ParticleStateBase';
 
 /**
  * ...
  */
-export class ParticleSpriteSheetState extends ParticleStateBase
-{
+export class ParticleSpriteSheetState extends ParticleStateBase {
 	/** @private */
-	public static UV_INDEX_0:number = 0;
+	public static UV_INDEX_0: number = 0;
 
 	/** @private */
-	public static UV_INDEX_1:number = 1;
+	public static UV_INDEX_1: number = 1;
 
-	private _particleSpriteSheetNode:ParticleSpriteSheetNode;
-	private _usesCycle:boolean;
-	private _usesPhase:boolean;
-	private _totalFrames:number;
-	private _numColumns:number;
-	private _numRows:number;
-	private _cycleDuration:number;
-	private _cyclePhase:number;
-	private _spriteSheetData:Array<number>;
+	private _particleSpriteSheetNode: ParticleSpriteSheetNode;
+	private _usesCycle: boolean;
+	private _usesPhase: boolean;
+	private _totalFrames: number;
+	private _numColumns: number;
+	private _numRows: number;
+	private _cycleDuration: number;
+	private _cyclePhase: number;
+	private _spriteSheetData: Array<number>;
 
 	/**
 	 * Defines the cycle phase, when in global mode. Defaults to zero.
 	 */
-	public get cyclePhase():number
-	{
+	public get cyclePhase(): number {
 		return this._cyclePhase;
 	}
 
-	public set cyclePhase(value:number)
-	{
+	public set cyclePhase(value: number) {
 		this._cyclePhase = value;
 
 		this.updateSpriteSheetData();
@@ -51,20 +48,17 @@ export class ParticleSpriteSheetState extends ParticleStateBase
 	/**
 	 * Defines the cycle duration in seconds, when in global mode. Defaults to 1.
 	 */
-	public get cycleDuration():number
-	{
+	public get cycleDuration(): number {
 		return this._cycleDuration;
 	}
 
-	public set cycleDuration(value:number)
-	{
+	public set cycleDuration(value: number) {
 		this._cycleDuration = value;
 
 		this.updateSpriteSheetData();
 	}
 
-	constructor(animator:ParticleAnimator, particleSpriteSheetNode:ParticleSpriteSheetNode)
-	{
+	constructor(animator: ParticleAnimator, particleSpriteSheetNode: ParticleSpriteSheetNode) {
 		super(animator, particleSpriteSheetNode);
 
 		this._particleSpriteSheetNode = particleSpriteSheetNode;
@@ -80,12 +74,11 @@ export class ParticleSpriteSheetState extends ParticleStateBase
 		this.updateSpriteSheetData();
 	}
 
-	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData):void
-	{
+	public setRenderState(shader: ShaderBase, renderable: _Render_RenderableBase, animationElements: AnimationElements, animationRegisterData: AnimationRegisterData): void {
 		if (!shader.usesUVTransform) {
 			shader.setVertexConst(animationRegisterData.getRegisterIndex(this._pAnimationNode, ParticleSpriteSheetState.UV_INDEX_0), this._spriteSheetData[0], this._spriteSheetData[1], this._spriteSheetData[2], this._spriteSheetData[3]);
 			if (this._usesCycle) {
-				var index:number = animationRegisterData.getRegisterIndex(this._pAnimationNode, ParticleSpriteSheetState.UV_INDEX_1);
+				const index: number = animationRegisterData.getRegisterIndex(this._pAnimationNode, ParticleSpriteSheetState.UV_INDEX_1);
 				if (this._particleSpriteSheetNode.mode == ParticlePropertiesMode.LOCAL_STATIC) {
 					if (this._usesPhase)
 						animationElements.activateVertexBuffer(index, this._particleSpriteSheetNode._iDataOffset, shader.stage, ContextGLVertexBufferFormat.FLOAT_3);
@@ -97,20 +90,19 @@ export class ParticleSpriteSheetState extends ParticleStateBase
 		}
 	}
 
-	private updateSpriteSheetData():void
-	{
+	private updateSpriteSheetData(): void {
 		this._spriteSheetData = new Array<number>(8);
 
-		var uTotal:number = this._totalFrames/this._numColumns;
+		const uTotal: number = this._totalFrames / this._numColumns;
 
 		this._spriteSheetData[0] = uTotal;
-		this._spriteSheetData[1] = 1/this._numColumns;
-		this._spriteSheetData[2] = 1/this._numRows;
+		this._spriteSheetData[1] = 1 / this._numColumns;
+		this._spriteSheetData[2] = 1 / this._numRows;
 
 		if (this._usesCycle) {
 			if (this._cycleDuration <= 0)
-				throw(new Error("the cycle duration must be greater than zero"));
-			this._spriteSheetData[4] = uTotal/this._cycleDuration;
+				throw (new Error('the cycle duration must be greater than zero'));
+			this._spriteSheetData[4] = uTotal / this._cycleDuration;
 			this._spriteSheetData[5] = this._cycleDuration;
 			if (this._usesPhase)
 				this._spriteSheetData[6] = this._cyclePhase;

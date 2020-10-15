@@ -1,58 +1,56 @@
-import {Matrix, Matrix3D, Point, Vector3D} from "@awayjs/core";
+import { Matrix, Matrix3D, Point, Vector3D } from '@awayjs/core';
 
-import {AttributesBuffer} from "@awayjs/stage";
+import { AttributesBuffer } from '@awayjs/stage';
 
-import {Shape} from "../renderables/Shape";
-import {TriangleElements} from "../elements/TriangleElements";
-import {ParticleCollection} from "../animators/data/ParticleCollection";
-import {ParticleData} from "../animators/data/ParticleData";
+import { Shape } from '../renderables/Shape';
+import { TriangleElements } from '../elements/TriangleElements';
+import { ParticleCollection } from '../animators/data/ParticleCollection';
+import { ParticleData } from '../animators/data/ParticleData';
 
-import {Graphics} from "../Graphics";
+import { Graphics } from '../Graphics';
 
-import {ParticleGraphicsTransform} from "./ParticleGraphicsTransform";
+import { ParticleGraphicsTransform } from './ParticleGraphicsTransform';
 
 /**
  * ...
  */
-export class ParticleGraphicsHelper
-{
-	public static MAX_VERTEX:number = 65535;
+export class ParticleGraphicsHelper {
+	public static MAX_VERTEX: number = 65535;
 
-	public static generateGraphics(output:Graphics, graphicsArray:Array<Graphics>, transforms:Array<ParticleGraphicsTransform> = null):void
-	{
-		var indicesVector:Array<Array<number>> = new Array<Array<number>>();
-		var positionsVector:Array<Array<number>> = new Array<Array<number>>();
-		var normalsVector:Array<Array<number>> = new Array<Array<number>>();
-		var tangentsVector:Array<Array<number>> = new Array<Array<number>>();
-		var uvsVector:Array<Array<number>> = new Array<Array<number>>();
-		var vertexCounters:Array<number> = new Array<number>();
-		var particles:Array<ParticleData> = new Array<ParticleData>();
-		var elementsArray:Array<TriangleElements> = new Array<TriangleElements>();
-		var numParticles:number = graphicsArray.length;
+	public static generateGraphics(output: Graphics, graphicsArray: Array<Graphics>, transforms: Array<ParticleGraphicsTransform> = null): void {
+		const indicesVector: Array<Array<number>> = new Array<Array<number>>();
+		const positionsVector: Array<Array<number>> = new Array<Array<number>>();
+		const normalsVector: Array<Array<number>> = new Array<Array<number>>();
+		const tangentsVector: Array<Array<number>> = new Array<Array<number>>();
+		const uvsVector: Array<Array<number>> = new Array<Array<number>>();
+		const vertexCounters: Array<number> = new Array<number>();
+		const particles: Array<ParticleData> = new Array<ParticleData>();
+		const elementsArray: Array<TriangleElements> = new Array<TriangleElements>();
+		const numParticles: number = graphicsArray.length;
 
-		var sourceGraphics:Graphics;
-		var sourceElements:TriangleElements;
-		var numGraphics:number;
-		var indices:Array<number>;
-		var positions:Array<number>;
-		var normals:Array<number>;
-		var tangents:Array<number>;
-		var uvs:Array<number>;
-		var vertexCounter:number;
-		var elements:TriangleElements;
-		var i:number;
-		var j:number;
-		var sub2SubMap:Array<number> = new Array<number>();
+		let sourceGraphics: Graphics;
+		let sourceElements: TriangleElements;
+		let numGraphics: number;
+		let indices: Array<number>;
+		let positions: Array<number>;
+		let normals: Array<number>;
+		let tangents: Array<number>;
+		let uvs: Array<number>;
+		let vertexCounter: number;
+		let elements: TriangleElements;
+		let i: number;
+		let j: number;
+		const sub2SubMap: Array<number> = new Array<number>();
 
-		var tempVertex:Vector3D = new Vector3D;
-		var tempNormal:Vector3D = new Vector3D;
-		var tempTangents:Vector3D = new Vector3D;
-		var tempUV:Point = new Point;
+		let tempVertex: Vector3D = new Vector3D;
+		let tempNormal: Vector3D = new Vector3D;
+		let tempTangents: Vector3D = new Vector3D;
+		let tempUV: Point = new Point;
 
 		for (i = 0; i < numParticles; i++) {
 			sourceGraphics = graphicsArray[i];
 			numGraphics = sourceGraphics.count;
-			for (var srcIndex:number = 0; srcIndex < numGraphics; srcIndex++) {
+			for (let srcIndex: number = 0; srcIndex < numGraphics; srcIndex++) {
 				//create a different particle subgeometry group for each source subgeometry in a particle.
 				if (sub2SubMap.length <= srcIndex) {
 					sub2SubMap.push(elementsArray.length);
@@ -91,7 +89,7 @@ export class ParticleGraphicsHelper
 				vertexCounter = vertexCounters[j];
 				elements = elementsArray[j];
 
-				var particleData:ParticleData = new ParticleData();
+				const particleData: ParticleData = new ParticleData();
 				particleData.numVertices = sourceElements.numVertices;
 				particleData.startVertexIndex = vertexCounter;
 				particleData.particleIndex = i;
@@ -100,23 +98,23 @@ export class ParticleGraphicsHelper
 
 				vertexCounters[j] += sourceElements.numVertices;
 
-				var k:number;
-				var index:number;
-				var posIndex:number;
-				var normalIndex:number;
-				var tangentIndex:number;
-				var uvIndex:number;
+				var k: number;
+				var index: number;
+				var posIndex: number;
+				var normalIndex: number;
+				var tangentIndex: number;
+				var uvIndex: number;
 
-				var tempLen:number;
-				var compact:TriangleElements = sourceElements;
-				var sourcePositions:ArrayBufferView;
-				var posStride:number;
-				var sourceNormals:Float32Array;
-				var normalStride:number;
-				var sourceTangents:Float32Array;
-				var tangentStride:number;
-				var sourceUVs:ArrayBufferView;
-				var uvStride:number;
+				var tempLen: number;
+				const compact: TriangleElements = sourceElements;
+				var sourcePositions: ArrayBufferView;
+				var posStride: number;
+				var sourceNormals: Float32Array;
+				var normalStride: number;
+				var sourceTangents: Float32Array;
+				var tangentStride: number;
+				var sourceUVs: ArrayBufferView;
+				var uvStride: number;
 
 				if (compact) {
 					tempLen = compact.numVertices;
@@ -130,10 +128,10 @@ export class ParticleGraphicsHelper
 					uvStride = compact.uvs.stride;
 
 					if (transforms) {
-						var particleGraphicsTransform:ParticleGraphicsTransform = transforms[i];
-						var vertexTransform:Matrix3D = particleGraphicsTransform.vertexTransform;
-						var invVertexTransform:Matrix3D = particleGraphicsTransform.invVertexTransform;
-						var UVTransform:Matrix = particleGraphicsTransform.UVTransform;
+						const particleGraphicsTransform: ParticleGraphicsTransform = transforms[i];
+						const vertexTransform: Matrix3D = particleGraphicsTransform.vertexTransform;
+						const invVertexTransform: Matrix3D = particleGraphicsTransform.invVertexTransform;
+						const UVTransform: Matrix = particleGraphicsTransform.UVTransform;
 
 						for (k = 0; k < tempLen; k++) {
 							/*
@@ -142,19 +140,19 @@ export class ParticleGraphicsHelper
 							 * 6 - 8: tangent X, Y, Z
 							 * 9 - 10: U V
 							 * 11 - 12: Secondary U V*/
-							posIndex = k*posStride;
+							posIndex = k * posStride;
 							tempVertex.x = sourcePositions[posIndex];
 							tempVertex.y = sourcePositions[posIndex + 1];
 							tempVertex.z = sourcePositions[posIndex + 2];
-							normalIndex = k*normalStride;
+							normalIndex = k * normalStride;
 							tempNormal.x = sourceNormals[normalIndex];
 							tempNormal.y = sourceNormals[normalIndex + 1];
 							tempNormal.z = sourceNormals[normalIndex + 2];
-							tangentIndex = k*tangentStride;
+							tangentIndex = k * tangentStride;
 							tempTangents.x = sourceTangents[tangentIndex];
 							tempTangents.y = sourceTangents[tangentIndex + 1];
 							tempTangents.z = sourceTangents[tangentIndex + 2];
-							uvIndex = k*uvStride;
+							uvIndex = k * uvStride;
 							tempUV.x = sourceUVs[uvIndex];
 							tempUV.y = sourceUVs[uvIndex + 1];
 							if (vertexTransform) {
@@ -172,10 +170,10 @@ export class ParticleGraphicsHelper
 						}
 					} else {
 						for (k = 0; k < tempLen; k++) {
-							posIndex = k*posStride;
-							normalIndex = k*normalStride;
-							tangentIndex = k*tangentStride;
-							uvIndex = k*uvStride;
+							posIndex = k * posStride;
+							normalIndex = k * normalStride;
+							tangentIndex = k * tangentStride;
+							uvIndex = k * uvStride;
 							//this is faster than that only push one data
 							positions.push(sourcePositions[posIndex], sourcePositions[posIndex + 1], sourcePositions[posIndex + 2]);
 							normals.push(sourceNormals[normalIndex], sourceNormals[normalIndex + 1], sourceNormals[normalIndex + 2]);
@@ -188,20 +186,20 @@ export class ParticleGraphicsHelper
 				}
 
 				tempLen = sourceElements.numElements;
-				var sourceIndices:Uint16Array = sourceElements.indices.get(tempLen);
+				const sourceIndices: Uint16Array = sourceElements.indices.get(tempLen);
 				for (k = 0; k < tempLen; k++) {
-					index = k*3;
+					index = k * 3;
 					indices.push(sourceIndices[index] + vertexCounter, sourceIndices[index + 1] + vertexCounter, sourceIndices[index + 2] + vertexCounter);
 				}
 			}
 		}
 
-		var shape:Shape;
-		var particleCollection:ParticleCollection = new ParticleCollection();
-        particleCollection.elements = elementsArray;
-        particleCollection.numElements = elementsArray.length;
-        particleCollection.particles = particles;
-        particleCollection.numParticles = numParticles;
+		let shape: Shape;
+		const particleCollection: ParticleCollection = new ParticleCollection();
+		particleCollection.elements = elementsArray;
+		particleCollection.numElements = elementsArray.length;
+		particleCollection.particles = particles;
+		particleCollection.numParticles = numParticles;
 
 		for (i = 0; i < particleCollection.numElements; i++) {
 			elements = elementsArray[i];
@@ -212,8 +210,8 @@ export class ParticleGraphicsHelper
 			elements.setNormals(normalsVector[i]);
 			elements.setTangents(tangentsVector[i]);
 			elements.setUVs(uvsVector[i]);
-            shape = Shape.getShape(elements);
-            shape.particleCollection = particleCollection;
+			shape = Shape.getShape(elements);
+			shape.particleCollection = particleCollection;
 			output.addShape(shape);
 		}
 	}

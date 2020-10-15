@@ -1,29 +1,27 @@
-import {AnimationNodeBase} from "@awayjs/renderer";
+import { AnimationNodeBase } from '@awayjs/renderer';
 
-import {SkeletonBinaryLERPState} from "../states/SkeletonBinaryLERPState";
+import { SkeletonBinaryLERPState } from '../states/SkeletonBinaryLERPState';
 
-import {AnimatorBase} from "../AnimatorBase";
+import { AnimatorBase } from '../AnimatorBase';
 
 /**
  * A skeleton animation node that uses two animation node inputs to blend a lineraly interpolated output of a skeleton pose.
  */
-export class SkeletonBinaryLERPNode extends AnimationNodeBase
-{
+export class SkeletonBinaryLERPNode extends AnimationNodeBase {
 	/**
 	 * Defines input node A to use for the blended output.
 	 */
-	public inputA:AnimationNodeBase;
+	public inputA: AnimationNodeBase;
 
 	/**
 	 * Defines input node B to use for the blended output.
 	 */
-	public inputB:AnimationNodeBase;
+	public inputB: AnimationNodeBase;
 
 	/**
 	 * Creates a new <code>SkeletonBinaryLERPNode</code> object.
 	 */
-	constructor()
-	{
+	constructor() {
 		super();
 
 		this._pStateClass = SkeletonBinaryLERPState;
@@ -32,8 +30,7 @@ export class SkeletonBinaryLERPNode extends AnimationNodeBase
 	/**
 	 * @inheritDoc
 	 */
-	public getAnimationState(animator:AnimatorBase):SkeletonBinaryLERPState
-	{
+	public getAnimationState(animator: AnimatorBase): SkeletonBinaryLERPState {
 		return <SkeletonBinaryLERPState> animator.getAnimationState(this);
 	}
 }

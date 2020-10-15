@@ -1,41 +1,38 @@
-import {ProjectionBase} from "@awayjs/core";
+import { ProjectionBase } from '@awayjs/core';
 
-import {Stage, ContextGLVertexBufferFormat} from "@awayjs/stage";
+import { Stage, ContextGLVertexBufferFormat } from '@awayjs/stage';
 
-import {ShaderBase, _Render_RenderableBase, AnimationRegisterData} from "@awayjs/renderer";
+import { ShaderBase, _Render_RenderableBase, AnimationRegisterData } from '@awayjs/renderer';
 
-import {AnimationElements} from "../data/AnimationElements";
-import {ParticleTimeNode} from "../nodes/ParticleTimeNode";
+import { AnimationElements } from '../data/AnimationElements';
+import { ParticleTimeNode } from '../nodes/ParticleTimeNode';
 
-import {ParticleAnimator} from "../ParticleAnimator";
+import { ParticleAnimator } from '../ParticleAnimator';
 
-import {ParticleStateBase} from "./ParticleStateBase";
+import { ParticleStateBase } from './ParticleStateBase';
 
 /**
  * ...
  */
-export class ParticleTimeState extends ParticleStateBase
-{
+export class ParticleTimeState extends ParticleStateBase {
 	/** @private */
-	public static TIME_STREAM_INDEX:number = 0;
+	public static TIME_STREAM_INDEX: number = 0;
 
 	/** @private */
-	public static TIME_CONSTANT_INDEX:number = 1;
+	public static TIME_CONSTANT_INDEX: number = 1;
 
-	private _particleTimeNode:ParticleTimeNode;
+	private _particleTimeNode: ParticleTimeNode;
 
-	constructor(animator:ParticleAnimator, particleTimeNode:ParticleTimeNode)
-	{
+	constructor(animator: ParticleAnimator, particleTimeNode: ParticleTimeNode) {
 		super(animator, particleTimeNode, true);
 
 		this._particleTimeNode = particleTimeNode;
 	}
 
-	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData):void
-	{
+	public setRenderState(shader: ShaderBase, renderable: _Render_RenderableBase, animationElements: AnimationElements, animationRegisterData: AnimationRegisterData): void {
 		animationElements.activateVertexBuffer(animationRegisterData.getRegisterIndex(this._pAnimationNode, ParticleTimeState.TIME_STREAM_INDEX), this._particleTimeNode._iDataOffset, shader.stage, ContextGLVertexBufferFormat.FLOAT_4);
 
-		var particleTime:number = this._pTime/1000;
+		const particleTime: number = this._pTime / 1000;
 		shader.setVertexConst(animationRegisterData.getRegisterIndex(this._pAnimationNode, ParticleTimeState.TIME_CONSTANT_INDEX), particleTime, particleTime, particleTime, particleTime);
 	}
 

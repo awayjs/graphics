@@ -5,7 +5,7 @@
  * class.
  */
 export enum GradientType
-{
+	{
 	/**
 	 * Value used to specify a linear gradient fill.
 	 */

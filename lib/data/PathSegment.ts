@@ -1,4 +1,4 @@
-import { assert } from "./utilities";
+import { assert } from './utilities';
 import { GraphicsPath } from '../draw/GraphicsPath';
 import { DataBuffer } from './DataBuffer';
 import { PathCommand } from './ShapeData';
@@ -12,16 +12,15 @@ export class PathSegment {
 	public isValidFill: boolean=true;
 
 	constructor(public commands: DataBuffer, public data: DataBuffer, public morphData: DataBuffer,
-				public prev: PathSegment, public next: PathSegment, public isReversed: boolean)
-	{
+		public prev: PathSegment, public next: PathSegment, public isReversed: boolean) {
 		this.id = PathSegment._counter++;
 	}
 
 	static FromDefaults(isMorph: boolean) {
-		var commands = new DataBuffer();
-		var data = new DataBuffer();
+		const commands = new DataBuffer();
+		const data = new DataBuffer();
 		commands.endian = data.endian = 'auto';
-		var morphData: any = null;
+		let morphData: any = null;
 		if (isMorph) {
 			morphData = new DataBuffer();
 			morphData.endian = 'auto';
@@ -55,8 +54,7 @@ export class PathSegment {
 	}
 
 	morphCurveTo(cpx: number, cpy: number, x: number, y: number,
-				 mcpx: number, mcpy: number, mx: number, my: number)
-	{
+				 mcpx: number, mcpy: number, mx: number, my: number) {
 		this.curveTo(cpx, cpy, x, y);
 		this.morphData.write4Ints(mcpx, mcpy, mx, my);
 	}
@@ -77,10 +75,10 @@ export class PathSegment {
 	}
 
 	storeStartAndEnd() {
-		var data = this.data.ints;
-		var endPoint1 = data[0] + ',' + data[1];
-		var endPoint2Offset = (this.data.length >> 2) - 2;
-		var endPoint2 = data[endPoint2Offset] + ',' + data[endPoint2Offset + 1];
+		const data = this.data.ints;
+		const endPoint1 = data[0] + ',' + data[1];
+		const endPoint2Offset = (this.data.length >> 2) - 2;
+		const endPoint2 = data[endPoint2Offset] + ',' + data[endPoint2Offset + 1];
 		if (!this.isReversed) {
 			this.startPoint = endPoint1;
 			this.endPoint = endPoint2;
@@ -92,7 +90,7 @@ export class PathSegment {
 
 	connectsTo(other: PathSegment): boolean {
 		//assert(other !== this);
-		if(other===this)
+		if (other === this)
 			return false;
 		assert(this.endPoint);
 		assert(other.startPoint);
@@ -100,14 +98,14 @@ export class PathSegment {
 	}
 
 	startConnectsTo(other: PathSegment): boolean {
-		if(other===this)
+		if (other === this)
 			return false;
-	//	assert(other !== this);
+		//	assert(other !== this);
 		return this.startPoint === other.startPoint;
 	}
 
 	flipDirection() {
-		var tempPoint = "";
+		let tempPoint = '';
 		tempPoint = this.startPoint;
 		this.startPoint = this.endPoint;
 		this.endPoint = tempPoint;
@@ -120,52 +118,53 @@ export class PathSegment {
 			this._serializeReversedAJS(shape, morphShape, lastPosition);
 			return;
 		}
-		var commands = this.commands.bytes;
+		const commands = this.commands.bytes;
 		// Note: this *must* use `this.data.length`, because buffers will have padding.
-		var dataLength = this.data.length >> 2;
-		var morphData = this.morphData ? this.morphData.ints : null;
-		var data = this.data.ints;
+		const dataLength = this.data.length >> 2;
+		const morphData = this.morphData ? this.morphData.ints : null;
+		const data = this.data.ints;
 		assert(commands[0] === PathCommand.MoveTo);
 		// If the segment1's first moveTo goes to the current coordinates, we have to skip it.
-		var offset = 0;
+		let offset = 0;
 		if (data[0] === lastPosition.x && data[1] === lastPosition.y) {
 			offset++;
 		}
-		var commandsCount = this.commands.length;
-		var dataPosition = offset * 2;
-		for (var i = offset; i < commandsCount; i++) {
-			switch (commands[i]){
+		const commandsCount = this.commands.length;
+		let dataPosition = offset * 2;
+		for (let i = offset; i < commandsCount; i++) {
+			switch (commands[i]) {
 				case PathCommand.MoveTo:
 					//console.log("moveTo",data[dataPosition]/20, data[dataPosition+1]/20);
-					shape.moveTo(data[dataPosition]/20, data[dataPosition+1]/20);
-					if(morphShape){
-						morphShape.moveTo(morphData[dataPosition]/20, morphData[dataPosition+1]/20);
+					shape.moveTo(data[dataPosition] / 20, data[dataPosition + 1] / 20);
+					if (morphShape) {
+						morphShape.moveTo(morphData[dataPosition] / 20, morphData[dataPosition + 1] / 20);
 					}
 					break;
 				case PathCommand.LineTo:
 					//console.log("lineTo",data[dataPosition]/20, data[dataPosition+1]/20);
-					shape.lineTo(data[dataPosition]/20, data[dataPosition+1]/20);
-					if(morphShape){
-						morphShape.lineTo(morphData[dataPosition]/20, morphData[dataPosition+1]/20);
+					shape.lineTo(data[dataPosition] / 20, data[dataPosition + 1] / 20);
+					if (morphShape) {
+						morphShape.lineTo(morphData[dataPosition] / 20, morphData[dataPosition + 1] / 20);
 					}
 					break;
 				case PathCommand.CurveTo:
 					//console.log("curveTo",data[dataPosition]/20, data[dataPosition+1]/20,data[dataPosition+2]/20, data[dataPosition+3]/20);
-					shape.curveTo(data[dataPosition]/20, data[dataPosition+1]/20,data[dataPosition+2]/20, data[dataPosition+3]/20 );
-					if(morphShape){
-						morphShape.curveTo(morphData[dataPosition]/20, morphData[dataPosition+1]/20,morphData[dataPosition+2]/20, morphData[dataPosition+3]/20 );
+					shape.curveTo(data[dataPosition] / 20, data[dataPosition + 1] / 20,data[dataPosition + 2] / 20, data[dataPosition + 3] / 20);
+					if (morphShape) {
+						morphShape.curveTo(morphData[dataPosition] / 20, morphData[dataPosition + 1] / 20,morphData[dataPosition + 2] / 20, morphData[dataPosition + 3] / 20);
 					}
 					//shape.curveTo(data[dataPosition]/20, data[dataPosition+1]/20, data[dataPosition+2]/20, data[dataPosition+3]/20 );
-					dataPosition+=2;
+					dataPosition += 2;
 					break;
 
 			}
-			dataPosition+=2;
+			dataPosition += 2;
 		}
 		//assert(dataPosition === dataLength);
 		lastPosition.x = data[dataLength - 2];
 		lastPosition.y = data[dataLength - 1];
 	}
+
 	private _serializeReversedAJS(shape: GraphicsPath, morphShape: GraphicsPath, lastPosition: {x: number; y: number}) {
 		//console.log("_serializeReversedAJS segment1");
 		// For reversing the fill0 segments, we rely on the fact that each segment1
@@ -175,18 +174,18 @@ export class PathSegment {
 		// it as the new target coordinates. The final coordinates we target will be
 		// the ones from the original first moveTo.
 		// Note: these *must* use `this.{data,commands}.length`, because buffers will have padding.
-		var commandsCount = this.commands.length;
-		var dataPosition = (this.data.length >> 2) - 2;
-		var commands = this.commands.bytes;
+		const commandsCount = this.commands.length;
+		let dataPosition = (this.data.length >> 2) - 2;
+		const commands = this.commands.bytes;
 		assert(commands[0] === PathCommand.MoveTo);
-		var data = this.data.ints;
-		var morphData = this.morphData ? this.morphData.ints : null;
+		const data = this.data.ints;
+		const morphData = this.morphData ? this.morphData.ints : null;
 
 		// Only write the first moveTo if it doesn't go to the current coordinates.
 		if (data[dataPosition] !== lastPosition.x || data[dataPosition + 1] !== lastPosition.y) {
-			shape.moveTo(data[dataPosition]/20, data[dataPosition+1]/20);
-			if(morphShape){
-				morphShape.moveTo(morphData[dataPosition]/20, morphData[dataPosition+1]/20);
+			shape.moveTo(data[dataPosition] / 20, data[dataPosition + 1] / 20);
+			if (morphShape) {
+				morphShape.moveTo(morphData[dataPosition] / 20, morphData[dataPosition + 1] / 20);
 			}
 		}
 		if (commandsCount === 1) {
@@ -194,30 +193,30 @@ export class PathSegment {
 			lastPosition.y = data[1];
 			return;
 		}
-		for (var i = commandsCount; i-- > 1;) {
+		for (let i = commandsCount; i-- > 1;) {
 			dataPosition -= 2;
-			var command: PathCommand = commands[i];
-			switch (commands[i]){
+			const command: PathCommand = commands[i];
+			switch (commands[i]) {
 				case PathCommand.MoveTo:
 					//console.log("moveTo",data[dataPosition]/20, data[dataPosition+1]/20);
-					shape.moveTo(data[dataPosition]/20, data[dataPosition+1]/20);
-					if(morphShape){
-						morphShape.moveTo(morphData[dataPosition]/20, morphData[dataPosition+1]/20);
+					shape.moveTo(data[dataPosition] / 20, data[dataPosition + 1] / 20);
+					if (morphShape) {
+						morphShape.moveTo(morphData[dataPosition] / 20, morphData[dataPosition + 1] / 20);
 					}
 					break;
 				case PathCommand.LineTo:
 					//console.log("lineTo",data[dataPosition]/20, data[dataPosition+1]/20);
-					shape.lineTo(data[dataPosition]/20, data[dataPosition+1]/20);
-					if(morphShape){
-						morphShape.lineTo(morphData[dataPosition]/20, morphData[dataPosition+1]/20);
+					shape.lineTo(data[dataPosition] / 20, data[dataPosition + 1] / 20);
+					if (morphShape) {
+						morphShape.lineTo(morphData[dataPosition] / 20, morphData[dataPosition + 1] / 20);
 					}
 					break;
 				case PathCommand.CurveTo:
 					dataPosition -= 2;
 					//console.log("curveTo",data[dataPosition+2]/20, data[dataPosition+3]/20,data[dataPosition]/20, data[dataPosition+1]/20);
-					shape.curveTo(data[dataPosition+2]/20, data[dataPosition+3]/20,data[dataPosition]/20, data[dataPosition+1]/20 );
-					if(morphShape){
-						morphShape.curveTo(morphData[dataPosition+2]/20, morphData[dataPosition+3]/20,morphData[dataPosition]/20, morphData[dataPosition+1]/20 );
+					shape.curveTo(data[dataPosition + 2] / 20, data[dataPosition + 3] / 20,data[dataPosition] / 20, data[dataPosition + 1] / 20);
+					if (morphShape) {
+						morphShape.curveTo(morphData[dataPosition + 2] / 20, morphData[dataPosition + 3] / 20,morphData[dataPosition] / 20, morphData[dataPosition + 1] / 20);
 					}
 					break;
 

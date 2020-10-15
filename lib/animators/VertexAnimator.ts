@@ -1,20 +1,20 @@
-import {ProjectionBase} from "@awayjs/core";
+import { ProjectionBase } from '@awayjs/core';
 
-import {IElements, AnimationRegisterData, ShaderBase, _Render_RenderableBase, _Stage_ElementsBase} from "@awayjs/renderer";
+import { IElements, AnimationRegisterData, ShaderBase, _Render_RenderableBase, _Stage_ElementsBase } from '@awayjs/renderer';
 
-import {Stage} from "@awayjs/stage";
+import { Stage } from '@awayjs/stage';
 
-import {Shape, _Render_Shape} from "../renderables/Shape";
-import {TriangleElements} from "../elements/TriangleElements";
+import { Shape, _Render_Shape } from '../renderables/Shape';
+import { TriangleElements } from '../elements/TriangleElements';
 
-import {Graphics} from "../Graphics";
+import { Graphics } from '../Graphics';
 
-import {VertexAnimationMode} from "./data/VertexAnimationMode";
-import {IVertexAnimationState} from "./states/IVertexAnimationState";
-import {IAnimationTransition} from "./transitions/IAnimationTransition";
+import { VertexAnimationMode } from './data/VertexAnimationMode';
+import { IVertexAnimationState } from './states/IVertexAnimationState';
+import { IAnimationTransition } from './transitions/IAnimationTransition';
 
-import {AnimatorBase} from "./AnimatorBase";
-import {VertexAnimationSet} from "./VertexAnimationSet";
+import { AnimatorBase } from './AnimatorBase';
+import { VertexAnimationSet } from './VertexAnimationSet';
 import { ElementsBase } from '../elements/ElementsBase';
 
 /**
@@ -22,20 +22,18 @@ import { ElementsBase } from '../elements/ElementsBase';
  * and controlling the various available states of animation through an interative playhead that can be
  * automatically updated or manually triggered.
  */
-export class VertexAnimator extends AnimatorBase
-{
-	private _vertexAnimationSet:VertexAnimationSet;
-	private _poses:Array<ElementsBase> = new Array<ElementsBase>();
-	private _weights:Float32Array = new Float32Array([1, 0, 0, 0]);
-	private _activeVertexState:IVertexAnimationState;
+export class VertexAnimator extends AnimatorBase {
+	private _vertexAnimationSet: VertexAnimationSet;
+	private _poses: Array<ElementsBase> = new Array<ElementsBase>();
+	private _weights: Float32Array = new Float32Array([1, 0, 0, 0]);
+	private _activeVertexState: IVertexAnimationState;
 
 	/**
 	 * Creates a new <code>VertexAnimator</code> object.
 	 *
 	 * @param vertexAnimationSet The animation data set containing the vertex animations used by the animator.
 	 */
-	constructor(vertexAnimationSet:VertexAnimationSet)
-	{
+	constructor(vertexAnimationSet: VertexAnimationSet) {
 		super(vertexAnimationSet);
 
 		this._vertexAnimationSet = vertexAnimationSet;
@@ -44,8 +42,7 @@ export class VertexAnimator extends AnimatorBase
 	/**
 	 * @inheritDoc
 	 */
-	public clone():AnimatorBase
-	{
+	public clone(): AnimatorBase {
 		return new VertexAnimator(this._vertexAnimationSet);
 	}
 
@@ -53,8 +50,7 @@ export class VertexAnimator extends AnimatorBase
 	 * Plays a sequence with a given name. If the sequence is not found, it may not be loaded yet, and it will retry every frame.
 	 * @param sequenceName The name of the clip to be played.
 	 */
-	public play(name:string, transition:IAnimationTransition = null, offset:number = NaN):void
-	{
+	public play(name: string, transition: IAnimationTransition = null, offset: number = NaN): void {
 		if (this._pActiveAnimationName == name)
 			return;
 
@@ -63,7 +59,7 @@ export class VertexAnimator extends AnimatorBase
 		//TODO: implement transitions in vertex animator
 
 		if (!this._pAnimationSet.hasAnimation(name))
-			throw new Error("Animation root node " + name + " not found!");
+			throw new Error('Animation root node ' + name + ' not found!');
 
 		this._pActiveNode = this._pAnimationSet.getAnimation(name);
 
@@ -87,11 +83,10 @@ export class VertexAnimator extends AnimatorBase
 	/**
 	 * @inheritDoc
 	 */
-	public _pUpdateDeltaTime(dt:number):void
-	{
+	public _pUpdateDeltaTime(dt: number): void {
 		super._pUpdateDeltaTime(dt);
 
-		var geometryFlag:boolean = false;
+		let geometryFlag: boolean = false;
 
 		if (this._poses[0] != this._activeVertexState.currentElements) {
 			this._poses[0] = this._activeVertexState.currentElements;
@@ -110,12 +105,11 @@ export class VertexAnimator extends AnimatorBase
 	/**
 	 * @inheritDoc
 	 */
-	public setRenderState(shader:ShaderBase, renderable:_Render_Shape):void
-	{
+	public setRenderState(shader: ShaderBase, renderable: _Render_Shape): void {
 		// todo: add code for when running on cpu
 		// this type of animation can only be IRenderable
-		var shape:Shape = renderable.shape;
-		var elements:TriangleElements = <TriangleElements> renderable.stageElements.elements;
+		const shape: Shape = renderable.shape;
+		let elements: TriangleElements = <TriangleElements> renderable.stageElements.elements;
 
 		// if no poses defined, set temp data
 		if (!this._poses.length) {
@@ -123,9 +117,9 @@ export class VertexAnimator extends AnimatorBase
 			return;
 		}
 
-		var animationRegisterData:AnimationRegisterData = shader.animationRegisterData;
-		var i:number;
-		var len:number = this._vertexAnimationSet.numPoses;
+		const animationRegisterData: AnimationRegisterData = shader.animationRegisterData;
+		let i: number;
+		const len: number = this._vertexAnimationSet.numPoses;
 
 		shader.setVertexConstFromArray(animationRegisterData.weightsIndex, this._weights);
 
@@ -134,15 +128,15 @@ export class VertexAnimator extends AnimatorBase
 		else
 			i = 0;
 
-		var stageElements:_Stage_ElementsBase;
-		var k:number = 0;
+		let stageElements: _Stage_ElementsBase;
+		let k: number = 0;
 
 		for (; i < len; ++i) {
 			elements = <TriangleElements> (this._poses[i] || shape.elements);
 
 			stageElements = <_Stage_ElementsBase> shader.stage.getAbstraction(elements);
 			stageElements._indexMappings = (<_Stage_ElementsBase> shader.stage.getAbstraction(shape.elements)).getIndexMappings();
-			
+
 			stageElements.activateVertexBufferVO(animationRegisterData.poseIndices[k++], elements.positions);
 
 			if (shader.normalDependencies > 0)
@@ -150,18 +144,17 @@ export class VertexAnimator extends AnimatorBase
 		}
 	}
 
-	private setNullPose(shader:ShaderBase, elements:TriangleElements):void
-	{
-		var animationRegisterData:AnimationRegisterData = shader.animationRegisterData;
-		
+	private setNullPose(shader: ShaderBase, elements: TriangleElements): void {
+		const animationRegisterData: AnimationRegisterData = shader.animationRegisterData;
+
 		shader.setVertexConstFromArray(animationRegisterData.weightsIndex, this._weights);
 
-		var stageElements:_Stage_ElementsBase = (<_Stage_ElementsBase> shader.stage.getAbstraction(elements));
-		var k:number = 0;
-		
+		const stageElements: _Stage_ElementsBase = (<_Stage_ElementsBase> shader.stage.getAbstraction(elements));
+		let k: number = 0;
+
 		if (this._vertexAnimationSet.blendMode == VertexAnimationMode.ABSOLUTE) {
-			var len:number = this._vertexAnimationSet.numPoses;
-			for (var i:number = 1; i < len; ++i) {
+			const len: number = this._vertexAnimationSet.numPoses;
+			for (let i: number = 1; i < len; ++i) {
 				stageElements.activateVertexBufferVO(animationRegisterData.poseIndices[k++], elements.positions);
 
 				if (shader.normalDependencies > 0)
@@ -175,12 +168,10 @@ export class VertexAnimator extends AnimatorBase
 	 * Verifies if the animation will be used on cpu. Needs to be true for all passes for a material to be able to use it on gpu.
 	 * Needs to be called if gpu code is potentially required.
 	 */
-	public testGPUCompatibility(shader:ShaderBase):void
-	{
+	public testGPUCompatibility(shader: ShaderBase): void {
 	}
 
-	public getRenderableElements(renderState:_Render_RenderableBase, sourceElements:IElements):IElements
-	{
+	public getRenderableElements(renderState: _Render_RenderableBase, sourceElements: IElements): IElements {
 		if (this._vertexAnimationSet.blendMode == VertexAnimationMode.ABSOLUTE && this._poses.length)
 			return this._poses[0] || sourceElements;
 

@@ -1,44 +1,42 @@
-import {ColorTransform} from "@awayjs/core";
+import { ColorTransform } from '@awayjs/core';
 
-import {ShaderRegisterCache, ShaderRegisterElement} from "@awayjs/stage";
+import { ShaderRegisterCache, ShaderRegisterElement } from '@awayjs/stage';
 
-import {ShaderBase, AnimationRegisterData} from "@awayjs/renderer";
+import { ShaderBase, AnimationRegisterData } from '@awayjs/renderer';
 
-import {ParticlePropertiesMode} from "../data/ParticlePropertiesMode";
-import {ColorSegmentPoint} from "../data/ColorSegmentPoint";
-import {ParticleSegmentedColorState} from "../states/ParticleSegmentedColorState";
+import { ParticlePropertiesMode } from '../data/ParticlePropertiesMode';
+import { ColorSegmentPoint } from '../data/ColorSegmentPoint';
+import { ParticleSegmentedColorState } from '../states/ParticleSegmentedColorState';
 
-import {ParticleAnimationSet} from "../ParticleAnimationSet";
+import { ParticleAnimationSet } from '../ParticleAnimationSet';
 
-import {ParticleNodeBase} from "./ParticleNodeBase";
+import { ParticleNodeBase } from './ParticleNodeBase';
 
 /**
  *
  */
-export class ParticleSegmentedColorNode extends ParticleNodeBase
-{
+export class ParticleSegmentedColorNode extends ParticleNodeBase {
 	/** @private */
-	public _iUsesMultiplier:boolean;
+	public _iUsesMultiplier: boolean;
 	/** @private */
-	public _iUsesOffset:boolean;
+	public _iUsesOffset: boolean;
 	/** @private */
-	public _iStartColor:ColorTransform;
+	public _iStartColor: ColorTransform;
 	/** @private */
-	public _iEndColor:ColorTransform;
+	public _iEndColor: ColorTransform;
 	/** @private */
-	public _iNumSegmentPoint:number;
+	public _iNumSegmentPoint: number;
 	/** @private */
-	public _iSegmentPoints:Array<ColorSegmentPoint>;
+	public _iSegmentPoints: Array<ColorSegmentPoint>;
 
-	constructor(usesMultiplier:boolean, usesOffset:boolean, numSegmentPoint:number, startColor:ColorTransform, endColor:ColorTransform, segmentPoints:Array<ColorSegmentPoint>)
-	{
+	constructor(usesMultiplier: boolean, usesOffset: boolean, numSegmentPoint: number, startColor: ColorTransform, endColor: ColorTransform, segmentPoints: Array<ColorSegmentPoint>) {
 		//because of the stage3d register limitation, it only support the global mode
-		super("ParticleSegmentedColor", ParticlePropertiesMode.GLOBAL, 0, ParticleAnimationSet.COLOR_PRIORITY);
+		super('ParticleSegmentedColor', ParticlePropertiesMode.GLOBAL, 0, ParticleAnimationSet.COLOR_PRIORITY);
 
 		this._pStateClass = ParticleSegmentedColorState;
 
 		if (numSegmentPoint > 4)
-			throw(new Error("the numSegmentPoint must be less or equal 4"));
+			throw (new Error('the numSegmentPoint must be less or equal 4'));
 		this._iUsesMultiplier = usesMultiplier;
 		this._iUsesOffset = usesOffset;
 		this._iNumSegmentPoint = numSegmentPoint;
@@ -50,8 +48,7 @@ export class ParticleSegmentedColorNode extends ParticleNodeBase
 	/**
 	 * @inheritDoc
 	 */
-	public _iProcessAnimationSetting(particleAnimationSet:ParticleAnimationSet):void
-	{
+	public _iProcessAnimationSetting(particleAnimationSet: ParticleAnimationSet): void {
 		if (this._iUsesMultiplier)
 			particleAnimationSet.hasColorMulNode = true;
 		if (this._iUsesOffset)
@@ -61,23 +58,22 @@ export class ParticleSegmentedColorNode extends ParticleNodeBase
 	/**
 	 * @inheritDoc
 	 */
-	public getAGALVertexCode(shader:ShaderBase, animationSet:ParticleAnimationSet, registerCache:ShaderRegisterCache, animationRegisterData:AnimationRegisterData):string
-	{
-		var code:string = "";
+	public getAGALVertexCode(shader: ShaderBase, animationSet: ParticleAnimationSet, registerCache: ShaderRegisterCache, animationRegisterData: AnimationRegisterData): string {
+		let code: string = '';
 		if (shader.usesFragmentAnimation) {
-			var accMultiplierColor:ShaderRegisterElement;
+			let accMultiplierColor: ShaderRegisterElement;
 			//var accOffsetColor:ShaderRegisterElement;
 			if (this._iUsesMultiplier) {
 				accMultiplierColor = registerCache.getFreeVertexVectorTemp();
 				registerCache.addVertexTempUsages(accMultiplierColor, 1);
 			}
 
-			var tempColor:ShaderRegisterElement = registerCache.getFreeVertexVectorTemp();
+			const tempColor: ShaderRegisterElement = registerCache.getFreeVertexVectorTemp();
 			registerCache.addVertexTempUsages(tempColor, 1);
 
-			var temp:ShaderRegisterElement = registerCache.getFreeVertexVectorTemp();
-			var accTime:ShaderRegisterElement = new ShaderRegisterElement(temp.regName, temp.index, 0);
-			var tempTime:ShaderRegisterElement = new ShaderRegisterElement(temp.regName, temp.index, 1);
+			const temp: ShaderRegisterElement = registerCache.getFreeVertexVectorTemp();
+			const accTime: ShaderRegisterElement = new ShaderRegisterElement(temp.regName, temp.index, 0);
+			let tempTime: ShaderRegisterElement = new ShaderRegisterElement(temp.regName, temp.index, 1);
 
 			if (this._iUsesMultiplier)
 				registerCache.removeVertexTempUsage(accMultiplierColor);
@@ -85,13 +81,13 @@ export class ParticleSegmentedColorNode extends ParticleNodeBase
 			registerCache.removeVertexTempUsage(tempColor);
 
 			//for saving all the life values (at most 4)
-			var lifeTimeRegister:ShaderRegisterElement = registerCache.getFreeVertexConstant();
+			const lifeTimeRegister: ShaderRegisterElement = registerCache.getFreeVertexConstant();
 			animationRegisterData.setRegisterIndex(this, ParticleSegmentedColorState.TIME_DATA_INDEX, lifeTimeRegister.index);
 
-			var i:number;
+			let i: number;
 
-			var startMulValue:ShaderRegisterElement;
-			var deltaMulValues:Array<ShaderRegisterElement>;
+			let startMulValue: ShaderRegisterElement;
+			let deltaMulValues: Array<ShaderRegisterElement>;
 			if (this._iUsesMultiplier) {
 				startMulValue = registerCache.getFreeVertexConstant();
 				animationRegisterData.setRegisterIndex(this, ParticleSegmentedColorState.START_MULTIPLIER_INDEX, startMulValue.index);
@@ -100,8 +96,8 @@ export class ParticleSegmentedColorNode extends ParticleNodeBase
 					deltaMulValues.push(registerCache.getFreeVertexConstant());
 			}
 
-			var startOffsetValue:ShaderRegisterElement;
-			var deltaOffsetValues:Array<ShaderRegisterElement>;
+			let startOffsetValue: ShaderRegisterElement;
+			let deltaOffsetValues: Array<ShaderRegisterElement>;
 			if (this._iUsesOffset) {
 				startOffsetValue = registerCache.getFreeVertexConstant();
 				animationRegisterData.setRegisterIndex(this, ParticleSegmentedColorState.START_OFFSET_INDEX, startOffsetValue.index);
@@ -111,38 +107,38 @@ export class ParticleSegmentedColorNode extends ParticleNodeBase
 			}
 
 			if (this._iUsesMultiplier)
-				code += "mov " + accMultiplierColor + "," + startMulValue + "\n";
+				code += 'mov ' + accMultiplierColor + ',' + startMulValue + '\n';
 			if (this._iUsesOffset)
-				code += "add " + animationRegisterData.colorAddTarget + "," + animationRegisterData.colorAddTarget + "," + startOffsetValue + "\n";
+				code += 'add ' + animationRegisterData.colorAddTarget + ',' + animationRegisterData.colorAddTarget + ',' + startOffsetValue + '\n';
 
 			for (i = 0; i < this._iNumSegmentPoint; i++) {
 				switch (i) {
 					case 0:
-						code += "min " + tempTime + "," + animationRegisterData.vertexLife + "," + lifeTimeRegister + ".x\n";
+						code += 'min ' + tempTime + ',' + animationRegisterData.vertexLife + ',' + lifeTimeRegister + '.x\n';
 						break;
 					case 1:
-						code += "sub " + accTime + "," + animationRegisterData.vertexLife + "," + lifeTimeRegister + ".x\n";
-						code += "max " + tempTime + "," + accTime + "," + animationRegisterData.vertexZeroConst + "\n";
-						code += "min " + tempTime + "," + tempTime + "," + lifeTimeRegister + ".y\n";
+						code += 'sub ' + accTime + ',' + animationRegisterData.vertexLife + ',' + lifeTimeRegister + '.x\n';
+						code += 'max ' + tempTime + ',' + accTime + ',' + animationRegisterData.vertexZeroConst + '\n';
+						code += 'min ' + tempTime + ',' + tempTime + ',' + lifeTimeRegister + '.y\n';
 						break;
 					case 2:
-						code += "sub " + accTime + "," + accTime + "," + lifeTimeRegister + ".y\n";
-						code += "max " + tempTime + "," + accTime + "," + animationRegisterData.vertexZeroConst + "\n";
-						code += "min " + tempTime + "," + tempTime + "," + lifeTimeRegister + ".z\n";
+						code += 'sub ' + accTime + ',' + accTime + ',' + lifeTimeRegister + '.y\n';
+						code += 'max ' + tempTime + ',' + accTime + ',' + animationRegisterData.vertexZeroConst + '\n';
+						code += 'min ' + tempTime + ',' + tempTime + ',' + lifeTimeRegister + '.z\n';
 						break;
 					case 3:
-						code += "sub " + accTime + "," + accTime + "," + lifeTimeRegister + ".z\n";
-						code += "max " + tempTime + "," + accTime + "," + animationRegisterData.vertexZeroConst + "\n";
-						code += "min " + tempTime + "," + tempTime + "," + lifeTimeRegister + ".w\n";
+						code += 'sub ' + accTime + ',' + accTime + ',' + lifeTimeRegister + '.z\n';
+						code += 'max ' + tempTime + ',' + accTime + ',' + animationRegisterData.vertexZeroConst + '\n';
+						code += 'min ' + tempTime + ',' + tempTime + ',' + lifeTimeRegister + '.w\n';
 						break;
 				}
 				if (this._iUsesMultiplier) {
-					code += "mul " + tempColor + "," + tempTime + "," + deltaMulValues[i] + "\n";
-					code += "add " + accMultiplierColor + "," + accMultiplierColor + "," + tempColor + "\n";
+					code += 'mul ' + tempColor + ',' + tempTime + ',' + deltaMulValues[i] + '\n';
+					code += 'add ' + accMultiplierColor + ',' + accMultiplierColor + ',' + tempColor + '\n';
 				}
 				if (this._iUsesOffset) {
-					code += "mul " + tempColor + "," + tempTime + "," + deltaOffsetValues[i] + "\n";
-					code += "add " + animationRegisterData.colorAddTarget + "," + animationRegisterData.colorAddTarget + "," + tempColor + "\n";
+					code += 'mul ' + tempColor + ',' + tempTime + ',' + deltaOffsetValues[i] + '\n';
+					code += 'add ' + animationRegisterData.colorAddTarget + ',' + animationRegisterData.colorAddTarget + ',' + tempColor + '\n';
 				}
 			}
 
@@ -152,28 +148,28 @@ export class ParticleSegmentedColorNode extends ParticleNodeBase
 			else {
 				switch (this._iNumSegmentPoint) {
 					case 1:
-						code += "sub " + accTime + "," + animationRegisterData.vertexLife + "," + lifeTimeRegister + ".x\n";
+						code += 'sub ' + accTime + ',' + animationRegisterData.vertexLife + ',' + lifeTimeRegister + '.x\n';
 						break;
 					case 2:
-						code += "sub " + accTime + "," + accTime + "," + lifeTimeRegister + ".y\n";
+						code += 'sub ' + accTime + ',' + accTime + ',' + lifeTimeRegister + '.y\n';
 						break;
 					case 3:
-						code += "sub " + accTime + "," + accTime + "," + lifeTimeRegister + ".z\n";
+						code += 'sub ' + accTime + ',' + accTime + ',' + lifeTimeRegister + '.z\n';
 						break;
 					case 4:
-						code += "sub " + accTime + "," + accTime + "," + lifeTimeRegister + ".w\n";
+						code += 'sub ' + accTime + ',' + accTime + ',' + lifeTimeRegister + '.w\n';
 						break;
 				}
-				code += "max " + tempTime + "," + accTime + "," + animationRegisterData.vertexZeroConst + "\n";
+				code += 'max ' + tempTime + ',' + accTime + ',' + animationRegisterData.vertexZeroConst + '\n';
 			}
 			if (this._iUsesMultiplier) {
-				code += "mul " + tempColor + "," + tempTime + "," + deltaMulValues[this._iNumSegmentPoint] + "\n";
-				code += "add " + accMultiplierColor + "," + accMultiplierColor + "," + tempColor + "\n";
-				code += "mul " + animationRegisterData.colorMulTarget + "," + animationRegisterData.colorMulTarget + "," + accMultiplierColor + "\n";
+				code += 'mul ' + tempColor + ',' + tempTime + ',' + deltaMulValues[this._iNumSegmentPoint] + '\n';
+				code += 'add ' + accMultiplierColor + ',' + accMultiplierColor + ',' + tempColor + '\n';
+				code += 'mul ' + animationRegisterData.colorMulTarget + ',' + animationRegisterData.colorMulTarget + ',' + accMultiplierColor + '\n';
 			}
 			if (this._iUsesOffset) {
-				code += "mul " + tempColor + "," + tempTime + "," + deltaOffsetValues[this._iNumSegmentPoint] + "\n";
-				code += "add " + animationRegisterData.colorAddTarget + "," + animationRegisterData.colorAddTarget + "," + tempColor + "\n";
+				code += 'mul ' + tempColor + ',' + tempTime + ',' + deltaOffsetValues[this._iNumSegmentPoint] + '\n';
+				code += 'add ' + animationRegisterData.colorAddTarget + ',' + animationRegisterData.colorAddTarget + ',' + tempColor + '\n';
 			}
 
 		}

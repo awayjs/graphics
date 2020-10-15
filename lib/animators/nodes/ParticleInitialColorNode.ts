@@ -1,39 +1,37 @@
-import {ColorTransform} from "@awayjs/core";
+import { ColorTransform } from '@awayjs/core';
 
-import {ShaderRegisterCache, ShaderRegisterElement} from "@awayjs/stage";
+import { ShaderRegisterCache, ShaderRegisterElement } from '@awayjs/stage';
 
-import {ShaderBase, AnimationRegisterData} from "@awayjs/renderer";
+import { ShaderBase, AnimationRegisterData } from '@awayjs/renderer';
 
-import {ParticleProperties} from "../data/ParticleProperties";
-import {ParticlePropertiesMode} from "../data/ParticlePropertiesMode";
-import {ParticleInitialColorState} from "../states/ParticleInitialColorState";
+import { ParticleProperties } from '../data/ParticleProperties';
+import { ParticlePropertiesMode } from '../data/ParticlePropertiesMode';
+import { ParticleInitialColorState } from '../states/ParticleInitialColorState';
 
-import {ParticleAnimationSet} from "../ParticleAnimationSet";
+import { ParticleAnimationSet } from '../ParticleAnimationSet';
 
-import {ParticleNodeBase} from "./ParticleNodeBase";
+import { ParticleNodeBase } from './ParticleNodeBase';
 
 /**
  *
  */
-export class ParticleInitialColorNode extends ParticleNodeBase
-{
+export class ParticleInitialColorNode extends ParticleNodeBase {
 	//default values used when creating states
 	/** @private */
-	public _iUsesMultiplier:boolean;
+	public _iUsesMultiplier: boolean;
 	/** @private */
-	public _iUsesOffset:boolean;
+	public _iUsesOffset: boolean;
 	/** @private */
-	public _iInitialColor:ColorTransform;
+	public _iInitialColor: ColorTransform;
 
 	/**
 	 * Reference for color node properties on a single particle (when in local property mode).
 	 * Expects a <code>ColorTransform</code> object representing the color transform applied to the particle.
 	 */
-	public static COLOR_INITIAL_COLORTRANSFORM:string = "ColorInitialColorTransform";
+	public static COLOR_INITIAL_COLORTRANSFORM: string = 'ColorInitialColorTransform';
 
-	constructor(mode:number, usesMultiplier:boolean = true, usesOffset:boolean = false, initialColor:ColorTransform = null)
-	{
-		super("ParticleInitialColor", mode, (usesMultiplier && usesOffset)? 8 : 4, ParticleAnimationSet.COLOR_PRIORITY);
+	constructor(mode: number, usesMultiplier: boolean = true, usesOffset: boolean = false, initialColor: ColorTransform = null) {
+		super('ParticleInitialColor', mode, (usesMultiplier && usesOffset) ? 8 : 4, ParticleAnimationSet.COLOR_PRIORITY);
 
 		this._pStateClass = ParticleInitialColorState;
 
@@ -45,23 +43,22 @@ export class ParticleInitialColorNode extends ParticleNodeBase
 	/**
 	 * @inheritDoc
 	 */
-	public getAGALVertexCode(shader:ShaderBase, animationSet:ParticleAnimationSet, registerCache:ShaderRegisterCache, animationRegisterData:AnimationRegisterData):string
-	{
-		var code:string = "";
+	public getAGALVertexCode(shader: ShaderBase, animationSet: ParticleAnimationSet, registerCache: ShaderRegisterCache, animationRegisterData: AnimationRegisterData): string {
+		let code: string = '';
 		if (shader.usesFragmentAnimation) {
 
 			if (this._iUsesMultiplier) {
-				var multiplierValue:ShaderRegisterElement = (this._pMode == ParticlePropertiesMode.GLOBAL)? registerCache.getFreeVertexConstant() : registerCache.getFreeVertexAttribute();
+				const multiplierValue: ShaderRegisterElement = (this._pMode == ParticlePropertiesMode.GLOBAL) ? registerCache.getFreeVertexConstant() : registerCache.getFreeVertexAttribute();
 				animationRegisterData.setRegisterIndex(this, ParticleInitialColorState.MULTIPLIER_INDEX, multiplierValue.index);
 
-				code += "mul " + animationRegisterData.colorMulTarget + "," + multiplierValue + "," + animationRegisterData.colorMulTarget + "\n";
+				code += 'mul ' + animationRegisterData.colorMulTarget + ',' + multiplierValue + ',' + animationRegisterData.colorMulTarget + '\n';
 			}
 
 			if (this._iUsesOffset) {
-				var offsetValue:ShaderRegisterElement = (this._pMode == ParticlePropertiesMode.LOCAL_STATIC)? registerCache.getFreeVertexAttribute() : registerCache.getFreeVertexConstant();
+				const offsetValue: ShaderRegisterElement = (this._pMode == ParticlePropertiesMode.LOCAL_STATIC) ? registerCache.getFreeVertexAttribute() : registerCache.getFreeVertexConstant();
 				animationRegisterData.setRegisterIndex(this, ParticleInitialColorState.OFFSET_INDEX, offsetValue.index);
 
-				code += "add " + animationRegisterData.colorAddTarget + "," + offsetValue + "," + animationRegisterData.colorAddTarget + "\n";
+				code += 'add ' + animationRegisterData.colorAddTarget + ',' + offsetValue + ',' + animationRegisterData.colorAddTarget + '\n';
 			}
 		}
 
@@ -71,8 +68,7 @@ export class ParticleInitialColorNode extends ParticleNodeBase
 	/**
 	 * @inheritDoc
 	 */
-	public _iProcessAnimationSetting(particleAnimationSet:ParticleAnimationSet):void
-	{
+	public _iProcessAnimationSetting(particleAnimationSet: ParticleAnimationSet): void {
 		if (this._iUsesMultiplier)
 			particleAnimationSet.hasColorMulNode = true;
 		if (this._iUsesOffset)
@@ -82,13 +78,12 @@ export class ParticleInitialColorNode extends ParticleNodeBase
 	/**
 	 * @inheritDoc
 	 */
-	public _iGeneratePropertyOfOneParticle(param:ParticleProperties):void
-	{
-		var initialColor:ColorTransform = param[ParticleInitialColorNode.COLOR_INITIAL_COLORTRANSFORM];
+	public _iGeneratePropertyOfOneParticle(param: ParticleProperties): void {
+		const initialColor: ColorTransform = param[ParticleInitialColorNode.COLOR_INITIAL_COLORTRANSFORM];
 		if (!initialColor)
-			throw(new Error("there is no " + ParticleInitialColorNode.COLOR_INITIAL_COLORTRANSFORM + " in param!"));
+			throw (new Error('there is no ' + ParticleInitialColorNode.COLOR_INITIAL_COLORTRANSFORM + ' in param!'));
 
-		var i:number = 0;
+		let i: number = 0;
 
 		//multiplier
 		if (this._iUsesMultiplier) {
@@ -99,10 +94,10 @@ export class ParticleInitialColorNode extends ParticleNodeBase
 		}
 		//offset
 		if (this._iUsesOffset) {
-			this._pOneData[i++] = initialColor.redOffset/255;
-			this._pOneData[i++] = initialColor.greenOffset/255;
-			this._pOneData[i++] = initialColor.blueOffset/255;
-			this._pOneData[i++] = initialColor.alphaOffset/255;
+			this._pOneData[i++] = initialColor.redOffset / 255;
+			this._pOneData[i++] = initialColor.greenOffset / 255;
+			this._pOneData[i++] = initialColor.blueOffset / 255;
+			this._pOneData[i++] = initialColor.alphaOffset / 255;
 		}
 
 	}

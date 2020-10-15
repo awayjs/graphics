@@ -1,21 +1,19 @@
-import {ProjectionBase} from "@awayjs/core";
+import { ProjectionBase } from '@awayjs/core';
 
-import {Stage} from "@awayjs/stage";
+import { Stage } from '@awayjs/stage';
 
-import {IElements, ShaderBase, _Render_RenderableBase, AnimationRegisterData} from "@awayjs/renderer";
+import { IElements, ShaderBase, _Render_RenderableBase, AnimationRegisterData } from '@awayjs/renderer';
 
-import {_Render_Shape} from "../renderables/Shape";
+import { _Render_Shape } from '../renderables/Shape';
 
-import {AnimationElements} from "./data/AnimationElements";
-import {ParticleCollection} from "./data/ParticleCollection";
-import {ParticlePropertiesMode} from "./data/ParticlePropertiesMode";
-import {ParticleNodeBase} from "./nodes/ParticleNodeBase";
-import {ParticleStateBase} from "./states/ParticleStateBase";
+import { AnimationElements } from './data/AnimationElements';
+import { ParticleCollection } from './data/ParticleCollection';
+import { ParticlePropertiesMode } from './data/ParticlePropertiesMode';
+import { ParticleNodeBase } from './nodes/ParticleNodeBase';
+import { ParticleStateBase } from './states/ParticleStateBase';
 
-import {ParticleAnimationSet} from "./ParticleAnimationSet";
-import {AnimatorBase} from "./AnimatorBase";
-
-
+import { ParticleAnimationSet } from './ParticleAnimationSet';
+import { AnimatorBase } from './AnimatorBase';
 
 /**
  * Provides an interface for assigning paricle-based animation data sets to sprite-based entity objects
@@ -26,30 +24,28 @@ import {AnimatorBase} from "./AnimatorBase";
  *
  * @see away.base.ParticleAnimator
  */
-export class ParticleAnimator extends AnimatorBase
-{
+export class ParticleAnimator extends AnimatorBase {
 
-	private _particleAnimationSet:ParticleAnimationSet;
-	private _animationParticleStates:Array<ParticleStateBase> = new Array<ParticleStateBase>();
-	private _animatorParticleStates:Array<ParticleStateBase> = new Array<ParticleStateBase>();
-	private _timeParticleStates:Array<ParticleStateBase> = new Array<ParticleStateBase>();
-	private _totalLenOfOneVertex:number = 0;
-	private _animatorSubGeometries:Object = new Object();
+	private _particleAnimationSet: ParticleAnimationSet;
+	private _animationParticleStates: Array<ParticleStateBase> = new Array<ParticleStateBase>();
+	private _animatorParticleStates: Array<ParticleStateBase> = new Array<ParticleStateBase>();
+	private _timeParticleStates: Array<ParticleStateBase> = new Array<ParticleStateBase>();
+	private _totalLenOfOneVertex: number = 0;
+	private _animatorSubGeometries: Object = new Object();
 
 	/**
 	 * Creates a new <code>ParticleAnimator</code> object.
 	 *
 	 * @param particleAnimationSet The animation data set containing the particle animations used by the animator.
 	 */
-	constructor(particleAnimationSet:ParticleAnimationSet)
-	{
+	constructor(particleAnimationSet: ParticleAnimationSet) {
 		super(particleAnimationSet);
 		this._particleAnimationSet = particleAnimationSet;
 
-		var state:ParticleStateBase;
-		var node:ParticleNodeBase;
+		let state: ParticleStateBase;
+		let node: ParticleNodeBase;
 
-		for (var i:number = 0; i < this._particleAnimationSet.particleNodes.length; i++) {
+		for (let i: number = 0; i < this._particleAnimationSet.particleNodes.length; i++) {
 			node = this._particleAnimationSet.particleNodes[i];
 			state = <ParticleStateBase> this.getAnimationState(node);
 			if (node.mode == ParticlePropertiesMode.LOCAL_DYNAMIC) {
@@ -67,31 +63,29 @@ export class ParticleAnimator extends AnimatorBase
 	/**
 	 * @inheritDoc
 	 */
-	public clone():AnimatorBase
-	{
+	public clone(): AnimatorBase {
 		return new ParticleAnimator(this._particleAnimationSet);
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public setRenderState(shader:ShaderBase, renderable:_Render_Shape):void
-	{
-		var animationRegisterData:AnimationRegisterData = this._particleAnimationSet._iAnimationRegisterData;
+	public setRenderState(shader: ShaderBase, renderable: _Render_Shape): void {
+		const animationRegisterData: AnimationRegisterData = this._particleAnimationSet._iAnimationRegisterData;
 
-		var particleCollection:ParticleCollection = renderable.shape.particleCollection;
+		const particleCollection: ParticleCollection = renderable.shape.particleCollection;
 
-		var elements:IElements = renderable.shape.elements;
+		const elements: IElements = renderable.shape.elements;
 
 		//process animation sub geometries
-		var animationElements:AnimationElements = this._particleAnimationSet.getAnimationElements(particleCollection, elements);
-		var i:number;
-		
+		const animationElements: AnimationElements = this._particleAnimationSet.getAnimationElements(particleCollection, elements);
+		let i: number;
+
 		for (i = 0; i < this._animationParticleStates.length; i++)
 			this._animationParticleStates[i].setRenderState(shader, renderable, animationElements, animationRegisterData);
 
 		//process animator subgeometries
-		var animatorElements:AnimationElements = this.getAnimatorElements(particleCollection, elements);
+		const animatorElements: AnimationElements = this.getAnimatorElements(particleCollection, elements);
 
 		for (i = 0; i < this._animatorParticleStates.length; i++)
 			this._animatorParticleStates[i].setRenderState(shader, renderable, animatorElements, animationRegisterData);
@@ -100,55 +94,49 @@ export class ParticleAnimator extends AnimatorBase
 	/**
 	 * @inheritDoc
 	 */
-	public testGPUCompatibility(shader:ShaderBase):void
-	{
+	public testGPUCompatibility(shader: ShaderBase): void {
 
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public start():void
-	{
+	public start(): void {
 		super.start();
 
-		for (var i:number = 0; i < this._timeParticleStates.length; i++)
+		for (let i: number = 0; i < this._timeParticleStates.length; i++)
 			this._timeParticleStates[i].offset(this._pAbsoluteTime);
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public _pUpdateDeltaTime(dt:number):void
-	{
+	public _pUpdateDeltaTime(dt: number): void {
 		this._pAbsoluteTime += dt;
 
-		for (var i:number = 0; i < this._timeParticleStates.length; i++)
+		for (let i: number = 0; i < this._timeParticleStates.length; i++)
 			this._timeParticleStates[i].update(this._pAbsoluteTime);
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public resetTime(offset:number = 0):void
-	{
-		for (var i:number = 0; i < this._timeParticleStates.length; i++)
+	public resetTime(offset: number = 0): void {
+		for (let i: number = 0; i < this._timeParticleStates.length; i++)
 			this._timeParticleStates[i].offset(this._pAbsoluteTime + offset);
 		this.update(this.time);
 	}
 
-	public dispose():void
-	{
-		for (var key in this._animatorSubGeometries)
+	public dispose(): void {
+		for (const key in this._animatorSubGeometries)
 			(<AnimationElements> this._animatorSubGeometries[key]).dispose();
 	}
 
-	private getAnimatorElements(particleCollection:ParticleCollection, elements:IElements):AnimationElements
-	{
+	private getAnimatorElements(particleCollection: ParticleCollection, elements: IElements): AnimationElements {
 		if (!this._animatorParticleStates.length)
 			return;
 
-		var animatorElements:AnimationElements = this._animatorSubGeometries[elements.id] = new AnimationElements();
+		const animatorElements: AnimationElements = this._animatorSubGeometries[elements.id] = new AnimationElements();
 
 		//create the vertexData vector that will be used for local state data
 		animatorElements.createVertexData(elements.numVertices, this._totalLenOfOneVertex);

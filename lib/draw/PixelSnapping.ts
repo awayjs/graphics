@@ -3,14 +3,13 @@
  * the pixel snapping options by using the <code>pixelSnapping</code> property
  * of a Bitmap object.
  */
-export class PixelSnapping
-{
+export class PixelSnapping {
 	/**
 	 * A constant value used in the <code>pixelSnapping</code> property of a
 	 * Bitmap object to specify that the bitmap image is always snapped to the
 	 * nearest pixel, independent of any transformation.
 	 */
-	public static ALWAYS:string = "always";
+	public static ALWAYS: string = 'always';
 
 	/**
 	 * A constant value used in the <code>pixelSnapping</code> property of a
@@ -21,11 +20,11 @@ export class PixelSnapping
 	 * setting allows the image to be drawn as fast as possible by using the
 	 * vector renderer.
 	 */
-	public static AUTO:string = "auto";
+	public static AUTO: string = 'auto';
 
 	/**
 	 * A constant value used in the <code>pixelSnapping</code> property of a
 	 * Bitmap object to specify that no pixel snapping occurs.
 	 */
-	public static NEVER:string = "never";
+	public static NEVER: string = 'never';
 }

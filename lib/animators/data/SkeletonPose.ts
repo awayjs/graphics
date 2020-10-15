@@ -1,6 +1,6 @@
-import {IAsset, AssetBase} from "@awayjs/core";
+import { IAsset, AssetBase } from '@awayjs/core';
 
-import {JointPose} from "./JointPose";
+import { JointPose } from './JointPose';
 
 /**
  * A collection of pose objects, determining the pose for an entire skeleton.
@@ -11,30 +11,27 @@ import {JointPose} from "./JointPose";
  * @see away.animators.Skeleton
  * @see away.animators.JointPose
  */
-export class SkeletonPose extends AssetBase implements IAsset
-{
-	public static assetType:string = "[asset SkeletonPose]";
+export class SkeletonPose extends AssetBase implements IAsset {
+	public static assetType: string = '[asset SkeletonPose]';
 
 	/**
 	 * A flat list of pose objects that comprise the skeleton pose. The pose indices correspond to the target skeleton's joint indices.
 	 *
 	 * @see away.animators.Skeleton#joints
 	 */
-	public jointPoses:Array<JointPose>;
+	public jointPoses: Array<JointPose>;
 
 	/**
 	 * The total number of joint poses in the skeleton pose.
 	 */
-	public get numJointPoses():number
-	{
+	public get numJointPoses(): number {
 		return this.jointPoses.length;
 	}
 
 	/**
 	 * Creates a new <code>SkeletonPose</code> object.
 	 */
-	constructor()
-	{
+	constructor() {
 		super();
 
 		this.jointPoses = new Array<JointPose>();
@@ -43,8 +40,7 @@ export class SkeletonPose extends AssetBase implements IAsset
 	/**
 	 * @inheritDoc
 	 */
-	public get assetType():string
-	{
+	public get assetType(): string {
 		return SkeletonPose.assetType;
 	}
 
@@ -54,9 +50,8 @@ export class SkeletonPose extends AssetBase implements IAsset
 	 * @param jointName The name of the joint object whose pose is to be found.
 	 * @return The pose object with the given joint name.
 	 */
-	public jointPoseFromName(jointName:string):JointPose
-	{
-		var jointPoseIndex:number = this.jointPoseIndexFromName(jointName);
+	public jointPoseFromName(jointName: string): JointPose {
+		const jointPoseIndex: number = this.jointPoseIndexFromName(jointName);
 		if (jointPoseIndex != -1)
 			return this.jointPoses[jointPoseIndex]; else
 			return null;
@@ -70,17 +65,16 @@ export class SkeletonPose extends AssetBase implements IAsset
 	 *
 	 * @see #jointPoses
 	 */
-	public jointPoseIndexFromName(jointName:string):number
-	{
+	public jointPoseIndexFromName(jointName: string): number {
 		// this is implemented as a linear search, rather than a possibly
 		// more optimal method (Dictionary lookup, for example) because:
 		// a) it is assumed that it will be called once for each joint
 		// b) it is assumed that it will be called only during load, and not during main loop
 		// c) maintaining a dictionary (for safety) would dictate an interface to access JointPoses,
 		//    rather than direct array access.  this would be sub-optimal.
-		var jointPoseIndex:number;
-		var jointPose:JointPose;
-		for (var i:number; i < this.jointPoses.length; i++) {
+		let jointPoseIndex: number;
+		let jointPose: JointPose;
+		for (var i: number; i < this.jointPoses.length; i++) {
 			jointPose = this.jointPoses[i];
 			if (jointPose.name == jointName)
 				return jointPoseIndex;
@@ -95,13 +89,12 @@ export class SkeletonPose extends AssetBase implements IAsset
 	 *
 	 * @return SkeletonPose
 	 */
-	public clone():SkeletonPose
-	{
-		var clone:SkeletonPose = new SkeletonPose();
-		var numJointPoses:number = this.jointPoses.length;
-		for (var i:number = 0; i < numJointPoses; i++) {
-			var cloneJointPose:JointPose = new JointPose();
-			var thisJointPose:JointPose = this.jointPoses[i];
+	public clone(): SkeletonPose {
+		const clone: SkeletonPose = new SkeletonPose();
+		const numJointPoses: number = this.jointPoses.length;
+		for (let i: number = 0; i < numJointPoses; i++) {
+			const cloneJointPose: JointPose = new JointPose();
+			const thisJointPose: JointPose = this.jointPoses[i];
 			cloneJointPose.name = thisJointPose.name;
 			cloneJointPose.copyFrom(thisJointPose);
 			clone.jointPoses[i] = cloneJointPose;
@@ -112,8 +105,7 @@ export class SkeletonPose extends AssetBase implements IAsset
 	/**
 	 * @inheritDoc
 	 */
-	public dispose():void
-	{
+	public dispose(): void {
 		this.jointPoses.length = 0;
 	}
 }

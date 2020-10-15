@@ -1,70 +1,63 @@
-import {Vector3D, ProjectionBase} from "@awayjs/core";
+import { Vector3D, ProjectionBase } from '@awayjs/core';
 
-import {Stage, ContextGLVertexBufferFormat} from "@awayjs/stage";
+import { Stage, ContextGLVertexBufferFormat } from '@awayjs/stage';
 
-import {ShaderBase, _Render_RenderableBase, AnimationRegisterData} from "@awayjs/renderer";
+import { ShaderBase, _Render_RenderableBase, AnimationRegisterData } from '@awayjs/renderer';
 
-import {AnimationElements} from "../data/AnimationElements";
-import {ParticlePropertiesMode} from "../data/ParticlePropertiesMode";
-import {ParticleVelocityNode} from "../nodes/ParticleVelocityNode";
+import { AnimationElements } from '../data/AnimationElements';
+import { ParticlePropertiesMode } from '../data/ParticlePropertiesMode';
+import { ParticleVelocityNode } from '../nodes/ParticleVelocityNode';
 
-import {ParticleAnimator} from "../ParticleAnimator";
+import { ParticleAnimator } from '../ParticleAnimator';
 
-import {ParticleStateBase} from "./ParticleStateBase";
+import { ParticleStateBase } from './ParticleStateBase';
 
 /**
  * ...
  */
-export class ParticleVelocityState extends ParticleStateBase
-{
+export class ParticleVelocityState extends ParticleStateBase {
 	/** @private */
-	public static VELOCITY_INDEX:number = 0;
+	public static VELOCITY_INDEX: number = 0;
 
-	private _particleVelocityNode:ParticleVelocityNode;
-	private _velocity:Vector3D;
+	private _particleVelocityNode: ParticleVelocityNode;
+	private _velocity: Vector3D;
 
 	/**
 	 * Defines the default velocity vector of the state, used when in global mode.
 	 */
-	public get velocity():Vector3D
-	{
+	public get velocity(): Vector3D {
 		return this._velocity;
 	}
 
-	public set velocity(value:Vector3D)
-	{
+	public set velocity(value: Vector3D) {
 		this._velocity = value;
 	}
 
 	/**
 	 *
 	 */
-	public getVelocities():Array<Vector3D>
-	{
+	public getVelocities(): Array<Vector3D> {
 		return this._pDynamicProperties;
 	}
 
-	public setVelocities(value:Array<Vector3D>):void
-	{
+	public setVelocities(value: Array<Vector3D>): void {
 		this._pDynamicProperties = value;
 
 		this._pDynamicPropertiesDirty = new Object();
 	}
 
-	constructor(animator:ParticleAnimator, particleVelocityNode:ParticleVelocityNode)
-	{
+	constructor(animator: ParticleAnimator, particleVelocityNode: ParticleVelocityNode) {
 		super(animator, particleVelocityNode);
 
 		this._particleVelocityNode = particleVelocityNode;
 		this._velocity = this._particleVelocityNode._iVelocity;
 	}
 
-	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData):void
-	{
+	public setRenderState(shader: ShaderBase, renderable: _Render_RenderableBase, animationElements: AnimationElements, animationRegisterData: AnimationRegisterData): void {
 		if (this._particleVelocityNode.mode == ParticlePropertiesMode.LOCAL_DYNAMIC && !this._pDynamicPropertiesDirty[animationElements._iUniqueId])
 			this._pUpdateDynamicProperties(animationElements);
 
-		var index:number = animationRegisterData.getRegisterIndex(this._pAnimationNode, ParticleVelocityState.VELOCITY_INDEX);
+		const index: number = animationRegisterData.getRegisterIndex(this._pAnimationNode, ParticleVelocityState.VELOCITY_INDEX);
 
 		if (this._particleVelocityNode.mode == ParticlePropertiesMode.GLOBAL)
 			shader.setVertexConst(index, this._velocity.x, this._velocity.y, this._velocity.z);

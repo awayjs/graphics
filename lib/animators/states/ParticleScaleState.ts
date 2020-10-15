@@ -1,44 +1,41 @@
-import {Vector3D, ProjectionBase} from "@awayjs/core";
+import { Vector3D, ProjectionBase } from '@awayjs/core';
 
-import {Stage, ContextGLVertexBufferFormat} from "@awayjs/stage";
+import { Stage, ContextGLVertexBufferFormat } from '@awayjs/stage';
 
-import {ShaderBase, _Render_RenderableBase, AnimationRegisterData} from "@awayjs/renderer";
+import { ShaderBase, _Render_RenderableBase, AnimationRegisterData } from '@awayjs/renderer';
 
-import {AnimationElements} from "../data/AnimationElements";
-import {ParticlePropertiesMode} from "../data/ParticlePropertiesMode";
-import {ParticleScaleNode} from "../nodes/ParticleScaleNode";
+import { AnimationElements } from '../data/AnimationElements';
+import { ParticlePropertiesMode } from '../data/ParticlePropertiesMode';
+import { ParticleScaleNode } from '../nodes/ParticleScaleNode';
 
-import {ParticleAnimator} from "../ParticleAnimator";
+import { ParticleAnimator } from '../ParticleAnimator';
 
-import {ParticleStateBase} from "./ParticleStateBase";
+import { ParticleStateBase } from './ParticleStateBase';
 
 /**
  * ...
  */
-export class ParticleScaleState extends ParticleStateBase
-{
+export class ParticleScaleState extends ParticleStateBase {
 	/** @private */
-	public static SCALE_INDEX:number = 0;
+	public static SCALE_INDEX: number = 0;
 
-	private _particleScaleNode:ParticleScaleNode;
-	private _usesCycle:boolean;
-	private _usesPhase:boolean;
-	private _minScale:number;
-	private _maxScale:number;
-	private _cycleDuration:number;
-	private _cyclePhase:number;
-	private _scaleData:Vector3D;
+	private _particleScaleNode: ParticleScaleNode;
+	private _usesCycle: boolean;
+	private _usesPhase: boolean;
+	private _minScale: number;
+	private _maxScale: number;
+	private _cycleDuration: number;
+	private _cyclePhase: number;
+	private _scaleData: Vector3D;
 
 	/**
 	 * Defines the end scale of the state, when in global mode. Defaults to 1.
 	 */
-	public get minScale():number
-	{
+	public get minScale(): number {
 		return this._minScale;
 	}
 
-	public set minScale(value:number)
-	{
+	public set minScale(value: number) {
 		this._minScale = value;
 
 		this.updateScaleData();
@@ -47,13 +44,11 @@ export class ParticleScaleState extends ParticleStateBase
 	/**
 	 * Defines the end scale of the state, when in global mode. Defaults to 1.
 	 */
-	public get maxScale():number
-	{
+	public get maxScale(): number {
 		return this._maxScale;
 	}
 
-	public set maxScale(value:number)
-	{
+	public set maxScale(value: number) {
 		this._maxScale = value;
 
 		this.updateScaleData();
@@ -62,13 +57,11 @@ export class ParticleScaleState extends ParticleStateBase
 	/**
 	 * Defines the duration of the animation in seconds, used as a period independent of particle duration when in global mode. Defaults to 1.
 	 */
-	public get cycleDuration():number
-	{
+	public get cycleDuration(): number {
 		return this._cycleDuration;
 	}
 
-	public set cycleDuration(value:number)
-	{
+	public set cycleDuration(value: number) {
 		this._cycleDuration = value;
 
 		this.updateScaleData();
@@ -77,20 +70,17 @@ export class ParticleScaleState extends ParticleStateBase
 	/**
 	 * Defines the phase of the cycle in degrees, used as the starting offset of the cycle when in global mode. Defaults to 0.
 	 */
-	public get cyclePhase():number
-	{
+	public get cyclePhase(): number {
 		return this._cyclePhase;
 	}
 
-	public set cyclePhase(value:number)
-	{
+	public set cyclePhase(value: number) {
 		this._cyclePhase = value;
 
 		this.updateScaleData();
 	}
 
-	constructor(animator:ParticleAnimator, particleScaleNode:ParticleScaleNode)
-	{
+	constructor(animator: ParticleAnimator, particleScaleNode: ParticleScaleNode) {
 		super(animator, particleScaleNode);
 
 		this._particleScaleNode = particleScaleNode;
@@ -104,9 +94,8 @@ export class ParticleScaleState extends ParticleStateBase
 		this.updateScaleData();
 	}
 
-	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData):void
-	{
-		var index:number = animationRegisterData.getRegisterIndex(this._pAnimationNode, ParticleScaleState.SCALE_INDEX);
+	public setRenderState(shader: ShaderBase, renderable: _Render_RenderableBase, animationElements: AnimationElements, animationRegisterData: AnimationRegisterData): void {
+		const index: number = animationRegisterData.getRegisterIndex(this._pAnimationNode, ParticleScaleState.SCALE_INDEX);
 
 		if (this._particleScaleNode.mode == ParticlePropertiesMode.LOCAL_STATIC) {
 			if (this._usesCycle) {
@@ -120,13 +109,12 @@ export class ParticleScaleState extends ParticleStateBase
 			shader.setVertexConst(index, this._scaleData.x, this._scaleData.y, this._scaleData.z, this._scaleData.w);
 	}
 
-	private updateScaleData():void
-	{
+	private updateScaleData(): void {
 		if (this._particleScaleNode.mode == ParticlePropertiesMode.GLOBAL) {
 			if (this._usesCycle) {
 				if (this._cycleDuration <= 0)
-					throw(new Error("the cycle duration must be greater than zero"));
-				this._scaleData = new Vector3D((this._minScale + this._maxScale)/2, Math.abs(this._minScale - this._maxScale)/2, Math.PI*2/this._cycleDuration, this._cyclePhase*Math.PI/180);
+					throw (new Error('the cycle duration must be greater than zero'));
+				this._scaleData = new Vector3D((this._minScale + this._maxScale) / 2, Math.abs(this._minScale - this._maxScale) / 2, Math.PI * 2 / this._cycleDuration, this._cyclePhase * Math.PI / 180);
 			} else
 				this._scaleData = new Vector3D(this._minScale, this._maxScale - this._minScale, 0, 0);
 		}

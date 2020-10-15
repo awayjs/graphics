@@ -1,52 +1,49 @@
-import {ColorTransform, ProjectionBase} from "@awayjs/core";
+import { ColorTransform, ProjectionBase } from '@awayjs/core';
 
-import {Stage} from "@awayjs/stage";
+import { Stage } from '@awayjs/stage';
 
-import {ShaderBase, _Render_RenderableBase, AnimationRegisterData} from "@awayjs/renderer";
+import { ShaderBase, _Render_RenderableBase, AnimationRegisterData } from '@awayjs/renderer';
 
-import {AnimationElements} from "../data/AnimationElements";
-import {ColorSegmentPoint} from "../data/ColorSegmentPoint";
-import {ParticleSegmentedColorNode} from "../nodes/ParticleSegmentedColorNode";
+import { AnimationElements } from '../data/AnimationElements';
+import { ColorSegmentPoint } from '../data/ColorSegmentPoint';
+import { ParticleSegmentedColorNode } from '../nodes/ParticleSegmentedColorNode';
 
-import {ParticleAnimator} from "../ParticleAnimator";
+import { ParticleAnimator } from '../ParticleAnimator';
 
-import {ParticleStateBase} from "./ParticleStateBase";
+import { ParticleStateBase } from './ParticleStateBase';
 
 /**
  *
  */
-export class ParticleSegmentedColorState extends ParticleStateBase
-{
+export class ParticleSegmentedColorState extends ParticleStateBase {
 	/** @private */
-	public static START_MULTIPLIER_INDEX:number = 0;
-
-	/** @private */
-	public static START_OFFSET_INDEX:number = 1;
+	public static START_MULTIPLIER_INDEX: number = 0;
 
 	/** @private */
-	public static TIME_DATA_INDEX:number = 2;
+	public static START_OFFSET_INDEX: number = 1;
 
-	private _usesMultiplier:boolean;
-	private _usesOffset:boolean;
-	private _startColor:ColorTransform;
-	private _endColor:ColorTransform;
-	private _segmentPoints:Array<ColorSegmentPoint>;
-	private _numSegmentPoint:number;
+	/** @private */
+	public static TIME_DATA_INDEX: number = 2;
 
-	private _timeLifeData:Float32Array;
-	private _multiplierData:Float32Array;
-	private _offsetData:Float32Array;
+	private _usesMultiplier: boolean;
+	private _usesOffset: boolean;
+	private _startColor: ColorTransform;
+	private _endColor: ColorTransform;
+	private _segmentPoints: Array<ColorSegmentPoint>;
+	private _numSegmentPoint: number;
+
+	private _timeLifeData: Float32Array;
+	private _multiplierData: Float32Array;
+	private _offsetData: Float32Array;
 
 	/**
 	 * Defines the start color transform of the state, when in global mode.
 	 */
-	public get startColor():ColorTransform
-	{
+	public get startColor(): ColorTransform {
 		return this._startColor;
 	}
 
-	public set startColor(value:ColorTransform)
-	{
+	public set startColor(value: ColorTransform) {
 		this._startColor = value;
 
 		this.updateColorData();
@@ -55,52 +52,44 @@ export class ParticleSegmentedColorState extends ParticleStateBase
 	/**
 	 * Defines the end color transform of the state, when in global mode.
 	 */
-	public get endColor():ColorTransform
-	{
+	public get endColor(): ColorTransform {
 		return this._endColor;
 	}
 
-	public set endColor(value:ColorTransform)
-	{
+	public set endColor(value: ColorTransform) {
 		this._endColor = value;
-		
+
 		this.updateColorData();
 	}
 
 	/**
 	 * Defines the number of segments.
 	 */
-	public get numSegmentPoint():number
-	{
+	public get numSegmentPoint(): number {
 		return this._numSegmentPoint;
 	}
 
 	/**
 	 * Defines the key points of color
 	 */
-	public get segmentPoints():Array<ColorSegmentPoint>
-	{
+	public get segmentPoints(): Array<ColorSegmentPoint> {
 		return this._segmentPoints;
 	}
 
-	public set segmentPoints(value:Array<ColorSegmentPoint>)
-	{
+	public set segmentPoints(value: Array<ColorSegmentPoint>) {
 		this._segmentPoints = value;
 		this.updateColorData();
 	}
 
-	public get usesMultiplier():boolean
-	{
+	public get usesMultiplier(): boolean {
 		return this._usesMultiplier;
 	}
 
-	public get usesOffset():boolean
-	{
+	public get usesOffset(): boolean {
 		return this._usesOffset;
 	}
 
-	constructor(animator:ParticleAnimator, particleSegmentedColorNode:ParticleSegmentedColorNode)
-	{
+	constructor(animator: ParticleAnimator, particleSegmentedColorNode: ParticleSegmentedColorNode) {
 		super(animator, particleSegmentedColorNode);
 
 		this._usesMultiplier = particleSegmentedColorNode._iUsesMultiplier;
@@ -112,8 +101,7 @@ export class ParticleSegmentedColorState extends ParticleStateBase
 		this.updateColorData();
 	}
 
-	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase, animationElements:AnimationElements, animationRegisterData:AnimationRegisterData):void
-	{
+	public setRenderState(shader: ShaderBase, renderable: _Render_RenderableBase, animationElements: AnimationElements, animationRegisterData: AnimationRegisterData): void {
 		if (shader.usesFragmentAnimation) {
 			if (this._numSegmentPoint > 0)
 				shader.setVertexConst(animationRegisterData.getRegisterIndex(this._pAnimationNode, ParticleSegmentedColorState.TIME_DATA_INDEX), this._timeLifeData[0], this._timeLifeData[1], this._timeLifeData[2], this._timeLifeData[3]);
@@ -124,16 +112,15 @@ export class ParticleSegmentedColorState extends ParticleStateBase
 		}
 	}
 
-	private updateColorData():void
-	{
+	private updateColorData(): void {
 		this._timeLifeData = new Float32Array(4);
-		this._multiplierData = new Float32Array(4*(this._numSegmentPoint + 1));
-		this._offsetData = new Float32Array(4*(this._numSegmentPoint + 1));
+		this._multiplierData = new Float32Array(4 * (this._numSegmentPoint + 1));
+		this._offsetData = new Float32Array(4 * (this._numSegmentPoint + 1));
 
 		//cut off the time data
-		var i:number;
-		var j:number = 0;
-		var count:number = this._numSegmentPoint > 3? 3 : this._numSegmentPoint;
+		let i: number;
+		let j: number = 0;
+		const count: number = this._numSegmentPoint > 3 ? 3 : this._numSegmentPoint;
 		for (i = 0; i < count; i++) {
 			if (i == 0)
 				this._timeLifeData[j++] = this._segmentPoints[i].life;
@@ -154,15 +141,15 @@ export class ParticleSegmentedColorState extends ParticleStateBase
 			this._multiplierData[j++] = this._startColor.alphaMultiplier;
 			for (i = 0; i < this._numSegmentPoint; i++) {
 				if (i == 0) {
-					this._multiplierData[j++] = (this._segmentPoints[i].color.redMultiplier - this._startColor.redMultiplier)/this._timeLifeData[i];
-					this._multiplierData[j++] = (this._segmentPoints[i].color.greenMultiplier - this._startColor.greenMultiplier)/this._timeLifeData[i];
-					this._multiplierData[j++] = (this._segmentPoints[i].color.blueMultiplier - this._startColor.blueMultiplier)/this._timeLifeData[i];
-					this._multiplierData[j++] = (this._segmentPoints[i].color.alphaMultiplier - this._startColor.alphaMultiplier)/this._timeLifeData[i];
+					this._multiplierData[j++] = (this._segmentPoints[i].color.redMultiplier - this._startColor.redMultiplier) / this._timeLifeData[i];
+					this._multiplierData[j++] = (this._segmentPoints[i].color.greenMultiplier - this._startColor.greenMultiplier) / this._timeLifeData[i];
+					this._multiplierData[j++] = (this._segmentPoints[i].color.blueMultiplier - this._startColor.blueMultiplier) / this._timeLifeData[i];
+					this._multiplierData[j++] = (this._segmentPoints[i].color.alphaMultiplier - this._startColor.alphaMultiplier) / this._timeLifeData[i];
 				} else {
-					this._multiplierData[j++] = (this._segmentPoints[i].color.redMultiplier - this._segmentPoints[i - 1].color.redMultiplier)/this._timeLifeData[i];
-					this._multiplierData[j++] = (this._segmentPoints[i].color.greenMultiplier - this._segmentPoints[i - 1].color.greenMultiplier)/this._timeLifeData[i];
-					this._multiplierData[j++] = (this._segmentPoints[i].color.blueMultiplier - this._segmentPoints[i - 1].color.blueMultiplier)/this._timeLifeData[i];
-					this._multiplierData[j++] = (this._segmentPoints[i].color.alphaMultiplier - this._segmentPoints[i - 1].color.alphaMultiplier)/this._timeLifeData[i];
+					this._multiplierData[j++] = (this._segmentPoints[i].color.redMultiplier - this._segmentPoints[i - 1].color.redMultiplier) / this._timeLifeData[i];
+					this._multiplierData[j++] = (this._segmentPoints[i].color.greenMultiplier - this._segmentPoints[i - 1].color.greenMultiplier) / this._timeLifeData[i];
+					this._multiplierData[j++] = (this._segmentPoints[i].color.blueMultiplier - this._segmentPoints[i - 1].color.blueMultiplier) / this._timeLifeData[i];
+					this._multiplierData[j++] = (this._segmentPoints[i].color.alphaMultiplier - this._segmentPoints[i - 1].color.alphaMultiplier) / this._timeLifeData[i];
 				}
 			}
 			i = this._numSegmentPoint;
@@ -172,43 +159,43 @@ export class ParticleSegmentedColorState extends ParticleStateBase
 				this._multiplierData[j++] = this._endColor.blueMultiplier - this._startColor.blueMultiplier;
 				this._multiplierData[j++] = this._endColor.alphaMultiplier - this._startColor.alphaMultiplier;
 			} else {
-				this._multiplierData[j++] = (this._endColor.redMultiplier - this._segmentPoints[i - 1].color.redMultiplier)/this._timeLifeData[i];
-				this._multiplierData[j++] = (this._endColor.greenMultiplier - this._segmentPoints[i - 1].color.greenMultiplier)/this._timeLifeData[i];
-				this._multiplierData[j++] = (this._endColor.blueMultiplier - this._segmentPoints[i - 1].color.blueMultiplier)/this._timeLifeData[i];
-				this._multiplierData[j++] = (this._endColor.alphaMultiplier - this._segmentPoints[i - 1].color.alphaMultiplier)/this._timeLifeData[i];
+				this._multiplierData[j++] = (this._endColor.redMultiplier - this._segmentPoints[i - 1].color.redMultiplier) / this._timeLifeData[i];
+				this._multiplierData[j++] = (this._endColor.greenMultiplier - this._segmentPoints[i - 1].color.greenMultiplier) / this._timeLifeData[i];
+				this._multiplierData[j++] = (this._endColor.blueMultiplier - this._segmentPoints[i - 1].color.blueMultiplier) / this._timeLifeData[i];
+				this._multiplierData[j++] = (this._endColor.alphaMultiplier - this._segmentPoints[i - 1].color.alphaMultiplier) / this._timeLifeData[i];
 			}
 		}
 
 		if (this._usesOffset) {
 			j = 0;
-			this._offsetData[j++] = this._startColor.redOffset/255;
-			this._offsetData[j++] = this._startColor.greenOffset/255;
-			this._offsetData[j++] = this._startColor.blueOffset/255;
-			this._offsetData[j++] = this._startColor.alphaOffset/255;
+			this._offsetData[j++] = this._startColor.redOffset / 255;
+			this._offsetData[j++] = this._startColor.greenOffset / 255;
+			this._offsetData[j++] = this._startColor.blueOffset / 255;
+			this._offsetData[j++] = this._startColor.alphaOffset / 255;
 			for (i = 0; i < this._numSegmentPoint; i++) {
 				if (i == 0) {
-					this._offsetData[j++] = (this._segmentPoints[i].color.redOffset - this._startColor.redOffset)/this._timeLifeData[i]/255;
-					this._offsetData[j++] = (this._segmentPoints[i].color.greenOffset - this._startColor.greenOffset)/this._timeLifeData[i]/255;
-					this._offsetData[j++] = (this._segmentPoints[i].color.blueOffset - this._startColor.blueOffset)/this._timeLifeData[i]/255;
-					this._offsetData[j++] = (this._segmentPoints[i].color.alphaOffset - this._startColor.alphaOffset)/this._timeLifeData[i]/255;
+					this._offsetData[j++] = (this._segmentPoints[i].color.redOffset - this._startColor.redOffset) / this._timeLifeData[i] / 255;
+					this._offsetData[j++] = (this._segmentPoints[i].color.greenOffset - this._startColor.greenOffset) / this._timeLifeData[i] / 255;
+					this._offsetData[j++] = (this._segmentPoints[i].color.blueOffset - this._startColor.blueOffset) / this._timeLifeData[i] / 255;
+					this._offsetData[j++] = (this._segmentPoints[i].color.alphaOffset - this._startColor.alphaOffset) / this._timeLifeData[i] / 255;
 				} else {
-					this._offsetData[j++] = (this._segmentPoints[i].color.redOffset - this._segmentPoints[i - 1].color.redOffset)/this._timeLifeData[i]/255;
-					this._offsetData[j++] = (this._segmentPoints[i].color.greenOffset - this._segmentPoints[i - 1].color.greenOffset)/this._timeLifeData[i]/255;
-					this._offsetData[j++] = (this._segmentPoints[i].color.blueOffset - this._segmentPoints[i - 1].color.blueOffset)/this._timeLifeData[i]/255;
-					this._offsetData[j++] = (this._segmentPoints[i].color.alphaOffset - this._segmentPoints[i - 1].color.alphaOffset)/this._timeLifeData[i]/255;
+					this._offsetData[j++] = (this._segmentPoints[i].color.redOffset - this._segmentPoints[i - 1].color.redOffset) / this._timeLifeData[i] / 255;
+					this._offsetData[j++] = (this._segmentPoints[i].color.greenOffset - this._segmentPoints[i - 1].color.greenOffset) / this._timeLifeData[i] / 255;
+					this._offsetData[j++] = (this._segmentPoints[i].color.blueOffset - this._segmentPoints[i - 1].color.blueOffset) / this._timeLifeData[i] / 255;
+					this._offsetData[j++] = (this._segmentPoints[i].color.alphaOffset - this._segmentPoints[i - 1].color.alphaOffset) / this._timeLifeData[i] / 255;
 				}
 			}
 			i = this._numSegmentPoint;
 			if (this._numSegmentPoint == 0) {
-				this._offsetData[j++] = (this._endColor.redOffset - this._startColor.redOffset)/255;
-				this._offsetData[j++] = (this._endColor.greenOffset - this._startColor.greenOffset)/255;
-				this._offsetData[j++] = (this._endColor.blueOffset - this._startColor.blueOffset)/255;
-				this._offsetData[j++] = (this._endColor.alphaOffset - this._startColor.alphaOffset)/255;
+				this._offsetData[j++] = (this._endColor.redOffset - this._startColor.redOffset) / 255;
+				this._offsetData[j++] = (this._endColor.greenOffset - this._startColor.greenOffset) / 255;
+				this._offsetData[j++] = (this._endColor.blueOffset - this._startColor.blueOffset) / 255;
+				this._offsetData[j++] = (this._endColor.alphaOffset - this._startColor.alphaOffset) / 255;
 			} else {
-				this._offsetData[i] = (this._endColor.redOffset - this._segmentPoints[i - 1].color.redOffset)/this._timeLifeData[i]/255;
-				this._offsetData[j++] = (this._endColor.greenOffset - this._segmentPoints[i - 1].color.greenOffset)/this._timeLifeData[i]/255;
-				this._offsetData[j++] = (this._endColor.blueOffset - this._segmentPoints[i - 1].color.blueOffset)/this._timeLifeData[i]/255;
-				this._offsetData[j++] = (this._endColor.alphaOffset - this._segmentPoints[i - 1].color.alphaOffset)/this._timeLifeData[i]/255;
+				this._offsetData[i] = (this._endColor.redOffset - this._segmentPoints[i - 1].color.redOffset) / this._timeLifeData[i] / 255;
+				this._offsetData[j++] = (this._endColor.greenOffset - this._segmentPoints[i - 1].color.greenOffset) / this._timeLifeData[i] / 255;
+				this._offsetData[j++] = (this._endColor.blueOffset - this._segmentPoints[i - 1].color.blueOffset) / this._timeLifeData[i] / 255;
+				this._offsetData[j++] = (this._endColor.alphaOffset - this._segmentPoints[i - 1].color.alphaOffset) / this._timeLifeData[i] / 255;
 			}
 		}
 	}

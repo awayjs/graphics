@@ -4,12 +4,12 @@
  * the implementor classes of this interface to create and manage drawing property
  * data, and to reuse the same data for different instances. Then, use the methods of
  * the Graphics class to render the drawing objects.
- * 
+ *
  * @see away.base.Graphics.drawGraphicsData()
  * @see away.base.Graphics.readGraphicsData()
  */
 export interface IGraphicsData
 {
-    data_type:string;
+	data_type: string;
 
 }

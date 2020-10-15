@@ -1,20 +1,18 @@
-import {ParticleData} from "./ParticleData";
+import { ParticleData } from './ParticleData';
 
 /**
  * ...
  */
-export class ParticleAnimationData
-{
-	public index:number;
-	public startTime:number;
-	public totalTime:number;
-	public duration:number;
-	public delay:number;
-	public startVertexIndex:number;
-	public numVertices:number;
+export class ParticleAnimationData {
+	public index: number;
+	public startTime: number;
+	public totalTime: number;
+	public duration: number;
+	public delay: number;
+	public startVertexIndex: number;
+	public numVertices: number;
 
-	constructor(index:number, startTime:number, duration:number, delay:number, particle:ParticleData)
-	{
+	constructor(index: number, startTime: number, duration: number, delay: number, particle: ParticleData) {
 		this.index = index;
 		this.startTime = startTime;
 		this.totalTime = duration + delay;

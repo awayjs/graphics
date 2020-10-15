@@ -21,7 +21,7 @@ export class SegmentedPath {
 		assert(segment1);
 		assert(segment1.next === null);
 		assert(segment1.prev === null);
-		var currentHead = this._head;
+		const currentHead = this._head;
 		if (currentHead) {
 			assert(segment1 !== currentHead);
 			currentHead.next = segment1;
@@ -41,7 +41,7 @@ export class SegmentedPath {
 	}
 
 	insertSegment(segment1: PathSegment, next: PathSegment) {
-		var prev = next.prev;
+		const prev = next.prev;
 		segment1.prev = prev;
 		segment1.next = next;
 		if (prev) {
@@ -54,94 +54,89 @@ export class SegmentedPath {
 		return this._head;
 	}
 
-
-	rgbaToArgb(float32Color:number):number
-	{
-		var r:number = ( float32Color & 0xff000000 ) >>> 24;
-		var g:number = ( float32Color & 0xff0000 ) >>> 16;
-		var b:number = ( float32Color & 0xff00 ) >>> 8;
-		var a:number = float32Color & 0xff;
+	rgbaToArgb(float32Color: number): number {
+		const r: number = (float32Color & 0xff000000) >>> 24;
+		const g: number = (float32Color & 0xff0000) >>> 16;
+		const b: number = (float32Color & 0xff00) >>> 8;
+		const a: number = float32Color & 0xff;
 		return (a << 24) | (r << 16) |
 		(g << 8) | b;
 	}
 
-	getAlpha(float32Color:number):number
-	{
+	getAlpha(float32Color: number): number {
 		//var r:number = ( float32Color & 0xff000000 ) >>> 24;
 		//var g:number = ( float32Color & 0xff0000 ) >>> 16;
 		//var b:number = ( float32Color & 0xff00 ) >>> 8;
-		var a:number = float32Color & 0xff;
+		const a: number = float32Color & 0xff;
 		return a;
 	}
 
-	rgbToArgb(float32Color:number):number
-	{
-		var a:number = ( float32Color & 0xff000000 ) >>> 24;
-		var b:number = ( float32Color & 0xff0000 ) >>> 16;
-		var g:number = ( float32Color & 0xff00 ) >>> 8;
-		var r:number = float32Color & 0xff;
+	rgbToArgb(float32Color: number): number {
+		const a: number = (float32Color & 0xff000000) >>> 24;
+		const b: number = (float32Color & 0xff0000) >>> 16;
+		const g: number = (float32Color & 0xff00) >>> 8;
+		const r: number = float32Color & 0xff;
 		return (a << 24) | (r << 16) |
 			(g << 8) | b;
 	}
 
 	serializeAJS(shape: GraphicsPath, morphShape: GraphicsPath) {
 		//console.log("serializeAJS");
-		var segment1 = this.head();
+		let segment1 = this.head();
 
 		if (!segment1) {
 			// Path is empty.
 			return;
-        }
-        
-        if (this.fillStyle) {
+		}
+
+		if (this.fillStyle) {
 			var style = this.fillStyle;
 			var morph = style.morph;
 			switch (style.type) {
 				case FillType.Solid:
-					style.alpha=this.getAlpha(style.color)/255;
-					style.color=this.rgbaToArgb(style.color);
-					shape.style=new GraphicsFillStyle(style.color, style.alpha);
+					style.alpha = this.getAlpha(style.color) / 255;
+					style.color = this.rgbaToArgb(style.color);
+					shape.style = new GraphicsFillStyle(style.color, style.alpha);
 
-					var r=Math.random()*255;
-					var g=Math.random()*255;
-					var b=Math.random()*255;
-				//	style.color=ColorUtils.ARGBtoFloat32(255, r, g, b);
-				//	shape.style=new GraphicsStrokeStyle(style.color, 5, 1);
+					var r = Math.random() * 255;
+					var g = Math.random() * 255;
+					var b = Math.random() * 255;
+					//	style.color=ColorUtils.ARGBtoFloat32(255, r, g, b);
+					//	shape.style=new GraphicsStrokeStyle(style.color, 5, 1);
 
 					if (morph) {
-						morph.alpha=this.getAlpha(morph.color)/255;
-						morph.color=this.rgbaToArgb(morph.color);
-						morphShape.style=new GraphicsFillStyle(morph.color, morph.alpha);
+						morph.alpha = this.getAlpha(morph.color) / 255;
+						morph.color = this.rgbaToArgb(morph.color);
+						morphShape.style = new GraphicsFillStyle(morph.color, morph.alpha);
 					}
-
 
 					break;
 				case FillType.LinearGradient:
 				case FillType.RadialGradient:
 				case FillType.FocalRadialGradient:
-					var gradientType:GradientType = style.type === FillType.LinearGradient ?
+					var gradientType: GradientType = style.type === FillType.LinearGradient ?
 						GradientType.LINEAR :
 						GradientType.RADIAL;
-					var alphas:number[]=[];
-					for(var i:number=0; i<style.colors.length; i++) {
-						alphas[i]=this.getAlpha(style.colors[i])/255;
-						style.colors[i]=this.rgbaToArgb(style.colors[i]);
+					var alphas: number[] = [];
+					for (var i: number = 0; i < style.colors.length; i++) {
+						alphas[i] = this.getAlpha(style.colors[i]) / 255;
+						style.colors[i] = this.rgbaToArgb(style.colors[i]);
 					}
-					var awayMatrix:Matrix=new Matrix(style.transform.a, style.transform.b, style.transform.c, style.transform.d, style.transform.tx, style.transform.ty);
-					shape.style=new GradientFillStyle(gradientType, style.colors, alphas, style.ratios,  awayMatrix, style.spreadMethod, style.interpolationMode, style.focalPoint / 2 | 0);
+					var awayMatrix: Matrix = new Matrix(style.transform.a, style.transform.b, style.transform.c, style.transform.d, style.transform.tx, style.transform.ty);
+					shape.style = new GradientFillStyle(gradientType, style.colors, alphas, style.ratios,  awayMatrix, style.spreadMethod, style.interpolationMode, style.focalPoint / 2 | 0);
 
 					//console.log("style.spreadMethod, style.interpolationMode", style.spreadMethod, style.interpolationMode);
 					if (morph) {
-						var gradientType:GradientType = morph.type === FillType.LinearGradient ?
+						var gradientType: GradientType = morph.type === FillType.LinearGradient ?
 							GradientType.LINEAR :
 							GradientType.RADIAL;
-						var alphas:number[]=[];
-						for(var i:number=0; i<morph.colors.length; i++) {
-							alphas[i]=this.getAlpha(morph.colors[i])/255;
-							morph.colors[i]=this.rgbaToArgb(morph.colors[i]);
+						var alphas: number[] = [];
+						for (var i: number = 0; i < morph.colors.length; i++) {
+							alphas[i] = this.getAlpha(morph.colors[i]) / 255;
+							morph.colors[i] = this.rgbaToArgb(morph.colors[i]);
 						}
-						var awayMatrix:Matrix=new Matrix(morph.transform.a, morph.transform.b, morph.transform.c, morph.transform.d, morph.transform.tx, morph.transform.ty);
-						morphShape.style=new GradientFillStyle(gradientType, morph.colors, alphas, morph.ratios,  awayMatrix, morph.spreadMethod, morph.interpolationMode, morph.focalPoint / 2 | 0);
+						var awayMatrix: Matrix = new Matrix(morph.transform.a, morph.transform.b, morph.transform.c, morph.transform.d, morph.transform.tx, morph.transform.ty);
+						morphShape.style = new GradientFillStyle(gradientType, morph.colors, alphas, morph.ratios,  awayMatrix, morph.spreadMethod, morph.interpolationMode, morph.focalPoint / 2 | 0);
 
 						//console.log("writeMorphGradient not handled yet");
 						//writeMorphGradient(morph, shape);
@@ -153,14 +148,14 @@ export class SegmentedPath {
 				case FillType.NonsmoothedRepeatingBitmap:
 
 					//console.log("bitmapIndex", style.bitmapIndex, "transform", style.transform,  "repeat", style.repeat,  "smooth", style.smooth);
-					var awayMatrix:Matrix=new Matrix(style.transform.a, style.transform.b, style.transform.c, style.transform.d, style.transform.tx, style.transform.ty);
+					var awayMatrix: Matrix = new Matrix(style.transform.a, style.transform.b, style.transform.c, style.transform.d, style.transform.tx, style.transform.ty);
 
-					shape.style=new BitmapFillStyle(style.material, awayMatrix, style.repeat, style.smooth);
+					shape.style = new BitmapFillStyle(style.material, awayMatrix, style.repeat, style.smooth);
 					//shape.beginBitmap(command, style.bitmapIndex, style.transform, style.repeat, style.smooth);
 					if (morph) {
 						//console.log("writeMorphBitmap not handled yet");
-						var awayMatrix:Matrix=new Matrix(morph.transform.a, morph.transform.b, morph.transform.c, morph.transform.d, morph.transform.tx, morph.transform.ty);
-						morphShape.style=new BitmapFillStyle(style.material, awayMatrix, style.repeat, style.smooth);
+						var awayMatrix: Matrix = new Matrix(morph.transform.a, morph.transform.b, morph.transform.c, morph.transform.d, morph.transform.tx, morph.transform.ty);
+						morphShape.style = new BitmapFillStyle(style.material, awayMatrix, style.repeat, style.smooth);
 
 						//writeMorphBitmap(morph, shape);
 					}
@@ -179,30 +174,30 @@ export class SegmentedPath {
 						(style.noVscale ? 0 : 2) :
 						style.noVscale ? 3 : 1;
 					// TODO: Figure out how to handle startCapsStyle
-					var thickness = (clamp(style.width, 0, 0xff * 20)|0)/20;
-					style.alpha=this.getAlpha(style.color)/255;
-					style.color=this.rgbaToArgb(style.color);
-					var scaleModeAWJ=LineScaleMode.NORMAL;
+					var thickness = (clamp(style.width, 0, 0xff * 20)|0) / 20;
+					style.alpha = this.getAlpha(style.color) / 255;
+					style.color = this.rgbaToArgb(style.color);
+					var scaleModeAWJ = LineScaleMode.NORMAL;
 					//if(style.noVscale==null && style.noHscale==null){
 					//	scaleModeAWJ="HAIRLINE";
 					//}
-					if(thickness==0.05){
-						scaleModeAWJ=LineScaleMode.HAIRLINE;
+					if (thickness == 0.05) {
+						scaleModeAWJ = LineScaleMode.HAIRLINE;
 					}
-					if(style.startCapsStyle!=style.endCapsStyle){
-						console.log("Warning: different end vs start capstyöe");
+					if (style.startCapsStyle != style.endCapsStyle) {
+						console.log('Warning: different end vs start capstyöe');
 					}
-					style.startCapsStyle=CapsStyle.ROUND;
-					style.jointStyle=0;
+					style.startCapsStyle = CapsStyle.ROUND;
+					style.jointStyle = 0;
 					//console.log("style.startCapsStyle", style.startCapsStyle, style.endCapsStyle, style );
-					shape.style=new GraphicsStrokeStyle(style.color, style.alpha, thickness, style.jointStyle, style.startCapsStyle, style.miterLimit, scaleModeAWJ);
+					shape.style = new GraphicsStrokeStyle(style.color, style.alpha, thickness, style.jointStyle, style.startCapsStyle, style.miterLimit, scaleModeAWJ);
 
 					//console.log("scaleMode", scaleModeAWJ, style.noHscale, style.noVscale, scaleMode, thickness, style.jointStyle, style.startCapsStyle, style.endCapsStyle, style.miterLimit);
 					if (morph) {
-						var thickness = (clamp(morph.width, 0, 0xff * 20)|0)/20;
-						morph.alpha=this.getAlpha(morph.color)/255;
-						morph.color=this.rgbaToArgb(morph.color);
-						morphShape.style=new GraphicsStrokeStyle(morph.color, morph.alpha, thickness, style.jointStyle, style.startCapsStyle, style.miterLimit, scaleModeAWJ);
+						var thickness = (clamp(morph.width, 0, 0xff * 20)|0) / 20;
+						morph.alpha = this.getAlpha(morph.color) / 255;
+						morph.color = this.rgbaToArgb(morph.color);
+						morphShape.style = new GraphicsStrokeStyle(morph.color, morph.alpha, thickness, style.jointStyle, style.startCapsStyle, style.miterLimit, scaleModeAWJ);
 						//console.log("writeMorphLineStyle not handled yet");
 						//writeMorphLineStyle(morph, shape);
 					}
@@ -215,20 +210,20 @@ export class SegmentedPath {
 						style.noVscale ? 3 : 1;
 					// TODO: Figure out how to handle startCapsStyle
 					//console.log("style.startCapsStyle", style.startCapsStyle, style.endCapsStyle, style );
-					var thickness = (clamp(style.width, 0, 0xff * 20)|0)/20;
-					style.alpha=this.getAlpha(style.color)/255;
-					style.color=this.rgbaToArgb(style.color)
-					shape.style=new GraphicsStrokeStyle(style.color, style.alpha, thickness, style.jointStyle, style.endCapsStyle, style.miterLimit);
-					var gradientType:GradientType = style.type === FillType.LinearGradient ?
+					var thickness = (clamp(style.width, 0, 0xff * 20)|0) / 20;
+					style.alpha = this.getAlpha(style.color) / 255;
+					style.color = this.rgbaToArgb(style.color);
+					shape.style = new GraphicsStrokeStyle(style.color, style.alpha, thickness, style.jointStyle, style.endCapsStyle, style.miterLimit);
+					var gradientType: GradientType = style.type === FillType.LinearGradient ?
 						GradientType.LINEAR :
 						GradientType.RADIAL;
-					var alphas:number[]=[];
-					for(var i:number=0; i<style.colors.length; i++) {
-						style.colors[i]=this.rgbaToArgb(style.colors[i]);
-						alphas[i]=1;
+					var alphas: number[] = [];
+					for (var i: number = 0; i < style.colors.length; i++) {
+						style.colors[i] = this.rgbaToArgb(style.colors[i]);
+						alphas[i] = 1;
 					}
-					for(var i:number=0; i<style.colors.length; i++) alphas[i]=1;
-					shape.style=new GradientFillStyle(gradientType, style.colors, alphas, style.ratios,  style.transform, style.spreadMethod,style.interpolationMode, style.focalPoint / 2 | 0);
+					for (var i: number = 0; i < style.colors.length; i++) alphas[i] = 1;
+					shape.style = new GradientFillStyle(gradientType, style.colors, alphas, style.ratios,  style.transform, style.spreadMethod,style.interpolationMode, style.focalPoint / 2 | 0);
 
 					//console.log("scaleMode", style.noHscale, style.noVscale, scaleMode, thickness, style.jointStyle, style.endCapsStyle, style.miterLimit);
 					if (morph) {
@@ -248,10 +243,8 @@ export class SegmentedPath {
 					// TODO: Figure out how to handle startCapsStyle
 					//console.log("style.startCapsStyle", style.startCapsStyle, style.endCapsStyle, style );
 					var thickness = clamp(style.width, 0, 0xff * 20)|0;
-					shape.style=new GraphicsStrokeStyle(style.color, 1, thickness, style.jointStyle, style.endCapsStyle, style.miterLimit);
+					shape.style = new GraphicsStrokeStyle(style.color, 1, thickness, style.jointStyle, style.endCapsStyle, style.miterLimit);
 					//console.log("scaleMode", scaleMode, thickness, style.jointStyle, style.endCapsStyle, style.miterLimit);
-
-
 
 					//console.log("writeBitmap not handled yet");
 					//writeBitmap(PathCommand.LineStyleBitmap, style, shape);
@@ -265,19 +258,19 @@ export class SegmentedPath {
 				default:
 				//console.error('Line style type not yet supported: ' + style.type);
 			}
-		
-        }
+
+		}
 
 		while (segment1) {
 			segment1.storeStartAndEnd();
 			segment1 = segment1.prev;
 		}
 
-		var start = this.head();
-		var end = start;
+		let start = this.head();
+		let end = start;
 
-		var finalRoot: PathSegment = null;
-		var finalHead: PathSegment = null;
+		let finalRoot: PathSegment = null;
+		let finalHead: PathSegment = null;
 
 		// Path segments for one style can appear in arbitrary order in the tag's list
 		// of edge records.
@@ -287,7 +280,7 @@ export class SegmentedPath {
 		// segments. If no more segments are found that match the current run (either
 		// at the beginning, or at the end), the current run is complete, and a new
 		// one is started. Rinse, repeat, until no solitary segments remain.
-		var current = start.prev;
+		let current = start.prev;
 		while (start) {
 			while (current) {
 
@@ -307,8 +300,7 @@ export class SegmentedPath {
 					continue;
 				}
 
-
-				if(current.startConnectsTo(end)) {
+				if (current.startConnectsTo(end)) {
 					current.flipDirection();
 				}
 				if (end.connectsTo(current)) {
@@ -338,12 +330,12 @@ export class SegmentedPath {
 			}
 			start = end = current;
 			current = start.prev;
-		} 
+		}
 
-		var lastPosition = {x: 0, y: 0};
+		const lastPosition = { x: 0, y: 0 };
 		current = finalRoot;
 		while (current) {
-			if(current.isValidFill){
+			if (current.isValidFill) {
 				current.serializeAJS(shape, morphShape, lastPosition);
 			}
 			current = current.next;
@@ -356,6 +348,5 @@ export class SegmentedPath {
 		}*/
 		return shape;
 	}
-
 
 }

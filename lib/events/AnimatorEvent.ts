@@ -1,28 +1,27 @@
-import {EventBase} from "@awayjs/core";
+import { EventBase } from '@awayjs/core';
 
-import {AnimatorBase} from "../animators/AnimatorBase";
+import { AnimatorBase } from '../animators/AnimatorBase';
 
 /**
  * Dispatched to notify changes in an animator's state.
  */
-export class AnimatorEvent extends EventBase
-{
+export class AnimatorEvent extends EventBase {
 	/**
 	 * Defines the value of the type property of a start event object.
 	 */
-	public static START:string = "animatorStart";
+	public static START: string = 'animatorStart';
 
 	/**
 	 * Defines the value of the type property of a stop event object.
 	 */
-	public static STOP:string = "animatorStop";
+	public static STOP: string = 'animatorStop';
 
 	/**
 	 * Defines the value of the type property of a cycle complete event object.
 	 */
-	public static CYCLE_COMPLETE:string = "animatorCycleComplete";
+	public static CYCLE_COMPLETE: string = 'animatorCycleComplete';
 
-	private _animator:AnimatorBase;
+	private _animator: AnimatorBase;
 
 	/**
 	 * Create a new <code>AnimatorEvent</code> object.
@@ -30,14 +29,12 @@ export class AnimatorEvent extends EventBase
 	 * @param type The event type.
 	 * @param animator The animator object that is the subject of this event.
 	 */
-	constructor(type:string, animator:AnimatorBase)
-	{
+	constructor(type: string, animator: AnimatorBase) {
 		super(type);
 		this._animator = animator;
 	}
 
-	public get animator():AnimatorBase
-	{
+	public get animator(): AnimatorBase {
 		return this._animator;
 	}
 
@@ -46,8 +43,7 @@ export class AnimatorEvent extends EventBase
 	 *
 	 * @return An exact duplicate of the current event object.
 	 */
-	public clone():AnimatorEvent
-	{
+	public clone(): AnimatorEvent {
 		return new AnimatorEvent(this.type, this._animator);
 	}
 }

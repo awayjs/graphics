@@ -1,60 +1,56 @@
-import {Stage, IContextGL, IVertexBuffer} from "@awayjs/stage";
+import { Stage, IContextGL, IVertexBuffer } from '@awayjs/stage';
 
-import {ParticleAnimationData} from "./ParticleAnimationData";
+import { ParticleAnimationData } from './ParticleAnimationData';
 
 /**
  * ...
  */
-export class AnimationElements
-{
-	public static SUBGEOM_ID_COUNT:number = 0;
+export class AnimationElements {
+	public static SUBGEOM_ID_COUNT: number = 0;
 
-	public _pVertexData:Float32Array;
+	public _pVertexData: Float32Array;
 
-	public _pVertexBuffer:Array<IVertexBuffer> = new Array<IVertexBuffer>(8);
-	public _pBufferContext:Array<IContextGL> = new Array<IContextGL>(8);
-	public _pBufferDirty:Array<boolean> = new Array<boolean>(8);
+	public _pVertexBuffer: Array<IVertexBuffer> = new Array<IVertexBuffer>(8);
+	public _pBufferContext: Array<IContextGL> = new Array<IContextGL>(8);
+	public _pBufferDirty: Array<boolean> = new Array<boolean>(8);
 
-	private _numVertices:number;
+	private _numVertices: number;
 
-	private _totalLenOfOneVertex:number;
+	private _totalLenOfOneVertex: number;
 
-	public numProcessedVertices:number = 0;
+	public numProcessedVertices: number = 0;
 
-	public previousTime:number = Number.NEGATIVE_INFINITY;
+	public previousTime: number = Number.NEGATIVE_INFINITY;
 
-	public animationParticles:Array<ParticleAnimationData> = new Array<ParticleAnimationData>();
+	public animationParticles: Array<ParticleAnimationData> = new Array<ParticleAnimationData>();
 
 	/**
 	 * An id for this animation subgeometry, used to identify animation subgeometries when using animation sets.
 	 *
 	 * @private
 	 */
-	public _iUniqueId:number;//Arcane
+	public _iUniqueId: number;//Arcane
 
-	constructor()
-	{
-		for (var i:number = 0; i < 8; i++)
+	constructor() {
+		for (let i: number = 0; i < 8; i++)
 			this._pBufferDirty[i] = true;
 
 		this._iUniqueId = AnimationElements.SUBGEOM_ID_COUNT++;
 	}
 
-	public createVertexData(numVertices:number, totalLenOfOneVertex:number):void
-	{
+	public createVertexData(numVertices: number, totalLenOfOneVertex: number): void {
 		this._numVertices = numVertices;
 		this._totalLenOfOneVertex = totalLenOfOneVertex;
-		this._pVertexData = new Float32Array(numVertices*totalLenOfOneVertex);
+		this._pVertexData = new Float32Array(numVertices * totalLenOfOneVertex);
 	}
 
-	public activateVertexBuffer(index:number, bufferOffset:number, stage:Stage, format:number):void
-	{
-		var contextIndex:number = stage.stageIndex;
-		var context:IContextGL = <IContextGL> stage.context;
+	public activateVertexBuffer(index: number, bufferOffset: number, stage: Stage, format: number): void {
+		const contextIndex: number = stage.stageIndex;
+		const context: IContextGL = <IContextGL> stage.context;
 
-		var buffer:IVertexBuffer = this._pVertexBuffer[contextIndex];
+		let buffer: IVertexBuffer = this._pVertexBuffer[contextIndex];
 		if (!buffer || this._pBufferContext[contextIndex] != context) {
-			buffer = this._pVertexBuffer[contextIndex] = context.createVertexBuffer(this._numVertices, this._totalLenOfOneVertex*4);
+			buffer = this._pVertexBuffer[contextIndex] = context.createVertexBuffer(this._numVertices, this._totalLenOfOneVertex * 4);
 			this._pBufferContext[contextIndex] = context;
 			this._pBufferDirty[contextIndex] = true;
 		}
@@ -62,37 +58,32 @@ export class AnimationElements
 			buffer.uploadFromArray(this._pVertexData, 0, this._numVertices);
 			this._pBufferDirty[contextIndex] = false;
 		}
-		context.setVertexBufferAt(index, buffer, bufferOffset*4, format);
+		context.setVertexBufferAt(index, buffer, bufferOffset * 4, format);
 	}
 
-	public dispose():void
-	{
+	public dispose(): void {
 		while (this._pVertexBuffer.length) {
-			var vertexBuffer:IVertexBuffer = this._pVertexBuffer.pop()
+			const vertexBuffer: IVertexBuffer = this._pVertexBuffer.pop();
 
 			if (vertexBuffer)
 				vertexBuffer.dispose();
 		}
 	}
 
-	public invalidateBuffer():void
-	{
-		for (var i:number = 0; i < 8; i++)
+	public invalidateBuffer(): void {
+		for (let i: number = 0; i < 8; i++)
 			this._pBufferDirty[i] = true;
 	}
 
-	public get vertexData():Float32Array
-	{
+	public get vertexData(): Float32Array {
 		return this._pVertexData;
 	}
 
-	public get numVertices():number
-	{
+	public get numVertices(): number {
 		return this._numVertices;
 	}
 
-	public get totalLenOfOneVertex():number
-	{
+	public get totalLenOfOneVertex(): number {
 		return this._totalLenOfOneVertex;
 	}
 }

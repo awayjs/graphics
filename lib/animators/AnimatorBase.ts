@@ -1,14 +1,14 @@
-import {Vector3D, AssetBase, AbstractMethodError, RequestAnimationFrame, ProjectionBase, getTimer} from "@awayjs/core";
+import { Vector3D, AssetBase, AbstractMethodError, RequestAnimationFrame, ProjectionBase, getTimer } from '@awayjs/core';
 
-import {Stage} from "@awayjs/stage";
+import { Stage } from '@awayjs/stage';
 
-import {ShaderBase, IAnimator, AnimationNodeBase, IRenderEntity, _Render_RenderableBase, IElements} from "@awayjs/renderer";
+import { ShaderBase, IAnimator, AnimationNodeBase, IRenderEntity, _Render_RenderableBase, IElements } from '@awayjs/renderer';
 
-import {AnimatorEvent} from "../events/AnimatorEvent";
+import { AnimatorEvent } from '../events/AnimatorEvent';
 
-import {IAnimationState} from "./states/IAnimationState";
+import { IAnimationState } from './states/IAnimationState';
 
-import {AnimationSetBase} from "./AnimationSetBase";
+import { AnimationSetBase } from './AnimationSetBase';
 
 /**
  * Dispatched when playback of an animation inside the animator object starts.
@@ -36,39 +36,37 @@ import {AnimationSetBase} from "./AnimationSetBase";
  *
  * @see away.animators.AnimationSetBase
  */
-export class AnimatorBase extends AssetBase implements IAnimator
-{
-	public static assetType:string = "[asset Animator]";
+export class AnimatorBase extends AssetBase implements IAnimator {
+	public static assetType: string = '[asset Animator]';
 
-	private _broadcaster:RequestAnimationFrame;
-	private _isPlaying:boolean;
-	private _autoUpdate:boolean = true;
-	private _startEvent:AnimatorEvent;
-	private _stopEvent:AnimatorEvent;
-	private _cycleEvent:AnimatorEvent;
-	private _time:number = 0;
-	private _playbackSpeed:number = 1;
+	private _broadcaster: RequestAnimationFrame;
+	private _isPlaying: boolean;
+	private _autoUpdate: boolean = true;
+	private _startEvent: AnimatorEvent;
+	private _stopEvent: AnimatorEvent;
+	private _cycleEvent: AnimatorEvent;
+	private _time: number = 0;
+	private _playbackSpeed: number = 1;
 
-	public _pAnimationSet:AnimationSetBase;
-	public _pOwners:Array<IRenderEntity> = new Array<IRenderEntity>();
-	public _pActiveNode:AnimationNodeBase;
-	public _pActiveState:IAnimationState;
-	public _pActiveAnimationName:string;
-	public _pAbsoluteTime:number = 0;
+	public _pAnimationSet: AnimationSetBase;
+	public _pOwners: Array<IRenderEntity> = new Array<IRenderEntity>();
+	public _pActiveNode: AnimationNodeBase;
+	public _pActiveState: IAnimationState;
+	public _pActiveAnimationName: string;
+	public _pAbsoluteTime: number = 0;
 
-	private _animationStates:Object = new Object();
+	private _animationStates: Object = new Object();
 
 	/**
 	 * Enables translation of the animated graphics from data returned per frame via the positionDelta property of the active animation node. Defaults to true.
 	 *
 	 * @see away.animators.IAnimationState#positionDelta
 	 */
-	public updatePosition:boolean = true;
+	public updatePosition: boolean = true;
 
-	public getAnimationState(node:AnimationNodeBase):IAnimationState
-	{
-		var className:any = node.stateClass;
-		var uID:number = node.id;
+	public getAnimationState(node: AnimationNodeBase): IAnimationState {
+		const className: any = node.stateClass;
+		const uID: number = node.id;
 
 		if (this._animationStates[uID] == null)
 			this._animationStates[uID] = new className(this, node);
@@ -76,8 +74,7 @@ export class AnimatorBase extends AssetBase implements IAnimator
 		return this._animationStates[uID];
 	}
 
-	public getAnimationStateByName(name:string):IAnimationState
-	{
+	public getAnimationStateByName(name: string): IAnimationState {
 		return this.getAnimationState(this._pAnimationSet.getAnimation(name));
 	}
 
@@ -87,40 +84,35 @@ export class AnimatorBase extends AssetBase implements IAnimator
 	 * @see #time
 	 * @see #playbackSpeed
 	 */
-	public get absoluteTime():number
-	{
+	public get absoluteTime(): number {
 		return this._pAbsoluteTime;
 	}
 
 	/**
 	 * Returns the animation data set in use by the animator.
 	 */
-	public get animationSet():AnimationSetBase
-	{
+	public get animationSet(): AnimationSetBase {
 		return this._pAnimationSet;
 	}
 
 	/**
 	 * Returns the current active animation state.
 	 */
-	public get activeState():IAnimationState
-	{
+	public get activeState(): IAnimationState {
 		return this._pActiveState;
 	}
 
 	/**
 	 * Returns the current active animation node.
 	 */
-	public get activeAnimation():AnimationNodeBase
-	{
+	public get activeAnimation(): AnimationNodeBase {
 		return this._pAnimationSet.getAnimation(this._pActiveAnimationName);
 	}
 
 	/**
 	 * Returns the current active animation node.
 	 */
-	public get activeAnimationName():string
-	{
+	public get activeAnimationName(): string {
 		return this._pActiveAnimationName;
 	}
 
@@ -132,13 +124,11 @@ export class AnimatorBase extends AssetBase implements IAnimator
 	 * @see #time
 	 * @see #update()
 	 */
-	public get autoUpdate():boolean
-	{
+	public get autoUpdate(): boolean {
 		return this._autoUpdate;
 	}
 
-	public set autoUpdate(value:boolean)
-	{
+	public set autoUpdate(value: boolean) {
 		if (this._autoUpdate == value)
 			return;
 
@@ -152,13 +142,11 @@ export class AnimatorBase extends AssetBase implements IAnimator
 	/**
 	 * Gets and sets the internal time clock of the animator.
 	 */
-	public get time():number
-	{
+	public get time(): number {
 		return this._time;
 	}
 
-	public set time(value:number)
-	{
+	public set time(value: number) {
 		if (this._time == value)
 			return;
 
@@ -170,8 +158,7 @@ export class AnimatorBase extends AssetBase implements IAnimator
 	 *
 	 * @param value The phase value to use. 0 represents the beginning of an animation clip, 1 represents the end.
 	 */
-	public phase(value:number):void
-	{
+	public phase(value: number): void {
 		this._pActiveState.phase(value);
 	}
 
@@ -180,8 +167,7 @@ export class AnimatorBase extends AssetBase implements IAnimator
 	 *
 	 * @param animationSet The animation data set to be used by the animator object.
 	 */
-	constructor(animationSet:AnimationSetBase)
-	{
+	constructor(animationSet: AnimationSetBase) {
 		super();
 
 		this._pAnimationSet = animationSet;
@@ -192,26 +178,22 @@ export class AnimatorBase extends AssetBase implements IAnimator
 	/**
 	 * The amount by which passed time should be scaled. Used to slow down or speed up animations. Defaults to 1.
 	 */
-	public get playbackSpeed():number
-	{
+	public get playbackSpeed(): number {
 		return this._playbackSpeed;
 	}
 
-	public set playbackSpeed(value:number)
-	{
+	public set playbackSpeed(value: number) {
 		this._playbackSpeed = value;
 	}
 
-	public setRenderState(shader:ShaderBase, renderable:_Render_RenderableBase):void
-	{
+	public setRenderState(shader: ShaderBase, renderable: _Render_RenderableBase): void {
 		throw new AbstractMethodError();
 	}
 
 	/**
 	 * Resumes the automatic playback clock controling the active state of the animator.
 	 */
-	public start():void
-	{
+	public start(): void {
 		if (this._isPlaying || !this._autoUpdate)
 			return;
 
@@ -237,8 +219,7 @@ export class AnimatorBase extends AssetBase implements IAnimator
 	 * @see #time
 	 * @see #update()
 	 */
-	public stop():void
-	{
+	public stop(): void {
 		if (!this._isPlaying)
 			return;
 
@@ -262,17 +243,15 @@ export class AnimatorBase extends AssetBase implements IAnimator
 	 * @see #stop()
 	 * @see #autoUpdate
 	 */
-	public update(time:number):void
-	{
-		var dt:number = (time - this._time)*this.playbackSpeed;
+	public update(time: number): void {
+		const dt: number = (time - this._time) * this.playbackSpeed;
 
 		this._pUpdateDeltaTime(dt);
 
 		this._time = time;
 	}
 
-	public reset(name:string, offset:number = 0):void
-	{
+	public reset(name: string, offset: number = 0): void {
 		this.getAnimationState(this._pAnimationSet.getAnimation(name)).offset(offset + this._pAbsoluteTime);
 	}
 
@@ -281,8 +260,7 @@ export class AnimatorBase extends AssetBase implements IAnimator
 	 *
 	 * @private
 	 */
-	public addOwner(entity:IRenderEntity):void
-	{
+	public addOwner(entity: IRenderEntity): void {
 		this._pOwners.push(entity);
 	}
 
@@ -291,8 +269,7 @@ export class AnimatorBase extends AssetBase implements IAnimator
 	 *
 	 * @private
 	 */
-	public removeOwner(entity:IRenderEntity):void
-	{
+	public removeOwner(entity: IRenderEntity): void {
 		this._pOwners.splice(this._pOwners.indexOf(entity), 1);
 	}
 
@@ -301,8 +278,7 @@ export class AnimatorBase extends AssetBase implements IAnimator
 	 *
 	 * @private
 	 */
-	public _pUpdateDeltaTime(dt:number):void
-	{
+	public _pUpdateDeltaTime(dt: number): void {
 		this._pAbsoluteTime += dt;
 
 		this._pActiveState.update(this._pAbsoluteTime);
@@ -314,19 +290,17 @@ export class AnimatorBase extends AssetBase implements IAnimator
 	/**
 	 * Enter frame event handler for automatically updating the active state of the animator.
 	 */
-	private onEnterFrame(event:Event = null):void
-	{
+	private onEnterFrame(event: Event = null): void {
 		this.update(getTimer());
 	}
 
-	private applyPositionDelta():void
-	{
-		var delta:Vector3D = this._pActiveState.positionDelta;
-		var dist:number = delta.length;
-		var len:number;
+	private applyPositionDelta(): void {
+		const delta: Vector3D = this._pActiveState.positionDelta;
+		const dist: number = delta.length;
+		let len: number;
 		if (dist > 0) {
 			len = this._pOwners.length;
-			for (var i:number = 0; i < len; ++i)
+			for (let i: number = 0; i < len; ++i)
 				this._pOwners[i].transform.translateLocal(delta, dist);
 		}
 	}
@@ -336,8 +310,7 @@ export class AnimatorBase extends AssetBase implements IAnimator
 	 *
 	 * @private
 	 */
-	public dispatchCycleEvent():void
-	{
+	public dispatchCycleEvent(): void {
 		if (this.hasEventListener(AnimatorEvent.CYCLE_COMPLETE)) {
 			if (this._cycleEvent == null)
 				this._cycleEvent = new AnimatorEvent(AnimatorEvent.CYCLE_COMPLETE, this);
@@ -349,48 +322,40 @@ export class AnimatorBase extends AssetBase implements IAnimator
 	/**
 	 * @inheritDoc
 	 */
-	public clone():AnimatorBase
-	{
+	public clone(): AnimatorBase {
 		throw new AbstractMethodError();
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public dispose():void
-	{
+	public dispose(): void {
 	}
 
-
-	public invalidateElements():void
-	{
-		var entity:IRenderEntity;
-		var len:number = this._pOwners.length;
-		for (var i:number = 0; i < len; i++) {
+	public invalidateElements(): void {
+		let entity: IRenderEntity;
+		const len: number = this._pOwners.length;
+		for (let i: number = 0; i < len; i++) {
 			entity = this._pOwners[i];
 			entity.invalidateElements();
 		}
 	}
-	
+
 	/**
 	 * @inheritDoc
 	 */
-	public testGPUCompatibility(shader:ShaderBase):void
-	{
+	public testGPUCompatibility(shader: ShaderBase): void {
 		throw new AbstractMethodError();
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public get assetType():string
-	{
+	public get assetType(): string {
 		return AnimatorBase.assetType;
 	}
 
-
-	public getRenderableElements(renderable:_Render_RenderableBase, sourceElements:IElements):IElements
-	{
+	public getRenderableElements(renderable: _Render_RenderableBase, sourceElements: IElements): IElements {
 		//nothing to do here
 		return sourceElements;
 	}

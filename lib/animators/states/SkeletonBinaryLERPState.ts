@@ -1,26 +1,25 @@
-import {Vector3D} from "@awayjs/core";
+import { Vector3D } from '@awayjs/core';
 
-import {JointPose} from "../data/JointPose";
-import {Skeleton} from "../data/Skeleton";
-import {SkeletonPose} from "../data/SkeletonPose";
-import {SkeletonBinaryLERPNode} from "../nodes/SkeletonBinaryLERPNode";
+import { JointPose } from '../data/JointPose';
+import { Skeleton } from '../data/Skeleton';
+import { SkeletonPose } from '../data/SkeletonPose';
+import { SkeletonBinaryLERPNode } from '../nodes/SkeletonBinaryLERPNode';
 
-import {AnimationStateBase} from "./AnimationStateBase";
-import {ISkeletonAnimationState} from "./ISkeletonAnimationState";
+import { AnimationStateBase } from './AnimationStateBase';
+import { ISkeletonAnimationState } from './ISkeletonAnimationState';
 
-import {AnimatorBase} from "../AnimatorBase";
+import { AnimatorBase } from '../AnimatorBase';
 
 /**
  *
  */
-export class SkeletonBinaryLERPState extends AnimationStateBase implements ISkeletonAnimationState
-{
-	private _blendWeight:number = 0;
-	private _skeletonAnimationNode:SkeletonBinaryLERPNode;
-	private _skeletonPose:SkeletonPose = new SkeletonPose();
-	private _skeletonPoseDirty:boolean = true;
-	private _inputA:ISkeletonAnimationState;
-	private _inputB:ISkeletonAnimationState;
+export class SkeletonBinaryLERPState extends AnimationStateBase implements ISkeletonAnimationState {
+	private _blendWeight: number = 0;
+	private _skeletonAnimationNode: SkeletonBinaryLERPNode;
+	private _skeletonPose: SkeletonPose = new SkeletonPose();
+	private _skeletonPoseDirty: boolean = true;
+	private _inputA: ISkeletonAnimationState;
+	private _inputB: ISkeletonAnimationState;
 
 	/**
 	 * Defines a fractional value between 0 and 1 representing the blending ratio between inputA (0) and inputB (1),
@@ -29,21 +28,18 @@ export class SkeletonBinaryLERPState extends AnimationStateBase implements ISkel
 	 * @see inputA
 	 * @see inputB
 	 */
-	public get blendWeight():number
-	{
+	public get blendWeight(): number {
 		return this._blendWeight;
 	}
 
-	public set blendWeight(value:number)
-	{
+	public set blendWeight(value: number) {
 		this._blendWeight = value;
 
 		this._pPositionDeltaDirty = true;
 		this._skeletonPoseDirty = true;
 	}
 
-	constructor(animator:AnimatorBase, skeletonAnimationNode:SkeletonBinaryLERPNode)
-	{
+	constructor(animator: AnimatorBase, skeletonAnimationNode: SkeletonBinaryLERPNode) {
 		super(animator, skeletonAnimationNode);
 
 		this._skeletonAnimationNode = skeletonAnimationNode;
@@ -55,8 +51,7 @@ export class SkeletonBinaryLERPState extends AnimationStateBase implements ISkel
 	/**
 	 * @inheritDoc
 	 */
-	public phase(value:number):void
-	{
+	public phase(value: number): void {
 		this._skeletonPoseDirty = true;
 
 		this._pPositionDeltaDirty = true;
@@ -68,8 +63,7 @@ export class SkeletonBinaryLERPState extends AnimationStateBase implements ISkel
 	/**
 	 * @inheritDoc
 	 */
-	public _pUpdateTime(time:number):void
-	{
+	public _pUpdateTime(time: number): void {
 		this._skeletonPoseDirty = true;
 
 		this._inputA.update(time);
@@ -81,8 +75,7 @@ export class SkeletonBinaryLERPState extends AnimationStateBase implements ISkel
 	/**
 	 * Returns the current skeleton pose of the animation in the clip based on the internal playhead position.
 	 */
-	public getSkeletonPose(skeleton:Skeleton):SkeletonPose
-	{
+	public getSkeletonPose(skeleton: Skeleton): SkeletonPose {
 		if (this._skeletonPoseDirty)
 			this.updateSkeletonPose(skeleton);
 
@@ -92,16 +85,15 @@ export class SkeletonBinaryLERPState extends AnimationStateBase implements ISkel
 	/**
 	 * @inheritDoc
 	 */
-	public _pUpdatePositionDelta():void
-	{
+	public _pUpdatePositionDelta(): void {
 		this._pPositionDeltaDirty = false;
 
-		var deltA:Vector3D = this._inputA.positionDelta;
-		var deltB:Vector3D = this._inputB.positionDelta;
+		const deltA: Vector3D = this._inputA.positionDelta;
+		const deltB: Vector3D = this._inputB.positionDelta;
 
-		this._pRootDelta.x = deltA.x + this._blendWeight*(deltB.x - deltA.x);
-		this._pRootDelta.y = deltA.y + this._blendWeight*(deltB.y - deltA.y);
-		this._pRootDelta.z = deltA.z + this._blendWeight*(deltB.z - deltA.z);
+		this._pRootDelta.x = deltA.x + this._blendWeight * (deltB.x - deltA.x);
+		this._pRootDelta.y = deltA.y + this._blendWeight * (deltB.y - deltA.y);
+		this._pRootDelta.z = deltA.z + this._blendWeight * (deltB.z - deltA.z);
 	}
 
 	/**
@@ -109,24 +101,23 @@ export class SkeletonBinaryLERPState extends AnimationStateBase implements ISkel
 	 *
 	 * @param skeleton The skeleton used by the animator requesting the ouput pose.
 	 */
-	private updateSkeletonPose(skeleton:Skeleton):void
-	{
+	private updateSkeletonPose(skeleton: Skeleton): void {
 		this._skeletonPoseDirty = false;
 
-		var endPose:JointPose;
-		var endPoses:Array<JointPose> = this._skeletonPose.jointPoses;
-		var poses1:Array<JointPose> = this._inputA.getSkeletonPose(skeleton).jointPoses;
-		var poses2:Array<JointPose> = this._inputB.getSkeletonPose(skeleton).jointPoses;
-		var pose1:JointPose, pose2:JointPose;
-		var p1:Vector3D, p2:Vector3D;
-		var tr:Vector3D;
-		var numJoints:number = skeleton.numJoints;
+		let endPose: JointPose;
+		const endPoses: Array<JointPose> = this._skeletonPose.jointPoses;
+		const poses1: Array<JointPose> = this._inputA.getSkeletonPose(skeleton).jointPoses;
+		const poses2: Array<JointPose> = this._inputB.getSkeletonPose(skeleton).jointPoses;
+		let pose1: JointPose, pose2: JointPose;
+		let p1: Vector3D, p2: Vector3D;
+		let tr: Vector3D;
+		const numJoints: number = skeleton.numJoints;
 
 		// :s
 		if (endPoses.length != numJoints)
 			endPoses.length = numJoints;
 
-		for (var i:number = 0; i < numJoints; ++i) {
+		for (let i: number = 0; i < numJoints; ++i) {
 			endPose = endPoses[i];
 
 			if (endPose == null)
@@ -140,9 +131,9 @@ export class SkeletonBinaryLERPState extends AnimationStateBase implements ISkel
 			endPose.orientation.lerp(pose1.orientation, pose2.orientation, this._blendWeight);
 
 			tr = endPose.translation;
-			tr.x = p1.x + this._blendWeight*(p2.x - p1.x);
-			tr.y = p1.y + this._blendWeight*(p2.y - p1.y);
-			tr.z = p1.z + this._blendWeight*(p2.z - p1.z);
+			tr.x = p1.x + this._blendWeight * (p2.x - p1.x);
+			tr.y = p1.y + this._blendWeight * (p2.y - p1.y);
+			tr.z = p1.z + this._blendWeight * (p2.z - p1.z);
 		}
 	}
 }

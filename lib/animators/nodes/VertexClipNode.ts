@@ -1,32 +1,29 @@
-import {Vector3D} from "@awayjs/core";
+import { Vector3D } from '@awayjs/core';
 
 import { ElementsBase } from '../../elements/ElementsBase';
 
-import {VertexClipState} from "../states/VertexClipState";
+import { VertexClipState } from '../states/VertexClipState';
 
-import {AnimationClipNodeBase} from "./AnimationClipNodeBase";
+import { AnimationClipNodeBase } from './AnimationClipNodeBase';
 
 /**
  * A vertex animation node containing time-based animation data as individual geometry obejcts.
  */
-export class VertexClipNode extends AnimationClipNodeBase
-{
-	private _frames:Array<ElementsBase> = new Array<ElementsBase>();
-	private _translations:Array<Vector3D> = new Array<Vector3D>();
+export class VertexClipNode extends AnimationClipNodeBase {
+	private _frames: Array<ElementsBase> = new Array<ElementsBase>();
+	private _translations: Array<Vector3D> = new Array<Vector3D>();
 
 	/**
 	 * Returns a vector of geometry frames representing the vertex values of each animation frame in the clip.
 	 */
-	public get frames():Array<ElementsBase>
-	{
+	public get frames(): Array<ElementsBase> {
 		return this._frames;
 	}
 
 	/**
 	 * Creates a new <code>VertexClipNode</code> object.
 	 */
-	constructor()
-	{
+	constructor() {
 		super();
 
 		this._pStateClass = VertexClipState;
@@ -39,8 +36,7 @@ export class VertexClipNode extends AnimationClipNodeBase
 	 * @param duration The specified duration of the frame in milliseconds.
 	 * @param translation The absolute translation of the frame, used in root delta calculations for sprite movement.
 	 */
-	public addFrame(elements:ElementsBase, duration:number, translation:Vector3D = null):void
-	{
+	public addFrame(elements: ElementsBase, duration: number, translation: Vector3D = null): void {
 		this._frames.push(elements);
 		this._pDurations.push(duration);
 		this._translations.push(translation || new Vector3D());
@@ -53,12 +49,11 @@ export class VertexClipNode extends AnimationClipNodeBase
 	/**
 	 * @inheritDoc
 	 */
-	public _pUpdateStitch():void
-	{
+	public _pUpdateStitch(): void {
 		super._pUpdateStitch();
 
-		var i:number = this._pNumFrames - 1;
-		var p1:Vector3D, p2:Vector3D, delta:Vector3D;
+		let i: number = this._pNumFrames - 1;
+		let p1: Vector3D, p2: Vector3D, delta: Vector3D;
 		while (i--) {
 			this._pTotalDuration += this._pDurations[i];
 			p1 = this._translations[i];

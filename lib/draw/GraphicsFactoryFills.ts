@@ -1,4 +1,4 @@
-import { Point, MathConsts, Rectangle, Matrix } from "@awayjs/core";
+import { Point, MathConsts, Rectangle, Matrix } from '@awayjs/core';
 
 import {
 	ImageSampler,
@@ -8,24 +8,24 @@ import {
 	Float3Attributes,
 	Float2Attributes,
 	ImageUtils,
-} from "@awayjs/stage";
+} from '@awayjs/stage';
 
-import { ITexture, MappingMode, IMaterial, Style } from "@awayjs/renderer";
+import { ITexture, MappingMode, IMaterial, Style } from '@awayjs/renderer';
 
-import { TriangleElements } from "../elements/TriangleElements";
-import { Shape } from "../renderables/Shape";
+import { TriangleElements } from '../elements/TriangleElements';
+import { Shape } from '../renderables/Shape';
 
-import { GraphicsFillStyle } from "./GraphicsFillStyle";
-import { GradientFillStyle } from "./GradientFillStyle";
-import { BitmapFillStyle } from "./BitmapFillStyle";
-import { GradientType } from "./GradientType";
-import { GraphicsFactoryHelper } from "./GraphicsFactoryHelper";
-import { GraphicsPath } from "./GraphicsPath";
-import { GraphicsPathCommand } from "./GraphicsPathCommand";
+import { GraphicsFillStyle } from './GraphicsFillStyle';
+import { GradientFillStyle } from './GradientFillStyle';
+import { BitmapFillStyle } from './BitmapFillStyle';
+import { GradientType } from './GradientType';
+import { GraphicsFactoryHelper } from './GraphicsFactoryHelper';
+import { GraphicsPath } from './GraphicsPath';
+import { GraphicsPathCommand } from './GraphicsPathCommand';
 
-import { Graphics } from "../Graphics";
+import { Graphics } from '../Graphics';
 
-import Tess2 from "tess2";
+import Tess2 from 'tess2';
 import { MaterialManager } from '../managers/MaterialManager';
 
 /**
@@ -53,16 +53,16 @@ export class GraphicsFactoryFills {
 	public static EPS = 1.0 / FIXED_BASE;
 
 	public static toFixed(val: number) {
-		return (val * FIXED_BASE | 0) / FIXED_BASE
+		return (val * FIXED_BASE | 0) / FIXED_BASE;
 	}
 
 	public static nearest(x0: number, y0: number, x1: number, y1: number) {
 		let dx = (x0 - x1);
-			(dx < 0) && (dx = -dx);
+		(dx < 0) && (dx = -dx);
 
 		let dy = (y0 - y1);
-			(dy < 0) && (dy = -dy);
-		
+		(dy < 0) && (dy = -dy);
+
 		return (dx + dy) < this.EPS;
 	}
 
@@ -71,23 +71,22 @@ export class GraphicsFactoryFills {
 		const pathes = targetGraphics.queued_fill_pathes;
 		const len = pathes.length;
 
-		for (let cp = 0; cp < len; cp++) 
-		{
+		for (let cp = 0; cp < len; cp++) {
 			const path = pathes[cp];
 			const pathStyle = path.style;
 
-			// there are a bug with shapes 
+			// there are a bug with shapes
 			let shape = targetGraphics.popEmptyFillShape();
-			let elements = shape ? <TriangleElements>shape.elements: null;
+			let elements = shape ? <TriangleElements>shape.elements : null;
 
 			const target = elements ? elements.concatenatedBuffer : null;
 			const newBuffer = this.pathToAttributesBuffer(path, false, target);
-			
-			if(!newBuffer || !newBuffer.length) {
+
+			if (!newBuffer || !newBuffer.length) {
 				continue;
 			}
 
-			if(!elements) {
+			if (!elements) {
 				elements = new TriangleElements(newBuffer);
 				elements.setPositions(new Float2Attributes(newBuffer));
 			} else {
@@ -101,9 +100,9 @@ export class GraphicsFactoryFills {
 			let material: IMaterial;
 			let sampler: ImageSampler = new ImageSampler();
 			let style: Style = new Style();
-		
-			switch(pathStyle.data_type) {	
-				case GraphicsFillStyle.data_type: 
+
+			switch (pathStyle.data_type) {
+				case GraphicsFillStyle.data_type:
 				{
 					const obj = MaterialManager.get_material_for_color(
 						(<GraphicsFillStyle>pathStyle).color,
@@ -122,7 +121,7 @@ export class GraphicsFactoryFills {
 					}
 					break;
 				}
-				case GradientFillStyle.data_type: 
+				case GradientFillStyle.data_type:
 				{
 					const gradientStyle = <GradientFillStyle>(pathStyle);
 					const obj = MaterialManager.get_material_for_gradient(gradientStyle);
@@ -142,10 +141,10 @@ export class GraphicsFactoryFills {
 					}
 					break;
 				}
-				case BitmapFillStyle.data_type: 
+				case BitmapFillStyle.data_type:
 				{
 					const bitmapStyle = <BitmapFillStyle>pathStyle;
-					
+
 					material = bitmapStyle.material; //new ITexture(ImageUtils.getDefaultImage2D());//bitmapStyle.texture;
 					//sampler.smooth = true;
 					sampler.repeat = bitmapStyle.repeat;
@@ -168,22 +167,21 @@ export class GraphicsFactoryFills {
 		//targetGraphics.queued_fill_pathes.length = 0;
 	}
 
-	private static _prepareContours(graphicsPath: GraphicsPath, applyFix: boolean = false): number[][]
-	{
+	private static _prepareContours(graphicsPath: GraphicsPath, applyFix: boolean = false): number[][] {
 		graphicsPath.prepare();
 
 		const contours: number[][] = graphicsPath._positions;
 		const finalContours: number[][] = [];
 
 		for (let k = 0; k < contours.length; k++) {
-			
+
 			const contour = contours[k];
 
-			// same as map, but without allocation 
+			// same as map, but without allocation
 
 			const closed = this.nearest(
-					contour[0], contour[1], 
-					contour[contour.length - 2], contour[contour.length - 1]);
+				contour[0], contour[1],
+				contour[contour.length - 2], contour[contour.length - 1]);
 
 			// make sure start and end point of a contour are not the same
 			if (closed) {
@@ -197,15 +195,13 @@ export class GraphicsFactoryFills {
 
 			if (contour.length >= 6) {
 
-				if(applyFix) 
-				{
+				if (applyFix) {
 					// tess2 fix
 					// there are problems with small shapes
-					// encrease a size 
+					// encrease a size
 					const fixed = new Array(contour.length);
 
-					for(let i = 0, l = contour.length; i < l; i ++ ) 
-					{
+					for (let i = 0, l = contour.length; i < l; i++) {
 						fixed[i] = this.toFixed(contour[i] * this.TESS_SCALE);
 					}
 
@@ -220,11 +216,10 @@ export class GraphicsFactoryFills {
 	}
 
 	public static pathToAttributesBuffer(
-			graphicsPath: GraphicsPath, 
-			closePath: boolean = true, 
-			target: AttributesBuffer = null): AttributesBuffer 
-	{
-		
+		graphicsPath: GraphicsPath,
+		closePath: boolean = true,
+		target: AttributesBuffer = null): AttributesBuffer {
+
 		const finalContours = this._prepareContours(graphicsPath, this.USE_TESS_FIX);
 
 		//console.log("execute Tess2 = ", finalContours);
@@ -248,9 +243,9 @@ export class GraphicsFactoryFills {
 				resultVertexSize += tesselatedVertexSize;
 			} catch (e) {
 				res = null;
-				console.log("error when trying to tesselate", finalContours);
+				console.log('error when trying to tesselate', finalContours);
 			}
-		}	
+		}
 
 		// drop when nothing exist
 		if (resultVertexSize === 0) {
@@ -263,7 +258,7 @@ export class GraphicsFactoryFills {
 			target = new AttributesBuffer(Float32Array.BYTES_PER_ELEMENT * vertexSize, (resultVertexSize / vertexSize) | 0);
 		}
 		// resize is safe, it not rebuild buffer when count is same.
-		// count - count of 2 dimension vertex, divide on 2 
+		// count - count of 2 dimension vertex, divide on 2
 		target.count = (resultVertexSize / vertexSize) | 0;
 
 		// fill direct to Float32Array
@@ -274,14 +269,14 @@ export class GraphicsFactoryFills {
 			const numElems = res.elements.length;
 			const scale = this.USE_TESS_FIX ? (1 / this.TESS_SCALE) : 1;
 
-			let vindex = 0; 
+			let vindex = 0;
 			let p1x = 0;
 			let p1y = 0;
 			let p2x = 0;
 			let p2y = 0;
 			let p3x = 0;
 			let p3y = 0;
-			
+
 			for (let i = 0; i < numElems; i += 3) {
 				p1x = scale * res.vertices[res.elements[i + 0] * 2 + 0];
 				p1y = scale * res.vertices[res.elements[i + 0] * 2 + 1];
@@ -311,10 +306,10 @@ export class GraphicsFactoryFills {
 		// merge poly vertex
 		const vs = graphicsPath.verts.length;
 
-		for(let i = 0; i < vs; i ++) {
-			finalVerts [tesselatedVertexSize + i] = graphicsPath.verts[i]; 
+		for (let i = 0; i < vs; i++) {
+			finalVerts [tesselatedVertexSize + i] = graphicsPath.verts[i];
 		}
-	
+
 		return target;
 	}
 }

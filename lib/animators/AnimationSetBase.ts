@@ -1,27 +1,25 @@
-import {IAsset, AssetBase, AbstractMethodError} from "@awayjs/core";
+import { IAsset, AssetBase, AbstractMethodError } from '@awayjs/core';
 
-import {ShaderRegisterElement, ShaderRegisterCache, ShaderRegisterData} from "@awayjs/stage";
+import { ShaderRegisterElement, ShaderRegisterCache, ShaderRegisterData } from '@awayjs/stage';
 
-import {ShaderBase, AnimationNodeBase} from "@awayjs/renderer";
+import { ShaderBase, AnimationNodeBase } from '@awayjs/renderer';
 
-import {AnimationSetError} from "../errors/AnimationSetError";
+import { AnimationSetError } from '../errors/AnimationSetError';
 
 /**
  * Provides an abstract base class for data set classes that hold animation data for use in animator classes.
  *
  * @see away.animators.AnimatorBase
  */
-export class AnimationSetBase extends AssetBase implements IAsset
-{
-	public static assetType:string = "[asset AnimationSet]";
+export class AnimationSetBase extends AssetBase implements IAsset {
+	public static assetType: string = '[asset AnimationSet]';
 
-	private _usesCPU:boolean;
-	private _animations:Array<AnimationNodeBase> = new Array<AnimationNodeBase>();
-	private _animationNames:Array<string> = new Array<string>();
-	private _animationDictionary:Object = new Object();
+	private _usesCPU: boolean;
+	private _animations: Array<AnimationNodeBase> = new Array<AnimationNodeBase>();
+	private _animationNames: Array<string> = new Array<string>();
+	private _animationDictionary: Object = new Object();
 
-	constructor()
-	{
+	constructor() {
 		super();
 	}
 
@@ -32,13 +30,12 @@ export class AnimationSetBase extends AssetBase implements IAsset
 	 * @param excludeAnother An additional register that's not free.
 	 * @return A temporary register that can be used.
 	 */
-	public _pFindTempReg(exclude:Array<string>, excludeAnother:string = null):string
-	{
-		var i:number = 0;
-		var reg:string;
+	public _pFindTempReg(exclude: Array<string>, excludeAnother: string = null): string {
+		let i: number = 0;
+		let reg: string;
 
 		while (true) {
-			reg = "vt" + i;
+			reg = 'vt' + i;
 			if (exclude.indexOf(reg) == -1 && excludeAnother != reg)
 				return reg;
 			++i;
@@ -50,8 +47,7 @@ export class AnimationSetBase extends AssetBase implements IAsset
 	 * the vertex registers already in use on shading materials allows the animation data to utilise
 	 * GPU calls.
 	 */
-	public get usesCPU():boolean
-	{
+	public get usesCPU(): boolean {
 		return this._usesCPU;
 	}
 
@@ -61,70 +57,60 @@ export class AnimationSetBase extends AssetBase implements IAsset
 	 *
 	 * @private
 	 */
-	public resetGPUCompatibility():void
-	{
+	public resetGPUCompatibility(): void {
 		this._usesCPU = false;
 	}
 
-	public cancelGPUCompatibility():void
-	{
+	public cancelGPUCompatibility(): void {
 		this._usesCPU = true;
 	}
 
-
 	/**
 	 * @inheritDoc
 	 */
-	public getAGALVertexCode(shader:ShaderBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
-	{
+	public getAGALVertexCode(shader: ShaderBase, registerCache: ShaderRegisterCache, sharedRegisters: ShaderRegisterData): string {
 		throw new AbstractMethodError();
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public getAGALFragmentCode(shader:ShaderBase, registerCache:ShaderRegisterCache, shadedTarget:ShaderRegisterElement):string
-	{
+	public getAGALFragmentCode(shader: ShaderBase, registerCache: ShaderRegisterCache, shadedTarget: ShaderRegisterElement): string {
 		throw new AbstractMethodError();
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public getAGALUVCode(shader:ShaderBase, registerCache:ShaderRegisterCache, sharedRegisters:ShaderRegisterData):string
-	{
+	public getAGALUVCode(shader: ShaderBase, registerCache: ShaderRegisterCache, sharedRegisters: ShaderRegisterData): string {
 		throw new AbstractMethodError();
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public doneAGALCode(shader:ShaderBase):void
-	{
+	public doneAGALCode(shader: ShaderBase): void {
 		throw new AbstractMethodError();
 	}
 
 	/**
 	 * @inheritDoc
 	 */
-	public get assetType():string
-	{
+	public get assetType(): string {
 		return AnimationSetBase.assetType;
 	}
 
 	/**
 	 * Returns a vector of animation state objects that make up the contents of the animation data set.
 	 */
-	public get animations():Array<AnimationNodeBase>
-	{
+	public get animations(): Array<AnimationNodeBase> {
 		return this._animations;
 	}
 
 	/**
 	 * Returns a vector of animation state objects that make up the contents of the animation data set.
 	 */
-	public get animationNames():Array<string>
-	{
+	public get animationNames(): Array<string> {
 		return this._animationNames;
 	}
 
@@ -133,8 +119,7 @@ export class AnimationSetBase extends AssetBase implements IAsset
 	 *
 	 * @param stateName The name of the animation state object to be checked.
 	 */
-	public hasAnimation(name:string):boolean
-	{
+	public hasAnimation(name: string): boolean {
 		return this._animationDictionary[name] != null;
 	}
 
@@ -143,8 +128,7 @@ export class AnimationSetBase extends AssetBase implements IAsset
 	 *
 	 * @param stateName The name of the animation state object to be retrieved.
 	 */
-	public getAnimation(name:string):AnimationNodeBase
-	{
+	public getAnimation(name: string): AnimationNodeBase {
 		return this._animationDictionary[name];
 	}
 
@@ -154,10 +138,9 @@ export class AnimationSetBase extends AssetBase implements IAsset
 	 * @param stateName The name under which the animation state object will be stored.
 	 * @param animationState The animation state object to be staored in the set.
 	 */
-	public addAnimation(node:AnimationNodeBase):void
-	{
+	public addAnimation(node: AnimationNodeBase): void {
 		if (this._animationDictionary[node.name])
-			throw new AnimationSetError("root node name '" + node.name + "' already exists in the set");
+			throw new AnimationSetError('root node name \'' + node.name + '\' already exists in the set');
 
 		this._animationDictionary[node.name] = node;
 
@@ -169,7 +152,6 @@ export class AnimationSetBase extends AssetBase implements IAsset
 	/**
 	 * Cleans up any resources used by the current object.
 	 */
-	public dispose():void
-	{
+	public dispose(): void {
 	}
 }
