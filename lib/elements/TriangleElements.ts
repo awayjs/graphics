@@ -4,7 +4,14 @@ import { View, IPickingEntity, PickingCollision } from '@awayjs/view';
 
 import { ElementsUtils, IMaterial } from '@awayjs/renderer';
 
-import { AttributesBuffer, AttributesView, Float4Attributes, Float3Attributes, Float2Attributes, Short3Attributes } from '@awayjs/stage';
+import {
+	AttributesBuffer,
+	AttributesView,
+	Float4Attributes,
+	Float3Attributes,
+	Float2Attributes,
+	Short3Attributes,
+} from '@awayjs/stage';
 
 import { TriangleElementsUtils } from '../utils/TriangleElementsUtils';
 
@@ -147,16 +154,51 @@ export class TriangleElements extends ElementsBase {
 		return this._jointWeights;
 	}
 
-	public getBoxBounds(view: View, entity: IPickingEntity = null, strokeFlag: boolean = true, matrix3D: Matrix3D = null, cache: Box = null, target: Box = null, count: number = 0, offset: number = 0): Box {
-		return TriangleElementsUtils.getBoxBounds(this.positions, this.indices, matrix3D, cache, target, count || this._numElements || this._numVertices, offset);
+	public getBoxBounds(
+		view: View, entity: IPickingEntity = null,
+		strokeFlag: boolean = true, matrix3D: Matrix3D = null,
+		cache: Box = null, target: Box = null,
+		count: number = 0, offset: number = 0): Box {
+
+		return TriangleElementsUtils.getBoxBounds(
+			this.positions,
+			this.indices,
+			matrix3D,
+			cache,
+			target,
+			count || this._numElements || this._numVertices,
+			offset);
 	}
 
-	public getSphereBounds(view: View, center: Vector3D, matrix3D: Matrix3D = null, strokeFlag: boolean = true, cache: Sphere = null, target: Sphere = null, count: number = 0, offset: number = 0): Sphere {
-		return TriangleElementsUtils.getSphereBounds(this.positions, center, matrix3D, cache, target, count || this._numVertices, offset);
+	public getSphereBounds(
+		view: View, center: Vector3D,
+		matrix3D: Matrix3D = null, strokeFlag: boolean = true,
+		cache: Sphere = null, target: Sphere = null,
+		count: number = 0, offset: number = 0): Sphere {
+
+		return TriangleElementsUtils.getSphereBounds(
+			this.positions,
+			center,
+			matrix3D,
+			cache,
+			target,
+			count || this._numVertices,
+			offset);
 	}
 
-	public hitTestPoint(view: View, entity: IPickingEntity, x: number, y: number, z: number, box: Box, count: number = 0, offset: number = 0, idx_count: number = 0, idx_offset: number = 0): boolean {
-		return TriangleElementsUtils.hitTest(x, y, 0, box, this, count || this._numElements || this._numVertices, offset);
+	public hitTestPoint(
+		view: View, entity: IPickingEntity,
+		x: number, y: number, z: number,
+		box: Box, count: number = 0,
+		offset: number = 0, idx_count: number = 0,
+		idx_offset: number = 0): boolean {
+
+		return TriangleElementsUtils.hitTest(
+			x, y, 0,
+			box,
+			this,
+			count || this._numElements || this._numVertices,
+			offset);
 	}
 
 	/**
@@ -220,7 +262,11 @@ export class TriangleElements extends ElementsBase {
 				return;
 			}
 		} else {
-			this._normals = ElementsUtils.generateNormals(this.indices, this.faceNormals, this._normals, this._concatenatedBuffer);
+			this._normals = ElementsUtils.generateNormals(
+				this.indices,
+				this.faceNormals,
+				this._normals,
+				this._concatenatedBuffer);
 		}
 
 		this.invalidateVertices(this._normals);
@@ -253,7 +299,12 @@ export class TriangleElements extends ElementsBase {
 				return;
 			}
 		} else {
-			this._tangents = ElementsUtils.generateTangents(this.indices, this.faceTangents, this.faceNormals, this._tangents, this._concatenatedBuffer);
+			this._tangents = ElementsUtils.generateTangents(
+				this.indices,
+				this.faceTangents,
+				this.faceNormals,
+				this._tangents,
+				this._concatenatedBuffer);
 		}
 
 		this.invalidateVertices(this._tangents);
@@ -485,7 +536,8 @@ export class TriangleElements extends ElementsBase {
 	 * @return An exact duplicate of the current object.
 	 */
 	public clone(): TriangleElements {
-		const clone: TriangleElements = new TriangleElements(this._concatenatedBuffer ? this._concatenatedBuffer.clone() : null);
+		const clone: TriangleElements = new TriangleElements(
+			this._concatenatedBuffer ? this._concatenatedBuffer.clone() : null);
 
 		this.copyTo(clone);
 
@@ -506,14 +558,16 @@ export class TriangleElements extends ElementsBase {
 	}
 
 	public applyTransformation(transform: Matrix3D, count: number = 0, offset: number = 0): void {
-		ElementsUtils.applyTransformation(transform, this.positions, this.normals, this.tangents, count || this._numVertices, offset);
+		ElementsUtils.applyTransformation(
+			transform, this.positions, this.normals, this.tangents, count || this._numVertices, offset);
 	}
 
 	/**
 	 * Updates the tangents for each face.
 	 */
 	private updateFaceTangents(): void {
-		this._faceTangents = ElementsUtils.generateFaceTangents(this.indices, this.positions, this.uvs || this.positions, this._faceTangents, this.numElements);
+		this._faceTangents = ElementsUtils.generateFaceTangents(
+			this.indices, this.positions, this.uvs || this.positions, this._faceTangents, this.numElements);
 
 		this._faceTangentsDirty = false;
 	}
@@ -522,14 +576,21 @@ export class TriangleElements extends ElementsBase {
 	 * Updates the normals for each face.
 	 */
 	private updateFaceNormals(): void {
-		this._faceNormals = ElementsUtils.generateFaceNormals(this.indices, this.positions, this._faceNormals, this.numElements);
+		this._faceNormals = ElementsUtils.generateFaceNormals(
+			this.indices, this.positions, this._faceNormals, this.numElements);
 
 		this._faceNormalsDirty = false;
 	}
 
-	public testCollision(view: View, collision: PickingCollision, box: Box, closestFlag: boolean, material: IMaterial, count: number, offset: number = 0): boolean {
+	public testCollision(
+		view: View, collision: PickingCollision,
+		box: Box, closestFlag: boolean,
+		material: IMaterial, count: number,
+		offset: number = 0): boolean {
+
 		const rayPosition: Vector3D = collision.rayPosition;
 		const rayDirection: Vector3D = collision.rayDirection;
+
 		let t: number;
 		let i0: number, i1: number, i2: number;
 		let rx: number, ry: number, rz: number;
@@ -669,11 +730,25 @@ export class TriangleElements extends ElementsBase {
 	}
 }
 
-import { AssetEvent, ProjectionBase } from '@awayjs/core';
+import { AssetEvent } from '@awayjs/core';
 
-import { Stage, ContextGLDrawMode, ContextGLProgramType, IContextGL, ShaderRegisterCache, ShaderRegisterData, ShaderRegisterElement } from '@awayjs/stage';
+import {
+	Stage,
+	ContextGLDrawMode,
+	ContextGLProgramType,
+	IContextGL,
+	ShaderRegisterCache,
+	ShaderRegisterData,
+	ShaderRegisterElement,
+} from '@awayjs/stage';
 
-import { RenderGroup, ShaderBase, _Stage_ElementsBase, _Render_RenderableBase, _Render_ElementsBase } from '@awayjs/renderer';
+import {
+	RenderGroup,
+	ShaderBase,
+	_Stage_ElementsBase,
+	_Render_RenderableBase,
+	_Render_ElementsBase,
+} from '@awayjs/renderer';
 
 /**
  *
@@ -711,8 +786,13 @@ export class _Stage_TriangleElements extends _Stage_ElementsBase {
 		if (shader.uvIndex >= 0)
 			this.activateVertexBufferVO(shader.uvIndex, this._triangleElements.uvs || this._triangleElements.positions);
 
-		if (shader.secondaryUVIndex >= 0)
-			this.activateVertexBufferVO(shader.secondaryUVIndex, this._triangleElements.getCustomAtributes('secondaryUVs') || this._triangleElements.uvs || this._triangleElements.positions);
+		if (shader.secondaryUVIndex >= 0) {
+			this.activateVertexBufferVO(
+				shader.secondaryUVIndex,
+				this._triangleElements.getCustomAtributes('secondaryUVs')
+					|| this._triangleElements.uvs
+					|| this._triangleElements.positions);
+		}
 
 		if (shader.normalIndex >= 0)
 			this.activateVertexBufferVO(shader.normalIndex, this._triangleElements.normals);
@@ -773,11 +853,18 @@ export class _Render_TriangleElements extends _Render_ElementsBase {
 	public _includeDependencies(shader: ShaderBase): void {
 	}
 
-	public _getVertexCode(shader: ShaderBase, registerCache: ShaderRegisterCache, sharedRegisters: ShaderRegisterData): string {
+	public _getVertexCode(
+		shader: ShaderBase,
+		registerCache: ShaderRegisterCache,
+		sharedRegisters: ShaderRegisterData): string {
+
 		let code: string = '';
 
 		//get the projection coordinates
-		const position: ShaderRegisterElement = (shader.globalPosDependencies > 0) ? sharedRegisters.globalPositionVertex : sharedRegisters.animatedPosition;
+		const position: ShaderRegisterElement = (
+			(shader.globalPosDependencies > 0)
+				? sharedRegisters.globalPositionVertex
+				: sharedRegisters.animatedPosition);
 
 		//reserving vertex constants for projection matrix
 		const viewMatrixReg: ShaderRegisterElement = registerCache.getFreeVertexConstant();
@@ -799,7 +886,10 @@ export class _Render_TriangleElements extends _Render_ElementsBase {
 		return code;
 	}
 
-	public _getFragmentCode(shader: ShaderBase, registerCache: ShaderRegisterCache, sharedRegisters: ShaderRegisterData): string {
+	public _getFragmentCode(
+		shader: ShaderBase,
+		registerCache: ShaderRegisterCache,
+		sharedRegisters: ShaderRegisterData): string {
 		return '';
 	}
 }
