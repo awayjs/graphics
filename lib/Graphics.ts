@@ -1,10 +1,21 @@
-import { ArgumentError, RangeError, PartialImplementationError, Point, Vector3D, Matrix, Matrix3D, AssetBase, Rectangle, AssetEvent, IgnoreConflictStrategy } from '@awayjs/core';
+import {
+	ArgumentError,
+	RangeError,
+	PartialImplementationError,
+	Point,
+	Vector3D,
+	Matrix,
+	Matrix3D,
+	AssetBase,
+	Rectangle,
+	AssetEvent,
+} from '@awayjs/core';
 
 import { BitmapImage2D } from '@awayjs/stage';
 
 import { IEntityTraverser, PickEntity } from '@awayjs/view';
 
-import { IMaterial, Style, MaterialUtils, RenderableEvent } from '@awayjs/renderer';
+import { IMaterial, Style, RenderableEvent } from '@awayjs/renderer';
 
 import { GraphicsPath } from './draw/GraphicsPath';
 import { GraphicsFactoryFills } from './draw/GraphicsFactoryFills';
@@ -132,35 +143,6 @@ export class Graphics extends AssetBase {
 		this._end = v;
 	}
 
-	// public getSpriteScale(view:View = null):Vector3D
-	// {
-	// 	if(this._entity)
-	// 		this._scale.copyFrom(this._entity.transform.concatenatedMatrix3D.decompose()[3]);
-	// 	else
-	// 		this._scale.identity();
-
-	// 	if (view) {
-	// 		this._scale.x *= view.focalLength*view.pixelRatio/1000;
-	// 		this._scale.y *= view.focalLength/1000;
-	// 	}
-
-	// 	return this._scale;
-	// }
-
-	// public updateScale(view:View)
-	// {
-	// 	var prevScaleX:number = this._scale.x;
-	// 	var prevScaleY:number = this._scale.y;
-	// 	var scale:Vector3D = this.getSpriteScale(view);
-
-	// 	if (scale.x == prevScaleX && scale.y == prevScaleY)
-	// 	 	return;
-
-	// 	var len:number = this._shapes.length;
-	// 	for (var i:number = 0; i < len; i++)
-	// 		if(this._shapes[i].isStroke && this._shapes[i].strokePath.stroke() && this._shapes[i].strokePath.stroke().scaleMode != LineScaleMode.NORMAL)
-	// 			GraphicsFactoryStrokes.updateStrokesForShape(this._shapes[i], scale, this.scaleStrokes);
-	// }
 	public updateSlice9(scaleX: number, scaleY: number) {
 		if (this._scaleX == scaleX && this._scaleY == scaleY)
 			return;
@@ -169,8 +151,14 @@ export class Graphics extends AssetBase {
 		this._scaleY = scaleY;
 
 		const len: number = this._shapes.length;
-		for (let i: number = 0; i < len; i++)
-			TriangleElementsUtils.updateTriangleGraphicsSlice9((<TriangleElements> this._shapes[i].elements), this.originalSlice9Size, scaleX, scaleY);
+		for (let i: number = 0; i < len; i++) {
+			TriangleElementsUtils.updateTriangleGraphicsSlice9(
+				<TriangleElements> this._shapes[i].elements,
+				this.originalSlice9Size,
+				scaleX,
+				scaleY
+			);
+		}
 
 		this.invalidate();
 	}
@@ -180,7 +168,11 @@ export class Graphics extends AssetBase {
 	}
 
 	public get count(): number {
-		return (this._shapes.length + this._queued_stroke_pathes.length + this._queued_fill_pathes.length + this._queuedShapeTags.length);
+		return (
+			this._shapes.length +
+			this._queued_stroke_pathes.length +
+			this._queued_fill_pathes.length +
+			this._queuedShapeTags.length);
 	}
 
 	public get queued_stroke_pathes(): Array<GraphicsPath> {
@@ -201,7 +193,9 @@ export class Graphics extends AssetBase {
 
 	public add_queued_path(value: GraphicsPath) {
 		if (value.style) {
-			if (value.style.data_type == GraphicsFillStyle.data_type || value.style.data_type == GradientFillStyle.data_type || value.style.data_type == BitmapFillStyle.data_type) {
+			if (value.style.data_type == GraphicsFillStyle.data_type
+				|| value.style.data_type == GradientFillStyle.data_type
+				|| value.style.data_type == BitmapFillStyle.data_type) {
 				this._drawingDirty = true;
 				this._queued_fill_pathes.push(value);
 			}
@@ -381,10 +375,15 @@ export class Graphics extends AssetBase {
 		this._clearCount++;
 		this._lastPrebuildedShapes.length = 0;
 
-		const requireShapePool = this._internalShapesId.length > 0 && this._clearCount >= Graphics.CLEARS_BEFORE_POOLING;
+		const requireShapePool = (
+			this._internalShapesId.length > 0
+			&& this._clearCount >= Graphics.CLEARS_BEFORE_POOLING);
 
 		if (requireShapePool && !this._releasedStrokeShape.enabled && (USE_STROKE_POOL || USE_FILL_POOL)) {
-			console.warn('[Graphics] To many clears, pooling shapes internally!', this.id, this._internalShapesId.length);
+			console.warn(
+				'[Graphics] To many clears, pooling shapes internally!',
+				this.id,
+				this._internalShapesId.length);
 			this._releasedFillShape.enabled = USE_FILL_POOL;
 			this._releasedStrokeShape.enabled = USE_STROKE_POOL;
 		}
@@ -563,7 +562,10 @@ export class Graphics extends AssetBase {
 	 *               neighbor algorithm is faster.
 	 */
 
-	public beginBitmapFill(bitmap: BitmapImage2D, matrix: Matrix = null, repeat: boolean = true, smooth: boolean = false): void {
+	public beginBitmapFill(
+		bitmap: BitmapImage2D, matrix: Matrix = null,
+		repeat: boolean = true, smooth: boolean = false): void {
+
 		this.draw_fills();
 
 		if (!this._bitmapFillPool) {
@@ -572,7 +574,11 @@ export class Graphics extends AssetBase {
 		let fill = this._bitmapFillPool[bitmap.id];
 
 		if (!fill) {
-			fill = this._bitmapFillPool[bitmap.id] = new BitmapFillStyle(MaterialManager.get_material_for_BitmapImage2D(bitmap), matrix, repeat, smooth);
+			fill = this._bitmapFillPool[bitmap.id] = new BitmapFillStyle(
+				MaterialManager.get_material_for_BitmapImage2D(bitmap),
+				matrix,
+				repeat,
+				smooth);
 		} else {
 			fill.matrix = matrix;
 			fill.repeat = repeat;
@@ -687,9 +693,22 @@ export class Graphics extends AssetBase {
 	 *                            a <code>focalPointRatio</code> set to 0.75:
 	 * @throws ArgumentError If the <code>type</code> parameter is not valid.
 	 */
-	public beginGradientFill(type: GradientType, colors: number[], alphas: number[], ratios: number[], matrix: Matrix = null, spreadMethod: string = 'pad', interpolationMethod: string = 'rgb', focalPointRatio: number = 0): void {
+	public beginGradientFill(
+		type: GradientType, colors: number[],
+		alphas: number[], ratios: number[],
+		matrix: Matrix = null, spreadMethod: string = 'pad',
+		interpolationMethod: string = 'rgb', focalPointRatio: number = 0): void {
+
 		this.draw_fills();
-		this._fillStyle = new GradientFillStyle(type, colors, alphas, ratios, matrix, spreadMethod, interpolationMethod, focalPointRatio);
+		this._fillStyle = new GradientFillStyle(
+			type,
+			colors,
+			alphas,
+			ratios,
+			matrix,
+			spreadMethod,
+			interpolationMethod,
+			focalPointRatio);
 	}
 
 	/**
@@ -753,7 +772,10 @@ export class Graphics extends AssetBase {
 	 *                  relative to the registration point of the parent display
 	 *                  object.
 	 */
-	public cubicCurveTo(controlX1: number, controlY1: number, controlX2: number, controlY2: number, anchorX: number, anchorY: number): void {
+	public cubicCurveTo(
+		controlX1: number, controlY1: number,
+		controlX2: number, controlY2: number,
+		anchorX: number, anchorY: number): void {
 
 		throw new PartialImplementationError('cubicCurveTo');
 		/*
@@ -844,13 +866,7 @@ export class Graphics extends AssetBase {
 		//var radius2=radius*1.065;
 		if (this._active_fill_path != null) {
 			this._active_fill_path.moveTo(x, y);
-			/*
-			for(var i=8; i>=0;i--){
 
-				var degree = (i) *(360/8)*Math.PI/180;
-				var degree2 = degree + ((360/16)*Math.PI/180);
-				this._active_fill_path.curveTo(x-(Math.cos(degree2)*radius2), y+(Math.sin(degree2)*radius2),x-(Math.cos(degree)*radius), y+(Math.sin(degree)*radius));
-			}*/
 			let r = radius;
 			if (this._active_stroke_path != null) {
 				r -= (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2;
@@ -867,7 +883,13 @@ export class Graphics extends AssetBase {
 			this._active_stroke_path.curveTo(x+(radius2), y-(radius2), x+radius, y);
 			this._active_stroke_path.curveTo(x+(radius2), y+(radius2), x, y+radius);
 			*/
-			GraphicsFactoryHelper.drawElipseStrokes(x,y, radius, radius, this._active_stroke_path.verts, 0, 360, 5, (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2, false);
+			GraphicsFactoryHelper.drawElipseStrokes(
+				x,y,
+				radius, radius,
+				this._active_stroke_path.verts,
+				0, 360, 5,
+				(<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2,
+				false);
 
 		}
 		this.invalidate();
@@ -895,13 +917,6 @@ export class Graphics extends AssetBase {
 		//var radius2=radius*1.065;
 		if (this._active_fill_path != null) {
 			this._active_fill_path.moveTo(x, y);
-			/*
-			 for(var i=8; i>=0;i--){
-
-			 var degree = (i) *(360/8)*Math.PI/180;
-			 var degree2 = degree + ((360/16)*Math.PI/180);
-			 this._active_fill_path.curveTo(x-(Math.cos(degree2)*radius2), y+(Math.sin(degree2)*radius2),x-(Math.cos(degree)*radius), y+(Math.sin(degree)*radius));
-			 }*/
 
 			let w = width;
 			let h = height;
@@ -915,7 +930,13 @@ export class Graphics extends AssetBase {
 		if (this._active_stroke_path != null) {
 			this._active_stroke_path.moveTo(x, y);
 
-			GraphicsFactoryHelper.drawElipseStrokes(x,y, width, height, this._active_stroke_path.verts, 0, 360, 5, (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2, false);
+			GraphicsFactoryHelper.drawElipseStrokes(
+				x,y,
+				width, height,
+				this._active_stroke_path.verts,
+				0, 360, 5,
+				(<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2,
+				false);
 
 			/*
 			 var radius2=radius*0.93;
@@ -1055,18 +1076,35 @@ export class Graphics extends AssetBase {
 			let w: number = width;
 			let h: number = height;
 			let t: number = 0;
+
 			if (this._active_stroke_path != null) {
 				t = (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2;
 				w -= (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness;
 				h -= (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness;
 			}
-			GraphicsFactoryHelper.addTriangle(x + t,y + h + t,  x + t,y + t,x + w + t, y + t, 0, this._active_fill_path.verts, false);
-			GraphicsFactoryHelper.addTriangle(x + t,y + h + t, x + t + w,y + t, x + w + t, y + h + t,0, this._active_fill_path.verts, false);
+
+			GraphicsFactoryHelper.addTriangle(
+				x + t, y + h + t,
+				x + t, y + t,
+				x + w + t, y + t,
+				0,
+				this._active_fill_path.verts,
+				false);
+
+			GraphicsFactoryHelper.addTriangle(
+				x + t, y + h + t,
+				x + t + w, y + t,
+				x + w + t, y + h + t,
+				0,
+				this._active_fill_path.verts,
+				false);
 
 		}
 		if (this._active_stroke_path != null) {
 			this._active_stroke_path.moveTo(x, y);
 			//var t:number=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness/2;
+
+			/* eslint-disable */
 
 			// todo: respect Jointstyle here (?)
 			/*
@@ -1082,6 +1120,8 @@ export class Graphics extends AssetBase {
 			GraphicsFactoryHelper.addTriangle(x-t, y+height+t, x+width+t, y+height+t, x+t, y+height-t, 0, this._active_stroke_path.verts, false);
 			GraphicsFactoryHelper.addTriangle(x+t, y+height-t, x+width+t, y+height+t, x+width-t, y+height-t, 0, this._active_stroke_path.verts, false);
 			*/
+
+			/* eslint-enable */
 
 			this._active_stroke_path.lineTo(x + width, y);
 			this._active_stroke_path.lineTo(x + width, y + height);
@@ -1118,12 +1158,18 @@ export class Graphics extends AssetBase {
 	 *                       <code>ellipseHeight</code> parameters are not a
 	 *                       number(<code>Number.NaN</code>).
 	 */
-	public drawRoundRect(x: number, y: number, width: number, height: number, ellipseWidth: number, ellipseHeight: number = NaN): void {
+	public drawRoundRect(
+		x: number, y: number, 
+		width: number, height: number, 
+		ellipseWidth: number, ellipseHeight: number = NaN): void {
+
 		this._drawingDirty = true;
 		this._createGraphicPathes();
+
 		if (isNaN(ellipseHeight)) {
 			ellipseHeight = ellipseWidth;
 		}
+
 		let w: number = width;
 		let h: number = height;
 		const ew: number = ellipseWidth / 2;
@@ -1137,6 +1183,8 @@ export class Graphics extends AssetBase {
 				w -= (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness;
 				h -= (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness;
 			}
+
+			/* eslint-disable */
 			GraphicsFactoryHelper.addTriangle(x + t,y + h - eh, x + t,y + eh, x + w - t, y + eh,0, this._active_fill_path.verts, false);
 			GraphicsFactoryHelper.addTriangle(x + t,y + h - eh,  x + w - t,y + eh,x + w - t, y + h - eh, 0, this._active_fill_path.verts, false);
 
@@ -1149,9 +1197,12 @@ export class Graphics extends AssetBase {
 			GraphicsFactoryHelper.drawElipse(x + w - ew,y + eh, ew - t, eh - t, this._active_fill_path.verts, 270, 360, 5, false);
 			GraphicsFactoryHelper.drawElipse(x + w - ew,y + h - eh, ew - t, eh - t, this._active_fill_path.verts, 0, 90, 5, false);
 			GraphicsFactoryHelper.drawElipse(x + ew,y + h - eh, ew - t, eh - t, this._active_fill_path.verts, 90, 180, 5, false);
+			/* eslint-enable */
 		}
 		if (this._active_stroke_path != null) {
 			this._active_stroke_path.moveTo(x, y);
+
+			/* eslint-disable */
 			t = (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2;
 
 			GraphicsFactoryHelper.addTriangle(x - t, y + h - eh, x - t, y + eh, x + t, y + eh, 0, this._active_stroke_path.verts, false);
@@ -1170,12 +1221,19 @@ export class Graphics extends AssetBase {
 			GraphicsFactoryHelper.drawElipseStrokes(x + w - ew,y + eh, ew, eh, this._active_stroke_path.verts, 270, 360, 5, t, false);
 			GraphicsFactoryHelper.drawElipseStrokes(x + w - ew,y + h - eh, ew, eh, this._active_stroke_path.verts, 0, 90, 5, t, false);
 			GraphicsFactoryHelper.drawElipseStrokes(x + ew,y + h - eh, ew, eh, this._active_stroke_path.verts, 90, 180, 5, t, false);
+			/* eslint-enable */
 
 		}
+
 		this.invalidate();
 	}
 
-	public drawRoundRectComplex(x: number, y: number, width: number, height: number, topLeftRadius: number, topRightRadius: number, bottomLeftRadius: number, bottomRightRadius: number) {
+	public drawRoundRectComplex(
+		x: number, y: number, 
+		width: number, height: number, 
+		topLeftRadius: number, topRightRadius: number, 
+		bottomLeftRadius: number, bottomRightRadius: number) {
+
 		let w: number = width;
 		let h: number = height;
 		const tl: number = topLeftRadius;
@@ -1187,11 +1245,14 @@ export class Graphics extends AssetBase {
 		let t: number = 0;
 		if (this._active_fill_path != null) {
 			this._active_fill_path.moveTo(x, y);
+
 			if (this._active_stroke_path != null) {
 				t = (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2;
 				w -= (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness;
 				h -= (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness;
 			}
+
+			/* eslint-disable */
 			GraphicsFactoryHelper.addTriangle(x + tl,y + tl, x + w - tr, y + tr, x + w - br, y + h - br, 0, this._active_fill_path.verts, false);
 			GraphicsFactoryHelper.addTriangle(x + tl,y + tl,  x + w - br, y + h - br, x + bl, y + h - bl, 0, this._active_fill_path.verts, false);
 
@@ -1211,11 +1272,14 @@ export class Graphics extends AssetBase {
 			GraphicsFactoryHelper.drawElipse(x + w - tr,y + tr, tr - t, tr - t, this._active_fill_path.verts, 270, 360, 5, false);
 			GraphicsFactoryHelper.drawElipse(x + w - br,y + h - br, br - t, br - t, this._active_fill_path.verts, 0, 90, 5, false);
 			GraphicsFactoryHelper.drawElipse(x + bl,y + h - bl, bl - t, bl - t, this._active_fill_path.verts, 90, 180, 5, false);
+			/* eslint-enable */
 		}
+
 		if (this._active_stroke_path != null) {
 			this._active_stroke_path.moveTo(x, y);
 			t = (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2;
 
+			/* eslint-disable */
 			GraphicsFactoryHelper.addTriangle(x - t, y + h - bl, x - t, y + tl, x + t, y + tl, 0, this._active_stroke_path.verts, false);
 			GraphicsFactoryHelper.addTriangle(x - t, y + h - bl, x + t, y + h - bl, x + t, y + tl, 0, this._active_stroke_path.verts, false);
 
@@ -1232,8 +1296,9 @@ export class Graphics extends AssetBase {
 			GraphicsFactoryHelper.drawElipseStrokes(x + w - tr,y + tr, tr, tr, this._active_stroke_path.verts, 270, 360, 5, t, false);
 			GraphicsFactoryHelper.drawElipseStrokes(x + w - br,y + h - br, br, br, this._active_stroke_path.verts, 0, 90, 5, t, false);
 			GraphicsFactoryHelper.drawElipseStrokes(x + bl,y + h - bl, bl, bl, this._active_stroke_path.verts, 90, 180, 5, t, false);
-
+			/* eslint-enable */
 		}
+
 		this.invalidate();
 	}
 
@@ -1255,7 +1320,11 @@ export class Graphics extends AssetBase {
 	 *                parameter can be set to any value defined by the
 	 *                TriangleCulling class.
 	 */
-	public drawTriangles(vertices: Array<number>, indices: Array<number /*int*/> = null, uvtData: Array<number> = null, culling: TriangleCulling = null): void {
+	public drawTriangles(
+		vertices: Array<number>, 
+		indices: Array<number /*int*/> = null, 
+		uvtData: Array<number> = null, culling: TriangleCulling = null): void {
+
 		this._drawingDirty = true;
 		if (this._active_fill_path != null) {
 			//todo
@@ -1279,7 +1348,11 @@ export class Graphics extends AssetBase {
 	 */
 	public endFill(): void {
 
-		//todo: this is a hack for getting stroke pathes closed if a fill_path exists. needs refactor to make this work correctly
+		/**
+		 * @todo this is a hack for getting stroke pathes closed if a fill_path exists. 
+		 * Needs refactor to make this work correctly
+		 */
+
 		if (this._active_stroke_path && this._active_fill_path) {
 			this._active_stroke_path.forceClose = true;
 		}
@@ -1355,7 +1428,10 @@ export class Graphics extends AssetBase {
 	 * @param repeat Whether to repeat the bitmap in a tiled fashion.
 	 * @param smooth Whether smoothing should be applied to the bitmap.
 	 */
-	public lineBitmapStyle(bitmap: BitmapImage2D, matrix: Matrix = null, repeat: boolean = true, smooth: boolean = false): void {
+	public lineBitmapStyle(
+		bitmap: BitmapImage2D, matrix: Matrix = null, 
+		repeat: boolean = true, smooth: boolean = false): void {
+
 		//this._drawingDirty=true;
 		//this._lineStyle=new  GraphicsStrokeStyle(colors[0], alphas[0], 1);
 		// start a new stroke path
@@ -1431,7 +1507,12 @@ export class Graphics extends AssetBase {
 	 *                            image shows a gradient with a
 	 *                            <code>focalPointRatio</code> of -0.75:
 	 */
-	public lineGradientStyle(type: GradientType, colors: Array<number /*int*/>, alphas: Array<number>, ratios: Array<number>, matrix: Matrix = null, spreadMethod: SpreadMethod = null, interpolationMethod: InterpolationMethod = null, focalPointRatio: number = 0): void {
+	public lineGradientStyle(
+		type: GradientType, colors: Array<number /*int*/>, 
+		alphas: Array<number>, ratios: Array<number>, 
+		matrix: Matrix = null, spreadMethod: SpreadMethod = null, 
+		interpolationMethod: InterpolationMethod = null, focalPointRatio: number = 0): void {
+
 		this._drawingDirty = true;
 		this._lineStyle = new  GraphicsStrokeStyle(colors[0], alphas[0], 1);
 	}
@@ -1607,7 +1688,12 @@ export class Graphics extends AssetBase {
 	 *                     has a specific maximum angle for which the miter is
 	 *                     cut off. The following table lists some examples:</p>
 	 */
-	public lineStyle(thickness: number = 0, color: number /*int*/ = 0, alpha: number = 1, pixelHinting: boolean = false, scaleMode: LineScaleMode = null, capstyle: number = CapsStyle.NONE, jointstyle: number = JointStyle.MITER, miterLimit: number = 100): void {
+	public lineStyle(
+		thickness: number = 0, color: number /*int*/ = 0, alpha: number = 1, 
+		pixelHinting: boolean = false, scaleMode: LineScaleMode = null, 
+		capstyle: number = CapsStyle.NONE, jointstyle: number = JointStyle.MITER, 
+		miterLimit: number = 100): void {
+
 		this._drawingDirty = true;
 		this._lineStyle = new  GraphicsStrokeStyle(color, alpha, thickness, jointstyle, capstyle, miterLimit);
 
@@ -1677,14 +1763,21 @@ export class Graphics extends AssetBase {
 
 	private _createGraphicPathes() {
 
-		if (this._fillStyle != null && (this._active_fill_path == null ||  this._active_fill_path.style != this._fillStyle)) {
+		if (this._fillStyle != null && 
+			(this._active_fill_path == null ||
+				this._active_fill_path.style != this._fillStyle)) {
+			
 			this._active_fill_path = new GraphicsPath();
 			this._active_fill_path.style = this._fillStyle;
 			if (this._current_position.x != 0 || this._current_position.y != 0)
 				this._active_fill_path.moveTo(this._current_position.x, this._current_position.y);
 			this._queued_fill_pathes.push(this._active_fill_path);
 		}
-		if (this._lineStyle != null && (this._active_stroke_path == null ||  this._active_stroke_path.style != this._lineStyle)) {
+
+		if (this._lineStyle != null && 
+			(this._active_stroke_path == null ||
+				this._active_stroke_path.style != this._lineStyle)) {
+
 			this._active_stroke_path = new GraphicsPath();
 			this._active_stroke_path.style = this._lineStyle;
 			if (this._current_position.x != 0 || this._current_position.y != 0)
@@ -1699,9 +1792,20 @@ export class Graphics extends AssetBase {
 		for (let i: number = 0; i < len; i++) {
 			shape = shapes[i];
 			if (this.slice9Rectangle) { // todo: this is a dirty workaround to get the slice9-shapes cloned:
-				shape = Shape.getShape(TriangleElementsUtils.updateTriangleGraphicsSlice9(<TriangleElements> shape.elements, this.originalSlice9Size, 1, 1, false, true), shape.material, shape.style);
+				shape = Shape.getShape(
+					TriangleElementsUtils.updateTriangleGraphicsSlice9(
+						<TriangleElements> shape.elements, 
+						this.originalSlice9Size, 1, 1, false, true), 
+					shape.material, 
+					shape.style);
+
 			} else if (cloneShapes) {
-				shape = Shape.getShape(shape.elements, shape.material, shape.style, shape.count, shape.offset);
+				shape = Shape.getShape(
+					shape.elements, 
+					shape.material, 
+					shape.style, 
+					shape.count, 
+					shape.offset);
 			}
 
 			shape.particleCollection = shapes[i].particleCollection;
@@ -1781,11 +1885,12 @@ export class Graphics extends AssetBase {
 		let mX: number = 0;
 		let mY: number = 0;
 
+		let morphRecord: ShapeRecord;
+
 		//console.log("numRecords", numRecords);
 		for (let i = 0, j = 0; i < numRecords; i++) {
 			const record: ShapeRecord = records[i];
 			//console.log("record", i, record.type);
-			var morphRecord: ShapeRecord;
 
 			if (isMorph) {
 				morphRecord = recordsMorph[j++];
@@ -1896,7 +2001,9 @@ export class Graphics extends AssetBase {
 						entry.segment.morphMoveTo(x, y, mX, mY);
 					}
 				}
+			// eslint-disable-next-line brace-style
 			}
+
 			// type 1 is a StraightEdge or CurvedEdge record
 			else {
 				assert(record.type === 1);
@@ -2066,10 +2173,11 @@ function processStyle(style, isLineStyle: boolean, isMorph: boolean, parser: any
 	switch (style.type) {
 		case FillType.LinearGradient:
 		case FillType.RadialGradient:
-		case FillType.FocalRadialGradient:
-			var records = style.records;
-			var colors = shapeStyle.colors = [];
-			var ratios = shapeStyle.ratios = [];
+		case FillType.FocalRadialGradient: {
+			const records = style.records;
+			const colors = shapeStyle.colors = [];
+			const ratios = shapeStyle.ratios = [];
+
 			for (let i = 0; i < records.length; i++) {
 				const record = records[i];
 				if (ratios.length == 0 || ratios[ratios.length - 1] != record.ratio) {
@@ -2079,6 +2187,7 @@ function processStyle(style, isLineStyle: boolean, isMorph: boolean, parser: any
 			}
 			scale = 1;
 			break;
+		}
 		case FillType.RepeatingBitmap:
 		case FillType.ClippedBitmap:
 		case FillType.NonsmoothedRepeatingBitmap:
@@ -2142,10 +2251,11 @@ function processMorphStyle(style, isLineStyle: boolean): ShapeStyle {
 	switch (style.type) {
 		case FillType.LinearGradient:
 		case FillType.RadialGradient:
-		case FillType.FocalRadialGradient:
-			var records = style.records;
-			var colors = morphStyle.colors = [];
-			var ratios = morphStyle.ratios = [];
+		case FillType.FocalRadialGradient: {
+			const records = style.records;
+			const colors = morphStyle.colors = [];
+			const ratios = morphStyle.ratios = [];
+			
 			for (let i = 0; i < records.length; i++) {
 				const record = records[i];
 				colors.push(record.colorMorph);
@@ -2153,6 +2263,7 @@ function processMorphStyle(style, isLineStyle: boolean): ShapeStyle {
 			}
 			scale = 1;
 			break;
+		}
 		case FillType.RepeatingBitmap:
 		case FillType.ClippedBitmap:
 		case FillType.NonsmoothedRepeatingBitmap:
