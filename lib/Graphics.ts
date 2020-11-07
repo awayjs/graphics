@@ -45,9 +45,7 @@ import { assert } from './data/utilities';
 import { MaterialManager } from './managers/MaterialManager';
 import { LineElements } from './elements/LineElements';
 import { ManagedPool } from './ManagedPool';
-
-const USE_FILL_POOL = false;
-const USE_STROKE_POOL = true;
+import { Settings } from '../Settings';
 
 /**
  *
@@ -113,8 +111,14 @@ export class Graphics extends AssetBase {
 
 	private _clearCount: number = 0;
 	private _internalShapesId: number[] = [];
-	private _releasedFillShape: ManagedPool<Shape> = new ManagedPool<Shape>(Shape, 100, false);
-	private _releasedStrokeShape: ManagedPool<Shape> = new ManagedPool<Shape>(Shape, 100, false);
+	private _rFillPool: ManagedPool<Shape> = new ManagedPool<Shape>(Shape, 100, false);
+	private _rStrokePool: ManagedPool<Shape> = new ManagedPool<Shape>(Shape, 100, false);
+
+	private _poolingConfig = {
+		FILLS: Settings.ALLOW_INTERNAL_POOL.FILLS,
+		STOKES: Settings.ALLOW_INTERNAL_POOL.STROKES,
+		CLEARS: Settings.CLEARS_BEFORE_POOLING
+	}
 
 	// graphics, from it was copied
 	public sourceGraphics: Graphics;
@@ -228,11 +232,11 @@ export class Graphics extends AssetBase {
 	}
 
 	public popEmptyFillShape() {
-		return this._releasedFillShape.pop();
+		return this._rFillPool.pop();
 	}
 
 	public popEmptyStrokeShape() {
-		return this._releasedStrokeShape.pop();
+		return this._rStrokePool.pop();
 	}
 
 	/* internal */ addShapeInternal(shape: Shape) {
@@ -361,11 +365,11 @@ export class Graphics extends AssetBase {
 		}
 
 		if (canPooledTriangle) {
-			return this._releasedFillShape.store(shape);
+			return this._rFillPool.store(shape);
 		}
 
 		if (canPooledLine) {
-			return this._releasedStrokeShape.store(shape);
+			return this._rStrokePool.store(shape);
 		}
 
 		return false;
@@ -377,15 +381,21 @@ export class Graphics extends AssetBase {
 
 		const requireShapePool = (
 			this._internalShapesId.length > 0
-			&& this._clearCount >= Graphics.CLEARS_BEFORE_POOLING);
+			&& this._clearCount >= this._poolingConfig.CLEARS);
 
-		if (requireShapePool && !this._releasedStrokeShape.enabled && (USE_STROKE_POOL || USE_FILL_POOL)) {
+		if (requireShapePool
+			&& (
+				this._rStrokePool.enabled !== this._poolingConfig.STOKES ||
+				this._rFillPool.enabled !== this._poolingConfig.FILLS
+			)) {
+
 			console.warn(
 				'[Graphics] To many clears, pooling shapes internally!',
 				this.id,
 				this._internalShapesId.length);
-			this._releasedFillShape.enabled = USE_FILL_POOL;
-			this._releasedStrokeShape.enabled = USE_STROKE_POOL;
+
+			this._rFillPool.enabled = this._poolingConfig.FILLS;
+			this._rStrokePool.enabled = this._poolingConfig.STOKES;
 		}
 
 		let shape: Shape;
@@ -442,8 +452,8 @@ export class Graphics extends AssetBase {
 
 		/* we can not release shapes for this, it was a store elements that can be reused then */
 
-		this._releasedFillShape.clear();
-		this._releasedStrokeShape.clear();
+		this._rFillPool.clear();
+		this._rStrokePool.clear();
 		this._internalShapesId.length = 0;
 		this._clearCount = 0;
 
@@ -1159,8 +1169,8 @@ export class Graphics extends AssetBase {
 	 *                       number(<code>Number.NaN</code>).
 	 */
 	public drawRoundRect(
-		x: number, y: number, 
-		width: number, height: number, 
+		x: number, y: number,
+		width: number, height: number,
 		ellipseWidth: number, ellipseHeight: number = NaN): void {
 
 		this._drawingDirty = true;
@@ -1229,9 +1239,9 @@ export class Graphics extends AssetBase {
 	}
 
 	public drawRoundRectComplex(
-		x: number, y: number, 
-		width: number, height: number, 
-		topLeftRadius: number, topRightRadius: number, 
+		x: number, y: number,
+		width: number, height: number,
+		topLeftRadius: number, topRightRadius: number,
 		bottomLeftRadius: number, bottomRightRadius: number) {
 
 		let w: number = width;
@@ -1321,8 +1331,8 @@ export class Graphics extends AssetBase {
 	 *                TriangleCulling class.
 	 */
 	public drawTriangles(
-		vertices: Array<number>, 
-		indices: Array<number /*int*/> = null, 
+		vertices: Array<number>,
+		indices: Array<number /*int*/> = null,
 		uvtData: Array<number> = null, culling: TriangleCulling = null): void {
 
 		this._drawingDirty = true;
@@ -1349,7 +1359,7 @@ export class Graphics extends AssetBase {
 	public endFill(): void {
 
 		/**
-		 * @todo this is a hack for getting stroke pathes closed if a fill_path exists. 
+		 * @todo this is a hack for getting stroke pathes closed if a fill_path exists.
 		 * Needs refactor to make this work correctly
 		 */
 
@@ -1429,7 +1439,7 @@ export class Graphics extends AssetBase {
 	 * @param smooth Whether smoothing should be applied to the bitmap.
 	 */
 	public lineBitmapStyle(
-		bitmap: BitmapImage2D, matrix: Matrix = null, 
+		bitmap: BitmapImage2D, matrix: Matrix = null,
 		repeat: boolean = true, smooth: boolean = false): void {
 
 		//this._drawingDirty=true;
@@ -1508,9 +1518,9 @@ export class Graphics extends AssetBase {
 	 *                            <code>focalPointRatio</code> of -0.75:
 	 */
 	public lineGradientStyle(
-		type: GradientType, colors: Array<number /*int*/>, 
-		alphas: Array<number>, ratios: Array<number>, 
-		matrix: Matrix = null, spreadMethod: SpreadMethod = null, 
+		type: GradientType, colors: Array<number /*int*/>,
+		alphas: Array<number>, ratios: Array<number>,
+		matrix: Matrix = null, spreadMethod: SpreadMethod = null,
 		interpolationMethod: InterpolationMethod = null, focalPointRatio: number = 0): void {
 
 		this._drawingDirty = true;
@@ -1689,9 +1699,9 @@ export class Graphics extends AssetBase {
 	 *                     cut off. The following table lists some examples:</p>
 	 */
 	public lineStyle(
-		thickness: number = 0, color: number /*int*/ = 0, alpha: number = 1, 
-		pixelHinting: boolean = false, scaleMode: LineScaleMode = null, 
-		capstyle: number = CapsStyle.NONE, jointstyle: number = JointStyle.MITER, 
+		thickness: number = 0, color: number /*int*/ = 0, alpha: number = 1,
+		pixelHinting: boolean = false, scaleMode: LineScaleMode = null,
+		capstyle: number = CapsStyle.NONE, jointstyle: number = JointStyle.MITER,
 		miterLimit: number = 100): void {
 
 		const valid = thickness > 0 && alpha > 0;
@@ -1766,10 +1776,10 @@ export class Graphics extends AssetBase {
 
 	private _createGraphicPathes() {
 
-		if (this._fillStyle != null && 
+		if (this._fillStyle != null &&
 			(this._active_fill_path == null ||
 				this._active_fill_path.style != this._fillStyle)) {
-			
+
 			this._active_fill_path = new GraphicsPath();
 			this._active_fill_path.style = this._fillStyle;
 			if (this._current_position.x != 0 || this._current_position.y != 0)
@@ -1777,7 +1787,7 @@ export class Graphics extends AssetBase {
 			this._queued_fill_pathes.push(this._active_fill_path);
 		}
 
-		if (this._lineStyle != null && 
+		if (this._lineStyle != null &&
 			(this._active_stroke_path == null ||
 				this._active_stroke_path.style != this._lineStyle)) {
 
@@ -1797,17 +1807,17 @@ export class Graphics extends AssetBase {
 			if (this.slice9Rectangle) { // todo: this is a dirty workaround to get the slice9-shapes cloned:
 				shape = Shape.getShape(
 					TriangleElementsUtils.updateTriangleGraphicsSlice9(
-						<TriangleElements> shape.elements, 
-						this.originalSlice9Size, 1, 1, false, true), 
-					shape.material, 
+						<TriangleElements> shape.elements,
+						this.originalSlice9Size, 1, 1, false, true),
+					shape.material,
 					shape.style);
 
 			} else if (cloneShapes) {
 				shape = Shape.getShape(
-					shape.elements, 
-					shape.material, 
-					shape.style, 
-					shape.count, 
+					shape.elements,
+					shape.material,
+					shape.style,
+					shape.count,
 					shape.offset);
 			}
 
@@ -2258,7 +2268,7 @@ function processMorphStyle(style, isLineStyle: boolean): ShapeStyle {
 			const records = style.records;
 			const colors = morphStyle.colors = [];
 			const ratios = morphStyle.ratios = [];
-			
+
 			for (let i = 0; i < records.length; i++) {
 				const record = records[i];
 				colors.push(record.colorMorph);
