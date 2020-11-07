@@ -1694,9 +1694,12 @@ export class Graphics extends AssetBase {
 		capstyle: number = CapsStyle.NONE, jointstyle: number = JointStyle.MITER, 
 		miterLimit: number = 100): void {
 
-		this._drawingDirty = true;
-		this._lineStyle = new  GraphicsStrokeStyle(color, alpha, thickness, jointstyle, capstyle, miterLimit);
+		const valid = thickness > 0 && alpha > 0;
 
+		this._drawingDirty = true;
+		this._lineStyle = valid
+			? new  GraphicsStrokeStyle(color, alpha, thickness, jointstyle, capstyle, miterLimit)
+			: null;
 	}
 
 	/**
