@@ -115,9 +115,9 @@ export class Graphics extends AssetBase {
 	private _rStrokePool: ManagedPool<Shape> = new ManagedPool<Shape>(Shape, 100, false);
 
 	private _poolingConfig = {
-		FILLS: Settings.ALLOW_INTERNAL_POOL.FILLS,
-		STOKES: Settings.ALLOW_INTERNAL_POOL.STROKES,
-		CLEARS: Settings.CLEARS_BEFORE_POOLING
+		fill: Settings.ALLOW_INTERNAL_POOL.FILLS,
+		stroke: Settings.ALLOW_INTERNAL_POOL.STROKES,
+		clearsCount: Settings.CLEARS_BEFORE_POOLING
 	}
 
 	// graphics, from it was copied
@@ -229,6 +229,26 @@ export class Graphics extends AssetBase {
 
 		this._onInvalidateDelegate = (event: AssetEvent | RenderableEvent) => this._onInvalidate(event);
 
+	}
+
+	/* internal */
+	set internalPoolConfig (v: {stroke: boolean, fill: boolean} | boolean) {
+		this._poolingConfig.fill = typeof v === 'boolean' ? v : v.fill;
+		this._poolingConfig.stroke = typeof v === 'boolean' ? v : v.stroke;
+
+		if (!v) {
+			this._rFillPool.enabled && this._rFillPool.clear();
+			this._rStrokePool.enabled && this._rStrokePool.clear();
+
+			this._rStrokePool.enabled = false;
+			this._rStrokePool.enabled = false;
+		}
+
+		this._clearCount = 0;
+	}
+
+	get internalPoolConfig () {
+		return this._poolingConfig;
 	}
 
 	public popEmptyFillShape() {
@@ -381,12 +401,12 @@ export class Graphics extends AssetBase {
 
 		const requireShapePool = (
 			this._internalShapesId.length > 0
-			&& this._clearCount >= this._poolingConfig.CLEARS);
+			&& this._clearCount >= this._poolingConfig.clearsCount);
 
 		if (requireShapePool
 			&& (
-				this._rStrokePool.enabled !== this._poolingConfig.STOKES ||
-				this._rFillPool.enabled !== this._poolingConfig.FILLS
+				this._rStrokePool.enabled !== this._poolingConfig.stroke ||
+				this._rFillPool.enabled !== this._poolingConfig.fill
 			)) {
 
 			console.warn(
@@ -394,8 +414,8 @@ export class Graphics extends AssetBase {
 				this.id,
 				this._internalShapesId.length);
 
-			this._rFillPool.enabled = this._poolingConfig.FILLS;
-			this._rStrokePool.enabled = this._poolingConfig.STOKES;
+			this._rFillPool.enabled = this._poolingConfig.fill;
+			this._rStrokePool.enabled = this._poolingConfig.stroke;
 		}
 
 		let shape: Shape;
