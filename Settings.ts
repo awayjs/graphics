@@ -24,7 +24,7 @@ export const Settings: IGraphicsSettings = {
 	 * @description Tryed to combine Pathes to one shape
 	 */
 	ALLOW_COMBINER: {
-		FILLS: true,
+		FILLS: false,
 		STROKES: false,
 	}
 };

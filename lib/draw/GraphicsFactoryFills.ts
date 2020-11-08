@@ -23,7 +23,6 @@ import { Graphics } from '../Graphics';
 import Tess2 from 'tess2';
 import { MaterialManager } from '../managers/MaterialManager';
 import { Settings } from '../../Settings';
-import { ISampleState } from '@awayjs/stage/dist/lib/base/SamplerState';
 
 /**
  * The Graphics class contains a set of methods that you can use to create a
@@ -103,8 +102,8 @@ export class GraphicsFactoryFills {
 						material.animateUVs = true;
 						pos = obj.colorPos;
 						style.addSamplerAt(sampler, material.getTextureAt(0));
-						//style.uvMatrix = new Matrix(0, 0, 0, 0, obj.colorPos.x, obj.colorPos.y);
-						style.uvMatrix = new Matrix(0, 1, 1, 0, 0, 0);
+						style.uvMatrix = new Matrix(0, 0, 0, 0, obj.colorPos.x, obj.colorPos.y);
+						//style.uvMatrix = new Matrix(0, 1, 1, 0, 0, 0);
 
 					} else {
 						style = sampler = null;
@@ -191,7 +190,11 @@ export class GraphicsFactoryFills {
 		const pathes = targetGraphics.queued_fill_pathes;
 		const { styles, batchable } = this.collectFillSyles(pathes);
 
-		const combined = Settings.ALLOW_COMBINER.FILLS && batchable && targetGraphics.bathchable;
+		const combined = Settings.ALLOW_COMBINER.FILLS
+				&& batchable
+				&& targetGraphics.bathchable
+				&& pathes.length > 1;
+
 		const len = combined ? 1 : styles.length;
 		const uvPonts = combined ? styles.map((e) => e.pos) : [];
 
@@ -239,10 +242,13 @@ export class GraphicsFactoryFills {
 
 				shape = shape || Shape.getShape(elements);
 
+				if (combined) entry.style.uvMatrix.setTo(0,1,1,0,0,0);
 				shape.style = entry.style;
 				shape.material = entry.material;
 
+				const b = targetGraphics.bathchable;
 				targetGraphics.addShapeInternal(shape);
+				targetGraphics.bathchable = b;
 
 				shape = null;
 				elements = null;

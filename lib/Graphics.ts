@@ -409,6 +409,7 @@ export class Graphics extends AssetBase {
 			&& this._clearCount >= this._poolingConfig.clearsCount);
 
 		if (requireShapePool
+			&& this.bathchable
 			&& (
 				this._rStrokePool.enabled !== this._poolingConfig.stroke ||
 				this._rFillPool.enabled !== this._poolingConfig.fill
@@ -1396,7 +1397,7 @@ export class Graphics extends AssetBase {
 			this._active_stroke_path.forceClose = true;
 		}
 
-		this._endFillInternal(true);
+		//this._endFillInternal(true);
 
 		this._active_fill_path = null;
 		this._active_stroke_path = null;
