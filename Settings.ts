@@ -1,9 +1,9 @@
+type tShapeEntry = {FILLS: boolean, STROKES: boolean};
+
 export interface IGraphicsSettings {
-	ALLOW_INTERNAL_POOL: {
-		FILLS: boolean,
-		STROKES: boolean;
-	},
-	CLEARS_BEFORE_POOLING: number
+	ALLOW_INTERNAL_POOL: tShapeEntry,
+	CLEARS_BEFORE_POOLING: number,
+	ALLOW_COMBINER: tShapeEntry
 }
 
 export const Settings: IGraphicsSettings = {
@@ -19,4 +19,12 @@ export const Settings: IGraphicsSettings = {
 	 * @description How many clears required for caching a shapes
 	 */
 	CLEARS_BEFORE_POOLING: 10,
+
+	/**
+	 * @description Tryed to combine Pathes to one shape
+	 */
+	ALLOW_COMBINER: {
+		FILLS: true,
+		STROKES: false,
+	}
 };

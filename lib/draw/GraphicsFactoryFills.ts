@@ -1,16 +1,12 @@
-import { Point, MathConsts, Rectangle, Matrix } from '@awayjs/core';
+import { Matrix } from '@awayjs/core';
 
 import {
 	ImageSampler,
-	BitmapImage2D,
 	AttributesBuffer,
-	AttributesView,
-	Float3Attributes,
 	Float2Attributes,
-	ImageUtils,
 } from '@awayjs/stage';
 
-import { ITexture, MappingMode, IMaterial, Style } from '@awayjs/renderer';
+import { MappingMode, IMaterial, Style } from '@awayjs/renderer';
 
 import { TriangleElements } from '../elements/TriangleElements';
 import { Shape } from '../renderables/Shape';
@@ -21,12 +17,13 @@ import { BitmapFillStyle } from './BitmapFillStyle';
 import { GradientType } from './GradientType';
 import { GraphicsFactoryHelper } from './GraphicsFactoryHelper';
 import { GraphicsPath } from './GraphicsPath';
-import { GraphicsPathCommand } from './GraphicsPathCommand';
 
 import { Graphics } from '../Graphics';
 
 import Tess2 from 'tess2';
 import { MaterialManager } from '../managers/MaterialManager';
+import { Settings } from '../../Settings';
+import { ISampleState } from '@awayjs/stage/dist/lib/base/SamplerState';
 
 /**
  * The Graphics class contains a set of methods that you can use to create a
@@ -43,6 +40,26 @@ import { MaterialManager } from '../managers/MaterialManager';
  * <p>The Graphics class is final; it cannot be subclassed.</p>
  */
 
+interface IStyleEntry {
+	material: IMaterial;
+	style: Style;
+	pos?: {x: number, y: number}
+}
+
+interface IAttributePair {
+	position?: AttributesBuffer,
+	uv?: AttributesBuffer
+}
+
+export interface ITessResult {
+	vertices: Array<number>;
+	vertexIndices: Array<number>;
+	vertexCount: number;
+	elements: Array<number>;
+	elementCount: number;
+	mesh: any;
+}
+
 const FIXED_BASE = 1000;
 
 export class GraphicsFactoryFills {
@@ -56,50 +73,21 @@ export class GraphicsFactoryFills {
 		return (val * FIXED_BASE | 0) / FIXED_BASE;
 	}
 
-	public static nearest(x0: number, y0: number, x1: number, y1: number) {
-		let dx = (x0 - x1);
-		(dx < 0) && (dx = -dx);
+	public static collectFillSyles(paths: GraphicsPath[]) {
+		const styles: Array<IStyleEntry> = [];
+		const len = paths.length;
+		let batchable = true;
 
-		let dy = (y0 - y1);
-		(dy < 0) && (dy = -dy);
-
-		return (dx + dy) < this.EPS;
-	}
-
-	public static draw_pathes(targetGraphics: Graphics) {
-		//return;
-		const pathes = targetGraphics.queued_fill_pathes;
-		const len = pathes.length;
-
-		for (let cp = 0; cp < len; cp++) {
-			const path = pathes[cp];
+		for (let i = 0; i < len; i++) {
+			const path = paths[i];
 			const pathStyle = path.style;
-
-			// there are a bug with shapes
-			let shape = targetGraphics.popEmptyFillShape();
-			let elements = shape ? <TriangleElements>shape.elements : null;
-
-			const target = elements ? elements.concatenatedBuffer : null;
-			const newBuffer = this.pathToAttributesBuffer(path, false, target);
-
-			if (!newBuffer || !newBuffer.length) {
-				continue;
-			}
-
-			if (!elements) {
-				elements = new TriangleElements(newBuffer);
-				elements.setPositions(new Float2Attributes(newBuffer));
-			} else {
-				elements.invalidate();
-				elements._numVertices = newBuffer.count;
-			}
-
-			//elements.setCustomAttributes("curves", new Float3Attributes(attributesBuffer));
-			//elements.setUVs(new Float2Attributes(attributesBuffer));
 
 			let material: IMaterial;
 			let sampler: ImageSampler = new ImageSampler();
 			let style: Style = new Style();
+			let pos: {x: number, y: number};
+
+			batchable = batchable && !path.verts?.length;
 
 			switch (pathStyle.data_type) {
 				case GraphicsFillStyle.data_type:
@@ -113,9 +101,11 @@ export class GraphicsFactoryFills {
 
 					if (obj.colorPos) {
 						material.animateUVs = true;
-
+						pos = obj.colorPos;
 						style.addSamplerAt(sampler, material.getTextureAt(0));
-						style.uvMatrix = new Matrix(0, 0, 0, 0, obj.colorPos.x, obj.colorPos.y);
+						//style.uvMatrix = new Matrix(0, 0, 0, 0, obj.colorPos.x, obj.colorPos.y);
+						style.uvMatrix = new Matrix(0, 1, 1, 0, 0, 0);
+
 					} else {
 						style = sampler = null;
 					}
@@ -123,6 +113,8 @@ export class GraphicsFactoryFills {
 				}
 				case GradientFillStyle.data_type:
 				{
+					batchable = false;
+
 					const gradientStyle = <GradientFillStyle>(pathStyle);
 					const obj = MaterialManager.get_material_for_gradient(gradientStyle);
 
@@ -143,9 +135,12 @@ export class GraphicsFactoryFills {
 				}
 				case BitmapFillStyle.data_type:
 				{
+					batchable = false;
+
 					const bitmapStyle = <BitmapFillStyle>pathStyle;
 
-					material = bitmapStyle.material; //new ITexture(ImageUtils.getDefaultImage2D());//bitmapStyle.texture;
+					//new ITexture(ImageUtils.getDefaultImage2D());//bitmapStyle.texture;
+					material = bitmapStyle.material;
 					//sampler.smooth = true;
 					sampler.repeat = bitmapStyle.repeat;
 					material.style.sampler = sampler;
@@ -157,19 +152,110 @@ export class GraphicsFactoryFills {
 				}
 			}
 
-			shape = shape || Shape.getShape(elements);
+			styles.push({
+				material, style, pos
+			});
+		}
 
-			shape.style = style;
-			shape.material = material;
+		return {
+			styles, batchable
+		};
+	}
 
-			targetGraphics.addShapeInternal(shape);
+	public static nearest(x0: number, y0: number, x1: number, y1: number) {
+		let dx = (x0 - x1);
+		(dx < 0) && (dx = -dx);
+
+		let dy = (y0 - y1);
+		(dy < 0) && (dy = -dy);
+
+		return (dx + dy) < this.EPS;
+	}
+
+	private static _genUV(
+		pos: {x: number, y: number},
+		target: Float32Array,
+		offset: number = 0,
+		count: number = target.length) {
+
+		for (let i = 0; i < count; i++) {
+			target[i + offset] = i % 2 ? pos.x : pos.y;
+		}
+
+		return target;
+	}
+
+	public static draw_pathes(targetGraphics: Graphics) {
+		//return;
+
+		const pathes = targetGraphics.queued_fill_pathes;
+		const { styles, batchable } = this.collectFillSyles(pathes);
+
+		const combined = Settings.ALLOW_COMBINER.FILLS && batchable && targetGraphics.bathchable;
+		const len = combined ? 1 : styles.length;
+		const uvPonts = combined ? styles.map((e) => e.pos) : [];
+
+		let shape = targetGraphics.popEmptyFillShape();
+		let elements = shape?.elements as TriangleElements;
+
+		const target: IAttributePair = {
+			position: null, uv: null
+		};
+
+		for (let cp = 0; cp < len; cp++) {
+			const path = pathes[cp];
+			const entry: IStyleEntry = styles[cp];
+
+			shape = shape || targetGraphics.popEmptyFillShape();
+			elements = elements || <TriangleElements> shape?.elements;
+
+			target.position = target.position || elements?.concatenatedBuffer;
+
+			if (combined) {
+				if (!this.pathToAttributesBufferMult(pathes, target, true, uvPonts)) {
+					continue;
+				}
+			} else {
+				target.position = this.pathToAttributesBuffer(path, false, target.position);
+			}
+
+			if (!target.position || !target.position.length) {
+				continue;
+			}
+
+			if (!combined || cp === len - 1) {
+				if (!elements) {
+					elements = new TriangleElements();
+					elements.setPositions(new Float2Attributes(target.position));
+
+					if (target.uv) {
+						elements.setUVs(new Float2Attributes(target.uv));
+					}
+
+				} else {
+					elements.invalidate();
+					elements._numVertices = target.position.count;
+				}
+
+				shape = shape || Shape.getShape(elements);
+
+				shape.style = entry.style;
+				shape.material = entry.material;
+
+				targetGraphics.addShapeInternal(shape);
+
+				shape = null;
+				elements = null;
+
+				target.position = null;
+				target.uv = null;
+			}
 		}
 		//targetGraphics.queued_fill_pathes.length = 0;
 	}
 
 	private static _prepareContours(graphicsPath: GraphicsPath, applyFix: boolean = false): number[][] {
 		graphicsPath.prepare();
-
 		const contours: number[][] = graphicsPath._positions;
 		const finalContours: number[][] = [];
 
@@ -215,36 +301,159 @@ export class GraphicsFactoryFills {
 		return finalContours;
 	}
 
+	private static _tesselate(graphicsPath: GraphicsPath): ITessResult {
+		const contours = this._prepareContours(graphicsPath, this.USE_TESS_FIX);
+
+		if (contours.length === 0) {
+			return null;
+		}
+
+		try {
+			return Tess2.tesselate({
+				contours,
+				windingRule: Tess2.WINDING_ODD,
+				elementType: Tess2.POLYGONS,
+				polySize: 3,
+				vertexSize: 2,
+				debug: false
+			});
+
+		} catch (e) {
+			console.log('error when trying to tesselate', contours);
+			return null;
+		}
+
+	}
+
+	private static _fillBuffer(result: ITessResult, buff: Float32Array, offset: number = 0): number {
+
+		const numElems = result.elements.length;
+		const scale = this.USE_TESS_FIX ? (1 / this.TESS_SCALE) : 1;
+		const finalVerts = offset === 0 ? buff : new Float32Array(buff.buffer, offset * Float32Array.BYTES_PER_ELEMENT);
+
+		let vindex = 0;
+		let p1x = 0;
+		let p1y = 0;
+		let p2x = 0;
+		let p2y = 0;
+		let p3x = 0;
+		let p3y = 0;
+
+		for (let i = 0; i < numElems; i += 3) {
+			p1x = scale * result.vertices[result.elements[i + 0] * 2 + 0];
+			p1y = scale * result.vertices[result.elements[i + 0] * 2 + 1];
+			p2x = scale * result.vertices[result.elements[i + 1] * 2 + 0];
+			p2y = scale * result.vertices[result.elements[i + 1] * 2 + 1];
+			p3x = scale * result.vertices[result.elements[i + 2] * 2 + 0];
+			p3y = scale * result.vertices[result.elements[i + 2] * 2 + 1];
+
+			if (GraphicsFactoryHelper.isClockWiseXY(p1x, p1y, p2x, p2y, p3x, p3y)) {
+				finalVerts[vindex++] = p3x;
+				finalVerts[vindex++] = p3y;
+				finalVerts[vindex++] = p2x;
+				finalVerts[vindex++] = p2y;
+				finalVerts[vindex++] = p1x;
+				finalVerts[vindex++] = p1y;
+			} else {
+				finalVerts[vindex++] = p1x;
+				finalVerts[vindex++] = p1y;
+				finalVerts[vindex++] = p2x;
+				finalVerts[vindex++] = p2y;
+				finalVerts[vindex++] = p3x;
+				finalVerts[vindex++] = p3y;
+			}
+		}
+
+		return numElems * 2;
+	}
+
+	public static pathToAttributesBufferMult(
+		pathes: GraphicsPath[],
+		target: IAttributePair,
+		genUV: boolean = false,
+		uvPoints:  Array<{x: number, y: number}> = null
+	): boolean {
+
+		let resultVertexSize = 0;
+
+		const results = [];
+
+		for (const p of pathes) {
+			const res = this._tesselate(p);
+
+			if (res) {
+				resultVertexSize += res.elements.length * 2;
+			}
+
+			results.push(res);
+		}
+
+		if (resultVertexSize === 0) {
+			return false;
+		}
+
+		const V_SIZE = 2;
+		if (!target.position) {
+			target.position = new AttributesBuffer(
+				Float32Array.BYTES_PER_ELEMENT * V_SIZE,
+				(resultVertexSize / V_SIZE) | 0);
+		}
+
+		// resize is safe, it not rebuild buffer when count is same.
+		// count - count of 2 dimension vertex, divide on 2
+		target.position.count = (resultVertexSize / V_SIZE) | 0;
+
+		// fill direct to Float32Array
+		const finalVerts = new Float32Array(target.position.buffer);
+		let finalUv: Float32Array;
+
+		if (genUV) {
+			if (!target.uv) {
+				target.uv = new AttributesBuffer(
+					Float32Array.BYTES_PER_ELEMENT * V_SIZE,
+					(resultVertexSize / V_SIZE) | 0);
+			}
+
+			target.uv.count = (resultVertexSize / V_SIZE) | 0;
+			finalUv = new Float32Array(target.uv.buffer);
+		}
+
+		// append tesselated data
+		let offset = 0;
+
+		for (let i = 0; i < results.length; i++) {
+
+			if (!results[i]) {
+				continue;
+			}
+
+			const filled = this._fillBuffer(results[i], finalVerts, offset);
+
+			if (genUV) {
+				const p = uvPoints[i];
+
+				for (let j = 0; j < filled; j++) {
+					finalUv[j + offset] = p ? (j % 2 ? p.x : p.y) : 0;
+				}
+			}
+
+			offset += filled;
+		}
+
+		return true;
+	}
+
 	public static pathToAttributesBuffer(
 		graphicsPath: GraphicsPath,
 		closePath: boolean = true,
 		target: AttributesBuffer = null): AttributesBuffer {
 
-		const finalContours = this._prepareContours(graphicsPath, this.USE_TESS_FIX);
-
-		//console.log("execute Tess2 = ", finalContours);
-
 		let resultVertexSize = graphicsPath.verts.length;
 		let tesselatedVertexSize = 0;
-		let res = null;
+		const res = this._tesselate(graphicsPath);
 
-		if (finalContours.length > 0) {
-			try {
-				res = Tess2.tesselate({
-					contours: finalContours,
-					windingRule: Tess2.WINDING_ODD,
-					elementType: Tess2.POLYGONS,
-					polySize: 3,
-					vertexSize: 2,
-					debug: true
-				});
-
-				tesselatedVertexSize = res.elements.length * 2;
-				resultVertexSize += tesselatedVertexSize;
-			} catch (e) {
-				res = null;
-				console.log('error when trying to tesselate', finalContours);
-			}
+		if (res) {
+			resultVertexSize += (tesselatedVertexSize = res.elements.length * 2);
 		}
 
 		// drop when nothing exist
@@ -255,8 +464,10 @@ export class GraphicsFactoryFills {
 		const vertexSize = 2;
 
 		if (!target) {
-			target = new AttributesBuffer(Float32Array.BYTES_PER_ELEMENT * vertexSize, (resultVertexSize / vertexSize) | 0);
+			target = new AttributesBuffer(
+				Float32Array.BYTES_PER_ELEMENT * vertexSize, (resultVertexSize / vertexSize) | 0);
 		}
+
 		// resize is safe, it not rebuild buffer when count is same.
 		// count - count of 2 dimension vertex, divide on 2
 		target.count = (resultVertexSize / vertexSize) | 0;
@@ -264,46 +475,12 @@ export class GraphicsFactoryFills {
 		// fill direct to Float32Array
 		const finalVerts = new Float32Array(target.buffer);
 
+		// append tesselated data
 		if (res && tesselatedVertexSize) {
-
-			const numElems = res.elements.length;
-			const scale = this.USE_TESS_FIX ? (1 / this.TESS_SCALE) : 1;
-
-			let vindex = 0;
-			let p1x = 0;
-			let p1y = 0;
-			let p2x = 0;
-			let p2y = 0;
-			let p3x = 0;
-			let p3y = 0;
-
-			for (let i = 0; i < numElems; i += 3) {
-				p1x = scale * res.vertices[res.elements[i + 0] * 2 + 0];
-				p1y = scale * res.vertices[res.elements[i + 0] * 2 + 1];
-				p2x = scale * res.vertices[res.elements[i + 1] * 2 + 0];
-				p2y = scale * res.vertices[res.elements[i + 1] * 2 + 1];
-				p3x = scale * res.vertices[res.elements[i + 2] * 2 + 0];
-				p3y = scale * res.vertices[res.elements[i + 2] * 2 + 1];
-
-				if (GraphicsFactoryHelper.isClockWiseXY(p1x, p1y, p2x, p2y, p3x, p3y)) {
-					finalVerts[vindex++] = p3x;
-					finalVerts[vindex++] = p3y;
-					finalVerts[vindex++] = p2x;
-					finalVerts[vindex++] = p2y;
-					finalVerts[vindex++] = p1x;
-					finalVerts[vindex++] = p1y;
-				} else {
-					finalVerts[vindex++] = p1x;
-					finalVerts[vindex++] = p1y;
-					finalVerts[vindex++] = p2x;
-					finalVerts[vindex++] = p2y;
-					finalVerts[vindex++] = p3x;
-					finalVerts[vindex++] = p3y;
-				}
-			}
+			this._fillBuffer(res, finalVerts, 0);
 		}
 
-		// merge poly vertex
+		// append poly vertex
 		const vs = graphicsPath.verts.length;
 
 		for (let i = 0; i < vs; i++) {

@@ -105,7 +105,7 @@ export class Graphics extends AssetBase {
 	private _drawingDirty: boolean = false;
 
 	public usages: number = 0;
-
+	public bathchable: boolean = true;
 	public _start: GraphicsPath[];
 	public _end: GraphicsPath[];
 
@@ -164,6 +164,7 @@ export class Graphics extends AssetBase {
 			);
 		}
 
+		this.bathchable = false;
 		this.invalidate();
 	}
 
@@ -196,6 +197,8 @@ export class Graphics extends AssetBase {
 	}
 
 	public add_queued_path(value: GraphicsPath) {
+		this.bathchable = false;
+
 		if (value.style) {
 			if (value.style.data_type == GraphicsFillStyle.data_type
 				|| value.style.data_type == GradientFillStyle.data_type
@@ -271,6 +274,8 @@ export class Graphics extends AssetBase {
 	 */
 	public addShape(shape: Shape): Shape {
 		shape.usages++;
+
+		this.bathchable = false;
 
 		const shapeIndex: number = this.getShapeIndex(shape);
 
@@ -522,6 +527,7 @@ export class Graphics extends AssetBase {
 				// build shape construct shapes but not close graphics
 				this._endFillInternal(false);
 			} else {
+				this._endFillInternal(true);
 				this.endFill();
 			}
 		}
@@ -636,7 +642,10 @@ export class Graphics extends AssetBase {
 		if (color == 0) {
 			color = 0x010101;
 		}
-		this.draw_fills();
+
+		if (this._fillStyle && this._fillStyle.data_type !== GraphicsFillStyle.data_type)
+			this.draw_fills();
+
 		this._fillStyle = new GraphicsFillStyle(color, alpha);
 	}
 
@@ -1392,7 +1401,7 @@ export class Graphics extends AssetBase {
 		this._active_fill_path = null;
 		this._active_stroke_path = null;
 		//this._lineStyle=null;
-		this._fillStyle = null;
+		//this._fillStyle = null;
 		//this.invalidate();
 		//this.invalidateElements();
 	}
