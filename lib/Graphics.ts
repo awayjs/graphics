@@ -1407,22 +1407,24 @@ export class Graphics extends AssetBase {
 		//this.invalidateElements();
 	}
 
-	private _endFillInternal(clear = false) {
+	/* internal */ buildQueueTags() {
 		//execute any queued shapetags
-		if (this._queuedShapeTags.length) {
+		if (!this._queuedShapeTags.length)
+			return;
 
-			const localQueue = this._queuedShapeTags;
-			const len = localQueue.length;
+		const localQueue = this._queuedShapeTags;
 
-			this._queuedShapeTags = [];
-
-			for (let i: number = 0; i < len; i++)
-				this.convertRecordsToShapeData(localQueue[i]);
-
-			localQueue.length = 0;
+		for (const tag of localQueue) {
+			this.convertRecordsToShapeData(tag);
 		}
 
+		this._queuedShapeTags.length = 0;
+	}
+
+	private _endFillInternal(clear = false) {
 		const lastShapes = this._shapes.length;
+
+		this.buildQueueTags();
 
 		this.draw_fills(clear);
 		this.draw_strokes(clear);
