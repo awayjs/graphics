@@ -1407,10 +1407,14 @@ export class Graphics extends AssetBase {
 		//this.invalidateElements();
 	}
 
-	/* internal */ buildQueueTags() {
+	/* internal */ buildQueueTags(recursive = false): boolean {
 		//execute any queued shapetags
-		if (!this._queuedShapeTags.length)
-			return;
+		if (!this._queuedShapeTags.length) {
+			// execute build reqursive
+			return recursive
+				&& this.sourceGraphics
+				&& this.sourceGraphics.buildQueueTags(recursive);
+		}
 
 		const localQueue = this._queuedShapeTags;
 
@@ -1419,6 +1423,8 @@ export class Graphics extends AssetBase {
 		}
 
 		this._queuedShapeTags.length = 0;
+
+		return true;
 	}
 
 	private _endFillInternal(clear = false) {
