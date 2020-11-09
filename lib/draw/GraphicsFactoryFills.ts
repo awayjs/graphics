@@ -22,7 +22,7 @@ import { Graphics } from '../Graphics';
 
 import Tess2 from 'tess2';
 import { MaterialManager } from '../managers/MaterialManager';
-import { Settings } from '../../Settings';
+import { Settings } from '../Settings';
 
 /**
  * The Graphics class contains a set of methods that you can use to create a

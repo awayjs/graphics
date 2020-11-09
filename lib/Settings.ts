@@ -12,9 +12,11 @@ export const Settings: IGraphicsSettings = {
 	 * Used for reduce shape rebuilding after clear - filling phases.
 	 */
 	ALLOW_INTERNAL_POOL: {
+		// Fills not support yet
 		FILLS: false,
-		STROKES: false,
+		STROKES: true,
 	},
+
 	/**
 	 * @description How many clears required for caching a shapes
 	 */
@@ -24,7 +26,8 @@ export const Settings: IGraphicsSettings = {
 	 * @description Tryed to combine Pathes to one shape
 	 */
 	ALLOW_COMBINER: {
-		FILLS: false,
+		FILLS: true,
+		// Strokes not support yet
 		STROKES: false,
 	}
 };

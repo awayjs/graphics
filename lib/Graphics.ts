@@ -45,7 +45,7 @@ import { assert } from './data/utilities';
 import { MaterialManager } from './managers/MaterialManager';
 import { LineElements } from './elements/LineElements';
 import { ManagedPool } from './ManagedPool';
-import { Settings } from '../Settings';
+import { Settings } from './Settings';
 
 /**
  *
