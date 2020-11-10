@@ -740,6 +740,7 @@ import {
 	ShaderRegisterCache,
 	ShaderRegisterData,
 	ShaderRegisterElement,
+	IVao
 } from '@awayjs/stage';
 
 import {
@@ -749,6 +750,7 @@ import {
 	_Render_RenderableBase,
 	_Render_ElementsBase,
 } from '@awayjs/renderer';
+import { Settings } from '../Settings';
 
 /**
  *
@@ -756,57 +758,71 @@ import {
  */
 export class _Stage_TriangleElements extends _Stage_ElementsBase {
 	private _triangleElements: TriangleElements;
+	private _vao: IVao;
+	private _vaoFilled: boolean = false;
 
 	constructor(triangleElements: TriangleElements, stage: Stage) {
 		super(triangleElements, stage);
 
 		this._triangleElements = triangleElements;
+		this._vao = !this._triangleElements.isDunamic && Settings.ALLOW_VAO
+			? stage.context.createVao()
+			: null;
 	}
 
 	public onClear(event: AssetEvent): void {
 		super.onClear(event);
 
 		this._triangleElements = null;
+		this._vao && this._vao.dispose();
 	}
 
 	public _setRenderState(renderRenderable: _Render_RenderableBase, shader: ShaderBase): void {
+
+		this._vao && this._vao.bind();
+
 		super._setRenderState(renderRenderable, shader);
 
-		//set buffers
-		//TODO: find a better way to update a concatenated buffer when autoderiving
-		if (shader.normalIndex >= 0 && this._triangleElements.autoDeriveNormals)
-			this._triangleElements.normals;
+		if (!this._vao || !this._vaoFilled) {
+			//set buffers
+			//TODO: find a better way to update a concatenated buffer when autoderiving
+			if (shader.normalIndex >= 0 && this._triangleElements.autoDeriveNormals)
+				this._triangleElements.normals;
 
-		if (shader.tangentIndex >= 0 && this._triangleElements.autoDeriveTangents)
-			this._triangleElements.tangents;
+			if (shader.tangentIndex >= 0 && this._triangleElements.autoDeriveTangents)
+				this._triangleElements.tangents;
 
-		if (shader.curvesIndex >= 0)
-			this.activateVertexBufferVO(shader.curvesIndex, this._triangleElements.getCustomAtributes('curves'));
+			if (shader.curvesIndex >= 0)
+				this.activateVertexBufferVO(shader.curvesIndex, this._triangleElements.getCustomAtributes('curves'));
 
-		if (shader.uvIndex >= 0)
-			this.activateVertexBufferVO(shader.uvIndex, this._triangleElements.uvs || this._triangleElements.positions);
+			if (shader.uvIndex >= 0)
+				this.activateVertexBufferVO(
+					shader.uvIndex, this._triangleElements.uvs || this._triangleElements.positions);
 
-		if (shader.secondaryUVIndex >= 0) {
-			this.activateVertexBufferVO(
-				shader.secondaryUVIndex,
-				this._triangleElements.getCustomAtributes('secondaryUVs')
-					|| this._triangleElements.uvs
-					|| this._triangleElements.positions);
+			if (shader.secondaryUVIndex >= 0) {
+				this.activateVertexBufferVO(
+					shader.secondaryUVIndex,
+					this._triangleElements.getCustomAtributes('secondaryUVs')
+						|| this._triangleElements.uvs
+						|| this._triangleElements.positions);
+			}
+
+			if (shader.normalIndex >= 0)
+				this.activateVertexBufferVO(shader.normalIndex, this._triangleElements.normals);
+
+			if (shader.tangentIndex >= 0)
+				this.activateVertexBufferVO(shader.tangentIndex, this._triangleElements.tangents);
+
+			if (shader.jointIndexIndex >= 0)
+				this.activateVertexBufferVO(shader.jointIndexIndex, this._triangleElements.jointIndices);
+
+			if (shader.jointWeightIndex >= 0)
+				this.activateVertexBufferVO(shader.jointIndexIndex, this._triangleElements.jointWeights);
+
+			this.activateVertexBufferVO(0, this._triangleElements.positions);
+
+			this._vaoFilled = true;
 		}
-
-		if (shader.normalIndex >= 0)
-			this.activateVertexBufferVO(shader.normalIndex, this._triangleElements.normals);
-
-		if (shader.tangentIndex >= 0)
-			this.activateVertexBufferVO(shader.tangentIndex, this._triangleElements.tangents);
-
-		if (shader.jointIndexIndex >= 0)
-			this.activateVertexBufferVO(shader.jointIndexIndex, this._triangleElements.jointIndices);
-
-		if (shader.jointWeightIndex >= 0)
-			this.activateVertexBufferVO(shader.jointIndexIndex, this._triangleElements.jointWeights);
-
-		this.activateVertexBufferVO(0, this._triangleElements.positions);
 	}
 
 	public draw(renderRenderable: _Render_RenderableBase, shader: ShaderBase, count: number, offset: number): void {
@@ -829,6 +845,8 @@ export class _Stage_TriangleElements extends _Stage_ElementsBase {
 			this.getIndexBufferGL().draw(ContextGLDrawMode.TRIANGLES, offset * 3, count * 3 || this.numIndices);
 		else
 			this._stage.context.drawVertices(ContextGLDrawMode.TRIANGLES, offset, count || this.numVertices);
+
+		this._vao && this._vao.unbind();
 	}
 
 	/**
