@@ -7,7 +7,6 @@ import {
 	AttributesView,
 	Float3Attributes,
 	Float2Attributes,
-	ImageUtils,
 } from '@awayjs/stage';
 
 import { ITexture, MappingMode, IMaterial, Style } from '@awayjs/renderer';
@@ -93,6 +92,8 @@ export class GraphicsFactoryFills {
 				elements.invalidate();
 				elements._numVertices = newBuffer.count;
 			}
+
+			elements.isDynamic = targetGraphics._clearCount > 0;
 
 			//elements.setCustomAttributes("curves", new Float3Attributes(attributesBuffer));
 			//elements.setUVs(new Float2Attributes(attributesBuffer));
