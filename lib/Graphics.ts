@@ -109,7 +109,7 @@ export class Graphics extends AssetBase {
 	public _start: GraphicsPath[];
 	public _end: GraphicsPath[];
 
-	private _clearCount: number = 0;
+	/*internal*/ _clearCount: number = 0;
 	private _internalShapesId: number[] = [];
 	private _rFillPool: ManagedPool<Shape> = new ManagedPool<Shape>(Shape, 100, false);
 	private _rStrokePool: ManagedPool<Shape> = new ManagedPool<Shape>(Shape, 100, false);

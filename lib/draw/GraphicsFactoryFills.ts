@@ -254,6 +254,7 @@ export class GraphicsFactoryFills {
 					elements.invalidate();
 					elements._numVertices = target.position.count;
 				}
+				elements.isDynamic = targetGraphics._clearCount > 0;
 
 				shape = shape || Shape.getShape(elements);
 

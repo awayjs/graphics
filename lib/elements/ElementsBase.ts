@@ -10,7 +10,7 @@ import { ElementsEvent, IElements, IMaterial } from '@awayjs/renderer';
  * @class away.base.TriangleElements
  */
 export class ElementsBase extends AssetBase implements IElements {
-	public isDunamic: boolean = false;
+	public isDynamic: boolean = false;
 
 	private _indices: Short3Attributes;
 	private _customAttributesNames: Array<string> = new Array<string>();
