@@ -765,9 +765,13 @@ export class _Stage_TriangleElements extends _Stage_ElementsBase {
 		super(triangleElements, stage);
 
 		this._triangleElements = triangleElements;
-		this._vao = !this._triangleElements.isDynamic && Settings.ALLOW_VAO
-			? stage.context.createVao()
-			: null;
+		if (!this._triangleElements.isDynamic
+				&& Settings.ALLOW_VAO
+				&& stage.context.hasVao) {
+
+			this._vao = stage.context.createVao();
+		}
+
 	}
 
 	public onClear(event: AssetEvent): void {
