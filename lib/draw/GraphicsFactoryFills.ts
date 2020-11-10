@@ -50,6 +50,15 @@ interface IAttributePair {
 	uv?: AttributesBuffer
 }
 
+interface IGeneratorPayload {
+	path: GraphicsPath;
+	styleEntries: IStyleEntry[];
+	styleEntry: IStyleEntry;
+	owner: Graphics;
+	uvBuffer: Float32Array;
+	vertexBuffer: Float32Array;
+}
+
 export interface ITessResult {
 	vertices: Array<number>;
 	vertexIndices: Array<number>;
@@ -171,17 +180,15 @@ export class GraphicsFactoryFills {
 		return (dx + dy) < this.EPS;
 	}
 
-	private static _genUV(
-		pos: {x: number, y: number},
-		target: Float32Array,
-		offset: number = 0,
-		count: number = target.length) {
+	private static _genFillUV(
+		index: number, { uvBuffer, styleEntry }: Partial<IGeneratorPayload>): number {
 
-		for (let i = 0; i < count; i++) {
-			target[i + offset] = i % 2 ? pos.x : pos.y;
-		}
+		const pos = styleEntry.pos;
 
-		return target;
+		uvBuffer[index] = pos.y;
+		uvBuffer[index + 1] = pos.x;
+
+		return 2;
 	}
 
 	public static draw_pathes(targetGraphics: Graphics) {
@@ -196,13 +203,21 @@ export class GraphicsFactoryFills {
 				&& pathes.length > 1;
 
 		const len = combined ? 1 : styles.length;
-		const uvPonts = combined ? styles.map((e) => e.pos) : [];
 
 		let shape = targetGraphics.popEmptyFillShape();
 		let elements = shape?.elements as TriangleElements;
 
 		const target: IAttributePair = {
 			position: null, uv: null
+		};
+
+		const payload: IGeneratorPayload = {
+			path: null, // filled inside builder,
+			uvBuffer: null, // too
+			vertexBuffer: null, // too,
+			styleEntry: null, // selected inside builder for specific path
+			styleEntries: styles,
+			owner: targetGraphics,
 		};
 
 		for (let cp = 0; cp < len; cp++) {
@@ -215,7 +230,7 @@ export class GraphicsFactoryFills {
 			target.position = target.position || elements?.concatenatedBuffer;
 
 			if (combined) {
-				if (!this.pathToAttributesBufferMult(pathes, target, true, uvPonts)) {
+				if (!this.pathToAttributesBufferMult(pathes, target, true, payload)) {
 					continue;
 				}
 			} else {
@@ -331,13 +346,19 @@ export class GraphicsFactoryFills {
 
 	}
 
-	private static _fillBuffer(result: ITessResult, buff: Float32Array, offset: number = 0): number {
+	private static _fillBuffer(
+		result: ITessResult, offset: number = 0, payload: Partial<IGeneratorPayload>): number {
 
+		const vertexBuffer = payload.vertexBuffer;
 		const numElems = result.elements.length;
 		const scale = this.USE_TESS_FIX ? (1 / this.TESS_SCALE) : 1;
-		const finalVerts = offset === 0 ? buff : new Float32Array(buff.buffer, offset * Float32Array.BYTES_PER_ELEMENT);
+		const finalVerts = offset === 0
+			? vertexBuffer
+			: new Float32Array(vertexBuffer.buffer, offset * Float32Array.BYTES_PER_ELEMENT);
 
 		let vindex = 0;
+		let nextUvIndex = 0;
+
 		let p1x = 0;
 		let p1y = 0;
 		let p2x = 0;
@@ -346,6 +367,7 @@ export class GraphicsFactoryFills {
 		let p3y = 0;
 
 		for (let i = 0; i < numElems; i += 3) {
+
 			p1x = scale * result.vertices[result.elements[i + 0] * 2 + 0];
 			p1y = scale * result.vertices[result.elements[i + 0] * 2 + 1];
 			p2x = scale * result.vertices[result.elements[i + 1] * 2 + 0];
@@ -368,6 +390,17 @@ export class GraphicsFactoryFills {
 				finalVerts[vindex++] = p3x;
 				finalVerts[vindex++] = p3y;
 			}
+
+			if (payload.uvBuffer) {
+				for (;nextUvIndex < vindex;) {
+					// generate uv per D vertex
+					const d = this._genFillUV(nextUvIndex + offset, payload);
+
+					// prevent freeze loop
+					if (d <= 0) break;
+					nextUvIndex += d;
+				}
+			}
 		}
 
 		return numElems * 2;
@@ -377,7 +410,7 @@ export class GraphicsFactoryFills {
 		pathes: GraphicsPath[],
 		target: IAttributePair,
 		genUV: boolean = false,
-		uvPoints:  Array<{x: number, y: number}> = null
+		payload: IGeneratorPayload
 	): boolean {
 
 		let resultVertexSize = 0;
@@ -424,6 +457,9 @@ export class GraphicsFactoryFills {
 			finalUv = new Float32Array(target.uv.buffer);
 		}
 
+		payload.vertexBuffer = finalVerts;
+		payload.uvBuffer = finalUv;
+
 		// append tesselated data
 		let offset = 0;
 
@@ -433,15 +469,10 @@ export class GraphicsFactoryFills {
 				continue;
 			}
 
-			const filled = this._fillBuffer(results[i], finalVerts, offset);
+			payload.path = pathes[i];
+			payload.styleEntry = payload.styleEntries[i];
 
-			if (genUV) {
-				const p = uvPoints[i];
-
-				for (let j = 0; j < filled; j++) {
-					finalUv[j + offset] = p ? (j % 2 ? p.x : p.y) : 0;
-				}
-			}
+			const filled = this._fillBuffer(results[i], offset, payload);
 
 			offset += filled;
 		}
@@ -483,7 +514,7 @@ export class GraphicsFactoryFills {
 
 		// append tesselated data
 		if (res && tesselatedVertexSize) {
-			this._fillBuffer(res, finalVerts, 0);
+			this._fillBuffer(res, 0, { vertexBuffer: finalVerts });
 		}
 
 		// append poly vertex
