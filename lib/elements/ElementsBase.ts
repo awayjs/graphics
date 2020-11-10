@@ -10,6 +10,8 @@ import { ElementsEvent, IElements, IMaterial } from '@awayjs/renderer';
  * @class away.base.TriangleElements
  */
 export class ElementsBase extends AssetBase implements IElements {
+	public isDunamic: boolean = false;
+
 	private _indices: Short3Attributes;
 	private _customAttributesNames: Array<string> = new Array<string>();
 	private _customAttributes: Object = new Object();
@@ -199,8 +201,10 @@ export class ElementsBase extends AssetBase implements IElements {
 			this.clearVertices(this._customAttributes[name]);
 			this._customAttributes[name] = values;
 		} else if (values) {
-			if (!this._customAttributes[name])
-				this._customAttributes[name] = new Float3Attributes(this._concatenatedBuffer); //default custom atrributes is Float3
+			if (!this._customAttributes[name]) {
+				//default custom atrributes is Float3
+				this._customAttributes[name] = new Float3Attributes(this._concatenatedBuffer);
+			}
 
 			this._customAttributes[name].set(values, offset);
 		} else if (this._customAttributes[name]) {
@@ -242,15 +246,38 @@ export class ElementsBase extends AssetBase implements IElements {
 		throw new AbstractMethodError();
 	}
 
-	public getBoxBounds(view: View, entity: IPickingEntity = null, strokeFlag: boolean = true, matrix3D: Matrix3D = null, cache: Box = null, target: Box = null, count: number = 0, offset: number = 0): Box {
+	public getBoxBounds(
+		view: View,
+		entity: IPickingEntity = null,
+		strokeFlag: boolean = true,
+		matrix3D: Matrix3D = null,
+		cache: Box = null,
+		target: Box = null,
+		count: number = 0,
+		offset: number = 0): Box {
+
 		throw new AbstractMethodError();
 	}
 
-	public getSphereBounds(view: View, center: Vector3D, matrix3D: Matrix3D = null, strokeFlag: boolean = true, cache: Sphere = null, target: Sphere = null, count: number = 0, offset: number = 0): Sphere {
+	public getSphereBounds(
+		view: View,
+		center: Vector3D,
+		matrix3D: Matrix3D = null,
+		strokeFlag: boolean = true,
+		cache: Sphere = null,
+		target: Sphere = null,
+		count: number = 0,
+		offset: number = 0): Sphere {
 		throw new AbstractMethodError();
 	}
 
-	public hitTestPoint(view: View, entity: IPickingEntity, x: number, y: number, z: number, box: Box, count: number = 0, offset: number = 0): boolean {
+	public hitTestPoint(
+		view: View,
+		entity: IPickingEntity,
+		x: number, y: number, z: number,
+		box: Box,
+		count: number = 0,
+		offset: number = 0): boolean {
 		throw new AbstractMethodError();
 	}
 
@@ -272,7 +299,8 @@ export class ElementsBase extends AssetBase implements IElements {
 		this._verticesDirty[attributesView.id] = true;
 
 		if (!this._invalidateVertices[attributesView.id])
-			this._invalidateVertices[attributesView.id] = new ElementsEvent(ElementsEvent.INVALIDATE_VERTICES, attributesView);
+			this._invalidateVertices[attributesView.id] = new ElementsEvent(
+				ElementsEvent.INVALIDATE_VERTICES, attributesView);
 
 		this.dispatchEvent(this._invalidateVertices[attributesView.id]);
 	}
@@ -289,7 +317,14 @@ export class ElementsBase extends AssetBase implements IElements {
 		this._invalidateVertices[attributesView.id] = null;
 	}
 
-	public testCollision(view: View, collision: PickingCollision, box: Box, closestFlag: boolean, material: IMaterial, count: number, offset: number = 0): boolean {
+	public testCollision(
+		view: View,
+		collision: PickingCollision,
+		box: Box,
+		closestFlag: boolean,
+		material: IMaterial,
+		count: number,
+		offset: number = 0): boolean {
 		throw new AbstractMethodError();
 	}
 }
