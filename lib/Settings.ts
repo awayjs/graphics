@@ -1,9 +1,10 @@
 type tShapeEntry = {FILLS: boolean, STROKES: boolean};
 
 export interface IGraphicsSettings {
-	ALLOW_INTERNAL_POOL: tShapeEntry,
-	CLEARS_BEFORE_POOLING: number,
-	ALLOW_COMBINER: tShapeEntry
+	ALLOW_INTERNAL_POOL: tShapeEntry;
+	CLEARS_BEFORE_POOLING: number;
+	ALLOW_COMBINER: tShapeEntry;
+	ALLOW_VAO: boolean;
 }
 
 export const Settings: IGraphicsSettings = {
@@ -29,5 +30,10 @@ export const Settings: IGraphicsSettings = {
 		FILLS: true,
 		// Strokes not support yet
 		STROKES: false,
-	}
+	},
+
+	/**
+	 * @description Allow vao for elements
+	 */
+	ALLOW_VAO: true,
 };
