@@ -115,7 +115,7 @@ export class ConvexHullUtils {
 	 * @description Generate a hull by modified Graham scan, not required sorting by angle
 	 * @see https://en.wikibooks.org/wiki/Algorithm_Implementation/Geometry/Convex_hull/Monotone_chain
 	 */
-	private static generateHull (points: Array<TPoint>): IHullImpl {
+	private static generateHull (points: Array<TPoint>): IHullImpl | null {
 		const nearest = GraphicsFactoryFills.nearest.bind(GraphicsFactoryFills);
 		const len = points.length;
 
@@ -159,6 +159,11 @@ export class ConvexHullUtils {
 			}
 		}
 
+		if ((bottom.length + top.length) < 5) {
+			// invalid hull, drop;
+			return null;
+		}
+
 		// drop first point, because it same as in top
 		bottom.shift();
 		// drop last point, because it same as in top
@@ -196,6 +201,8 @@ export class ConvexHullUtils {
 
 		// sort edges by angle, because 0 is left
 		// TODO: fix ordering to avoid a sorting
+		// but this is very fast when a data blocked sorted,
+		// because ib v8 this used a TimSort
 		edges.sort(this.cmpEdges);
 
 		return new ConvexHull({
@@ -205,7 +212,7 @@ export class ConvexHullUtils {
 		});
 	}
 
-	public static fromBuffer (buffer: Float32Array, dimension = 2): IHullImpl {
+	public static fromBuffer (buffer: Float32Array, dimension = 2): IHullImpl | null {
 		// we should reconstuct this for [[0,0]] array to simplyfy sorting and math
 		const len = buffer.length / dimension | 0;
 		const points: Array<[number, number]> = new Array(len);
@@ -219,7 +226,8 @@ export class ConvexHullUtils {
 	}
 
 	public static fromAttribute (
-		posAttrs: AttributesView, indexAttrs: Short2Attributes = null, count: number, offset: number = 0): IHullImpl {
+		posAttrs: AttributesView, indexAttrs: Short2Attributes = null,
+		count: number, offset: number = 0): IHullImpl | null {
 
 		let indices: Uint16Array;
 		let len: number;

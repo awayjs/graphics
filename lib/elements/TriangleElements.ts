@@ -14,9 +14,12 @@ import {
 } from '@awayjs/stage';
 
 import { TriangleElementsUtils } from '../utils/TriangleElementsUtils';
-import { ConvexHull, ConvexHullUtils, IHullImpl } from '../utils/ConvexHullUtils';
+import {  ConvexHullUtils, IHullImpl } from '../utils/ConvexHullUtils';
 
 import { ElementsBase } from './ElementsBase';
+
+type THullImplId = IHullImpl & {offset: number, count: number};
+
 /**
  * @class away.base.TriangleElements
  */
@@ -48,7 +51,8 @@ export class TriangleElements extends ElementsBase {
 	public slice9Indices: number[];
 	public initialSlice9Positions: number[];
 
-	protected convexHull: IHullImpl;
+	protected convexHull: THullImplId;
+
 	public updateSlice9(width: number, height: number) {
 
 	}
@@ -162,14 +166,27 @@ export class TriangleElements extends ElementsBase {
 		cache: Box = null, target: Box = null,
 		count: number = 0, offset: number = 0): Box {
 
-		if (Settings.ENABLE_CONVEX_BOUNDS) {
-			if (!this.convexHull) {
-				this.convexHull = ConvexHullUtils.fromAttribute(
+		count = count || this._numElements || this._numVertices;
+
+		if (
+			Settings.ENABLE_CONVEX_BOUNDS
+			&& count > Settings.POINTS_COUNT_FOR_CONVEX
+		) {
+
+			if (
+				!this.convexHull
+				|| this.convexHull.count !== count// drop hull data, invalid
+				|| this.convexHull.offset !==  offset // drop hull data, invalid
+			) {
+				this.convexHull = <THullImplId> ConvexHullUtils.fromAttribute(
 					this.positions,
 					this.indices,
-					count || this._numElements || this._numVertices,
+					count,
 					offset
 				);
+
+				this.convexHull.offset = offset;
+				this.convexHull.count = count;
 			}
 
 			// Crashable??
@@ -185,7 +202,7 @@ export class TriangleElements extends ElementsBase {
 			matrix3D,
 			cache,
 			target,
-			count || this._numElements || this._numVertices,
+			count,
 			offset);
 	}
 
