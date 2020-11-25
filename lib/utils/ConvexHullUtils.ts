@@ -1,16 +1,17 @@
 import { Box, Matrix3D } from '@awayjs/core';
 import { AttributesView, Short2Attributes } from '@awayjs/stage';
+import { GraphicsFactoryFills } from '../draw/GraphicsFactoryFills';
 
-type TPoint = [ number, number ];
-type TEdge = { a: number, b: number, angle: number };
+export type TPoint = [ number, number ];
+export type TEdge = { a: number, b: number, angle: number };
 
-interface IHullData {
+export interface IHullData {
 	middle: TPoint;
 	points: Array<TPoint>;
 	edges: Array<TEdge>;
 }
 
-interface IHullImpl extends IHullData {
+export interface IHullImpl extends IHullData {
 	fetchEdge (angle: number): TEdge;
 	fetchPoint (index: number): TPoint;
 }
@@ -115,6 +116,7 @@ export class ConvexHullUtils {
 	 * @see https://en.wikibooks.org/wiki/Algorithm_Implementation/Geometry/Convex_hull/Monotone_chain
 	 */
 	private static generateHull (points: Array<TPoint>): IHullImpl {
+		const nearest = GraphicsFactoryFills.nearest.bind(GraphicsFactoryFills);
 		const len = points.length;
 
 		// sort by X and Y
@@ -127,8 +129,17 @@ export class ConvexHullUtils {
 		const top: Array<TPoint> = [p1];
 		const bottom: Array<TPoint> = [p1];
 
+		let last: TPoint = p1;
+
 		for (let i = 1; i < len; i++) {
 			const next = points[i];
+
+			if (nearest(last[0], last[1], next[0], next[1])) {
+				continue;
+			}
+
+			last = next;
+
 			const a = this.ccw(p1, next, p2);
 
 			// pass for TOP part of shape
@@ -237,8 +248,9 @@ export class ConvexHullUtils {
 		return this.generateHull(points);
 	}
 
-	public static createBox(simpleHull: IHullData, matrix?: Matrix3D, target: Box = new Box()): Box {
+	public static createBox(simpleHull: IHullData, matrix?: Matrix3D, target?: Box): Box {
 
+		target = target || new Box();
 		// construct 2D bounds from hull without fast approximation becasue it not tested
 		const rawData = matrix?._rawData;
 		let minX = Infinity;

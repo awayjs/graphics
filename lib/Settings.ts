@@ -8,6 +8,8 @@ export interface IGraphicsSettings {
 	CLEARS_BEFORE_POOLING: number;
 	ALLOW_COMBINER: tShapeEntry;
 	ALLOW_VAO: boolean;
+
+	ENABLE_CONVEX_BOUNDS: boolean;
 }
 
 export const Settings: IGraphicsSettings = {
@@ -37,4 +39,9 @@ export const Settings: IGraphicsSettings = {
 	 * @description Allow vao for elements
 	 */
 	ALLOW_VAO: true,
+
+	/**
+	 * @description Enable construct a approximation convex for triangle element.
+	 */
+	ENABLE_CONVEX_BOUNDS: true
 };

@@ -14,6 +14,7 @@ import {
 } from '@awayjs/stage';
 
 import { TriangleElementsUtils } from '../utils/TriangleElementsUtils';
+import { ConvexHull, ConvexHullUtils, IHullImpl } from '../utils/ConvexHullUtils';
 
 import { ElementsBase } from './ElementsBase';
 /**
@@ -47,6 +48,7 @@ export class TriangleElements extends ElementsBase {
 	public slice9Indices: number[];
 	public initialSlice9Positions: number[];
 
+	protected convexHull: IHullImpl;
 	public updateSlice9(width: number, height: number) {
 
 	}
@@ -159,6 +161,23 @@ export class TriangleElements extends ElementsBase {
 		strokeFlag: boolean = true, matrix3D: Matrix3D = null,
 		cache: Box = null, target: Box = null,
 		count: number = 0, offset: number = 0): Box {
+
+		if (Settings.ENABLE_CONVEX_BOUNDS) {
+			if (!this.convexHull) {
+				this.convexHull = ConvexHullUtils.fromAttribute(
+					this.positions,
+					this.indices,
+					count || this._numElements || this._numVertices,
+					offset
+				);
+			}
+
+			// Crashable??
+			// Maybe, i don't know, falling back to utils
+			if (this.convexHull) {
+				return ConvexHullUtils.createBox(this.convexHull, matrix3D, target || cache);
+			}
+		}
 
 		return TriangleElementsUtils.getBoxBounds(
 			this.positions,
