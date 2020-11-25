@@ -248,9 +248,8 @@ export class ConvexHullUtils {
 		return this.generateHull(points);
 	}
 
-	public static createBox(simpleHull: IHullData, matrix?: Matrix3D, target?: Box): Box {
+	public static createBox(simpleHull: IHullData, matrix?: Matrix3D, target?: Box, cache?: Box): Box {
 
-		target = target || new Box();
 		// construct 2D bounds from hull without fast approximation becasue it not tested
 		const rawData = matrix?._rawData;
 		let minX = Infinity;
@@ -258,14 +257,26 @@ export class ConvexHullUtils {
 		let maxX = -Infinity;
 		let maxY = -Infinity;
 
+		if (target) {
+			minX = target.x;
+			minY = target.y;
+			maxX = minX + target.width;
+			maxY = minY + target.height;
+		} else {
+			target = cache || new Box();
+		}
+
 		for (const p of simpleHull.points) {
 
 			let x = p[0];
 			let y = p[1];
 
 			if (rawData) {
-				x = x * rawData[0] + y * rawData[4] + rawData[12];
-				y = x * rawData[1] + y * rawData[5] + rawData[13];
+				const ox = x;
+				const oy = y;
+
+				x = ox * rawData[0] + oy * rawData[4] + rawData[12];
+				y = ox * rawData[1] + oy * rawData[5] + rawData[13];
 			}
 
 			if (x < minX) minX = x;

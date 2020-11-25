@@ -175,7 +175,7 @@ export class TriangleElements extends ElementsBase {
 			// Crashable??
 			// Maybe, i don't know, falling back to utils
 			if (this.convexHull) {
-				return ConvexHullUtils.createBox(this.convexHull, matrix3D, target || cache);
+				return ConvexHullUtils.createBox(this.convexHull, matrix3D, target, cache);
 			}
 		}
 
@@ -254,6 +254,9 @@ export class TriangleElements extends ElementsBase {
 		this.invalidateVertices(this._positions);
 
 		this._verticesDirty[this._positions.id] = false;
+
+		// drop hull, positions is should be reconstructed
+		this.convexHull = null;
 	}
 
 	/**
