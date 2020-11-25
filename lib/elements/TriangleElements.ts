@@ -171,6 +171,7 @@ export class TriangleElements extends ElementsBase {
 		if (
 			Settings.ENABLE_CONVEX_BOUNDS
 			&& count > Settings.POINTS_COUNT_FOR_CONVEX
+			&& !this.isDynamic // diable for dynamic elements, beacause a reconstructed every frame
 		) {
 
 			if (
@@ -506,6 +507,11 @@ export class TriangleElements extends ElementsBase {
 		if (this._faceTangents) {
 			this._faceTangents.dispose();
 			this._faceTangents = null;
+		}
+
+		if (this.convexHull) {
+			this.convexHull.dispose();
+			this.convexHull = null;
 		}
 	}
 

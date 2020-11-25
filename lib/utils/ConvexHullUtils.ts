@@ -1,5 +1,6 @@
 import { Box, Matrix3D } from '@awayjs/core';
 import { AttributesView, Short2Attributes } from '@awayjs/stage';
+import { ParticleRotateToHeadingState } from '../animators/states/ParticleRotateToHeadingState';
 import { GraphicsFactoryFills } from '../draw/GraphicsFactoryFills';
 
 export type TPoint = [ number, number ];
@@ -14,6 +15,7 @@ export interface IHullData {
 export interface IHullImpl extends IHullData {
 	fetchEdge (angle: number): TEdge;
 	fetchPoint (index: number): TPoint;
+	dispose(): void;
 }
 
 const PI = Math.PI;
@@ -93,6 +95,13 @@ export class ConvexHull implements IHullImpl {
 	public fetchPoint (index: number) {
 		if (index < 0) index += this.points.length;
 		return this.points[index % this.points.length];
+	}
+
+	dispose() {
+		this.edges = null;
+		this.points = null;
+		this.ranges = null;
+		this.middle = null;
 	}
 }
 
