@@ -14,8 +14,12 @@ import {
 } from '@awayjs/stage';
 
 import { TriangleElementsUtils } from '../utils/TriangleElementsUtils';
+import {  ConvexHullUtils, IHullImpl } from '../utils/ConvexHullUtils';
 
 import { ElementsBase } from './ElementsBase';
+
+type THullImplId = IHullImpl & {offset: number, count: number};
+
 /**
  * @class away.base.TriangleElements
  */
@@ -46,6 +50,8 @@ export class TriangleElements extends ElementsBase {
 	public slice9offsets: Rectangle;
 	public slice9Indices: number[];
 	public initialSlice9Positions: number[];
+
+	protected convexHull: THullImplId;
 
 	public updateSlice9(width: number, height: number) {
 
@@ -160,13 +166,44 @@ export class TriangleElements extends ElementsBase {
 		cache: Box = null, target: Box = null,
 		count: number = 0, offset: number = 0): Box {
 
+		count = count || this._numElements || this._numVertices;
+
+		if (
+			Settings.ENABLE_CONVEX_BOUNDS
+			&& count > Settings.POINTS_COUNT_FOR_CONVEX
+			&& !this.isDynamic // diable for dynamic elements, beacause a reconstructed every frame
+		) {
+
+			if (
+				!this.convexHull
+				|| this.convexHull.count !== count// drop hull data, invalid
+				|| this.convexHull.offset !==  offset // drop hull data, invalid
+			) {
+				this.convexHull = <THullImplId> ConvexHullUtils.fromAttribute(
+					this.positions,
+					this.indices,
+					count,
+					offset
+				);
+
+				this.convexHull.offset = offset;
+				this.convexHull.count = count;
+			}
+
+			// Crashable??
+			// Maybe, i don't know, falling back to utils
+			if (this.convexHull) {
+				return ConvexHullUtils.createBox(this.convexHull, matrix3D, target, cache);
+			}
+		}
+
 		return TriangleElementsUtils.getBoxBounds(
 			this.positions,
 			this.indices,
 			matrix3D,
 			cache,
 			target,
-			count || this._numElements || this._numVertices,
+			count,
 			offset);
 	}
 
@@ -235,6 +272,9 @@ export class TriangleElements extends ElementsBase {
 		this.invalidateVertices(this._positions);
 
 		this._verticesDirty[this._positions.id] = false;
+
+		// drop hull, positions is should be reconstructed
+		this.convexHull = null;
 	}
 
 	/**
@@ -467,6 +507,11 @@ export class TriangleElements extends ElementsBase {
 		if (this._faceTangents) {
 			this._faceTangents.dispose();
 			this._faceTangents = null;
+		}
+
+		if (this.convexHull) {
+			this.convexHull.dispose();
+			this.convexHull = null;
 		}
 	}
 

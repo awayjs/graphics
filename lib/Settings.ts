@@ -1,10 +1,16 @@
-type tShapeEntry = {FILLS: boolean, STROKES: boolean};
+type tShapeEntry = {
+	FILLS: boolean,
+	STROKES: boolean,
+};
 
 export interface IGraphicsSettings {
 	ALLOW_INTERNAL_POOL: tShapeEntry;
 	CLEARS_BEFORE_POOLING: number;
 	ALLOW_COMBINER: tShapeEntry;
 	ALLOW_VAO: boolean;
+
+	ENABLE_CONVEX_BOUNDS: boolean;
+	POINTS_COUNT_FOR_CONVEX: number;
 }
 
 export const Settings: IGraphicsSettings = {
@@ -36,4 +42,14 @@ export const Settings: IGraphicsSettings = {
 	 * @description Allow vao for elements
 	 */
 	ALLOW_VAO: true,
+
+	/**
+	 * @description Enable construct a approximation convex for triangle element.
+	 */
+	ENABLE_CONVEX_BOUNDS: true,
+
+	/**
+	 * @description Threshold for points count, that enable a hull generator
+	 */
+	POINTS_COUNT_FOR_CONVEX: 10,
 };
