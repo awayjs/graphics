@@ -1,6 +1,5 @@
 import { Box, Matrix3D } from '@awayjs/core';
 import { AttributesView, Short2Attributes } from '@awayjs/stage';
-import { ParticleRotateToHeadingState } from '../animators/states/ParticleRotateToHeadingState';
 import { GraphicsFactoryFills } from '../draw/GraphicsFactoryFills';
 
 export type TPoint = [ number, number ];
