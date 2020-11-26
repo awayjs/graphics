@@ -134,7 +134,7 @@ export class VertexAnimator extends AnimatorBase {
 		for (; i < len; ++i) {
 			elements = <TriangleElements> (this._poses[i] || shape.elements);
 
-			stageElements = <_Stage_ElementsBase> elements.getAbstraction(shader.stage, Stage.abstractionClassPool[elements.assetType])
+			stageElements = <_Stage_ElementsBase> elements.getAbstraction(shader.stage, Stage.abstractionClassPool[elements.assetType]);
 			stageElements._indexMappings = (<_Stage_ElementsBase> shape.elements.getAbstraction(shader.stage, Stage.abstractionClassPool[shape.elements.assetType])).getIndexMappings();
 
 			stageElements.activateVertexBufferVO(animationRegisterData.poseIndices[k++], elements.positions);

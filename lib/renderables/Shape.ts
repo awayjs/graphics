@@ -259,12 +259,12 @@ export class _Render_Shape extends _Render_RenderableBase {
 		this._offset = this.shape.offset;
 		this._count = this.shape.count;
 
-		let elements: IElements = (this.sourceEntity.animator) ? (<AnimatorBase> this.sourceEntity.animator).getRenderableElements(this, this.shape.elements) : this.shape.elements;
+		const elements: IElements = (this.sourceEntity.animator) ? (<AnimatorBase> this.sourceEntity.animator).getRenderableElements(this, this.shape.elements) : this.shape.elements;
 		return <_Stage_ElementsBase> elements.getAbstraction(this._stage, Stage.abstractionClassPool[elements.assetType]);
 	}
 
 	protected _getRenderMaterial(): _Render_MaterialBase {
-		let material: IMaterial = (<Shape> this._asset).material || this.sourceEntity.material || this.getDefaultMaterial();
+		const material: IMaterial = (<Shape> this._asset).material || this.sourceEntity.material || this.getDefaultMaterial();
 		return <_Render_MaterialBase> material.getAbstraction(this.renderGroup.getRenderElements(this.shape.elements), this.renderGroup.rendererPool.materialClassPool[material.assetType]);
 	}
 
