@@ -23,7 +23,14 @@ export class GradientFillStyle extends GraphicsFillStyle {
 	public focalPointRatio: number;
 	public uvRectangle: Rectangle;
 
-	constructor(type: GradientType, colors: number[], alphas: number[], ratios: number[], matrix: Matrix, spreadMethod: string, interpolationMethod: string, focalPointRatio: number) {
+	private _uvMatrix: Matrix;
+
+	constructor(
+		type: GradientType, colors: number[],
+		alphas: number[], ratios: number[],
+		matrix: Matrix, spreadMethod: string,
+		interpolationMethod: string, focalPointRatio: number) {
+
 		super();
 		if (colors.length != alphas.length || colors.length != ratios.length) {
 			throw ('GradientFillStyle: Error - colors, alphas and ratios must be of same length');
@@ -42,7 +49,6 @@ export class GradientFillStyle extends GraphicsFillStyle {
 		this.ratios.sort((a, b) => a - b);
 		this.ratio_min = this.ratios[0];
 		this.ratio_max = this.ratios[this.ratios.length - 1];
-		const r: number = this.ratios.length;
 
 		//  todo: in case the ratios.sort has changed the order of ratios,
 		//  do we need to sync the order of color too ?
@@ -59,6 +65,9 @@ export class GradientFillStyle extends GraphicsFillStyle {
 	}
 
 	public getUVMatrix(): Matrix {
+		if (this._uvMatrix) {
+			return this._uvMatrix;
+		}
 
 		if (!this.matrix) {
 			this.matrix = new Matrix();
@@ -68,7 +77,8 @@ export class GradientFillStyle extends GraphicsFillStyle {
 
 		const projection_width_half: number = projection_width * 0.5;
 
-		//	Get and invert the uv transform:
+		// Get and invert the uv transform:
+		// not TRANSFORM already transformed matrix
 		const a: number =  this.matrix.a;
 		const b: number =  this.matrix.b;
 		const c: number =  this.matrix.c;
@@ -83,8 +93,10 @@ export class GradientFillStyle extends GraphicsFillStyle {
 		const tx_inv: number =  (c * ty - d * tx) / (a * d - b * c);
 		const ty_inv: number =  -(a * ty - b * tx) / (a * d - b * c);
 
+		let resultMatrix: Matrix;
+
 		if (this.type == GradientType.LINEAR) {
-			this.matrix = new Matrix(
+			resultMatrix = new Matrix(
 				(a_inv / projection_width) * (1 - (1 / 256)),
 				0,
 				(c_inv / projection_width) * (1 - (1 / 256)),
@@ -92,15 +104,18 @@ export class GradientFillStyle extends GraphicsFillStyle {
 				(this.uvRectangle.x) + ((tx_inv + projection_width_half) / projection_width) * (1 - (1 / 256)),
 				this.uvRectangle.y);
 		} else if (this.type == GradientType.RADIAL) {
-			this.matrix = new Matrix(
+			resultMatrix = new Matrix(
 				a_inv / projection_width_half,
 				b_inv / projection_width_half,
 				c_inv / projection_width_half,
 				d_inv / projection_width_half,
 				((tx_inv + projection_width_half) / projection_width_half) - 1,
 				((ty_inv + projection_width_half) / projection_width_half) - 1);
+		} else {
+			this._uvMatrix = this.matrix;
 		}
-		return this.matrix;
+
+		return this._uvMatrix = resultMatrix;
 	}
 
 	public getColorAtPosition(value: number): number[] {
@@ -113,8 +128,7 @@ export class GradientFillStyle extends GraphicsFillStyle {
 			r1 = this.ratios.length - 1;
 			r2 = this.ratios.length - 1;
 		} else {
-			var r: number = 0;
-			for (var r: number = 0; r < this.ratios.length - 1;r++) {
+			for (let r: number = 0; r < this.ratios.length - 1;r++) {
 				if (value == this.ratios[r]) {
 					r1 = r;
 					r2 = r;
@@ -145,7 +159,6 @@ export class GradientFillStyle extends GraphicsFillStyle {
 	public toString(): string {
 		let str: string = '';
 		let c: number = this.colors.length;
-		let argb: number[];
 		while (c > 0) {
 			c--;
 			str += this.colors[c] + '#' + this.alphas[c] + '#' + this.ratios[c] + '#';

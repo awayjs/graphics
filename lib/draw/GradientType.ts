@@ -9,10 +9,10 @@ export enum GradientType
 	/**
 	 * Value used to specify a linear gradient fill.
 	 */
-	LINEAR,
+	LINEAR = 'linear',
 
 	/**
 	 * Value used to specify a radial gradient fill.
 	 */
-	RADIAL
+	RADIAL = 'radial'
 }
