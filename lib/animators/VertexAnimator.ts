@@ -134,8 +134,8 @@ export class VertexAnimator extends AnimatorBase {
 		for (; i < len; ++i) {
 			elements = <TriangleElements> (this._poses[i] || shape.elements);
 
-			stageElements = <_Stage_ElementsBase> shader.stage.getAbstraction(elements);
-			stageElements._indexMappings = (<_Stage_ElementsBase> shader.stage.getAbstraction(shape.elements)).getIndexMappings();
+			stageElements = <_Stage_ElementsBase> elements.getAbstraction(shader.stage, Stage.abstractionClassPool[elements.assetType]);
+			stageElements._indexMappings = (<_Stage_ElementsBase> shape.elements.getAbstraction(shader.stage, Stage.abstractionClassPool[shape.elements.assetType])).getIndexMappings();
 
 			stageElements.activateVertexBufferVO(animationRegisterData.poseIndices[k++], elements.positions);
 
@@ -148,8 +148,7 @@ export class VertexAnimator extends AnimatorBase {
 		const animationRegisterData: AnimationRegisterData = shader.animationRegisterData;
 
 		shader.setVertexConstFromArray(animationRegisterData.weightsIndex, this._weights);
-
-		const stageElements: _Stage_ElementsBase = (<_Stage_ElementsBase> shader.stage.getAbstraction(elements));
+		const stageElements: _Stage_ElementsBase = <_Stage_ElementsBase> elements.getAbstraction(shader.stage, Stage.abstractionClassPool[elements.assetType]);
 		let k: number = 0;
 
 		if (this._vertexAnimationSet.blendMode == VertexAnimationMode.ABSOLUTE) {

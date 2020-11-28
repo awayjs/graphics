@@ -2,7 +2,7 @@ import { Box, Matrix3D, Sphere, Vector3D, AssetBase } from '@awayjs/core';
 
 import { PickingCollision, PickEntity, _Pick_PickableBase, IPickingEntity } from '@awayjs/view';
 
-import { IMaterial, RenderableEvent, StyleEvent, Style, ElementsEvent, IRenderEntity } from '@awayjs/renderer';
+import { IMaterial, RenderableEvent, StyleEvent, Style, ElementsEvent, IRenderEntity, IElements } from '@awayjs/renderer';
 
 import { ParticleCollection } from '../animators/data/ParticleCollection';
 import { ElementsBase } from '../elements/ElementsBase';
@@ -219,6 +219,7 @@ import { _Render_RenderableBase, RenderEntity, _Stage_ElementsBase, _Render_Mate
 
 import { AnimatorBase } from '../animators/AnimatorBase';
 import { LineElements } from '../elements/LineElements';
+import { Stage } from '@awayjs/stage';
 
 /**
  * @class away.pool._Render_Shape
@@ -258,11 +259,13 @@ export class _Render_Shape extends _Render_RenderableBase {
 		this._offset = this.shape.offset;
 		this._count = this.shape.count;
 
-		return <_Stage_ElementsBase> this._stage.getAbstraction((this.sourceEntity.animator) ? (<AnimatorBase> this.sourceEntity.animator).getRenderableElements(this, this.shape.elements) : this.shape.elements);
+		const elements: IElements = (this.sourceEntity.animator) ? (<AnimatorBase> this.sourceEntity.animator).getRenderableElements(this, this.shape.elements) : this.shape.elements;
+		return <_Stage_ElementsBase> elements.getAbstraction(this._stage, Stage.abstractionClassPool[elements.assetType]);
 	}
 
 	protected _getRenderMaterial(): _Render_MaterialBase {
-		return this.renderGroup.getRenderElements(this.shape.elements).getAbstraction((<Shape> this._asset).material || this.sourceEntity.material || this.getDefaultMaterial());
+		const material: IMaterial = (<Shape> this._asset).material || this.sourceEntity.material || this.getDefaultMaterial();
+		return <_Render_MaterialBase> material.getAbstraction(this.renderGroup.getRenderElements(this.shape.elements), this.renderGroup.rendererPool.materialClassPool[material.assetType]);
 	}
 
 	protected _getStyle(): Style {
