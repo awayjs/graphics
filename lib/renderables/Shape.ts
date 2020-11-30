@@ -260,12 +260,12 @@ export class _Render_Shape extends _Render_RenderableBase {
 		this._count = this.shape.count;
 
 		const elements: IElements = (this.sourceEntity.animator) ? (<AnimatorBase> this.sourceEntity.animator).getRenderableElements(this, this.shape.elements) : this.shape.elements;
-		return <_Stage_ElementsBase> elements.getAbstraction(this._stage, Stage.abstractionClassPool[elements.assetType]);
+		return elements.getAbstraction<_Stage_ElementsBase>(this._stage);
 	}
 
 	protected _getRenderMaterial(): _Render_MaterialBase {
 		const material: IMaterial = (<Shape> this._asset).material || this.sourceEntity.material || this.getDefaultMaterial();
-		return <_Render_MaterialBase> material.getAbstraction(this.renderGroup.getRenderElements(this.shape.elements), this.renderGroup.rendererPool.materialClassPool[material.assetType]);
+		return material.getAbstraction<_Render_MaterialBase>(this.renderGroup.getRenderElements(this.shape.elements));
 	}
 
 	protected _getStyle(): Style {
