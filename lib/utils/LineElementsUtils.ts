@@ -287,15 +287,33 @@ export class LineElementsUtils {
 			}
 		}
 
-		const thicknessX: number = matrix3D ? thicknessScale.x * rawData[0] + thicknessScale.y * rawData[4] : thicknessScale.x;
-		const thicknessY: number = matrix3D ? thicknessScale.x * rawData[1] + thicknessScale.y * rawData[5] : thicknessScale.y;
+		const box: Box = new Box(minX, minY);
+		box.right = maxX;
+		box.bottom = maxY;
 
-		const box: Box = new Box(minX - thicknessX, minY - thicknessY);
-		box.right = maxX + thicknessX;
-		box.bottom = maxY + thicknessY;
+		this.mergeThinkness(box, thicknessScale, matrix3D);
 
 		return box.union(target, target || cache);
 	}
+
+	public static mergeThinkness(target: Box, thicknessScale: Vector3D, matrix3D: Matrix3D): Box {
+		const rawData = matrix3D?._rawData;
+
+		const thicknessX = matrix3D
+			? thicknessScale.x * rawData[0] + thicknessScale.y * rawData[4]
+			: thicknessScale.x;
+		const thicknessY = matrix3D
+			? thicknessScale.x * rawData[1] + thicknessScale.y * rawData[5]
+			: thicknessScale.y;
+
+		target.x -= thicknessX;
+		target.y -= thicknessY;
+		target.right += thicknessX;
+		target.bottom += thicknessY;
+
+		return target;
+	}
+
 
 	public static getSphereBounds(positionAttributes: AttributesView, center: Vector3D, matrix3D: Matrix3D, cache: Sphere, output: Sphere, count: number, offset: number = 0): Sphere {
 		const positions: ArrayBufferView = positionAttributes.get(count, offset);
