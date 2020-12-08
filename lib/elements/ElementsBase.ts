@@ -6,6 +6,10 @@ import { View, PickingCollision, IPickingEntity } from '@awayjs/view';
 
 import { ElementsEvent, IElements, IMaterial } from '@awayjs/renderer';
 
+import { IHullImpl } from '../utils/ConvexHullUtils';
+
+export type THullImplId = IHullImpl & {offset: number, count: number};
+
 /**
  * @class away.base.TriangleElements
  */
@@ -20,6 +24,8 @@ export class ElementsBase extends AssetBase implements IElements {
 	protected _condensedIndexLookUp: Array<number>;
 	protected _autoDeriveNormals: boolean = true;
 	protected _autoDeriveTangents: boolean = true;
+	protected _convexHull: THullImplId;
+	protected _boundsRequests: number = 0;
 
 	public _numElements: number = 0;
 	public _numVertices: number = 0;
@@ -140,6 +146,13 @@ export class ElementsBase extends AssetBase implements IElements {
 	 */
 	public dispose(): void {
 		this.clear();
+
+		this._boundsRequests = 0;
+
+		if (this._convexHull) {
+			this._convexHull.dispose();
+			this._convexHull = null;
+		}
 
 		if (this._indices) {
 			this._indices.dispose();

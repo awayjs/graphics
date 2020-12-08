@@ -10,6 +10,7 @@ export interface IGraphicsSettings {
 	ALLOW_VAO: boolean;
 
 	ENABLE_CONVEX_BOUNDS: boolean;
+	CONVEX_MIN_REQUIEST_FOR_BUILD: number;
 	POINTS_COUNT_FOR_CONVEX: number;
 }
 
@@ -47,7 +48,12 @@ export const Settings: IGraphicsSettings = {
 	ENABLE_CONVEX_BOUNDS: true,
 
 	/**
+	 * @description Run convex filling after bounds N requiest, 0 - immedate when any bounds requested
+	 */
+	CONVEX_MIN_REQUIEST_FOR_BUILD: 10,
+	/**
 	 * @description Threshold for points count, that enable a hull generator
 	 */
 	POINTS_COUNT_FOR_CONVEX: 10,
+
 };

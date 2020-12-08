@@ -175,7 +175,8 @@ export class ConvexHullUtils {
 		// drop first point, because it same as in top
 		bottom.shift();
 		// drop last point, because it same as in top
-		bottom.length--;
+		if (bottom.length > 0)
+			bottom.length--;
 
 		// concat in reversed order
 		const hull = top.concat(bottom.reverse());

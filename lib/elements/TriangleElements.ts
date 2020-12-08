@@ -14,11 +14,9 @@ import {
 } from '@awayjs/stage';
 
 import { TriangleElementsUtils } from '../utils/TriangleElementsUtils';
-import {  ConvexHullUtils, IHullImpl } from '../utils/ConvexHullUtils';
+import {  ConvexHullUtils } from '../utils/ConvexHullUtils';
 
-import { ElementsBase } from './ElementsBase';
-
-type THullImplId = IHullImpl & {offset: number, count: number};
+import { ElementsBase, THullImplId } from './ElementsBase';
 
 /**
  * @class away.base.TriangleElements
@@ -50,8 +48,6 @@ export class TriangleElements extends ElementsBase {
 	public slice9offsets: Rectangle;
 	public slice9Indices: number[];
 	public initialSlice9Positions: number[];
-
-	protected convexHull: THullImplId;
 
 	public updateSlice9(width: number, height: number) {
 
@@ -168,32 +164,40 @@ export class TriangleElements extends ElementsBase {
 
 		count = count || this._numElements || this._numVertices;
 
+		this._boundsRequests++;
+
 		if (
 			Settings.ENABLE_CONVEX_BOUNDS
+			&& this._boundsRequests > Settings.CONVEX_MIN_REQUIEST_FOR_BUILD
 			&& count > Settings.POINTS_COUNT_FOR_CONVEX
 			&& !this.isDynamic // diable for dynamic elements, beacause a reconstructed every frame
 		) {
-
 			if (
-				!this.convexHull
-				|| this.convexHull.count !== count// drop hull data, invalid
-				|| this.convexHull.offset !==  offset // drop hull data, invalid
+				!this._convexHull
+				|| this._convexHull.count !== count// drop hull data, invalid
+				|| this._convexHull.offset !==  offset // drop hull data, invalid
 			) {
-				this.convexHull = <THullImplId> ConvexHullUtils.fromAttribute(
+				this._convexHull = <THullImplId> ConvexHullUtils.fromAttribute(
 					this.positions,
 					this.indices,
 					count,
 					offset
 				);
 
-				this.convexHull.offset = offset;
-				this.convexHull.count = count;
+				if (this._convexHull) {
+					this._convexHull.offset = offset;
+					this._convexHull.count = count;
+
+					console.debug(
+						'[Triangle] Build convex for:', this.id,
+						'vertex / hull', (count / this._convexHull.points.length) | 0);
+				}
 			}
 
 			// Crashable??
 			// Maybe, i don't know, falling back to utils
-			if (this.convexHull) {
-				return ConvexHullUtils.createBox(this.convexHull, matrix3D, target, cache);
+			if (this._convexHull) {
+				return ConvexHullUtils.createBox(this._convexHull, matrix3D, target, cache);
 			}
 		}
 
@@ -274,7 +278,7 @@ export class TriangleElements extends ElementsBase {
 		this._verticesDirty[this._positions.id] = false;
 
 		// drop hull, positions is should be reconstructed
-		this.convexHull = null;
+		this._convexHull = null;
 	}
 
 	/**
@@ -507,11 +511,6 @@ export class TriangleElements extends ElementsBase {
 		if (this._faceTangents) {
 			this._faceTangents.dispose();
 			this._faceTangents = null;
-		}
-
-		if (this.convexHull) {
-			this.convexHull.dispose();
-			this.convexHull = null;
 		}
 	}
 
