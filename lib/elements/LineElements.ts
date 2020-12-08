@@ -37,8 +37,12 @@ export class LineElements extends ElementsBase {
 			this._thicknessScale.y *= view.focalLength / 1000;
 
 			if (this.stroke && this.stroke.scaleMode == LineScaleMode.NORMAL) {
-				this._thicknessScale.x = (!strokeFlag || this.stroke.half_thickness * this._thicknessScale.x > 0.5) ? this.stroke.half_thickness : 0.5 / this._thicknessScale.x;
-				this._thicknessScale.y = (!strokeFlag || this.stroke.half_thickness * this._thicknessScale.y > 0.5) ? this.stroke.half_thickness : 0.5 / this._thicknessScale.y;
+				this._thicknessScale.x = (!strokeFlag || this.stroke.half_thickness * this._thicknessScale.x > 0.5)
+					? this.stroke.half_thickness
+					: 0.5 / this._thicknessScale.x;
+				this._thicknessScale.y = (!strokeFlag || this.stroke.half_thickness * this._thicknessScale.y > 0.5)
+					? this.stroke.half_thickness
+					: 0.5 / this._thicknessScale.y;
 			} else if (!this.stroke || this.stroke.scaleMode == LineScaleMode.HAIRLINE) {
 				this._thicknessScale.x = 0.5 / this._thicknessScale.x;
 				this._thicknessScale.y = 0.5 / this._thicknessScale.y;
@@ -89,27 +93,69 @@ export class LineElements extends ElementsBase {
 		this._positions = new AttributesView(Float32Array, 6, concatenatedBuffer);
 	}
 
-	public getBoxBounds(view: View, entity: IPickingEntity = null, strokeFlag: boolean = false, matrix3D: Matrix3D = null, cache: Box = null, target: Box = null, count: number = 0, offset: number = 0): Box {
-		return LineElementsUtils.getBoxBounds(this.positions, this.indices, matrix3D, this.getThicknessScale(view, entity, strokeFlag), cache, target, count || this._numElements || this._numVertices, offset);
+	public getBoxBounds(
+		view: View,
+		entity: IPickingEntity = null,
+		strokeFlag: boolean = false,
+		matrix3D: Matrix3D = null,
+		cache: Box = null,
+		target: Box = null,
+		count: number = 0,
+		offset: number = 0): Box
+
+	// eslint-disable-next-line brace-style
+	{
+		return LineElementsUtils.getBoxBounds(
+			this.positions,
+			this.indices,
+			matrix3D,
+			this.getThicknessScale(view, entity, strokeFlag),
+			cache,
+			target,
+			count || this._numElements || this._numVertices,
+			offset);
 	}
 
-	public getSphereBounds(view: View, center: Vector3D, matrix3D: Matrix3D = null, strokeFlag: boolean = false, cache: Sphere = null, target: Sphere = null, count: number = 0, offset: number = 0): Sphere {
-		return LineElementsUtils.getSphereBounds(this.positions, center, matrix3D, cache, target, count || this._numVertices, offset);
+	public getSphereBounds(
+		view: View,
+		center: Vector3D,
+		matrix3D: Matrix3D = null,
+		strokeFlag: boolean = false,
+		cache: Sphere = null,
+		target: Sphere = null,
+		count: number = 0,
+		offset: number = 0): Sphere
+
+	// eslint-disable-next-line brace-style
+	{
+		return LineElementsUtils.getSphereBounds(
+			this.positions, center, matrix3D, cache, target, count || this._numVertices, offset);
 	}
 
-	public hitTestPoint(view: View, entity: IPickingEntity, x: number, y: number, z: number, box: Box, count: number = 0, offset: number = 0, idx_count: number = 0, idx_offset: number = 0): boolean {
+	public hitTestPoint(
+		view: View,
+		entity: IPickingEntity,
+		x: number, y: number, z: number,
+		box: Box,
+		count: number = 0,
+		offset: number = 0,
+		idx_count: number = 0,
+		idx_offset: number = 0): boolean
+	// eslint-disable-next-line brace-style
+	{
 		const scale: Vector3D = this.getThicknessScale(view, entity, true);
 		const thickness: number = (scale.x + scale.y) / 2;//approx hack for now
 
-		return LineElementsUtils.hitTest(x, y, 0, thickness, box, this, count || this._numElements || this._numVertices, offset);
+		return LineElementsUtils.hitTest(
+			x, y, 0, thickness, box, this, count || this._numElements || this._numVertices, offset);
 	}
 
 	/**
 	 *
 	 */
-	public setPositions(array: Array<number>, offset?: number);
-	public setPositions(arrayBufferView: ArrayBufferView, offset?: number);
-	public setPositions(attributesView: AttributesView, offset?: number);
+	public setPositions(array: Array<number>, offset?: number): void;
+	public setPositions(arrayBufferView: ArrayBufferView, offset?: number): void;
+	public setPositions(attributesView: AttributesView, offset?: number): void;
 	public setPositions(values: any, offset: number = 0): void {
 		if (values instanceof AttributesView) {
 			this.clearVertices(this._positions);
@@ -262,7 +308,8 @@ export class LineElements extends ElementsBase {
 			}
 		} else {
 			//auto-derive colors
-			this._colors = ElementsUtils.generateColors(this.indices, this._colors, this._concatenatedBuffer, this._numVertices);
+			this._colors = ElementsUtils.generateColors(
+				this.indices, this._colors, this._concatenatedBuffer, this._numVertices);
 		}
 
 		this.invalidateVertices(this._colors);
@@ -295,7 +342,8 @@ export class LineElements extends ElementsBase {
 	 * @return An exact duplicate of the current object.
 	 */
 	public clone(): LineElements {
-		const clone: LineElements = new LineElements(this._concatenatedBuffer ? this._concatenatedBuffer.clone() : null);
+		const clone: LineElements = new LineElements(
+			this._concatenatedBuffer ? this._concatenatedBuffer.clone() : null);
 
 		clone.setIndices(this.indices.clone());
 
@@ -306,13 +354,24 @@ export class LineElements extends ElementsBase {
 		return clone;
 	}
 
-	public testCollision(view: View, collision: PickingCollision, box: Box, closestFlag: boolean, material: IMaterial, count: number, offset: number = 0): boolean {
+	public testCollision(
+		view: View,
+		collision: PickingCollision,
+		box: Box,
+		closestFlag: boolean,
+		material: IMaterial,
+		count: number,
+		offset: number = 0): boolean
+	// eslint-disable-next-line brace-style
+	{
 		//TODO: peform correct line collision calculations
 		const scale: Vector3D = this.getThicknessScale(view, collision.entity, true);
 		const thickness: number = (scale.x + scale.y) / 2;//approx hack for now
 
 		const rayEntryDistance: number = -collision.rayPosition.z / collision.rayDirection.z;
-		const position: Vector3D = new Vector3D(collision.rayPosition.x + rayEntryDistance * collision.rayDirection.x, collision.rayPosition.y + rayEntryDistance * collision.rayDirection.y);
+		const position: Vector3D = new Vector3D(
+			collision.rayPosition.x + rayEntryDistance * collision.rayDirection.x,
+			collision.rayPosition.y + rayEntryDistance * collision.rayDirection.y);
 
 		//TODO use proper 3d testCollision method
 		if (LineElementsUtils.hitTest(position.x, position.y, 0, thickness, box, this, this._numElements, offset)) {
@@ -327,11 +386,25 @@ export class LineElements extends ElementsBase {
 	}
 }
 
-import { AssetEvent, Matrix3D, ProjectionBase } from '@awayjs/core';
+import { AssetEvent, Matrix3D } from '@awayjs/core';
 
-import { ContextGLDrawMode, IContextGL, ContextGLProgramType, Stage, ShaderRegisterCache, ShaderRegisterElement, ShaderRegisterData } from '@awayjs/stage';
+import {
+	ContextGLDrawMode,
+	IContextGL,
+	ContextGLProgramType,
+	Stage,
+	ShaderRegisterCache,
+	ShaderRegisterElement,
+	ShaderRegisterData,
+} from '@awayjs/stage';
 
-import { RenderGroup, ShaderBase, _Stage_ElementsBase, _Render_ElementsBase, _Render_RenderableBase } from '@awayjs/renderer';
+import {
+	RenderGroup,
+	ShaderBase,
+	_Stage_ElementsBase,
+	_Render_ElementsBase,
+	_Render_RenderableBase,
+} from '@awayjs/renderer';
 import { LineScaleMode } from '../draw/LineScaleMode';
 import { GraphicsStrokeStyle } from '../draw/GraphicsStrokeStyle';
 import { LineElementsUtils } from '../utils/LineElementsUtils';
@@ -362,7 +435,8 @@ export class _Stage_LineElements extends _Stage_ElementsBase {
 		super._setRenderState(renderRenderable, shader);
 
 		const view: View = shader.view;
-		const renderElements: _Render_LineElements = <_Render_LineElements> renderRenderable.renderGroup.getRenderElements(renderRenderable.stageElements.elements);
+		const renderElements = <_Render_LineElements> renderRenderable
+			.renderGroup.getRenderElements(renderRenderable.stageElements.elements);
 
 		if (shader.colorBufferIndex >= 0)
 			this.activateVertexBufferVO(shader.colorBufferIndex, this._lineElements.colors);
@@ -391,8 +465,15 @@ export class _Stage_LineElements extends _Stage_ElementsBase {
 
 		const stroke: GraphicsStrokeStyle = this._lineElements.stroke;
 		if (stroke && stroke.scaleMode == LineScaleMode.NORMAL) {
-			data[oMisc + 0] = (stroke.half_thickness * this._scale.x * this._thickness / 1000 > 0.5 / (view.focalLength * view.pixelRatio)) ? this._scale.x * this._thickness / 1000 : 0.5 / (stroke.half_thickness * view.focalLength * view.pixelRatio);
-			data[oMisc + 1] = (stroke.half_thickness * this._scale.y * this._thickness / 1000 > 0.5 / view.focalLength) ? this._scale.y * this._thickness / 1000 : 0.5 / (stroke.half_thickness * view.focalLength);
+			data[oMisc + 0] = (
+				// eslint-disable-next-line max-len
+				(stroke.half_thickness * this._scale.x * this._thickness / 1000 > 0.5 / (view.focalLength * view.pixelRatio))
+					? this._scale.x * this._thickness / 1000
+					: 0.5 / (stroke.half_thickness * view.focalLength * view.pixelRatio));
+			data[oMisc + 1] = (stroke.half_thickness * this._scale.y * this._thickness / 1000 > 0.5 / view.focalLength)
+				? this._scale.y * this._thickness / 1000
+				: 0.5 / (stroke.half_thickness * view.focalLength);
+
 		} else if (!stroke || stroke.scaleMode == LineScaleMode.HAIRLINE) {
 			data[oMisc + 0] = this._thickness / (view.focalLength * view.pixelRatio);
 			data[oMisc + 1] = this._thickness / view.focalLength;
@@ -401,8 +482,6 @@ export class _Stage_LineElements extends _Stage_ElementsBase {
 			data[oMisc + 1] = this._thickness / Math.min(view.width, view.height);
 		}
 		data[oMisc + 2] = view.projection.near;
-
-		const context: IContextGL = this._stage.context;
 	}
 
 	public draw(renderRenderable: _Render_RenderableBase, shader: ShaderBase, count: number, offset: number): void {
@@ -457,9 +536,12 @@ export class _Render_LineElements extends _Render_ElementsBase {
 		//shader.colorDependencies++;
 	}
 
-	public _getVertexCode(shader: ShaderBase, registerCache: ShaderRegisterCache, sharedRegisters: ShaderRegisterData): string {
+	public _getVertexCode(
+		shader: ShaderBase, registerCache: ShaderRegisterCache, sharedRegisters: ShaderRegisterData): string {
 		//get the projection coordinates
-		const position0: ShaderRegisterElement = (shader.globalPosDependencies > 0) ? sharedRegisters.globalPositionVertex : sharedRegisters.animatedPosition;
+		const position0: ShaderRegisterElement = (shader.globalPosDependencies > 0)
+			? sharedRegisters.globalPositionVertex
+			: sharedRegisters.animatedPosition;
 		const position1: ShaderRegisterElement = registerCache.getFreeVertexAttribute();
 		this.secondaryPositionIndex =  position1.index;
 
@@ -499,13 +581,14 @@ export class _Render_LineElements extends _Render_ElementsBase {
 		const offset: ShaderRegisterElement = registerCache.getFreeVertexVectorTemp();
 		registerCache.addVertexTempUsages(offset, 1);
 
-		const code: string = 'm44 ' + q0 + ', ' + position0 + ', ' + sceneMatrixReg + '			\n' + // transform Q0 to eye space
-            'm44 ' + q1 + ', ' + position1 + ', ' + sceneMatrixReg + '			\n' + // transform Q1 to eye space
+		// transform Q0 to eye space
+		const code: string = 'm44 ' + q0 + ', ' + position0 + ', ' + sceneMatrixReg + '\n' +
+            'm44 ' + q1 + ', ' + position1 + ', ' + sceneMatrixReg + '\n' + // transform Q1 to eye space
             'sub ' + l + ', ' + q1 + ', ' + q0 + ' 			\n' + // L = Q1 - Q0
 
             // test if behind camera near plane
             // if 0 - Q0.z < Camera.near then the point needs to be clipped
-            'slt ' + behind + '.x, ' + q0 + '.z, ' + misc + '.z			\n' + // behind = ( 0 - Q0.z < -Camera.near ) ? 1 : 0
+            'slt ' + behind + '.x, ' + q0 + '.z, ' + misc + '.z\n' + // behind = ( 0 - Q0.z < -Camera.near ) ? 1 : 0
             'sub ' + behind + '.y, ' + const01n1 + '.y, ' + behind + '.x			\n' + // !behind = 1 - behind
 
 		// p = point on the plane (0,0,-near)
@@ -518,10 +601,10 @@ export class _Render_LineElements extends _Render_ElementsBase {
             'sub ' + offset + '.y, ' + q0 + '.z, ' + q1 + '.z			\n' + // Q0.z - Q1.z
 
             // fix divide by zero for horizontal lines
-            'seq ' + offset + '.z, ' + offset + '.y ' + const01n1 + '.x			\n' + // offset = (Q0.z - Q1.z)==0 ? 1 : 0
-            'add ' + offset + '.y, ' + offset + '.y, ' + offset + '.z			\n' + // ( Q0.z - Q1.z ) + offset
+            'seq ' + offset + '.z, ' + offset + '.y ' + const01n1 + '.x\n' + // offset = (Q0.z - Q1.z)==0 ? 1 : 0
+            'add ' + offset + '.y, ' + offset + '.y, ' + offset + '.z\n' + // ( Q0.z - Q1.z ) + offset
 
-            'div ' + offset + '.z, ' + offset + '.x, ' + offset + '.y			\n' + // t = ( Q0.z - near ) / ( Q0.z - Q1.z )
+            'div ' + offset + '.z, ' + offset + '.x, ' + offset + '.y\n' + // t = ( Q0.z - near ) / ( Q0.z - Q1.z )
 
             'mul ' + offset + '.xyz, ' + offset + '.zzz, ' + l + '.xyz	\n' + // t(L)
             'add ' + qclipped + '.xyz, ' + q0 + '.xyz, ' + offset + '.xyz	\n' + // Qclipped = Q0 + t(L)
@@ -564,7 +647,10 @@ export class _Render_LineElements extends _Render_ElementsBase {
 		return code;
 	}
 
-	public _getFragmentCode(shader: ShaderBase, registerCache: ShaderRegisterCache, sharedRegisters: ShaderRegisterData): string {
+	public _getFragmentCode(
+		shader: ShaderBase,
+		registerCache: ShaderRegisterCache,
+		sharedRegisters: ShaderRegisterData): string {
 		return '';
 	}
 }
