@@ -6,7 +6,9 @@ import { View, PickingCollision, IPickingEntity, IPartitionEntity } from '@awayj
 
 import { ElementsUtils, IMaterial } from '@awayjs/renderer';
 
-import { ElementsBase } from './ElementsBase';
+import { ElementsBase, THullImplId } from './ElementsBase';
+
+const TMP_BBOX = new Box();
 
 /**
  * @class LineElements
@@ -105,6 +107,59 @@ export class LineElements extends ElementsBase {
 
 	// eslint-disable-next-line brace-style
 	{
+
+		count = count || this._numElements || this._numVertices;
+		this._boundsRequests++;
+
+		if (
+			Settings.ENABLE_CONVEX_BOUNDS
+			&& this._boundsRequests > Settings.CONVEX_MIN_REQUIEST_FOR_BUILD
+			&& count > Settings.POINTS_COUNT_FOR_CONVEX
+			&& !this.isDynamic // diable for dynamic elements, beacause a reconstructed every frame
+		) {
+			if (
+				!this._convexHull
+				|| this._convexHull.count !== count// drop hull data, invalid
+				|| this._convexHull.offset !==  offset // drop hull data, invalid
+			) {
+				this._convexHull = <THullImplId> ConvexHullUtils.fromAttribute(
+					this.positions,
+					this.indices,
+					count,
+					offset
+				);
+
+				if (this._convexHull) {
+					this._convexHull.offset = offset;
+					this._convexHull.count = count;
+
+					console.debug(
+						'[Line] Build convex for:', this.id,
+						'vertex / hull', (count / this._convexHull.points.length) | 0);
+				}
+			}
+
+			if (this._convexHull) {
+				const tmp = TMP_BBOX;
+				tmp.identity();
+
+				const box = ConvexHullUtils.createBox(
+					this._convexHull,
+					matrix3D,
+					null,
+					tmp
+				);
+
+				LineElementsUtils.mergeThinkness(
+					box,
+					this.getThicknessScale(view, entity, strokeFlag),
+					matrix3D
+				);
+
+				return tmp.union(target, target || cache);
+			}
+		}
+
 		return LineElementsUtils.getBoxBounds(
 			this.positions,
 			this.indices,
@@ -112,7 +167,7 @@ export class LineElements extends ElementsBase {
 			this.getThicknessScale(view, entity, strokeFlag),
 			cache,
 			target,
-			count || this._numElements || this._numVertices,
+			count,
 			offset);
 	}
 
@@ -408,6 +463,8 @@ import {
 import { LineScaleMode } from '../draw/LineScaleMode';
 import { GraphicsStrokeStyle } from '../draw/GraphicsStrokeStyle';
 import { LineElementsUtils } from '../utils/LineElementsUtils';
+import { Settings } from '../Settings';
+import { ConvexHullUtils } from '../utils/ConvexHullUtils';
 
 /**
  *
