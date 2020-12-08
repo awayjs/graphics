@@ -235,8 +235,11 @@ export class ConvexHullUtils {
 	}
 
 	public static fromAttribute (
-		posAttrs: AttributesView, indexAttrs: Short2Attributes = null,
-		count: number, offset: number = 0): IHullImpl | null {
+		posAttrs: AttributesView,
+		indexAttrs: Short2Attributes = null,
+		step: number = 1,
+		count: number,
+		offset: number = 0): IHullImpl | null {
 
 		let indices: Uint16Array;
 		let len: number;
@@ -253,13 +256,17 @@ export class ConvexHullUtils {
 			positions = posAttrs.get(count, offset);
 		}
 
-		const points: Array<TPoint> = new Array(len);
+		const points: Array<TPoint> = new Array(len / step);
 
-		for (let i = 0; i < len; i++) {
+		let p = 0;
+		for (let i = 0; i < len; i += step) {
 			const index = indices ? indices[i] * stride : i * stride;
-			points[i] = [
+
+			points[p] = [
 				positions[index], positions[index + 1]
 			];
+
+			p++;
 		}
 
 		return this.generateHull(points);

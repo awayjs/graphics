@@ -180,6 +180,7 @@ export class TriangleElements extends ElementsBase {
 				this._convexHull = <THullImplId> ConvexHullUtils.fromAttribute(
 					this.positions,
 					this.indices,
+					1, // step every index
 					count,
 					offset
 				);

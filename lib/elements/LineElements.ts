@@ -125,6 +125,7 @@ export class LineElements extends ElementsBase {
 				this._convexHull = <THullImplId> ConvexHullUtils.fromAttribute(
 					this.positions,
 					this.indices,
+					3, // line elements has to many attirbutes, tick every 3
 					count,
 					offset
 				);

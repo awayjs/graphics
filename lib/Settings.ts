@@ -45,7 +45,7 @@ export const Settings: IGraphicsSettings = {
 	/**
 	 * @description Enable construct a approximation convex for triangle element.
 	 */
-	ENABLE_CONVEX_BOUNDS: true,
+	ENABLE_CONVEX_BOUNDS: false,
 
 	/**
 	 * @description Run convex filling after bounds N requiest, 0 - immedate when any bounds requested
