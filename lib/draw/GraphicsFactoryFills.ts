@@ -27,6 +27,8 @@ import { Graphics } from '../Graphics';
 import Tess2 from 'tess2';
 import { MaterialManager } from '../managers/MaterialManager';
 
+//@ts-ignore
+window.Tess2 = Tess2;
 /**
  * The Graphics class contains a set of methods that you can use to create a
  * vector shape. Display objects that support drawing include Sprite and Shape
@@ -41,6 +43,14 @@ import { MaterialManager } from '../managers/MaterialManager';
  *
  * <p>The Graphics class is final; it cannot be subclassed.</p>
  */
+
+//@ts-ignore
+const SHAPE_INFO = window.SHAPE_INFO = {
+	total_time: 0,
+	tess_time: 0,
+	multy_contours: 0,
+	single_contours: 0,
+};
 
 const FIXED_BASE = 1000;
 
@@ -221,8 +231,14 @@ export class GraphicsFactoryFills {
 		closePath: boolean = true,
 		target: AttributesBuffer = null): AttributesBuffer {
 
+		const start = performance.now();
 		const finalContours = this._prepareContours(graphicsPath, this.USE_TESS_FIX);
 
+		if (finalContours.length > 0) {
+			SHAPE_INFO.multy_contours += 1;
+		} else {
+			SHAPE_INFO.single_contours += 1;
+		}
 		//console.log("execute Tess2 = ", finalContours);
 
 		let resultVertexSize = graphicsPath.verts.length;
@@ -231,6 +247,7 @@ export class GraphicsFactoryFills {
 
 		if (finalContours.length > 0) {
 			try {
+				const start = performance.now();
 				res = Tess2.tesselate({
 					contours: finalContours,
 					windingRule: Tess2.WINDING_ODD,
@@ -240,6 +257,7 @@ export class GraphicsFactoryFills {
 					debug: true
 				});
 
+				SHAPE_INFO.tess_time += performance.now() - start;
 				tesselatedVertexSize = res.elements.length * 2;
 				resultVertexSize += tesselatedVertexSize;
 			} catch (e) {
@@ -311,6 +329,7 @@ export class GraphicsFactoryFills {
 			finalVerts [tesselatedVertexSize + i] = graphicsPath.verts[i];
 		}
 
+		SHAPE_INFO.total_time += performance.now() - start;
 		return target;
 	}
 }
