@@ -1790,8 +1790,31 @@ export class Graphics extends AssetBase {
 
 	public queueShapeTag(shapeTag: ShapeTag): void {
 		this._queuedShapeTags.push(shapeTag);
-
 		this._drawingDirty = true;
+
+		if (shapeTag.needParse) {
+			shapeTag.lazyTaskDone = () =>{
+				shapeTag.lazyTaskDone = null;
+				shapeTag.needParse = false;
+
+				//return;
+				const index = this._queuedShapeTags.indexOf(shapeTag);
+				if (index > -1) {
+					this._queuedShapeTags.splice(index, 1);
+				}
+
+				this.convertRecordsToShapeData(shapeTag);
+
+			};
+		}
+
+		return;
+		const from = this._queued_fill_pathes.length;
+		this.convertRecordsToShapeData(shapeTag);
+
+		for (let i = from; i < this._queued_fill_pathes.length; i++) {
+			//this._queued_fill_pathes[i].prepare();
+		}
 	}
 
 	private _createGraphicPathes() {
@@ -1882,17 +1905,20 @@ export class Graphics extends AssetBase {
 		// run parser
 		if (tag.needParse) {
 			//console.log("Run lazy Graphics parser", tag.id);
+			//console.time('Run lazy Graphics parser:' + tag.id);
 			tag.lazyParser();
+			//console.timeEnd('Run lazy Graphics parser:' + tag.id);
 		}
 
 		const records: ShapeRecord[] = tag.records;
 		const fillStyles: FillStyle[] = tag.fillStyles;
 		const lineStyles: LineStyle[] = tag.lineStyles;
 		const recordsMorph: ShapeRecord[] = tag.recordsMorph || null;
-		const parser: any = tag.parser;
-		let fillPaths: SegmentedPath[] = createPathsList(fillStyles, false, !!recordsMorph, parser);
-		let linePaths: SegmentedPath[] = createPathsList(lineStyles, true, !!recordsMorph, parser);
 		const isMorph: boolean = recordsMorph !== null;
+		const parser: any = tag.parser;
+
+		let fillPaths = createPathsList(fillStyles, false, !!recordsMorph, parser);
+		let linePaths = createPathsList(lineStyles, true, !!recordsMorph, parser);
 		let styles = { fill0: 0, fill1: 0, line: 0 };
 
 		interface IPathElement {
@@ -1907,9 +1933,7 @@ export class Graphics extends AssetBase {
 		// a group, so the lines don't get moved on top of any following fills.
 		// To support this, we just append all current fill and line paths to a list
 		// when new styles are introduced.
-		let allPaths: SegmentedPath[];
-		// If no style is set for a segment1 of a path1, a 1px transparent line is used.
-		let defaultPath: SegmentedPath;
+		let allPaths: SegmentedPath[] = [];
 
 		const numRecords = records.length;
 		let x: number = 0;
@@ -1948,11 +1972,6 @@ export class Graphics extends AssetBase {
 					this.push.apply(allPaths, linePaths);
 
 					linePaths = createPathsList(record.lineStyles, true, isMorph, parser);
-
-					if (defaultPath) {
-						allPaths.push(defaultPath);
-						defaultPath = null;
-					}
 
 					styles = { fill0: 0, fill1: 0, line: 0 };
 				}
@@ -2086,7 +2105,7 @@ export class Graphics extends AssetBase {
 					x = data.x;
 					y = data.y;
 
-					let mData;
+					let mData: {cx: number, cy: number, x: number, y: number};
 					if (isMorph) {
 						mData = this.transformCurve(morphRecord, mX, mY);
 
@@ -2117,36 +2136,54 @@ export class Graphics extends AssetBase {
 		// All current paths get appended to the allPaths list at the end. First fill,
 		// then line paths.
 
-		allPaths = (allPaths || []).concat(fillPaths || [], linePaths || [], defaultPath || []);
+		// allPaths = (allPaths || []).concat(fillPaths || [], linePaths || [], defaultPath || []);
 
-		let shapeAJS;
-		let morphShapeAJS;
+		const total = allPaths.length + fillPaths.length + linePaths.length;
+		const sources = [allPaths, fillPaths, linePaths];
+
+		let shapeAJS: GraphicsPath;
+		let morphShapeAJS: GraphicsPath;
+
+		let current = 0;
 
 		if (isMorph) {
 			//shape.morphCoordinates = new Int32Array(shape.coordinates.length);
 			//shape.morphStyles = new DataBuffer(16);
-			this.start = [];
-			this.end = [];
+			this.start = new Array(total);
+			this.end = new Array(total);
 
-			for (let i = 0; i < allPaths.length; i++) {
+			for (let i = 0; current < sources.length ; i++) {
+				if (!sources[current] || sources[current].length <= i) {
+					current++;
+					i = -1;
+					continue;
+				}
+
 				//allPaths[i].serialize(shape);
 				shapeAJS = new GraphicsPath();
 				morphShapeAJS = new GraphicsPath();
 
 				//shapeAJS.queuePath(allPaths[i], morphShapeAJS)
-				allPaths[i].serializeAJS(shapeAJS, morphShapeAJS);
+				sources[current][i].serializeAJS(shapeAJS, morphShapeAJS);
 
 				this.start.push(shapeAJS);
 				this.end.push(morphShapeAJS);
 			}
+
 		} else {
-			for (let i = 0; i < allPaths.length; i++) {
+			for (let i = 0; current < sources.length; i++) {
+				if (!sources[current] || sources[current].length <= i) {
+					current++;
+					i = -1;
+					continue;
+				}
+
 				//console.log("allPaths", i, allPaths[i]);
 				//allPaths[i].serialize(shape);
 				shapeAJS = new GraphicsPath();
 
 				//shapeAJS.queuePath(allPaths[i], null);
-				allPaths[i].serializeAJS(shapeAJS, null);
+				sources[current][i].serializeAJS(shapeAJS, null);
 
 				//console.log("shapeAJS", shapeAJS);
 				this.add_queued_path(shapeAJS);
@@ -2155,7 +2192,7 @@ export class Graphics extends AssetBase {
 	}
 
 	private transformCurve(record: ShapeRecord, x: number, y: number) {
-		let cx, cy;
+		let cx: number, cy: number;
 		if (!(record.flags & ShapeRecordFlags.IsStraight)) {
 			cx = x + record.controlDeltaX | 0;
 			cy = y + record.controlDeltaY | 0;
@@ -2438,6 +2475,7 @@ export interface DefinitionTag extends SwfTag {
 	id: number;
 	lazyParser: () => any;
 	needParse: boolean;
+	lazyTaskDone?: (tag: DefinitionTag) => void;
 }
 
 export const enum ShapeRecordFlags {

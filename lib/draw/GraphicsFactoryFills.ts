@@ -178,7 +178,7 @@ export class GraphicsFactoryFills {
 		//targetGraphics.queued_fill_pathes.length = 0;
 	}
 
-	private static _prepareContours(graphicsPath: GraphicsPath, applyFix: boolean = false): number[][] {
+	public static prepareContours(graphicsPath: GraphicsPath, applyFix: boolean = false): number[][] {
 		graphicsPath.prepare();
 
 		const contours: number[][] = graphicsPath._positions;
@@ -232,7 +232,7 @@ export class GraphicsFactoryFills {
 		target: AttributesBuffer = null): AttributesBuffer {
 
 		const start = performance.now();
-		const finalContours = this._prepareContours(graphicsPath, this.USE_TESS_FIX);
+		const finalContours = this.prepareContours(graphicsPath, this.USE_TESS_FIX);
 
 		if (finalContours.length > 0) {
 			SHAPE_INFO.multy_contours += 1;
