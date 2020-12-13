@@ -2,6 +2,7 @@ interface WorkerScope extends WindowOrWorkerGlobalScope {
 	importScripts(...urls: string[]): void;
 	onmessage: (e: Omit<MessageEvent, 'data'> & {data: TesselatorTaskInput}) => void;
 	postMessage(data: TesselatorMessage, transferable?: Transferable[]): void;
+	readonly name: string;
 }
 
 interface IOptions {
@@ -14,7 +15,7 @@ interface IOptions {
 	debug?: boolean;
 }
 
-interface IResult {
+export interface IResult {
 	vertices: Array<number>;
 	vertexIndices: Array<number>;
 	vertexCount: number;
@@ -78,6 +79,8 @@ export const WORKER_BODY = function() {
 
 	s.importScripts('__TESS__LIB__');
 
+	debug('Tess lib', Tess2);
+
 	s.onmessage = function ({ data }) {
 		const {
 			contours,
@@ -89,6 +92,7 @@ export const WORKER_BODY = function() {
 			scaleRatio
 		} = data;
 
+		debug('Task qued:',id);
 		if (!contours || !contours.length) {
 			return sendError('Contours invald', id);
 		}
@@ -108,8 +112,11 @@ export const WORKER_BODY = function() {
 			}
 
 			const buffer = buildBuffer(result, scaleRatio);
+			const time = performance.now() - start;
 
-			return sendResult(buffer, performance.now() - start, id);
+			debug('Task ended:', id, time);
+
+			return sendResult(buffer, time, id);
 
 		} catch (e) {
 			sendError(e.message, id);
@@ -181,6 +188,14 @@ export const WORKER_BODY = function() {
 		}
 
 		return finalVerts;
+	}
+
+	function debug (...data: any[]) {
+		// eslint-disable-next-line prefer-rest-params
+		const args: any[] = Array.prototype.slice.call(arguments);
+
+		args.unshift(`[WORKER: ${s.name}]`);
+		console.debug.apply(s, args);
 	}
 
 	s.postMessage({

@@ -1,15 +1,11 @@
-import { Point, MathConsts, Rectangle, Matrix } from '@awayjs/core';
-
+import { Matrix } from '@awayjs/core';
 import {
 	ImageSampler,
-	BitmapImage2D,
 	AttributesBuffer,
-	AttributesView,
-	Float3Attributes,
 	Float2Attributes,
 } from '@awayjs/stage';
 
-import { ITexture, MappingMode, IMaterial, Style } from '@awayjs/renderer';
+import { MappingMode, IMaterial, Style } from '@awayjs/renderer';
 
 import { TriangleElements } from '../elements/TriangleElements';
 import { Shape } from '../renderables/Shape';
@@ -20,12 +16,13 @@ import { BitmapFillStyle } from './BitmapFillStyle';
 import { GradientType } from './GradientType';
 import { GraphicsFactoryHelper } from './GraphicsFactoryHelper';
 import { GraphicsPath } from './GraphicsPath';
-import { GraphicsPathCommand } from './GraphicsPathCommand';
 
 import { Graphics } from '../Graphics';
 
 import Tess2 from 'tess2';
 import { MaterialManager } from '../managers/MaterialManager';
+
+import { IResult } from './WorkerTesselatorBody';
 
 //@ts-ignore
 window.Tess2 = Tess2;
@@ -226,12 +223,7 @@ export class GraphicsFactoryFills {
 		return finalContours;
 	}
 
-	public static pathToAttributesBuffer(
-		graphicsPath: GraphicsPath,
-		closePath: boolean = true,
-		target: AttributesBuffer = null): AttributesBuffer {
-
-		const start = performance.now();
+	public static runTesselator(graphicsPath: GraphicsPath): IResult {
 		const finalContours = this.prepareContours(graphicsPath, this.USE_TESS_FIX);
 
 		if (finalContours.length > 0) {
@@ -241,8 +233,6 @@ export class GraphicsFactoryFills {
 		}
 		//console.log("execute Tess2 = ", finalContours);
 
-		let resultVertexSize = graphicsPath.verts.length;
-		let tesselatedVertexSize = 0;
 		let res = null;
 
 		if (finalContours.length > 0) {
@@ -258,23 +248,88 @@ export class GraphicsFactoryFills {
 				});
 
 				SHAPE_INFO.tess_time += performance.now() - start;
-				tesselatedVertexSize = res.elements.length * 2;
-				resultVertexSize += tesselatedVertexSize;
+
+				return res;
 			} catch (e) {
-				res = null;
 				console.log('error when trying to tesselate', finalContours);
+
+				return res = null;
+			}
+		}
+	}
+
+	public static fillBuffer(result: IResult, finalVerts: Float32Array): Float32Array {
+		const numElems = result.elements.length;
+		const scale = this.USE_TESS_FIX ? (1 / this.TESS_SCALE) : 1;
+
+		let vindex = 0;
+		let p1x = 0;
+		let p1y = 0;
+		let p2x = 0;
+		let p2y = 0;
+		let p3x = 0;
+		let p3y = 0;
+
+		for (let i = 0; i < numElems; i += 3) {
+			p1x = scale * result.vertices[result.elements[i + 0] * 2 + 0];
+			p1y = scale * result.vertices[result.elements[i + 0] * 2 + 1];
+			p2x = scale * result.vertices[result.elements[i + 1] * 2 + 0];
+			p2y = scale * result.vertices[result.elements[i + 1] * 2 + 1];
+			p3x = scale * result.vertices[result.elements[i + 2] * 2 + 0];
+			p3y = scale * result.vertices[result.elements[i + 2] * 2 + 1];
+
+			if (GraphicsFactoryHelper.isClockWiseXY(p1x, p1y, p2x, p2y, p3x, p3y)) {
+				finalVerts[vindex++] = p3x;
+				finalVerts[vindex++] = p3y;
+				finalVerts[vindex++] = p2x;
+				finalVerts[vindex++] = p2y;
+				finalVerts[vindex++] = p1x;
+				finalVerts[vindex++] = p1y;
+			} else {
+				finalVerts[vindex++] = p1x;
+				finalVerts[vindex++] = p1y;
+				finalVerts[vindex++] = p2x;
+				finalVerts[vindex++] = p2y;
+				finalVerts[vindex++] = p3x;
+				finalVerts[vindex++] = p3y;
 			}
 		}
 
-		// drop when nothing exist
-		if (resultVertexSize === 0) {
-			return null;
+		return finalVerts;
+	}
+
+	public static pathToAttributesBuffer(
+		graphicsPath: GraphicsPath,
+		closePath: boolean = true,
+		target: AttributesBuffer = null): AttributesBuffer {
+
+		const start = performance.now();
+
+		let resultVertexSize = graphicsPath.verts
+			? graphicsPath.verts.length
+			: 0;
+		let tesselatedVertexSize = 0;
+
+		let res: IResult;
+		const preparedBuffer = graphicsPath.pretesselatedBuffer;
+
+		if (preparedBuffer) {
+			resultVertexSize = preparedBuffer.length;
+			console.debug('[GraphicsFactoryFills] Use prebuild buffer:', graphicsPath);
+		} else {
+			res = this.runTesselator(graphicsPath);
+
+			if (res && res.elements.length > 0) {
+				tesselatedVertexSize = res.elements.length * 2;
+				resultVertexSize += res.elements.length * 2;
+			}
 		}
 
 		const vertexSize = 2;
 
 		if (!target) {
-			target = new AttributesBuffer(Float32Array.BYTES_PER_ELEMENT * vertexSize, (resultVertexSize / vertexSize) | 0);
+			target = new AttributesBuffer(
+				Float32Array.BYTES_PER_ELEMENT * vertexSize, (resultVertexSize / vertexSize) | 0);
 		}
 		// resize is safe, it not rebuild buffer when count is same.
 		// count - count of 2 dimension vertex, divide on 2
@@ -283,43 +338,12 @@ export class GraphicsFactoryFills {
 		// fill direct to Float32Array
 		const finalVerts = new Float32Array(target.buffer);
 
-		if (res && tesselatedVertexSize) {
+		if (preparedBuffer) {
 
-			const numElems = res.elements.length;
-			const scale = this.USE_TESS_FIX ? (1 / this.TESS_SCALE) : 1;
+			finalVerts.set(preparedBuffer);
+		} else if (res) {
 
-			let vindex = 0;
-			let p1x = 0;
-			let p1y = 0;
-			let p2x = 0;
-			let p2y = 0;
-			let p3x = 0;
-			let p3y = 0;
-
-			for (let i = 0; i < numElems; i += 3) {
-				p1x = scale * res.vertices[res.elements[i + 0] * 2 + 0];
-				p1y = scale * res.vertices[res.elements[i + 0] * 2 + 1];
-				p2x = scale * res.vertices[res.elements[i + 1] * 2 + 0];
-				p2y = scale * res.vertices[res.elements[i + 1] * 2 + 1];
-				p3x = scale * res.vertices[res.elements[i + 2] * 2 + 0];
-				p3y = scale * res.vertices[res.elements[i + 2] * 2 + 1];
-
-				if (GraphicsFactoryHelper.isClockWiseXY(p1x, p1y, p2x, p2y, p3x, p3y)) {
-					finalVerts[vindex++] = p3x;
-					finalVerts[vindex++] = p3y;
-					finalVerts[vindex++] = p2x;
-					finalVerts[vindex++] = p2y;
-					finalVerts[vindex++] = p1x;
-					finalVerts[vindex++] = p1y;
-				} else {
-					finalVerts[vindex++] = p1x;
-					finalVerts[vindex++] = p1y;
-					finalVerts[vindex++] = p2x;
-					finalVerts[vindex++] = p2y;
-					finalVerts[vindex++] = p3x;
-					finalVerts[vindex++] = p3y;
-				}
-			}
+			this.fillBuffer(res, finalVerts);
 		}
 
 		// merge poly vertex
