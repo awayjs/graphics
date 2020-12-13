@@ -314,7 +314,6 @@ export class LineElementsUtils {
 		return target;
 	}
 
-
 	public static getSphereBounds(positionAttributes: AttributesView, center: Vector3D, matrix3D: Matrix3D, cache: Sphere, output: Sphere, count: number, offset: number = 0): Sphere {
 		const positions: ArrayBufferView = positionAttributes.get(count, offset);
 		const posDim: number = positionAttributes.dimensions;
