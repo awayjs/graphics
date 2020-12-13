@@ -29,6 +29,7 @@ export class GraphicsPath implements IGraphicsData {
 	 * The Vector of drawing commands as integers representing the path.
 	 */
 	public _commands: number[][];
+	public pretesselatedBuffer?: Float32Array;
 
 	private _cache: any;
 	private _cacheSharedSegments: any;

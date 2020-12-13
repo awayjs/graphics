@@ -46,6 +46,12 @@ import { MaterialManager } from './managers/MaterialManager';
 import { LineElements } from './elements/LineElements';
 import { ManagedPool } from './ManagedPool';
 import { Settings } from './Settings';
+import { WebWorkerTessealtor } from './draw/WebWorkerTesselator';
+import { TesselatorTaskResult } from './draw/WorkerTesselatorBody';
+
+WebWorkerTessealtor.prefarmWorkers().then(() => {
+	console.debug('Workers runs!');
+});
 
 /**
  *
@@ -195,7 +201,7 @@ export class Graphics extends AssetBase {
 		this._queued_fill_pathes = value;
 	}
 
-	public add_queued_path(value: GraphicsPath) {
+	public add_queued_path(value: GraphicsPath, supressFill = false) {
 		if (value.style) {
 			if (value.style.data_type == GraphicsFillStyle.data_type
 				|| value.style.data_type == GradientFillStyle.data_type
@@ -205,7 +211,10 @@ export class Graphics extends AssetBase {
 			}
 			if (value.style.data_type == GraphicsStrokeStyle.data_type) {
 				this._queued_stroke_pathes.push(value);
-				this.endFill();
+
+				if (!supressFill) {
+					this.endFill();
+				}
 			}
 		}
 	}
@@ -1788,33 +1797,50 @@ export class Graphics extends AssetBase {
 		this.invalidate();
 	}
 
+	private processLazyTesselation (shapeTag: ShapeTag): void {
+		shapeTag.lazyTaskDone = null;
+		shapeTag.needParse = false;
+
+		// if parsing time more that a 2 ms, how many convert will runs?? =)
+		if (shapeTag.parsingTime < 30) {
+			//return;
+			const index = this._queuedShapeTags.indexOf(shapeTag);
+			if (index > -1) {
+				this._queuedShapeTags.splice(index, 1);
+			}
+
+			const currentPathCount = this._queued_fill_pathes.length;
+			this.convertRecordsToShapeData(shapeTag, shapeTag.parsingTime > 1);
+
+			// if records parsed slow, run tesselator in worked
+			if (shapeTag.parsingTime > 0.5) {
+				const len = this._queued_stroke_pathes.length;
+				for (let i = currentPathCount; i < len; i++) {
+					const path = this._queued_stroke_pathes[i];
+					console.debug('[Graphics] Push task to worker:', path);
+
+					WebWorkerTessealtor
+						.tesselatedWorker(path)
+						.then((data: TesselatorTaskResult) => {
+							path.pretesselatedBuffer = data.buffer;
+						});
+				}
+			}
+
+		} else {
+			console.debug('[Graphics] Supress lazy shape convertion:',shapeTag);
+		}
+	}
+
 	public queueShapeTag(shapeTag: ShapeTag): void {
 		this._queuedShapeTags.push(shapeTag);
 		this._drawingDirty = true;
 
 		if (shapeTag.needParse) {
-			shapeTag.lazyTaskDone = () =>{
-				shapeTag.lazyTaskDone = null;
-				shapeTag.needParse = false;
-
-				//return;
-				const index = this._queuedShapeTags.indexOf(shapeTag);
-				if (index > -1) {
-					this._queuedShapeTags.splice(index, 1);
-				}
-
-				this.convertRecordsToShapeData(shapeTag);
-
-			};
+			shapeTag.lazyTaskDone = this.processLazyTesselation.bind(this);
 		}
 
 		return;
-		const from = this._queued_fill_pathes.length;
-		this.convertRecordsToShapeData(shapeTag);
-
-		for (let i = from; i < this._queued_fill_pathes.length; i++) {
-			//this._queued_fill_pathes[i].prepare();
-		}
 	}
 
 	private _createGraphicPathes() {
@@ -1901,7 +1927,7 @@ export class Graphics extends AssetBase {
 	* See http://blogs.msdn.com/b/mswanson/archive/2006/02/27/539749.aspx and
 	* http://wahlers.com.br/claus/blog/hacking-swf-1-shapes-in-flash/ for details.
 	*/
-	public convertRecordsToShapeData(tag: ShapeTag): void {
+	public convertRecordsToShapeData(tag: ShapeTag, supressFill = false): void {
 		// run parser
 		if (tag.needParse) {
 			//console.log("Run lazy Graphics parser", tag.id);
@@ -2186,7 +2212,7 @@ export class Graphics extends AssetBase {
 				sources[current][i].serializeAJS(shapeAJS, null);
 
 				//console.log("shapeAJS", shapeAJS);
-				this.add_queued_path(shapeAJS);
+				this.add_queued_path(shapeAJS, supressFill);
 			}
 		}
 	}
@@ -2476,6 +2502,7 @@ export interface DefinitionTag extends SwfTag {
 	lazyParser: () => any;
 	needParse: boolean;
 	lazyTaskDone?: (tag: DefinitionTag) => void;
+	parsingTime?: number;
 }
 
 export const enum ShapeRecordFlags {
