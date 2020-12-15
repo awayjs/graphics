@@ -1801,6 +1801,7 @@ export class Graphics extends AssetBase {
 		shapeTag.lazyTaskDone = null;
 		shapeTag.needParse = false;
 
+		return;
 		// if parsing time more that a 2 ms, how many convert will runs?? =)
 		if (shapeTag.parsingTime < 30) {
 			//return;

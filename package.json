@@ -43,6 +43,8 @@
   },
   "homepage": "https://github.com/awayjs/graphics#readme",
   "dependencies": {
+    "clipper-lib": "^6.4.2",
+    "earcut": "^2.2.2",
     "tess2": "^1.0.0"
   },
   "peerDependencies": {

@@ -342,21 +342,36 @@ export class GraphicsFactoryHelper {
 
 	}
 
-	public static tesselateCurve(startx: number, starty: number, cx: number, cy: number, endx: number, endy: number, array_out: Array<number>, filled: boolean = false,iterationCnt: number = 0): void {
+	public static tesselateCurve(
+		startx: number, starty: number,
+		cx: number, cy: number,
+		endx: number, endy: number,
+		arrayMethod: Array<number> | ((x: number, y: number) => void),
+		filled: boolean = false,iterationCnt: number = 0): void {
+
+		const constuctMethod = typeof arrayMethod == 'function'
+			? arrayMethod
+			: (x: number, y: number) => arrayMethod.push(x, y);
+
 		const maxIterations: number = 6;
 		const minAngle: number = 1;
 		const minLength: number = 1;
 
-		// if "filled" is true, we are collecting final vert positions in the array, ready to use for rendering. (6-position values for each tri)
+		// if "filled" is true, we are collecting final vert positions in the array,
+		// ready to use for rendering. (6-position values for each tri)
 		// if "filled" is false, we are collecting vert positions for a path (we do not need the start-position).
 
 		// stop tesselation on maxIteration level. Set it to 0 for no tesselation at all.
 		if (iterationCnt >= maxIterations) {
 			if (filled) {
-				array_out.push(startx, starty, cx, cy, endx, endy);
+				constuctMethod(startx, starty);
+				constuctMethod(cx, cy);
+				constuctMethod(endx, endy);
 				return;
 			}
-			array_out.push(cx, cy, endx, endy);
+
+			constuctMethod(cx, cy);
+			constuctMethod(endx, endy);
 			return;
 		}
 
@@ -390,9 +405,11 @@ export class GraphicsFactoryHelper {
 		// stop subdividing if the angle or the length is to small
 		if (Math.abs(angle_delta) <= minAngle || len < minLength) {
 			if (filled) {
-				array_out.push(startx, starty, ax, ay, endx, endy);
+				constuctMethod(startx, starty);
+				constuctMethod(ax, ay);
+				constuctMethod(endx, endy);
 			} else {
-				array_out.push(endx, endy);
+				constuctMethod(endx, endy);
 			}
 			return;
 		}
@@ -400,13 +417,15 @@ export class GraphicsFactoryHelper {
 		// if the output should be directly in valid tris, we always must create a tri,
 		// even when we will keep on subdividing.
 		if (filled) {
-			array_out.push(startx, starty, ax, ay, endx, endy);
+			constuctMethod(startx, starty);
+			constuctMethod(ax, ay);
+			constuctMethod(endx, endy);
 		}
 
 		iterationCnt++;
 
-		GraphicsFactoryHelper.tesselateCurve(startx, starty, c1x, c1y, ax, ay, array_out, filled, iterationCnt);
-		GraphicsFactoryHelper.tesselateCurve(ax, ay, c2x, c2y, endx, endy, array_out, filled, iterationCnt);
+		GraphicsFactoryHelper.tesselateCurve(startx, starty, c1x, c1y, ax, ay, constuctMethod, filled, iterationCnt);
+		GraphicsFactoryHelper.tesselateCurve(ax, ay, c2x, c2y, endx, endy, constuctMethod, filled, iterationCnt);
 
 	}
 }

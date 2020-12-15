@@ -21,6 +21,11 @@ import { BitmapFillStyle } from './BitmapFillStyle';
  *or stored in the commands vector of a GraphicsPath object.
  */
 export class GraphicsPath implements IGraphicsData {
+	public static defaultPrepareMethod (x: number, y: number, arr: number[]): number[] {
+		arr.push(x, y);
+		return arr;
+	}
+
 	private _orientedBoxBounds: Box;
 	private _orientedBoxBoundsDirty: boolean = true;
 
@@ -38,7 +43,7 @@ export class GraphicsPath implements IGraphicsData {
 	 * The Vector of Numbers containing the parameters used with the drawing commands.
 	 */
 	public _data: number[][];
-	public _positions: number[][];
+	public _positions: Array<any>;
 
 	/**
 	 * The Vector of Numbers containing the parameters used with the drawing commands.
@@ -383,7 +388,8 @@ export class GraphicsPath implements IGraphicsData {
 	private _positionOffset: number[][] = [];
 	public forceClose: boolean = false;
 
-	public prepare(): void {
+	public prepare<T extends Array<any> = number[]>(
+		fillMethod: ((x: number, y: number, arr: T) => T) = <any> GraphicsPath.defaultPrepareMethod): T[] {
 
 		// was not mutated internaly
 		if (this._dirtyID === this._lastDirtyID) {
@@ -392,26 +398,16 @@ export class GraphicsPath implements IGraphicsData {
 
 		this._lastDirtyID = this._dirtyID;
 
-		let closed: boolean;
-		let commands: number[];
 		const isValidCommand: number[][] = [];
 		const contour_merged: boolean[] = [];
-		let data: number[];
-		let c,
-			i,
-			k,
-			k_len: number = 0;
 
-		let posOffset,
-			data_cnt: number = 0;
-		let prev_x,
-			prev_y,
-			end_x,
-			end_y,
-			ctrl_x,
+		let data_cnt: number = 0;
+		let prev_x: number,
+			prev_y: number,
+			end_x: number,
+			end_y: number,
+			ctrl_x: number,
 			ctrl_y: number = 0;
-		let curve_verts: number[];
-		let myCacheItem: any[];
 		let cmd_len = this.commands.length;
 
 		// commands may be empty
@@ -425,7 +421,7 @@ export class GraphicsPath implements IGraphicsData {
 			const commands = this.commands[c];
 			const data = this.data[c];
 
-			this._positions[c] = [];
+			this._positions[c] = <T> [];
 			this._connectedIdx[c] = [];
 			this._positionOffset[c] = [];
 
@@ -435,7 +431,7 @@ export class GraphicsPath implements IGraphicsData {
 
 			// check if the path is closed.
 			// if its not closed, we optionally close it by adding the extra lineTo-cmd
-			closed = true;
+			// closed = true;
 
 			const gap = Math.abs(data[0] - data[data.length - 2]) + Math.abs(data[1] - data[data.length - 1]);
 
@@ -444,14 +440,17 @@ export class GraphicsPath implements IGraphicsData {
 					commands[commands.length] = GraphicsPathCommand.LINE_TO;
 					data[data.length] = data[0];
 					data[data.length] = data[1];
-				} else {
-					closed = false;
 				}
+				/* else {
+					closed = false;
+				}*/
 			}
 		}
 
 		cmd_len = this.commands.length;
 		for (let c = 0; c < cmd_len; c++) {
+			const constructMethod = (x: number, y: number) => fillMethod(x, y, this._positions[c]);
+
 			const commands = this.commands[c];
 			const data = this.data[c];
 
@@ -463,8 +462,10 @@ export class GraphicsPath implements IGraphicsData {
 			ctrl_x = 0;
 			ctrl_y = 0;
 
-			this._positions[c].push(prev_x);
-			this._positions[c].push(prev_y);
+			constructMethod(prev_x, prev_y);
+
+			//this._positions[c].push(prev_x);
+			//this._positions[c].push(prev_y);
 
 			// now we collect the final position data
 			// a command list is no longer needed for this position data,
@@ -490,8 +491,13 @@ export class GraphicsPath implements IGraphicsData {
 						end_x = data[data_cnt++];
 						end_y = data[data_cnt++];
 						//console.log("LINE_TO ", i, end_x, end_y);
+
+						constructMethod(end_x, end_y);
+
+						/*
 						this._positions[c].push(end_x);
 						this._positions[c].push(end_y);
+						*/
 						prev_x = end_x;
 						prev_y = end_y;
 						break;
@@ -502,15 +508,16 @@ export class GraphicsPath implements IGraphicsData {
 						end_y = data[data_cnt++];
 
 						//console.log("CURVE_TO ", i, ctrl_x, ctrl_y, end_x, end_y);
-						curve_verts = [];
-						GraphicsFactoryHelper.tesselateCurve(prev_x, prev_y, ctrl_x, ctrl_y, end_x, end_y, curve_verts);
+						GraphicsFactoryHelper.tesselateCurve(
+							prev_x, prev_y, ctrl_x, ctrl_y, end_x, end_y, constructMethod);
 
+						/*
 						k_len = curve_verts.length;
 
 						for (k = 0; k < k_len; k += 2) {
 							this._positions[c].push(curve_verts[k]);
 							this._positions[c].push(curve_verts[k + 1]);
-						}
+						}*/
 
 						prev_x = end_x;
 						prev_y = end_y;
@@ -518,6 +525,8 @@ export class GraphicsPath implements IGraphicsData {
 				}
 			}
 		}
+
+		return <T[]> this._positions;
 	}
 
 	public invalidate() {
@@ -553,7 +562,7 @@ export class GraphicsPath implements IGraphicsData {
 		let index: number = 0;
 		let positions: number[] = this._positions[index++];
 		let pLen: number = positions.length;
-		let pos1: number, pos2: number, pos3: number, rawData: Float32Array;
+		let pos1: number, pos2: number, rawData: Float32Array;
 
 		if (matrix3D) rawData = matrix3D._rawData;
 
