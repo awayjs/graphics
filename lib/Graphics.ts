@@ -1724,6 +1724,11 @@ export class Graphics extends AssetBase {
 		capstyle: number = CapsStyle.NONE, jointstyle: number = JointStyle.MITER,
 		miterLimit: number = 100): void {
 
+		if (thickness == 0) {
+			thickness = 0.05;
+			scaleMode = LineScaleMode.HAIRLINE;
+		}
+
 		const valid = thickness > 0 && alpha > 0;
 
 		this._drawingDirty = true;
