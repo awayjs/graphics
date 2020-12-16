@@ -2,7 +2,7 @@ import { Rectangle, Box, Sphere, Matrix3D, Vector3D, Point } from '@awayjs/core'
 
 import { View, IPickingEntity, PickingCollision } from '@awayjs/view';
 
-import { ElementsUtils, IMaterial } from '@awayjs/renderer';
+import { ElementsEvent, ElementsUtils, IMaterial } from '@awayjs/renderer';
 
 import {
 	AttributesBuffer,
@@ -804,7 +804,7 @@ import { Settings } from '../Settings';
 export class _Stage_TriangleElements extends _Stage_ElementsBase {
 	private _triangleElements: TriangleElements;
 	private _vao: IVao;
-	private _vaoFilled: boolean = false;
+	private _vaoIsInvalid: boolean = true;
 
 	constructor(triangleElements: TriangleElements, stage: Stage) {
 		super(triangleElements, stage);
@@ -819,11 +819,50 @@ export class _Stage_TriangleElements extends _Stage_ElementsBase {
 
 	}
 
+	_onInvalidateIndices(event: ElementsEvent) {
+		super._onInvalidateIndices(event);
+
+		this._vaoIsInvalid = true;
+		// drop vao every invalidation because buffers can be rebound
+		//		if (this._vao) {
+		//			this._vao.dispose();
+		//			this._vao = null;
+		//		}
+	}
+
+	_onInvalidateVertices(event: ElementsEvent) {
+		super._onInvalidateVertices(event);
+
+		this._vaoIsInvalid = true;
+		// drop vao every invalidation because buffers can be rebound
+		//		if (this._vao) {
+		//			this._vao.dispose();
+		//			this._vao = null;
+		//		}
+	}
+
+	onInvalidate(event: AssetEvent) {
+		super.onInvalidate(event);
+
+		this._vaoIsInvalid = true;
+		// drop vao every invalidation because buffers can be rebound
+		//		if (this._vao) {
+		//			this._vao.dispose();
+		//			this._vao = null;
+		//		}
+	}
+
 	public onClear(event: AssetEvent): void {
 		super.onClear(event);
 
 		this._triangleElements = null;
-		this._vao && this._vao.dispose();
+
+		this._vaoIsInvalid = true;
+
+		if (this._vao) {
+			this._vao.dispose();
+			this._vao = null;
+		}
 	}
 
 	public _setRenderState(renderRenderable: _Render_RenderableBase, shader: ShaderBase): void {
@@ -832,7 +871,7 @@ export class _Stage_TriangleElements extends _Stage_ElementsBase {
 
 		super._setRenderState(renderRenderable, shader);
 
-		if (!this._vao || !this._vaoFilled) {
+		if (!this._vao || this._vaoIsInvalid) {
 			//set buffers
 			//TODO: find a better way to update a concatenated buffer when autoderiving
 			if (shader.normalIndex >= 0 && this._triangleElements.autoDeriveNormals)
@@ -870,7 +909,7 @@ export class _Stage_TriangleElements extends _Stage_ElementsBase {
 
 			this.activateVertexBufferVO(0, this._triangleElements.positions);
 
-			this._vaoFilled = true;
+			this._vaoIsInvalid = false;
 		}
 	}
 
