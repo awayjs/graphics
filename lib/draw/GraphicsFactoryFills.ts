@@ -57,11 +57,19 @@ const FIXED_BASE = 1000;
 export class GraphicsFactoryFills {
 
 	public static Tess2Wasm: ITessWasm;
-	private static isWasmCrash = false;
+	private static wasmIsOk = true;
 
 	public static prepareWasm() {
+		if (!window.WebAssembly) {
+			console.warn('[GraphicsFactoryFills] WASM not supported');
+			this.wasmIsOk = false;
+		}
+
 		createTess2Wasm().then(({ Tess })=>{
 			GraphicsFactoryFills.Tess2Wasm = Tess;
+		}).catch((e) => {
+			console.warn('[GraphicsFactoryFills] WASM initialisation fail:', e);
+			this.wasmIsOk = false;
 		});
 	}
 
@@ -165,7 +173,8 @@ export class GraphicsFactoryFills {
 				{
 					const bitmapStyle = <BitmapFillStyle>pathStyle;
 
-					material = bitmapStyle.material; //new ITexture(ImageUtils.getDefaultImage2D());//bitmapStyle.texture;
+					//new ITexture(ImageUtils.getDefaultImage2D());//bitmapStyle.texture;
+					material = bitmapStyle.material;
 					//sampler.smooth = true;
 					sampler.repeat = bitmapStyle.repeat;
 					material.style.sampler = sampler;
@@ -244,22 +253,42 @@ export class GraphicsFactoryFills {
 		} else {
 			SHAPE_INFO.single_contours += 1;
 		}
-		//console.log("execute Tess2 = ", finalContours);
 
 		let res: IResult = null;
 
-		const TessWasm = GraphicsFactoryFills.Tess2Wasm;
 		let tessWasm: ITessWasm;
 
 		if (finalContours.length > 0) {
-			try {
-				const start = performance.now();
-				if (!TessWasm) {
+			let useJSVersion = !this.Tess2Wasm || !this.wasmIsOk;
 
-					if (!this.isWasmCrash) {
-						console.debug('WASM Tess not loaded, use JS');
-					}
+			const start = performance.now();
 
+			if (!useJSVersion) {
+				try {
+					this._lastTess = tessWasm = new this.Tess2Wasm();
+
+					tessWasm.addContours(finalContours);
+
+					res = <IResult> <any> tessWasm.tesselate();
+
+					SHAPE_INFO.tess_time += performance.now() - start;
+
+					return res;
+
+				} catch (e) {
+					this.wasmIsOk = false;
+					useJSVersion = true;
+
+					console.warn('[GraphicsFactoryFills] Tess2Wasm crash, dowside to JS', e.message);
+				}
+			}
+
+			if (useJSVersion) {
+				if (!this.wasmIsOk) {
+					console.debug('[GraphicsFactoryFills] WASM Tess not loaded, JS will used.');
+				}
+
+				try {
 					res = Tess2.tesselate({
 						contours: finalContours,
 						windingRule: Tess2.WINDING_ODD,
@@ -268,37 +297,15 @@ export class GraphicsFactoryFills {
 						vertexSize: 2,
 						debug: true
 					});
-				} else {
-					try {
-						this._lastTess = tessWasm = new TessWasm();
-						tessWasm.addContours(finalContours);
 
-						res = <IResult> <any> tessWasm.tesselate();
-					} catch (e) {
-						this.Tess2Wasm = null;
-						this.isWasmCrash = true;
+					SHAPE_INFO.tess_time += performance.now() - start;
 
-						console.warn('[GraphicsFactoryFills] Tess2Wasm crash, dowside to JS', e.message);
+					return res;
+				} catch (e) {
+					console.debug('[GraphicsFactoryFills] Error when trying to tesselate', finalContours);
 
-						res = Tess2.tesselate({
-							contours: finalContours,
-							windingRule: Tess2.WINDING_ODD,
-							elementType: Tess2.POLYGONS,
-							polySize: 3,
-							vertexSize: 2,
-							debug: true
-						});
-					}
-
+					return res = null;
 				}
-
-				SHAPE_INFO.tess_time += performance.now() - start;
-
-				return res;
-			} catch (e) {
-				console.log('error when trying to tesselate', finalContours);
-
-				return res = null;
 			}
 		}
 	}
