@@ -43,7 +43,8 @@
   },
   "homepage": "https://github.com/awayjs/graphics#readme",
   "dependencies": {
-    "tess2": "^1.0.0"
+    "tess2-ts": "^1.0.5",
+    "tess2-wasm": "^1.0.5"
   },
   "peerDependencies": {
     "@awayjs/core": "^0.9.0",

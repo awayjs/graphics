@@ -19,13 +19,16 @@ import { GraphicsPath } from './GraphicsPath';
 
 import { Graphics } from '../Graphics';
 
-import Tess2 from 'tess2';
+import * as Tess2 from 'tess2-ts';
+import createTess2Wasm, { ITess as ITessWasm } from 'tess2-wasm';
+
 import { MaterialManager } from '../managers/MaterialManager';
 
 import { IResult } from './WorkerTesselatorBody';
 
 //@ts-ignore
 window.Tess2 = Tess2;
+
 /**
  * The Graphics class contains a set of methods that you can use to create a
  * vector shape. Display objects that support drawing include Sprite and Shape
@@ -52,6 +55,15 @@ const SHAPE_INFO = window.SHAPE_INFO = {
 const FIXED_BASE = 1000;
 
 export class GraphicsFactoryFills {
+
+	public static Tess2Wasm: ITessWasm;
+	private static isWasmCrash = false;
+
+	public static prepareWasm() {
+		createTess2Wasm().then(({ Tess })=>{
+			GraphicsFactoryFills.Tess2Wasm = Tess;
+		});
+	}
 
 	public static TESS_SCALE = 20;
 	public static USE_TESS_FIX = true;
@@ -223,6 +235,7 @@ export class GraphicsFactoryFills {
 		return finalContours;
 	}
 
+	private static _lastTess: ITessWasm;
 	public static runTesselator(graphicsPath: GraphicsPath): IResult {
 		const finalContours = this.prepareContours(graphicsPath, this.USE_TESS_FIX);
 
@@ -233,19 +246,51 @@ export class GraphicsFactoryFills {
 		}
 		//console.log("execute Tess2 = ", finalContours);
 
-		let res = null;
+		let res: IResult = null;
+
+		const TessWasm = GraphicsFactoryFills.Tess2Wasm;
+		let tessWasm: ITessWasm;
 
 		if (finalContours.length > 0) {
 			try {
 				const start = performance.now();
-				res = Tess2.tesselate({
-					contours: finalContours,
-					windingRule: Tess2.WINDING_ODD,
-					elementType: Tess2.POLYGONS,
-					polySize: 3,
-					vertexSize: 2,
-					debug: true
-				});
+				if (!TessWasm) {
+
+					if (!this.isWasmCrash) {
+						console.debug('WASM Tess not loaded, use JS');
+					}
+
+					res = Tess2.tesselate({
+						contours: finalContours,
+						windingRule: Tess2.WINDING_ODD,
+						elementType: Tess2.POLYGONS,
+						polySize: 3,
+						vertexSize: 2,
+						debug: true
+					});
+				} else {
+					try {
+						this._lastTess = tessWasm = new TessWasm();
+						tessWasm.addContours(finalContours);
+
+						res = <IResult> <any> tessWasm.tesselate();
+					} catch (e) {
+						this.Tess2Wasm = null;
+						this.isWasmCrash = true;
+
+						console.warn('[GraphicsFactoryFills] Tess2Wasm crash, dowside to JS', e.message);
+
+						res = Tess2.tesselate({
+							contours: finalContours,
+							windingRule: Tess2.WINDING_ODD,
+							elementType: Tess2.POLYGONS,
+							polySize: 3,
+							vertexSize: 2,
+							debug: true
+						});
+					}
+
+				}
 
 				SHAPE_INFO.tess_time += performance.now() - start;
 
@@ -344,6 +389,11 @@ export class GraphicsFactoryFills {
 		} else if (res) {
 
 			this.fillBuffer(res, finalVerts);
+
+			if (this._lastTess) {
+				this._lastTess.dispose();
+				this._lastTess = null;
+			}
 		}
 
 		// merge poly vertex

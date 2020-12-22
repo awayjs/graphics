@@ -46,12 +46,8 @@ import { MaterialManager } from './managers/MaterialManager';
 import { LineElements } from './elements/LineElements';
 import { ManagedPool } from './ManagedPool';
 import { Settings } from './Settings';
-import { WebWorkerTessealtor } from './draw/WebWorkerTesselator';
-import { TesselatorTaskResult } from './draw/WorkerTesselatorBody';
 
-WebWorkerTessealtor.prefarmWorkers().then(() => {
-	console.debug('Workers runs!');
-});
+GraphicsFactoryFills.prepareWasm();
 
 /**
  *
@@ -65,6 +61,7 @@ WebWorkerTessealtor.prefarmWorkers().then(() => {
  *
  * @class Graphics
  */
+
 export class Graphics extends AssetBase {
 	private static CLEARS_BEFORE_POOLING = 10;
 	private static _pool: Array<Graphics> = new Array<Graphics>();
@@ -1814,24 +1811,7 @@ export class Graphics extends AssetBase {
 				this._queuedShapeTags.splice(index, 1);
 			}
 
-			const currentPathCount = this._queued_fill_pathes.length;
 			this.convertRecordsToShapeData(shapeTag, shapeTag.parsingTime > 1);
-
-			// if records parsed slow, run tesselator in worked
-			if (shapeTag.parsingTime > 0.5) {
-				const len = this._queued_stroke_pathes.length;
-				for (let i = currentPathCount; i < len; i++) {
-					const path = this._queued_stroke_pathes[i];
-					console.debug('[Graphics] Push task to worker:', path);
-
-					WebWorkerTessealtor
-						.tesselatedWorker(path)
-						.then((data: TesselatorTaskResult) => {
-							path.pretesselatedBuffer = data.buffer;
-						});
-				}
-			}
-
 		} else {
 			console.debug('[Graphics] Supress lazy shape convertion:',shapeTag);
 		}
@@ -1841,6 +1821,7 @@ export class Graphics extends AssetBase {
 		this._queuedShapeTags.push(shapeTag);
 		this._drawingDirty = true;
 
+		return;
 		if (shapeTag.needParse) {
 			shapeTag.lazyTaskDone = this.processLazyTesselation.bind(this);
 		}

@@ -16,10 +16,10 @@ interface IOptions {
 }
 
 export interface IResult {
-	vertices: Array<number>;
-	vertexIndices: Array<number>;
+	vertices: ArrayLike<number>;
+	vertexIndices: ArrayLike<number>;
 	vertexCount: number;
-	elements: Array<number>;
+	elements: ArrayLike<number>;
 	elementCount: number;
 	mesh: any;
 }

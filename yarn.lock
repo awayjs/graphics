@@ -1570,9 +1570,15 @@ table@^5.2.3:
     slice-ansi "^2.1.0"
     string-width "^3.0.0"
 
-tess2@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/tess2/-/tess2-1.0.0.tgz#2e2eb21822294061b83d46cbaefdd09d86ddf593"
+tess2-ts@^1.0.5:
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/tess2-ts/-/tess2-ts-1.0.7.tgz#e7e0b97c1bdd6f550ee6c4d3431de72b189d1e6e"
+  integrity sha512-otz+Uuu9pRxSy34rPb8580pm347SASL3gKldcLWulCJGiTadZdtc4UzwpnA3bpq3viAGXu8psdweJaJF2wGvXg==
+
+tess2-wasm@^1.0.5:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/tess2-wasm/-/tess2-wasm-1.0.5.tgz#e5fc73f5938c0d8725375e03cfcce8be7eca06b5"
+  integrity sha512-+CY6KzieGet3t364Gx0h705jkJKZjuVW7ajbwz5ywUWGyF8k6S4uP/PW6p0cR6l7ZQ5dgUlZCjw76BIEVBYAdg==
 
 text-table@^0.2.0:
   version "0.2.0"
