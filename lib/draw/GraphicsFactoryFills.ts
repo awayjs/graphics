@@ -26,9 +26,6 @@ import { MaterialManager } from '../managers/MaterialManager';
 
 import { IResult } from './WorkerTesselatorBody';
 
-//@ts-ignore
-window.Tess2 = Tess2;
-
 /**
  * The Graphics class contains a set of methods that you can use to create a
  * vector shape. Display objects that support drawing include Sprite and Shape
