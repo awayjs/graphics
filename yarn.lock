@@ -1570,15 +1570,15 @@ table@^5.2.3:
     slice-ansi "^2.1.0"
     string-width "^3.0.0"
 
-tess2-ts@^1.0.5:
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/tess2-ts/-/tess2-ts-1.0.7.tgz#e7e0b97c1bdd6f550ee6c4d3431de72b189d1e6e"
-  integrity sha512-otz+Uuu9pRxSy34rPb8580pm347SASL3gKldcLWulCJGiTadZdtc4UzwpnA3bpq3viAGXu8psdweJaJF2wGvXg==
+tess2-ts@^1.0.8:
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/tess2-ts/-/tess2-ts-1.0.8.tgz#ad44ad70a93e8c744719702141892371e6665cc9"
+  integrity sha512-nmqh9T8kqWzb31PhPKenBC/oUif4M2Moo8LHG1wz0Mu5v3xDGWPBcvqunWLE9sBiJjL93x60AM2QWWtd/IZl9w==
 
-tess2-wasm@^1.0.5:
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/tess2-wasm/-/tess2-wasm-1.0.5.tgz#e5fc73f5938c0d8725375e03cfcce8be7eca06b5"
-  integrity sha512-+CY6KzieGet3t364Gx0h705jkJKZjuVW7ajbwz5ywUWGyF8k6S4uP/PW6p0cR6l7ZQ5dgUlZCjw76BIEVBYAdg==
+tess2-wasm@^1.0.8:
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/tess2-wasm/-/tess2-wasm-1.0.8.tgz#d1a27a1e3304e21e673acc203f04924bd621b9dc"
+  integrity sha512-TkTXwg0epcdNV8ZcnKasON3LBIbvIa2Tf4atEIX1qw4mpEcDNf0apbnCGm3DM7QGPHELw4kUOmhhOyKcqD2vRA==
 
 text-table@^0.2.0:
   version "0.2.0"
