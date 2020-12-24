@@ -2150,7 +2150,6 @@ export class Graphics extends AssetBase {
 
 		// allPaths = (allPaths || []).concat(fillPaths || [], linePaths || [], defaultPath || []);
 
-		const total = allPaths.length + fillPaths.length + linePaths.length;
 		const sources = [allPaths, fillPaths, linePaths];
 
 		let shapeAJS: GraphicsPath;
@@ -2161,8 +2160,8 @@ export class Graphics extends AssetBase {
 		if (isMorph) {
 			//shape.morphCoordinates = new Int32Array(shape.coordinates.length);
 			//shape.morphStyles = new DataBuffer(16);
-			this.start = new Array(total);
-			this.end = new Array(total);
+			this._start = [];
+			this._end = [];
 
 			for (let i = 0; current < sources.length ; i++) {
 				if (!sources[current] || sources[current].length <= i) {
@@ -2178,8 +2177,8 @@ export class Graphics extends AssetBase {
 				//shapeAJS.queuePath(allPaths[i], morphShapeAJS)
 				sources[current][i].serializeAJS(shapeAJS, morphShapeAJS);
 
-				this.start.push(shapeAJS);
-				this.end.push(morphShapeAJS);
+				this._start.push(shapeAJS);
+				this._end.push(morphShapeAJS);
 			}
 
 		} else {
