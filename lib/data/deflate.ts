@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import { Settings } from '../Settings';
+import { NativeDeflate } from './NativeDeflate';
 import { IDataDecoder, memCopy } from './utilities';
 
 enum InflateState {
@@ -69,10 +71,19 @@ export class Inflate implements IDataDecoder {
 		//
 	}
 
-	public static create(verifyHeader: boolean): Inflate {
-		/* if (typeof ShumwayCom !== 'undefined' && ShumwayCom.createSpecialInflate) {
-      return new SpecialInflateAdapter(verifyHeader, ShumwayCom.createSpecialInflate);
-    }*/
+	public static create(verifyHeader: boolean, size: number = 0, tryNative = true): IDataDecoder {
+
+		if (tryNative && !NativeDeflate.isSupported) {
+			console.warn('[NativeDeflate]');
+		} else if (NativeDeflate.isSupported && Settings.USE_NATIVE_DEFLATE) {
+			if (size) {
+				console.warn('[NativeDeflate] Decoding API is supported and enabled, use native');
+				return new NativeDeflate(verifyHeader, size);
+			} else {
+				console.warn('[NativeDeflate] size not presented, can`t use a native implementation');
+			}
+		}
+
 		return new BasicInflate(verifyHeader);
 	}
 
@@ -101,10 +112,16 @@ export class Inflate implements IDataDecoder {
 		}
 	}
 
-	public static inflate(data: Uint8Array, expectedLength: number, zlibHeader: boolean): Uint8Array {
-		const output = new Uint8Array(expectedLength);
+	public static inflate(
+		data: Uint8Array,
+		expectedLength: number,
+		zlibHeader: boolean): Uint8Array {
+
 		let position = 0;
-		const inflate = Inflate.create(zlibHeader);
+
+		const output = new Uint8Array(expectedLength);
+		const inflate = Inflate.create(zlibHeader, 0);
+
 		inflate.onData = function (data) {
 			// Make sure we don't cause an exception here when trying to set out-of-bound data by clamping the number of
 			// bytes to write to the remaining space in our output buffer. The Flash Player ignores data that goes over the
@@ -663,61 +680,6 @@ function makeHuffmanTable(bitLengths: Uint8Array): HuffmanTable {
 		}
 	}
 	return { codes: codes, maxBits: maxBits };
-}
-
-interface SpecialInflate {
-	setDataCallback(callback: (data: Uint8Array) => void): void;
-	push(data: Uint8Array);
-	close();
-}
-
-class SpecialInflateAdapter extends Inflate {
-	private _verifyHeader: boolean;
-	private _buffer: Uint8Array;
-
-	private _specialInflate: SpecialInflate;
-
-	constructor(verifyHeader: boolean, createSpecialInflate: () => SpecialInflate) {
-		super(verifyHeader);
-
-		this._verifyHeader = verifyHeader;
-
-		this._specialInflate = createSpecialInflate();
-		this._specialInflate.setDataCallback(function (data) {
-			this.onData(data);
-		}.bind(this));
-	}
-
-	public push(data: Uint8Array) {
-		if (this._verifyHeader) {
-			let buffer;
-			if (this._buffer) {
-				buffer = new Uint8Array(this._buffer.length + data.length);
-				buffer.set(this._buffer);
-				buffer.set(data, this._buffer.length);
-				this._buffer = null;
-			} else {
-				buffer = new Uint8Array(data);
-			}
-			const processed = this._processZLibHeader(buffer, 0, buffer.length);
-			if (processed === 0) {
-				this._buffer = buffer;
-				return;
-			}
-			this._verifyHeader = true;
-			if (processed > 0) {
-				data = buffer.subarray(processed);
-			}
-		}
-		this._specialInflate.push(data);
-	}
-
-	public close() {
-		if (this._specialInflate) {
-			this._specialInflate.close();
-			this._specialInflate = null;
-		}
-	}
 }
 
 enum DeflateState {

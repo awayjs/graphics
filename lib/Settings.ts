@@ -12,6 +12,7 @@ export interface IGraphicsSettings {
 	ENABLE_CONVEX_BOUNDS: boolean;
 	CONVEX_MIN_REQUIEST_FOR_BUILD: number;
 	POINTS_COUNT_FOR_CONVEX: number;
+	USE_NATIVE_DEFLATE: boolean;
 }
 
 export const Settings: IGraphicsSettings = {
@@ -56,4 +57,8 @@ export const Settings: IGraphicsSettings = {
 	 */
 	POINTS_COUNT_FOR_CONVEX: 10,
 
+	/**
+	 * @description Try to use native deflate (Chrome and FF, Sufari suckings again)
+	 */
+	USE_NATIVE_DEFLATE: true,
 };
