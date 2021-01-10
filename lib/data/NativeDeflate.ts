@@ -25,8 +25,16 @@ export class NativeDeflate implements IDataDecoder {
 	}
 
 	constructor(
-		private verHeader: boolean,
+		private _verHeader: boolean,
 		private _size: number) {
+
+		if (_verHeader) {
+			this._size -= 8;
+		}
+
+		if (!NativeDeflate.isSupported) {
+			throw 'DecompressionStream is not supported!';
+		}
 
 		const decoder = new self.DecompressionStream('deflate');
 		this._writer = decoder.writable.getWriter();
@@ -72,6 +80,8 @@ export class NativeDeflate implements IDataDecoder {
 	onError: (e: any) => void;
 
 	push(data: Uint8Array) {
+		let onPush = true;
+		// header
 		if (data.length === 8) {
 			// header
 			this.onData && this.onData(data);
@@ -89,16 +99,24 @@ export class NativeDeflate implements IDataDecoder {
 			this._run()
 				.then((buff) => {
 					this.onData && this.onData(buff);
-					this.close();
+					//this.close();
 				})
-				.catch(e => this.onError && this.onError(e));
+				.catch(e =>  {
+					if (onPush && data) {
+						debugger;
+					}
+
+					this.onError && this.onError(e);
+				});
 		}
+
+		onPush = false;
 	}
 
 	close() {
 		if (this._isRunned && this.isDone) {
-			this._writer.close();
-			this._isRunned = false;
+		//	this._writer.close();
+		//	this._isRunned = false;
 		}
 	}
 

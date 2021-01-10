@@ -71,16 +71,23 @@ export class Inflate implements IDataDecoder {
 		//
 	}
 
-	public static create(verifyHeader: boolean, size: number = 0, tryNative = true): IDataDecoder {
+	public static create(
+		verifyHeader: boolean,
+		size: number = 0,
+		tryNative = true): IDataDecoder
+	// eslint-disable-next-line brace-style
+	{
 
 		if (tryNative && !NativeDeflate.isSupported) {
-			console.warn('[NativeDeflate]');
-		} else if (NativeDeflate.isSupported && Settings.USE_NATIVE_DEFLATE) {
+			console.warn('[NativeDeflate] Is not supported!');
+		}
+
+		if (tryNative && NativeDeflate.isSupported && Settings.USE_NATIVE_DEFLATE) {
 			if (size) {
-				console.warn('[NativeDeflate] Decoding API is supported and enabled, use native');
+				console.debug('[NativeDeflate] Decoding API is supported and enabled, use native');
 				return new NativeDeflate(verifyHeader, size);
 			} else {
-				console.warn('[NativeDeflate] size not presented, can`t use a native implementation');
+				console.debug('[NativeDeflate] size not presented, can`t use a native implementation');
 			}
 		}
 
