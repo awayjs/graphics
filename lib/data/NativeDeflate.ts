@@ -14,6 +14,7 @@ declare global {
 }
 
 export class NativeDeflate implements IDataDecoder {
+
 	private _reader: ReadableStreamDefaultReader;
 	private _writer: WritableStreamDefaultWriter;
 	private _buffer: Uint8Array;
@@ -80,7 +81,6 @@ export class NativeDeflate implements IDataDecoder {
 	onError: (e: any) => void;
 
 	push(data: Uint8Array) {
-		let onPush = true;
 		// header
 		if (data.length === 8) {
 			// header
@@ -88,11 +88,14 @@ export class NativeDeflate implements IDataDecoder {
 			return;
 		}
 
+		/*
 		this._writer.ready.then(()=>{
 			return this._writer.write(data);
 		}).catch((e) =>  {
 			this.onError && this.onError(e);
 		});
+		*/
+		this._writer.write(data);
 
 		if (!this._isRunned) {
 			this._isRunned = true;
@@ -102,15 +105,9 @@ export class NativeDeflate implements IDataDecoder {
 					//this.close();
 				})
 				.catch(e =>  {
-					if (onPush && data) {
-						debugger;
-					}
-
 					this.onError && this.onError(e);
 				});
 		}
-
-		onPush = false;
 	}
 
 	close() {
