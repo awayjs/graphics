@@ -84,7 +84,7 @@ export class Inflate implements IDataDecoder {
 
 		if (tryNative && NativeDeflate.isSupported && Settings.USE_NATIVE_DEFLATE) {
 			if (size) {
-				console.debug('[NativeDeflate] Decoding API is supported and enabled, use native');
+				//console.debug('[NativeDeflate] Decoding API is supported and enabled, use native');
 				return new NativeDeflate(verifyHeader, size);
 			} else {
 				console.debug('[NativeDeflate] size not presented, can`t use a native implementation');

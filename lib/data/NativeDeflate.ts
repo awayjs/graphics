@@ -14,12 +14,13 @@ declare global {
 }
 
 export class NativeDeflate implements IDataDecoder {
+	public isDone = false;
 
-	private _reader: ReadableStreamDefaultReader;
+	private _reader: ReadableStreamDefaultReader<Uint8Array>;
 	private _writer: WritableStreamDefaultWriter;
 	private _buffer: Uint8Array;
-	public isDone = false;
 	private _isRunned = false;
+	private _blockPosition: number = 0;
 
 	public get closed() {
 		return !this._isRunned && this.isDone;
@@ -31,6 +32,8 @@ export class NativeDeflate implements IDataDecoder {
 
 		if (_verHeader) {
 			this._size -= 8;
+		} else {
+			//throw 'Native not support deflate without header';
 		}
 
 		if (!NativeDeflate.isSupported) {
@@ -38,9 +41,12 @@ export class NativeDeflate implements IDataDecoder {
 		}
 
 		const decoder = new self.DecompressionStream('deflate');
+
 		this._writer = decoder.writable.getWriter();
 		this._reader = decoder.readable.getReader();
 		this._buffer = new Uint8Array(_size);
+
+		this._processBlocks = this._processBlocks.bind(this);
 	}
 
 	// check that decoding stream is supported
@@ -48,37 +54,25 @@ export class NativeDeflate implements IDataDecoder {
 		return ('DecompressionStream' in self);
 	}
 
-	private _run(): Promise<Uint8Array> {
-		let offset = 0;
-		const that = this;
+	private _processBlocks ({ done, value }: ReadableStreamReadResult<Uint8Array>) {
+		const reader = this._reader;
 
-		return new Promise((res, rej) => {
-			this._reader.read()
-				.then(function next({ done, value }) {
+		if (value) {
+			this._buffer.set(value, this._blockPosition);
+			this._blockPosition += value.length;
+		}
 
-					if (value) {
-						that._buffer.set(value, offset);
-						//console.debug('[NativeDeflate] Decoded chunk:', offset);
+		if (done || this._blockPosition >= this._size) {
+			this.isDone = true;
+			this.onData && this.onData(this._buffer);
+			return this._buffer;
+		}
 
-						offset += value.length;
-					}
-
-					if (done || offset >= that._size) {
-						that.isDone = true;
-						res(that._buffer);
-
-						//console.debug('[NativeDeflate] Decoder closed:', offset);
-						return;
-					}
-
-					return that._reader.read().then(next);
-				})
-				.catch(rej);
-		});
+		return reader.read().then(this._processBlocks);
 	}
 
 	onData: (data: Uint8Array) => void;
-	onError: (e: any) => void;
+	onError: (e: any) => void = (_e: any) => {};
 
 	push(data: Uint8Array) {
 		// header
@@ -88,32 +82,20 @@ export class NativeDeflate implements IDataDecoder {
 			return;
 		}
 
-		/*
-		this._writer.ready.then(()=>{
-			return this._writer.write(data);
-		}).catch((e) =>  {
-			this.onError && this.onError(e);
-		});
-		*/
 		this._writer.write(data);
 
 		if (!this._isRunned) {
 			this._isRunned = true;
-			this._run()
-				.then((buff) => {
-					this.onData && this.onData(buff);
-					//this.close();
-				})
-				.catch(e =>  {
-					this.onError && this.onError(e);
-				});
+			this._reader.read()
+				.then(this._processBlocks)
+				.catch(this.onError);
 		}
 	}
 
 	close() {
 		if (this._isRunned && this.isDone) {
-		//	this._writer.close();
-		//	this._isRunned = false;
+			this._writer.close();
+			this._isRunned = false;
 		}
 	}
 
