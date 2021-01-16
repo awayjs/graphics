@@ -127,7 +127,7 @@ export class Inflate implements IDataDecoder {
 		let position = 0;
 
 		const output = new Uint8Array(expectedLength);
-		const inflate = Inflate.create(zlibHeader, 0);
+		const inflate = Inflate.create(zlibHeader, 0, false);
 
 		inflate.onData = function (data) {
 			// Make sure we don't cause an exception here when trying to set out-of-bound data by clamping the number of

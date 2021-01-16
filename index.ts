@@ -92,6 +92,7 @@ export {
 	GradientInterpolationMethod,
 } from './lib/data/ShapeData';
 export { Deflate, Inflate, Adler32 } from './lib/data/deflate';
+export { NativeDeflate } from './lib/data/NativeDeflate';
 export { LzmaDecoder } from './lib/data/lzma';
 export {
 	assert,
