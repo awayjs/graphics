@@ -158,26 +158,20 @@ export class GraphicsFactoryHelper {
 		}
 	}
 
-	public static drawElipseStrokes(x: number,y: number,width: number, height: number, vertices: Array<number>, startAngle: number, endAngle: number, stepAngle: number, thickness: number, curves: boolean): void {
+	public static drawElipseStrokes(x: number,y: number,width: number, height: number,
+		strokePath: GraphicsPath, startAngle: number,
+		endAngle: number, stepAngle: number): void {
 
 		// todo: validate input / check edge cases
 		const degreeTotal: number = endAngle - startAngle;
 		const steps: number = degreeTotal / stepAngle;
-		let x_last = x + (width + thickness) * Math.cos(startAngle * (Math.PI / 180));
-		let y_last = y + (height + thickness) * Math.sin(startAngle * (Math.PI / 180));
-		let x_last2 = x + (width - thickness) * Math.cos(startAngle * (Math.PI / 180));
-		let y_last2 = y + (height - thickness) * Math.sin(startAngle * (Math.PI / 180));
+		const x_last = x + (width) * Math.cos(startAngle * (Math.PI / 180));
+		const y_last = y + (height) * Math.sin(startAngle * (Math.PI / 180));
+		strokePath.moveTo(x_last, y_last);
 		for (let i = 1; i <= steps;i++) {
-			const x_tmp = x + (width + thickness) * Math.cos((startAngle + i * stepAngle) * (Math.PI / 180));
-			const y_tmp = y + (height + thickness) * Math.sin((startAngle + i * stepAngle) * (Math.PI / 180));
-			const x_tmp2 = x + (width - thickness) * Math.cos((startAngle + i * stepAngle) * (Math.PI / 180));
-			const y_tmp2 = y + (height - thickness) * Math.sin((startAngle + i * stepAngle) * (Math.PI / 180));
-			GraphicsFactoryHelper.addTriangle(x_tmp, y_tmp, x_tmp2, y_tmp2, x_last, y_last, 0, vertices, curves);
-			GraphicsFactoryHelper.addTriangle(x_last2, y_last2, x_tmp2, y_tmp2, x_last, y_last, 0, vertices, curves);
-			x_last = x_tmp;
-			y_last = y_tmp;
-			x_last2 = x_tmp2;
-			y_last2 = y_tmp2;
+			const x_tmp = x + (width) * Math.cos((startAngle + i * stepAngle) * (Math.PI / 180));
+			const y_tmp = y + (height) * Math.sin((startAngle + i * stepAngle) * (Math.PI / 180));
+			strokePath.lineTo(x_tmp, y_tmp);
 		}
 	}
 

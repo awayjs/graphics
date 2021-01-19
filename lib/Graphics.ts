@@ -911,21 +911,8 @@ export class Graphics extends AssetBase {
 
 		}
 		if (this._active_stroke_path != null) {
-			this._active_stroke_path.moveTo(x, y);
-			/*
-			var radius2=radius*0.93;
-			this._active_stroke_path.curveTo(x-(radius2), y+(radius2), x-radius, y);
-			this._active_stroke_path.curveTo(x-(radius2), y-(radius2), x, y-radius);
-			this._active_stroke_path.curveTo(x+(radius2), y-(radius2), x+radius, y);
-			this._active_stroke_path.curveTo(x+(radius2), y+(radius2), x, y+radius);
-			*/
-			GraphicsFactoryHelper.drawElipseStrokes(
-				x,y,
-				radius, radius,
-				this._active_stroke_path.verts,
-				0, 360, 5,
-				(<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2,
-				false);
+
+			GraphicsFactoryHelper.drawElipseStrokes(x, y, radius, radius, this._active_stroke_path , 0, 360, 2);
 
 		}
 		this.invalidate();
@@ -964,23 +951,7 @@ export class Graphics extends AssetBase {
 
 		}
 		if (this._active_stroke_path != null) {
-			this._active_stroke_path.moveTo(x, y);
-
-			GraphicsFactoryHelper.drawElipseStrokes(
-				x,y,
-				width, height,
-				this._active_stroke_path.verts,
-				0, 360, 5,
-				(<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2,
-				false);
-
-			/*
-			 var radius2=radius*0.93;
-			 this._active_stroke_path.curveTo(x-(radius2), y+(radius2), x-radius, y);
-			 this._active_stroke_path.curveTo(x-(radius2), y-(radius2), x, y-radius);
-			 this._active_stroke_path.curveTo(x+(radius2), y-(radius2), x+radius, y);
-			 this._active_stroke_path.curveTo(x+(radius2), y+(radius2), x, y+radius);
-			 */
+			GraphicsFactoryHelper.drawElipseStrokes(x, y, width, height, this._active_stroke_path , 0, 360, 2);
 		}
 		this.invalidate();
 
@@ -1236,27 +1207,18 @@ export class Graphics extends AssetBase {
 			/* eslint-enable */
 		}
 		if (this._active_stroke_path != null) {
-			this._active_stroke_path.moveTo(x, y);
+			this._active_stroke_path.moveTo(x + ew, y);
 
 			/* eslint-disable */
-			t = (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2;
-
-			GraphicsFactoryHelper.addTriangle(x - t, y + h - eh, x - t, y + eh, x + t, y + eh, 0, this._active_stroke_path.verts, false);
-			GraphicsFactoryHelper.addTriangle(x - t, y + h - eh, x + t, y + h - eh, x + t, y + eh, 0, this._active_stroke_path.verts, false);
-
-			GraphicsFactoryHelper.addTriangle(x + ew, y - t, x + w - ew, y - t, x + ew, y + t, 0, this._active_stroke_path.verts, false);
-			GraphicsFactoryHelper.addTriangle(x + ew, y + t, x + w - ew, y - t, x + w - ew, y + t, 0, this._active_stroke_path.verts, false);
-
-			GraphicsFactoryHelper.addTriangle(x + w - t, y + h - eh, x + w - t, y + eh, x + w + t, y + h - eh, 0, this._active_stroke_path.verts, false);
-			GraphicsFactoryHelper.addTriangle(x + w + t, y + h - eh, x + w + t, y + eh, x + w - t, y + eh, 0, this._active_stroke_path.verts, false);
-
-			GraphicsFactoryHelper.addTriangle(x + ew, y + h + t, x + w - ew, y + h + t, x + ew, y + h - t, 0, this._active_stroke_path.verts, false);
-			GraphicsFactoryHelper.addTriangle(x + ew, y + h - t, x + w - ew, y + h + t, x + w - ew, y + h - t, 0, this._active_stroke_path.verts, false);
-
-			GraphicsFactoryHelper.drawElipseStrokes(x + ew,y + eh, ew, eh, this._active_stroke_path.verts, 180, 270, 5, t, false);
-			GraphicsFactoryHelper.drawElipseStrokes(x + w - ew,y + eh, ew, eh, this._active_stroke_path.verts, 270, 360, 5, t, false);
-			GraphicsFactoryHelper.drawElipseStrokes(x + w - ew,y + h - eh, ew, eh, this._active_stroke_path.verts, 0, 90, 5, t, false);
-			GraphicsFactoryHelper.drawElipseStrokes(x + ew,y + h - eh, ew, eh, this._active_stroke_path.verts, 90, 180, 5, t, false);
+			
+			this._active_stroke_path.lineTo(x + w - ew, y);
+			GraphicsFactoryHelper.drawElipseStrokes(x + w - ew, y + eh, ew, eh, this._active_stroke_path, 270, 360, 2);
+			this._active_stroke_path.lineTo(x + w, y - eh);
+			GraphicsFactoryHelper.drawElipseStrokes(x + w - ew, y + h - eh, ew, eh, this._active_stroke_path, 270, 360, 2);
+			this._active_stroke_path.lineTo(x + ew, y - eh);
+			GraphicsFactoryHelper.drawElipseStrokes(x + ew, y + h - eh, ew, eh, this._active_stroke_path, 270, 360, 2);
+			this._active_stroke_path.lineTo(x, y + h - eh);
+			GraphicsFactoryHelper.drawElipseStrokes(x + ew, y + eh, ew, eh, this._active_stroke_path, 270, 360, 2);
 			/* eslint-enable */
 
 		}
@@ -1315,7 +1277,10 @@ export class Graphics extends AssetBase {
 			this._active_stroke_path.moveTo(x, y);
 			t = (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2;
 
+			console.warn('[Graphics] - drawRoundRectComplex for strokes currently disabled');
+
 			/* eslint-disable */
+			/*
 			GraphicsFactoryHelper.addTriangle(x - t, y + h - bl, x - t, y + tl, x + t, y + tl, 0, this._active_stroke_path.verts, false);
 			GraphicsFactoryHelper.addTriangle(x - t, y + h - bl, x + t, y + h - bl, x + t, y + tl, 0, this._active_stroke_path.verts, false);
 
@@ -1332,6 +1297,7 @@ export class Graphics extends AssetBase {
 			GraphicsFactoryHelper.drawElipseStrokes(x + w - tr,y + tr, tr, tr, this._active_stroke_path.verts, 270, 360, 5, t, false);
 			GraphicsFactoryHelper.drawElipseStrokes(x + w - br,y + h - br, br, br, this._active_stroke_path.verts, 0, 90, 5, t, false);
 			GraphicsFactoryHelper.drawElipseStrokes(x + bl,y + h - bl, bl, bl, this._active_stroke_path.verts, 90, 180, 5, t, false);
+			*/
 			/* eslint-enable */
 		}
 
