@@ -245,6 +245,26 @@ export class GraphicsFactoryFills {
 	public static runTesselator(graphicsPath: GraphicsPath): IResult {
 		const finalContours = this.prepareContours(graphicsPath, this.USE_TESS_FIX);
 
+		/* workaround for wasm crash
+		if (finalContours.length > 0) {
+			const firstContour = finalContours[0];
+			if (firstContour.length >= 6) {
+				if (firstContour[0] == 0 && firstContour[1] == 0
+					&& firstContour[2] == 0  && firstContour[3] == 0
+					&& firstContour[4] == 0  && firstContour[5] == 0) {
+					finalContours = this.prepareContours(graphicsPath, false);
+				} else if (firstContour[1] == 0
+					&& firstContour[3] == 0
+					&& firstContour[5] == 0) {
+					finalContours = this.prepareContours(graphicsPath, false);
+				} else if (firstContour[0] == 0
+					&& firstContour[2] == 0
+					&& firstContour[4] == 0) {
+					finalContours = this.prepareContours(graphicsPath, false);
+				}
+			}
+		}*/
+
 		if (finalContours.length > 0) {
 			SHAPE_INFO.multy_contours += 1;
 		} else {
