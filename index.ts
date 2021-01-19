@@ -1,4 +1,4 @@
-console.debug('AwayJS - Graphics - 0.5.37');
+console.debug('AwayJS - Graphics - 0.5.38');
 export { AnimationElements } from './lib/animators/data/AnimationElements';
 export { ColorSegmentPoint } from './lib/animators/data/ColorSegmentPoint';
 export { JointPose } from './lib/animators/data/JointPose';
@@ -92,6 +92,7 @@ export {
 	GradientInterpolationMethod,
 } from './lib/data/ShapeData';
 export { Deflate, Inflate, Adler32 } from './lib/data/deflate';
+export { NativeDeflate } from './lib/data/NativeDeflate';
 export { LzmaDecoder } from './lib/data/lzma';
 export {
 	assert,

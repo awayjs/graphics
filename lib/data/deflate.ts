@@ -84,7 +84,7 @@ export class Inflate implements IDataDecoder {
 
 		if (tryNative && NativeDeflate.isSupported && Settings.USE_NATIVE_DEFLATE) {
 			if (size) {
-				console.debug('[NativeDeflate] Decoding API is supported and enabled, use native');
+				//console.debug('[NativeDeflate] Decoding API is supported and enabled, use native');
 				return new NativeDeflate(verifyHeader, size);
 			} else {
 				console.debug('[NativeDeflate] size not presented, can`t use a native implementation');
@@ -127,7 +127,7 @@ export class Inflate implements IDataDecoder {
 		let position = 0;
 
 		const output = new Uint8Array(expectedLength);
-		const inflate = Inflate.create(zlibHeader, 0);
+		const inflate = Inflate.create(zlibHeader, 0, false);
 
 		inflate.onData = function (data) {
 			// Make sure we don't cause an exception here when trying to set out-of-bound data by clamping the number of
