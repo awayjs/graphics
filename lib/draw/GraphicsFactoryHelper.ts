@@ -142,38 +142,6 @@ export class GraphicsFactoryHelper {
 		GraphicsFactoryHelper.addTriangle(startX - 2, startY - 2, startX - 2, startY + 2, startX + 2, startY + 2, 0, vertices, curves);
 	}
 
-	public static drawElipse(x: number,y: number,width: number, height: number, vertices: Array<number>, startAngle: number, endAngle: number, stepAngle: number, curves: boolean): void {
-
-		// todo: validate input / check edge cases
-		const degreeTotal: number = endAngle - startAngle;
-		const steps: number = degreeTotal / stepAngle;
-		let x_last = x + width * Math.cos(startAngle * (Math.PI / 180));
-		let y_last = y + height * Math.sin(startAngle * (Math.PI / 180));
-		for (let i = 1; i <= steps;i++) {
-			const x_tmp = x + width * Math.cos((startAngle + i * stepAngle) * (Math.PI / 180));
-			const y_tmp = y + height * Math.sin((startAngle + i * stepAngle) * (Math.PI / 180));
-			GraphicsFactoryHelper.addTriangle(x,y,x_tmp,y_tmp, x_last, y_last, 0, vertices, curves);
-			x_last = x_tmp;
-			y_last = y_tmp;
-		}
-	}
-
-	public static drawElipseStrokes(x: number,y: number,width: number, height: number,
-		strokePath: GraphicsPath, startAngle: number,
-		endAngle: number, stepAngle: number): void {
-
-		// todo: validate input / check edge cases
-		const degreeTotal: number = endAngle - startAngle;
-		const steps: number = degreeTotal / stepAngle;
-		const x_last = x + (width) * Math.cos(startAngle * (Math.PI / 180));
-		const y_last = y + (height) * Math.sin(startAngle * (Math.PI / 180));
-		strokePath.moveTo(x_last, y_last);
-		for (let i = 1; i <= steps;i++) {
-			const x_tmp = x + (width) * Math.cos((startAngle + i * stepAngle) * (Math.PI / 180));
-			const y_tmp = y + (height) * Math.sin((startAngle + i * stepAngle) * (Math.PI / 180));
-			strokePath.lineTo(x_tmp, y_tmp);
-		}
-	}
 
 	public static addTriangle(startX: number,startY: number, controlX: number, controlY: number, endX: number, endY: number, tri_type: number, vertices: Array<number>, curves: boolean): void {
 		const x1 = startX;

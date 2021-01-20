@@ -106,7 +106,7 @@ export class GraphicsPath implements IGraphicsData {
 
 	public get stroke(): GraphicsStrokeStyle {
 		if (this._style == null) return null;
-		if (this._style.data_type == GraphicsStrokeStyle.data_type) return <GraphicsStrokeStyle> this._style;
+		if (this._style.data_type == GraphicsStrokeStyle.data_type) return <GraphicsStrokeStyle>this._style;
 		return null;
 	}
 
@@ -116,6 +116,46 @@ export class GraphicsPath implements IGraphicsData {
 
 	public get data(): Array<Array<number>> {
 		return this._data;
+	}
+
+	public drawElipse(x: number, y: number, width: number, height: number,
+		startAngle: number,	endAngle: number, stepAngle: number): void {
+
+		// todo: validate input / check edge cases
+		const degreeTotal: number = endAngle - startAngle;
+		const steps: number = degreeTotal / stepAngle;
+		const x_last = x + (width) * Math.cos(startAngle * (Math.PI / 180));
+		const y_last = y + (height) * Math.sin(startAngle * (Math.PI / 180));
+		this._commands[this._commands.length - 1].push(GraphicsPathCommand.MOVE_TO);
+		this._data[this._data.length - 1].push(x_last);
+		this._data[this._data.length - 1].push(y_last);
+		for (let i = 1; i <= steps; i++) {
+			const x_tmp = x + (width) * Math.cos((startAngle + i * stepAngle) * (Math.PI / 180));
+			const y_tmp = y + (height) * Math.sin((startAngle + i * stepAngle) * (Math.PI / 180));
+			this._commands[this._commands.length - 1].push(GraphicsPathCommand.LINE_TO);
+			this._data[this._data.length - 1].push(x_tmp);
+			this._data[this._data.length - 1].push(y_tmp);
+		}
+	}
+
+	public drawRect(x: number, y: number, width: number, height: number): void {
+
+		this._commands[this._commands.length - 1].push(GraphicsPathCommand.MOVE_TO);
+		this._data[this._data.length - 1].push(x);
+		this._data[this._data.length - 1].push(y);
+		this._commands[this._commands.length - 1].push(GraphicsPathCommand.LINE_TO);
+		this._data[this._data.length - 1].push(x + width);
+		this._data[this._data.length - 1].push(y);
+		this._commands[this._commands.length - 1].push(GraphicsPathCommand.LINE_TO);
+		this._data[this._data.length - 1].push(x + width);
+		this._data[this._data.length - 1].push(y + height);
+		this._commands[this._commands.length - 1].push(GraphicsPathCommand.LINE_TO);
+		this._data[this._data.length - 1].push(x);
+		this._data[this._data.length - 1].push(y + height);
+		this._commands[this._commands.length - 1].push(GraphicsPathCommand.LINE_TO);
+		this._data[this._data.length - 1].push(x);
+		this._data[this._data.length - 1].push(y);
+
 	}
 
 	public cacheSegment(
@@ -191,8 +231,8 @@ export class GraphicsPath implements IGraphicsData {
 
 		const lenx = anchorX - this._cur_point.x;
 		const leny = anchorY - this._cur_point.y;
-		const len = Math.sqrt(lenx * lenx + leny * leny);
-		if (len <= Settings.MINIMUM_DRAWING_DISTANCE) {
+		//const len = Math.sqrt(lenx * lenx + leny * leny);
+		if (lenx <= Settings.MINIMUM_DRAWING_DISTANCE && leny <= Settings.MINIMUM_DRAWING_DISTANCE) {
 			this.data[this.data.length - 1][this.data[this.data.length - 1].length - 2] = anchorX;
 			this.data[this.data.length - 1][this.data[this.data.length - 1].length - 1] = anchorY;
 			return;
@@ -231,8 +271,8 @@ export class GraphicsPath implements IGraphicsData {
 
 		const lenx = anchorX - this._cur_point.x;
 		const leny = anchorY - this._cur_point.y;
-		const len = Math.sqrt(lenx * lenx + leny * leny);
-		if (len <= Settings.MINIMUM_DRAWING_DISTANCE) {
+		//const len = Math.sqrt(lenx * lenx + leny * leny);
+		if (lenx <= Settings.MINIMUM_DRAWING_DISTANCE && leny <= Settings.MINIMUM_DRAWING_DISTANCE) {
 			this.data[this.data.length - 1][this.data[this.data.length - 1].length - 2] = anchorX;
 			this.data[this.data.length - 1][this.data[this.data.length - 1].length - 1] = anchorY;
 			return;
@@ -268,8 +308,8 @@ export class GraphicsPath implements IGraphicsData {
 
 		const lenx = x - this._cur_point.x;
 		const leny = y - this._cur_point.y;
-		const len = Math.sqrt(lenx * lenx + leny * leny);
-		if (len <= Settings.MINIMUM_DRAWING_DISTANCE) {
+		//const len = Math.sqrt(lenx * lenx + leny * leny);
+		if (lenx <= Settings.MINIMUM_DRAWING_DISTANCE && leny <= Settings.MINIMUM_DRAWING_DISTANCE) {
 			this.data[this.data.length - 1][this.data[this.data.length - 1].length - 2] = x;
 			this.data[this.data.length - 1][this.data[this.data.length - 1].length - 1] = y;
 			return;
