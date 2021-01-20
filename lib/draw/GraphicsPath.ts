@@ -113,7 +113,7 @@ export class GraphicsPath implements IGraphicsData {
 
 	public get stroke(): GraphicsStrokeStyle {
 		if (this._style == null) return null;
-		if (this._style.data_type == GraphicsStrokeStyle.data_type) return <GraphicsStrokeStyle>this._style;
+		if (this._style.data_type == GraphicsStrokeStyle.data_type) return <GraphicsStrokeStyle> this._style;
 		return null;
 	}
 
