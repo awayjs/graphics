@@ -142,7 +142,6 @@ export class GraphicsFactoryHelper {
 		GraphicsFactoryHelper.addTriangle(startX - 2, startY - 2, startX - 2, startY + 2, startX + 2, startY + 2, 0, vertices, curves);
 	}
 
-
 	public static addTriangle(startX: number,startY: number, controlX: number, controlY: number, endX: number, endY: number, tri_type: number, vertices: Array<number>, curves: boolean): void {
 		const x1 = startX;
 		const y1 = startY;
