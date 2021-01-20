@@ -20,6 +20,7 @@ import { IMaterial, Style, RenderableEvent } from '@awayjs/renderer';
 import { GraphicsPath } from './draw/GraphicsPath';
 import { GraphicsFactoryFills } from './draw/GraphicsFactoryFills';
 import { GraphicsFactoryStrokes } from './draw/GraphicsFactoryStrokes';
+import { GraphicsFactoryHelper } from './draw/GraphicsFactoryHelper';
 import { InterpolationMethod } from './draw/InterpolationMethod';
 import { JointStyle } from './draw/JointStyle';
 import { LineScaleMode } from './draw/LineScaleMode';
@@ -900,18 +901,19 @@ export class Graphics extends AssetBase {
 		this._createGraphicPathes();
 		//var radius2=radius*1.065;
 		if (this._active_fill_path != null) {
-
 			this._active_fill_path.moveTo(x, y);
 
 			let r = radius;
 			if (this._active_stroke_path != null) {
 				r -= (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2;
 			}
-			this._active_fill_path.drawElipse(x, y, r, r, 0, 360, 5);
+			GraphicsFactoryHelper.drawElipse(x, y, r, r, this._active_fill_path.verts, 0, 360, 5, false);
 
 		}
 		if (this._active_stroke_path != null) {
-			this._active_stroke_path.drawElipse(x, y, radius, radius, 0, 360, 5);
+
+			GraphicsFactoryHelper.drawElipseStrokes(x, y, radius, radius, this._active_stroke_path , 0, 360, 2);
+
 		}
 		this.invalidate();
 	}
@@ -945,11 +947,11 @@ export class Graphics extends AssetBase {
 				w -= (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2;
 				h -= (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2;
 			}
-			this._active_fill_path.drawElipse(x, y, w, h, 0, 360, 2);
+			GraphicsFactoryHelper.drawElipse(x, y, w, h, this._active_fill_path.verts, 0, 360, 5, false);
 
 		}
 		if (this._active_stroke_path != null) {
-			this._active_stroke_path.drawElipse(x, y, width, height, 0, 360, 2);
+			GraphicsFactoryHelper.drawElipseStrokes(x, y, width, height, this._active_stroke_path , 0, 360, 2);
 		}
 		this.invalidate();
 
@@ -1071,6 +1073,13 @@ export class Graphics extends AssetBase {
 		this._drawingDirty = true;
 		this._createGraphicPathes();
 		if (this._active_fill_path != null) {
+			this._active_fill_path.moveTo(x, y);
+			/*
+			this._active_fill_path.lineTo(x+width, y);
+			this._active_fill_path.lineTo(x+width, y+height);
+			this._active_fill_path.lineTo(x, y+height);
+			this._active_fill_path.lineTo(x, y);
+			*/
 			let w: number = width;
 			let h: number = height;
 			let t: number = 0;
@@ -1080,10 +1089,52 @@ export class Graphics extends AssetBase {
 				w -= (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness;
 				h -= (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness;
 			}
-			this._active_fill_path.drawRect(x + t, y + t, w, h);
+
+			GraphicsFactoryHelper.addTriangle(
+				x + t, y + h + t,
+				x + t, y + t,
+				x + w + t, y + t,
+				0,
+				this._active_fill_path.verts,
+				false);
+
+			GraphicsFactoryHelper.addTriangle(
+				x + t, y + h + t,
+				x + t + w, y + t,
+				x + w + t, y + h + t,
+				0,
+				this._active_fill_path.verts,
+				false);
+
 		}
 		if (this._active_stroke_path != null) {
-			this._active_stroke_path.drawRect(x, y, width, height);
+			this._active_stroke_path.moveTo(x, y);
+			//var t:number=(<GraphicsStrokeStyle>this._active_stroke_path.style).thickness/2;
+
+			/* eslint-disable */
+
+			// todo: respect Jointstyle here (?)
+			/*
+			GraphicsFactoryHelper.addTriangle(x-t, y+height+t, x-t, y-t, x+t, y+t, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x-t, y+height+t, x+t, y+height-t, x+t, y+t, 0, this._active_stroke_path.verts, false);
+
+			GraphicsFactoryHelper.addTriangle(x-t, y-t, x+width+t, y-t, x+t, y+t, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+t, y+t, x+width+t, y-t, x+width-t, y+t, 0, this._active_stroke_path.verts, false);
+
+			GraphicsFactoryHelper.addTriangle(x+width-t, y+height-t, x+width-t, y+t, x+width+t, y+height+t, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+width+t, y+height+t, x+width+t, y-t, x+width-t, y+t, 0, this._active_stroke_path.verts, false);
+
+			GraphicsFactoryHelper.addTriangle(x-t, y+height+t, x+width+t, y+height+t, x+t, y+height-t, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x+t, y+height-t, x+width+t, y+height+t, x+width-t, y+height-t, 0, this._active_stroke_path.verts, false);
+			*/
+
+			/* eslint-enable */
+
+			this._active_stroke_path.lineTo(x + width, y);
+			this._active_stroke_path.lineTo(x + width, y + height);
+			this._active_stroke_path.lineTo(x, y + height);
+			this._active_stroke_path.lineTo(x, y);
+
 		}
 		this.invalidate();
 	}
@@ -1133,35 +1184,42 @@ export class Graphics extends AssetBase {
 		let t: number = 0;
 
 		if (this._active_fill_path != null) {
+			this._active_fill_path.moveTo(x, y);
 			if (this._active_stroke_path != null) {
 				t = (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2;
 				w -= (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness;
 				h -= (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness;
 			}
 
-			// @todo make sure this is correct:
-			this._active_fill_path.moveTo(x + ew, y + t);
-			this._active_fill_path.lineTo(x + w - ew, y + t);
-			this._active_fill_path.drawElipse(x + w - ew, y + eh, ew, eh, 270, 360, 2);
-			this._active_fill_path.lineTo(x + w - t, y - eh);
-			this._active_fill_path.drawElipse(x + w - ew, y + h - eh, ew, eh, 0, 90, 2);
-			this._active_fill_path.lineTo(x + ew, y + h);
-			this._active_fill_path.drawElipse(x + ew, y + h - eh, ew, eh, 90, 180, 2);
-			this._active_fill_path.lineTo(x + t, y - eh);
-			this._active_fill_path.drawElipse(x + ew, y + eh, ew, eh, 180, 270, 2);
+			/* eslint-disable */
+			GraphicsFactoryHelper.addTriangle(x + t,y + h - eh, x + t,y + eh, x + w - t, y + eh,0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + t,y + h - eh,  x + w - t,y + eh,x + w - t, y + h - eh, 0, this._active_fill_path.verts, false);
+
+			GraphicsFactoryHelper.addTriangle(x + ew,y + t, x + w - ew, y + eh,x + ew,y + eh, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + ew,y + t, x + w - ew, y + t, x + w - ew,y + eh,0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + ew,y + h - eh, x + w - ew, y + h - t,x + ew,y + h - t, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + ew,y + h - eh, x + w - ew, y + h - eh, x + w - ew,y + h - t,0, this._active_fill_path.verts, false);
+
+			GraphicsFactoryHelper.drawElipse(x + ew,y + eh, ew - t, eh - t, this._active_fill_path.verts, 180, 270, 5, false);
+			GraphicsFactoryHelper.drawElipse(x + w - ew,y + eh, ew - t, eh - t, this._active_fill_path.verts, 270, 360, 5, false);
+			GraphicsFactoryHelper.drawElipse(x + w - ew,y + h - eh, ew - t, eh - t, this._active_fill_path.verts, 0, 90, 5, false);
+			GraphicsFactoryHelper.drawElipse(x + ew,y + h - eh, ew - t, eh - t, this._active_fill_path.verts, 90, 180, 5, false);
+			/* eslint-enable */
 		}
 		if (this._active_stroke_path != null) {
-
-			// @todo make sure this is correct:
 			this._active_stroke_path.moveTo(x + ew, y);
+
+			/* eslint-disable */
+			
 			this._active_stroke_path.lineTo(x + w - ew, y);
-			this._active_stroke_path.drawElipse(x + w - ew, y + eh, ew, eh, 270, 360, 2);
+			GraphicsFactoryHelper.drawElipseStrokes(x + w - ew, y + eh, ew, eh, this._active_stroke_path, 270, 360, 2);
 			this._active_stroke_path.lineTo(x + w, y - eh);
-			this._active_stroke_path.drawElipse(x + w - ew, y + h - eh, ew, eh, 0, 90, 2);
+			GraphicsFactoryHelper.drawElipseStrokes(x + w - ew, y + h - eh, ew, eh, this._active_stroke_path, 270, 360, 2);
 			this._active_stroke_path.lineTo(x + ew, y - eh);
-			this._active_stroke_path.drawElipse(x + ew, y + h - eh, ew, eh, 90, 180, 2);
+			GraphicsFactoryHelper.drawElipseStrokes(x + ew, y + h - eh, ew, eh, this._active_stroke_path, 270, 360, 2);
 			this._active_stroke_path.lineTo(x, y + h - eh);
-			this._active_stroke_path.drawElipse(x + ew, y + eh, ew, eh, 180, 270, 2);
+			GraphicsFactoryHelper.drawElipseStrokes(x + ew, y + eh, ew, eh, this._active_stroke_path, 270, 360, 2);
+			/* eslint-enable */
 
 		}
 
@@ -1184,6 +1242,7 @@ export class Graphics extends AssetBase {
 		this._createGraphicPathes();
 		let t: number = 0;
 		if (this._active_fill_path != null) {
+			this._active_fill_path.moveTo(x, y);
 
 			if (this._active_stroke_path != null) {
 				t = (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2;
@@ -1191,32 +1250,55 @@ export class Graphics extends AssetBase {
 				h -= (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness;
 			}
 
-			// @todo make sure this is correct:
-			this._active_fill_path.moveTo(x + tl, y + t);
-			this._active_fill_path.lineTo(x + w - tr, y + t);
-			this._active_fill_path.drawElipse(x + w - tr, y + tr, tr, tr, 270, 360, 2);
-			this._active_fill_path.lineTo(x + w - t, y - br);
-			this._active_fill_path.drawElipse(x + w - br, y + h - br, br, br, 0, 90, 2);
-			this._active_fill_path.lineTo(x + bl, y + h);
-			this._active_fill_path.drawElipse(x + bl, y + h - bl, bl, bl, 90, 180, 2);
-			this._active_fill_path.lineTo(x + t, y - tl);
-			this._active_fill_path.drawElipse(x + bl, y + tl, tl, tl, 180, 270, 2);
+			/* eslint-disable */
+			GraphicsFactoryHelper.addTriangle(x + tl,y + tl, x + w - tr, y + tr, x + w - br, y + h - br, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + tl,y + tl,  x + w - br, y + h - br, x + bl, y + h - bl, 0, this._active_fill_path.verts, false);
+
+			GraphicsFactoryHelper.addTriangle(x + t,y + tl,x + tl,y + tl, x + t,y + h - bl, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + tl,y + tl, x + t,y + h - bl,  x + bl,y + h - bl, 0, this._active_fill_path.verts, false);
+
+			GraphicsFactoryHelper.addTriangle(x + tl,y + t,x + tl,y + tl, x + w - tr,y + t, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + tl,y + tl, x + w - tr,y + tr,  x + w - tr,y + t, 0, this._active_fill_path.verts, false);
+
+			GraphicsFactoryHelper.addTriangle(x + w - t,y + tr,x + w - tr,y + tr, x + w - t,y + h - br, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + w - tr,y + tr,  x + w - br,y + h - br, x + w - t,y + h - br, 0, this._active_fill_path.verts, false);
+
+			GraphicsFactoryHelper.addTriangle(x + bl,y + h - t, x + w - br,y + h - t,x + bl,y + h - bl, 0, this._active_fill_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + bl,y + h - bl,  x + w - br,y + h - t, x + w - br,y + h - br, 0, this._active_fill_path.verts, false);
+
+			GraphicsFactoryHelper.drawElipse(x + tl,y + tl, tl - t, tl - t, this._active_fill_path.verts, 180, 270, 5, false);
+			GraphicsFactoryHelper.drawElipse(x + w - tr,y + tr, tr - t, tr - t, this._active_fill_path.verts, 270, 360, 5, false);
+			GraphicsFactoryHelper.drawElipse(x + w - br,y + h - br, br - t, br - t, this._active_fill_path.verts, 0, 90, 5, false);
+			GraphicsFactoryHelper.drawElipse(x + bl,y + h - bl, bl - t, bl - t, this._active_fill_path.verts, 90, 180, 5, false);
+			/* eslint-enable */
 		}
 
 		if (this._active_stroke_path != null) {
-
+			this._active_stroke_path.moveTo(x, y);
 			t = (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2;
 
-			// @todo make sure this is correct:
-			this._active_stroke_path.moveTo(x + tl, y + t);
-			this._active_stroke_path.lineTo(x + w - tr, y + t);
-			this._active_stroke_path.drawElipse(x + w - tr, y + tr, tr, tr, 270, 360, 2);
-			this._active_stroke_path.lineTo(x + w - t, y - br);
-			this._active_stroke_path.drawElipse(x + w - br, y + h - br, br, br, 0, 90, 2);
-			this._active_stroke_path.lineTo(x + bl, y + h);
-			this._active_stroke_path.drawElipse(x + bl, y + h - bl, bl, bl, 90, 180, 2);
-			this._active_stroke_path.lineTo(x + t, y - tl);
-			this._active_stroke_path.drawElipse(x + bl, y + tl, tl, tl, 180, 270, 2);
+			console.warn('[Graphics] - drawRoundRectComplex for strokes currently disabled');
+
+			/* eslint-disable */
+			/*
+			GraphicsFactoryHelper.addTriangle(x - t, y + h - bl, x - t, y + tl, x + t, y + tl, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x - t, y + h - bl, x + t, y + h - bl, x + t, y + tl, 0, this._active_stroke_path.verts, false);
+
+			GraphicsFactoryHelper.addTriangle(x + tl, y - t, x + w - tr, y - t, x + tr, y + t, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + tl, y + t, x + w - tr, y - t, x + w - tr, y + t, 0, this._active_stroke_path.verts, false);
+
+			GraphicsFactoryHelper.addTriangle(x + w - t, y + h - br, x + w - t, y + tr, x + w + t, y + h - br, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + w + t, y + h - br, x + w + t, y + tr, x + w - t, y + tr, 0, this._active_stroke_path.verts, false);
+
+			GraphicsFactoryHelper.addTriangle(x + bl, y + h + t, x + w - br, y + h + t, x + bl, y + h - t, 0, this._active_stroke_path.verts, false);
+			GraphicsFactoryHelper.addTriangle(x + bl, y + h - t, x + w - br, y + h + t, x + w - br, y + h - t, 0, this._active_stroke_path.verts, false);
+
+			GraphicsFactoryHelper.drawElipseStrokes(x + tl,y + tl, tl, tl, this._active_stroke_path.verts, 180, 270, 5, t, false);
+			GraphicsFactoryHelper.drawElipseStrokes(x + w - tr,y + tr, tr, tr, this._active_stroke_path.verts, 270, 360, 5, t, false);
+			GraphicsFactoryHelper.drawElipseStrokes(x + w - br,y + h - br, br, br, this._active_stroke_path.verts, 0, 90, 5, t, false);
+			GraphicsFactoryHelper.drawElipseStrokes(x + bl,y + h - bl, bl, bl, this._active_stroke_path.verts, 90, 180, 5, t, false);
+			*/
+			/* eslint-enable */
 		}
 
 		this.invalidate();
