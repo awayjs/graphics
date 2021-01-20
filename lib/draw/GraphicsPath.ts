@@ -1,4 +1,4 @@
-import { Point, MathConsts, Matrix3D, Box, Matrix } from '@awayjs/core';
+import { Point, Matrix3D, Box } from '@awayjs/core';
 
 import { GraphicsPathWinding } from '../draw/GraphicsPathWinding';
 import { GraphicsPathCommand } from '../draw/GraphicsPathCommand';
@@ -6,13 +6,6 @@ import { IGraphicsData } from '../draw/IGraphicsData';
 import { GraphicsFillStyle } from '../draw/GraphicsFillStyle';
 import { GraphicsStrokeStyle } from '../draw/GraphicsStrokeStyle';
 import { GraphicsFactoryHelper } from '../draw/GraphicsFactoryHelper';
-import { SegmentedPath } from '../data/SegmentedPath';
-import { clamp, assert } from '../data/utilities';
-import { LineScaleMode } from './LineScaleMode';
-import { CapsStyle } from './CapsStyle';
-import { FillType } from '../data/FillType';
-import { GradientFillStyle } from './GradientFillStyle';
-import { BitmapFillStyle } from './BitmapFillStyle';
 import { Settings } from '../Settings';
 
 /**
@@ -314,102 +307,6 @@ export class GraphicsPath implements IGraphicsData {
 
 	public wideMoveTo(x: number, y: number) { }
 
-	private _startMerge: number = -1;
-	private _endMerge: number = -1;
-	private _mergeSource: number = -1;
-	private _mergetarget: number = -1;
-	/* merges 2 contours together that share segments. the shared segments get removed*/
-	private mergeContours() {
-		//console.log("merge", this._mergeSource, this._mergetarget, this._startMerge, this._endMerge);
-		//console.log("merge", this.data[this._mergetarget]);
-		//console.log("merge", this.data[this._mergeSource]);
-		var direction: number = -1;
-		if (this._startMerge == this._endMerge) {
-			// only 1 segment to process.
-			// we need to look at the points to know in what direction the second path must be added to the first path
-			const mergeIdx = this._connectedIdx[this._mergetarget][this._startMerge];
-			const startx: number = this.data[this._mergetarget][
-				this._positionOffset[this._mergetarget][this._startMerge] - 2
-			];
-			const starty: number = this.data[this._mergetarget][
-				this._positionOffset[this._mergetarget][this._startMerge] - 1
-			];
-			const endx: number = this.data[this._mergetarget][this._positionOffset[this._mergetarget][this._startMerge]];
-			const endy: number = this.data[this._mergetarget][
-				this._positionOffset[this._mergetarget][this._startMerge] + 1
-			];
-
-			const startx2: number = this.data[this._mergeSource][this._positionOffset[this._mergeSource][mergeIdx]];
-			const starty2: number = this.data[this._mergeSource][this._positionOffset[this._mergeSource][mergeIdx] + 1];
-			const endx2: number = this.data[this._mergeSource][this._positionOffset[this._mergeSource][mergeIdx] + 2];
-			const endy2: number = this.data[this._mergeSource][this._positionOffset[this._mergeSource][mergeIdx] + 3];
-
-			if (startx == startx2 && starty == starty2 && endx == endx2 && endy == endy2) {
-				direction = 1;
-			}
-		}
-		const startMergeIdx = this._connectedIdx[this._mergetarget][this._startMerge];
-		const endMergeIdx = this._connectedIdx[this._mergetarget][this._endMerge];
-		const numConnectedSegments = Math.abs(this._startMerge - this._endMerge) + 1;
-		const segmentsToProcess = this._commands[this._mergeSource].length - numConnectedSegments;
-		var direction: number = -1;
-		if (startMergeIdx > endMergeIdx) {
-			direction = 1;
-			//console.log("segment goes in opposite direction");
-		}
-		let cur: number = startMergeIdx;
-		let end_x: number = 0;
-		let end_y: number = 0;
-		let prev_x: number = 0;
-		let prev_y: number = 0;
-		let ctrl_x: number = 0;
-		let ctrl_y: number = 0;
-		let curve_verts: number[];
-		let k: number = 0;
-		let k_len: number = 0;
-		const data_cnt: number = this._positionOffset[this._mergeSource][startMergeIdx];
-		for (let i = 0; i < segmentsToProcess; i++) {
-			cur += direction;
-			if (cur >= this._commands[this._mergeSource].length) {
-				cur -= this._commands[this._mergeSource].length;
-			}
-			if (cur < 0) {
-				cur += this._commands[this._mergeSource].length;
-			}
-			switch (this._commands[this._mergeSource][cur]) {
-				case GraphicsPathCommand.LINE_TO:
-					end_x = this.data[this._mergeSource][this._positionOffset[this._mergeSource][cur]];
-					end_y = this.data[this._mergeSource][this._positionOffset[this._mergeSource][cur] + 1];
-					//console.log("LINE_TO ", i, end_x, end_y);
-					this._positions[this._mergetarget].push(end_x);
-					this._positions[this._mergetarget].push(end_y);
-					prev_x = end_x;
-					prev_y = end_y;
-					break;
-				case GraphicsPathCommand.CURVE_TO:
-					ctrl_x = this.data[this._mergeSource][this._positionOffset[this._mergeSource][cur]];
-					ctrl_y = this.data[this._mergeSource][this._positionOffset[this._mergeSource][cur] + 1];
-					end_x = this.data[this._mergeSource][this._positionOffset[this._mergeSource][cur] + 2];
-					end_y = this.data[this._mergeSource][this._positionOffset[this._mergeSource][cur] + 3];
-					//console.log("CURVE_TO ", i, ctrl_x, ctrl_y, end_x, end_y);
-					curve_verts = [];
-					GraphicsFactoryHelper.tesselateCurve(prev_x, prev_y, ctrl_x, ctrl_y, end_x, end_y, curve_verts);
-					k_len = curve_verts.length;
-					for (k = 0; k < k_len; k += 2) {
-						this._positions[this._mergetarget].push(curve_verts[k]);
-						this._positions[this._mergetarget].push(curve_verts[k + 1]);
-					}
-					prev_x = end_x;
-					prev_y = end_y;
-					break;
-			}
-		}
-		this._startMerge = -1;
-		this._endMerge = -1;
-		this._mergetarget = -1;
-		this._mergeSource = -1;
-	}
-
 	private _connectedIdx: number[][] = [];
 	private _positionOffset: number[][] = [];
 	public forceClose: boolean = false;
@@ -423,18 +320,12 @@ export class GraphicsPath implements IGraphicsData {
 
 		this._lastDirtyID = this._dirtyID;
 
-		let closed: boolean;
-		let commands: number[];
 		const isValidCommand: number[][] = [];
 		const contour_merged: boolean[] = [];
-		let data: number[];
-		let c,
-			i,
-			k,
+		let k,
 			k_len: number = 0;
 
-		let posOffset,
-			data_cnt: number = 0;
+		let data_cnt: number = 0;
 		let prev_x,
 			prev_y,
 			end_x,
@@ -442,7 +333,6 @@ export class GraphicsPath implements IGraphicsData {
 			ctrl_x,
 			ctrl_y: number = 0;
 		let curve_verts: number[];
-		let myCacheItem: any[];
 		let cmd_len = this.commands.length;
 
 		// commands may be empty
@@ -466,7 +356,6 @@ export class GraphicsPath implements IGraphicsData {
 
 			// check if the path is closed.
 			// if its not closed, we optionally close it by adding the extra lineTo-cmd
-			closed = true;
 
 			const gap = Math.abs(data[0] - data[data.length - 2]) + Math.abs(data[1] - data[data.length - 1]);
 
@@ -475,8 +364,6 @@ export class GraphicsPath implements IGraphicsData {
 					commands[commands.length] = GraphicsPathCommand.LINE_TO;
 					data[data.length] = data[0];
 					data[data.length] = data[1];
-				} else {
-					closed = false;
 				}
 			}
 		}
@@ -500,11 +387,6 @@ export class GraphicsPath implements IGraphicsData {
 			// now we collect the final position data
 			// a command list is no longer needed for this position data,
 			// we resolve all curves to line segments here
-
-			this._startMerge = -1;
-			this._endMerge = -1;
-			this._mergetarget = -1;
-			this._mergeSource = -1;
 
 			data_cnt = 0;
 			prev_x = data[data_cnt++];
@@ -584,7 +466,7 @@ export class GraphicsPath implements IGraphicsData {
 		let index: number = 0;
 		let positions: number[] = this._positions[index++];
 		let pLen: number = positions.length;
-		let pos1: number, pos2: number, pos3: number, rawData: Float32Array;
+		let pos1: number, pos2: number, rawData: Float32Array;
 
 		if (matrix3D) rawData = matrix3D._rawData;
 
