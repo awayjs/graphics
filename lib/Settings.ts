@@ -13,6 +13,7 @@ export interface IGraphicsSettings {
 	CONVEX_MIN_REQUIEST_FOR_BUILD: number;
 	POINTS_COUNT_FOR_CONVEX: number;
 	USE_NATIVE_DEFLATE: boolean;
+	MINIMUM_DRAWING_DISTANCE: number;
 }
 
 export const Settings: IGraphicsSettings = {
@@ -61,4 +62,11 @@ export const Settings: IGraphicsSettings = {
 	 * @description Try to use native deflate (Chrome and FF, Sufari suckings again)
 	 */
 	USE_NATIVE_DEFLATE: true,
+
+	/**
+	 * @description The minimun distance a lineTo or curveTo must travel to be considered a valid command
+	 * if the condition is not matched, the command will be ignored,
+	 * and the previous command upated to point to the new position
+	 */
+	MINIMUM_DRAWING_DISTANCE: 0.01,
 };

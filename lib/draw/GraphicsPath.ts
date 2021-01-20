@@ -13,6 +13,7 @@ import { CapsStyle } from './CapsStyle';
 import { FillType } from '../data/FillType';
 import { GradientFillStyle } from './GradientFillStyle';
 import { BitmapFillStyle } from './BitmapFillStyle';
+import { Settings } from '../Settings';
 
 /**
 
@@ -112,7 +113,7 @@ export class GraphicsPath implements IGraphicsData {
 
 	public get stroke(): GraphicsStrokeStyle {
 		if (this._style == null) return null;
-		if (this._style.data_type == GraphicsStrokeStyle.data_type) return <GraphicsStrokeStyle> this._style;
+		if (this._style.data_type == GraphicsStrokeStyle.data_type) return <GraphicsStrokeStyle>this._style;
 		return null;
 	}
 
@@ -194,6 +195,16 @@ export class GraphicsPath implements IGraphicsData {
 			this._data[this._data.length - 1].push(this._cur_point.x);
 			this._data[this._data.length - 1].push(this._cur_point.y);
 		}
+
+		const lenx = anchorX - this._cur_point.x;
+		const leny = anchorY - this._cur_point.y;
+		const len = Math.sqrt(lenx * lenx + leny * leny);
+		if (len <= Settings.MINIMUM_DRAWING_DISTANCE) {
+			this.data[this.data.length - 1][this.data[this.data.length - 1].length - 2] = anchorX;
+			this.data[this.data.length - 1][this.data[this.data.length - 1].length - 1] = anchorY;
+			return;
+		}
+
 		this._commands[this._commands.length - 1].push(GraphicsPathCommand.CURVE_TO);
 		this._data[this._data.length - 1].push(controlX);
 		this._data[this._data.length - 1].push(controlY);
@@ -224,6 +235,16 @@ export class GraphicsPath implements IGraphicsData {
 			this._data[this._data.length - 1].push(this._cur_point.x);
 			this._data[this._data.length - 1].push(this._cur_point.y);
 		}
+
+		const lenx = anchorX - this._cur_point.x;
+		const leny = anchorY - this._cur_point.y;
+		const len = Math.sqrt(lenx * lenx + leny * leny);
+		if (len <= Settings.MINIMUM_DRAWING_DISTANCE) {
+			this.data[this.data.length - 1][this.data[this.data.length - 1].length - 2] = anchorX;
+			this.data[this.data.length - 1][this.data[this.data.length - 1].length - 1] = anchorY;
+			return;
+		}
+
 		this._commands[this._commands.length - 1].push(GraphicsPathCommand.CURVE_TO);
 		this._data[this._data.length - 1].push(controlX);
 		this._data[this._data.length - 1].push(controlY);
@@ -251,6 +272,16 @@ export class GraphicsPath implements IGraphicsData {
 			this._data[this._data.length - 1].push(this._cur_point.x);
 			this._data[this._data.length - 1].push(this._cur_point.y);
 		}
+
+		const lenx = x - this._cur_point.x;
+		const leny = y - this._cur_point.y;
+		const len = Math.sqrt(lenx * lenx + leny * leny);
+		if (len <= Settings.MINIMUM_DRAWING_DISTANCE) {
+			this.data[this.data.length - 1][this.data[this.data.length - 1].length - 2] = x;
+			this.data[this.data.length - 1][this.data[this.data.length - 1].length - 1] = y;
+			return;
+		}
+
 		this._commands[this._commands.length - 1].push(GraphicsPathCommand.LINE_TO);
 		this._data[this._data.length - 1].push(x);
 		this._data[this._data.length - 1].push(y);
@@ -279,9 +310,9 @@ export class GraphicsPath implements IGraphicsData {
 		this._dirtyID++;
 	}
 
-	public wideLineTo(x: number, y: number) {}
+	public wideLineTo(x: number, y: number) { }
 
-	public wideMoveTo(x: number, y: number) {}
+	public wideMoveTo(x: number, y: number) { }
 
 	private _startMerge: number = -1;
 	private _endMerge: number = -1;
@@ -383,7 +414,7 @@ export class GraphicsPath implements IGraphicsData {
 	private _positionOffset: number[][] = [];
 	public forceClose: boolean = false;
 
-	public prepare(): void {
+	public prepare(): boolean {
 
 		// was not mutated internaly
 		if (this._dirtyID === this._lastDirtyID) {
@@ -416,7 +447,7 @@ export class GraphicsPath implements IGraphicsData {
 
 		// commands may be empty
 		if (cmd_len === 1 && !this.commands[0]) {
-			return;
+			return false;
 		}
 
 		const eps = 1 / 100;
