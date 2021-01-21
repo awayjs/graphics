@@ -1576,9 +1576,9 @@ tess2-ts@^1.0.8:
   integrity sha512-nmqh9T8kqWzb31PhPKenBC/oUif4M2Moo8LHG1wz0Mu5v3xDGWPBcvqunWLE9sBiJjL93x60AM2QWWtd/IZl9w==
 
 tess2-wasm@^1.0.8:
-  version "1.0.8"
-  resolved "https://registry.yarnpkg.com/tess2-wasm/-/tess2-wasm-1.0.8.tgz#d1a27a1e3304e21e673acc203f04924bd621b9dc"
-  integrity sha512-TkTXwg0epcdNV8ZcnKasON3LBIbvIa2Tf4atEIX1qw4mpEcDNf0apbnCGm3DM7QGPHELw4kUOmhhOyKcqD2vRA==
+  version "1.0.9"
+  resolved "https://registry.yarnpkg.com/tess2-wasm/-/tess2-wasm-1.0.9.tgz#f86d7170decdca6df87f6ac906313970b3c45cdd"
+  integrity sha512-oBCeEAqGvTZBxVRSTW0hOr7Yw+l8a9Mz4qp/zf4uaK5XPTSFeXdAY2SLyGsvELibyRtjGHXy1FKfTmBknKPHXg==
 
 text-table@^0.2.0:
   version "0.2.0"

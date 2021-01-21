@@ -296,12 +296,12 @@ export class GraphicsFactoryFills {
 					this.wasmIsOk = false;
 					useJSVersion = true;
 
-					console.warn('[GraphicsFactoryFills] Tess2Wasm crash, dowside to JS', e.message);
+					console.warn('[GraphicsFactoryFills] Tess2Wasm crash, dowside to JS', e.message, finalContours);
 				}
 			}
 
 			if (useJSVersion) {
-				if (!this.wasmIsOk) {
+				if (this.wasmIsOk) {
 					console.debug('[GraphicsFactoryFills] WASM Tess not loaded, JS will used.');
 				}
 
