@@ -172,8 +172,11 @@ export class GraphicsFactoryFills {
 
 					//new ITexture(ImageUtils.getDefaultImage2D());//bitmapStyle.texture;
 					material = bitmapStyle.material;
-					//sampler.smooth = true;
+
 					sampler.repeat = bitmapStyle.repeat;
+					sampler.smooth = bitmapStyle.smooth;
+					sampler.mipmap = bitmapStyle.smooth;
+
 					material.style.sampler = sampler;
 					material.animateUVs = true;
 

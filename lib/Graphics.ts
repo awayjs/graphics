@@ -11,7 +11,7 @@ import {
 	AssetEvent,
 } from '@awayjs/core';
 
-import { BitmapImage2D } from '@awayjs/stage';
+import { AttributesBuffer, BitmapImage2D, ImageSampler } from '@awayjs/stage';
 
 import { IEntityTraverser, PickEntity } from '@awayjs/view';
 
@@ -48,6 +48,8 @@ import { ManagedPool } from './ManagedPool';
 import { Settings } from './Settings';
 
 GraphicsFactoryFills.prepareWasm();
+
+const Array_push = Array.prototype.push;
 
 /**
  *
@@ -100,6 +102,8 @@ export class Graphics extends AssetBase {
 	public originalSlice9Size: Rectangle;
 	public minSlice9Width: number;
 	public minSlice9Height: number;
+	public tryOptimiseSigleImage: boolean = false;
+
 	private _scale: Vector3D = new Vector3D();
 	private _scaleX: number = 0;
 	private _scaleY: number = 0;
@@ -1870,7 +1874,93 @@ export class Graphics extends AssetBase {
 		return false;
 	}
 
-	public push = Array.prototype.push;
+	private static _imageShapeElements: Record<string, TriangleElements> = {};
+	private static getElement(size: {
+		xMin: number, yMin: number,
+		xMax: number, yMax: number
+	}): TriangleElements {
+		const { xMax, xMin, yMax, yMin } = size;
+		const id = [xMin, yMin, xMax, yMax].join(',');
+		const round = (x: number) => (x / 20) | 0;
+
+		let elements = this._imageShapeElements[id];
+
+		if (!elements) {
+			elements = Graphics._imageShapeElements[id] = new TriangleElements(new AttributesBuffer(11, 4));
+			// elements.autoDeriveNormals = false;
+			// elements.autoDeriveTangents = false;
+			elements.setIndices([
+				0, 1, 2,
+				0, 2, 3]
+			);
+			/*
+			elements.setPositions(
+				[
+					-billboardRect.x, height - billboardRect.y, 0,
+					width - billboardRect.x, height - billboardRect.y, 0,
+					width - billboardRect.x, -billboardRect.y, 0,
+					-billboardRect.x, -billboardRect.y, 0
+				]);
+			*/
+			elements.setPositions(
+				[
+					round(xMin), round(yMin), 0,
+					round(xMax), round(yMin), 0,
+					round(xMax), round(yMax), 0,
+					round(xMin), round(yMax), 0
+				]);
+
+			/*
+			elements.setNormals([1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0]);
+			elements.setTangents([0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1]);
+			elements.setUVs([
+				0, 1,
+				1, 1,
+				1, 0,
+				0, 0
+			]);*/
+		}
+
+		return elements;
+	}
+
+	public _generateImageShape(tag: ShapeTag) {
+
+		console.log('Generate simple shape:', tag.id);
+
+		const bounds = tag.fillBounds || tag.lineBounds;
+		const style = new Style();
+		const element = Graphics.getElement(bounds);
+
+		element.usages++;
+
+		// it should have 2 styles - first is trash, second - valid
+		const fillStyle = processStyle(tag.fillStyles[1], false, false, tag.parser);
+		const { a, b, c, d, tx, ty } = fillStyle.transform;
+
+		const bitmapFillStyle = new BitmapFillStyle(
+			fillStyle.material,
+			new Matrix(a, b, c ,d, tx, ty),
+			fillStyle.repeat,
+			fillStyle.smooth
+		);
+
+		const material = bitmapFillStyle.material;
+		//enforce image smooth style
+		const sampler = new ImageSampler(
+			bitmapFillStyle.repeat, bitmapFillStyle.smooth, fillStyle.smooth);
+
+		material.style.sampler = sampler;
+		material.animateUVs = true;
+
+		style.addSamplerAt(sampler, material.getTextureAt(0));
+		style.uvMatrix = bitmapFillStyle.getUVMatrix();
+
+		const shape = Shape.getShape(element, material, style);
+		this.addShapeInternal(shape);
+
+		//debugger;
+	}
 
 	/*
 	* Converts records from the space-optimized format they're stored in to a
@@ -1894,6 +1984,15 @@ export class Graphics extends AssetBase {
 		const recordsMorph: ShapeRecord[] = tag.recordsMorph || null;
 		const isMorph: boolean = recordsMorph !== null;
 		const parser: any = tag.parser;
+
+		if (this.tryOptimiseSigleImage
+				&& records.length === 5
+				&& fillStyles.length === 2
+				&& (fillStyles[0].type >= FillType.ClippedBitmap)
+		) {
+			this._generateImageShape(tag);
+			return;
+		}
 
 		let fillPaths = createPathsList(fillStyles, false, !!recordsMorph, parser);
 		let linePaths = createPathsList(lineStyles, true, !!recordsMorph, parser);
@@ -1944,10 +2043,10 @@ export class Graphics extends AssetBase {
 						allPaths = [];
 					}
 
-					this.push.apply(allPaths, fillPaths);
+					Array_push.apply(allPaths, fillPaths);
 					fillPaths = createPathsList(record.fillStyles, false, isMorph, parser);
 
-					this.push.apply(allPaths, linePaths);
+					Array_push.apply(allPaths, linePaths);
 
 					linePaths = createPathsList(record.lineStyles, true, isMorph, parser);
 
@@ -2189,7 +2288,7 @@ export class Graphics extends AssetBase {
 }
 
 const IDENTITY_MATRIX: ShapeMatrix = { a: 1, b: 0, c: 0, d: 1, tx: 0, ty: 0 };
-function processStyle(style, isLineStyle: boolean, isMorph: boolean, parser: any): ShapeStyle {
+function processStyle(style: any, isLineStyle: boolean, isMorph: boolean, parser: any): ShapeStyle {
 	const shapeStyle: ShapeStyle = style;
 	if (isMorph) {
 		shapeStyle.morph = processMorphStyle(style, isLineStyle);
@@ -2213,10 +2312,12 @@ function processStyle(style, isLineStyle: boolean, isMorph: boolean, parser: any
 			return shapeStyle;
 		}
 	}
+
 	if (style.type === undefined || style.type === FillType.Solid) {
 		return shapeStyle;
 	}
-	let scale;
+
+	let scale: number = 1;
 	switch (style.type) {
 		case FillType.LinearGradient:
 		case FillType.RadialGradient:
@@ -2239,10 +2340,18 @@ function processStyle(style, isLineStyle: boolean, isMorph: boolean, parser: any
 		case FillType.ClippedBitmap:
 		case FillType.NonsmoothedRepeatingBitmap:
 		case FillType.NonsmoothedClippedBitmap:
-			shapeStyle.smooth = style.type !== FillType.NonsmoothedRepeatingBitmap &&
-				style.type !== FillType.NonsmoothedClippedBitmap;
-			shapeStyle.repeat = style.type !== FillType.ClippedBitmap &&
-				style.type !== FillType.NonsmoothedClippedBitmap;
+			shapeStyle.smooth =
+					(
+						style.type !== FillType.NonsmoothedRepeatingBitmap &&
+						style.type !== FillType.NonsmoothedClippedBitmap
+					);
+
+			shapeStyle.repeat =
+				(
+					style.type !== FillType.ClippedBitmap &&
+					style.type !== FillType.NonsmoothedClippedBitmap
+				);
+
 			/*var index = dependencies.indexOf(style.bitmapId);
 			if (index === -1) {
 				index = dependencies.length;
@@ -2254,10 +2363,12 @@ function processStyle(style, isLineStyle: boolean, isMorph: boolean, parser: any
 		default:
 			console.log('shape parser encountered invalid fill style ' + style.type);
 	}
+
 	if (!style.matrix) {
 		shapeStyle.transform = IDENTITY_MATRIX;
 		return shapeStyle;
 	}
+
 	const matrix = style.matrix;
 	shapeStyle.transform = {
 		a: matrix.a * scale,
