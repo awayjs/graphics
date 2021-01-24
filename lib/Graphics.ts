@@ -1926,7 +1926,7 @@ export class Graphics extends AssetBase {
 
 	public _generateImageShape(tag: ShapeTag) {
 
-		console.log('Generate simple shape:', tag.id);
+		// console.log('Generate simple shape:', tag.id);
 
 		const bounds = tag.fillBounds || tag.lineBounds;
 		const style = new Style();
