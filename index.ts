@@ -160,14 +160,20 @@ export { TriangleElementsUtils } from './lib/utils/TriangleElementsUtils';
 
 export {
 	Graphics,
+} from './lib/Graphics';
+
+export {
 	FillStyle,
 	LineStyle,
-	Bbox,
+} from './lib/flash/ShapeStyle';
+
+export {
+	BBox as Bbox,
 	ShapeRecord,
 	ShapeTag,
 	DefinitionTag,
 	SwfTag,
 	ShapeRecordFlags,
-} from './lib/Graphics';
+} from './lib/flash/ShapeTag';
 
 export * from './lib/Settings';

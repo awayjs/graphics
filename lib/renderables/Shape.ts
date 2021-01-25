@@ -56,10 +56,7 @@ export class Shape extends AssetBase {
 	public static assetType: string = '[asset Shape]';
 
 	private static _imageShapeElements: Record<string, TriangleElements> = {};
-	private static getElement(rectangle: {
-		xMin: number, yMin: number,
-		xMax: number, yMax: number
-	}): TriangleElements {
+	private static getElement(rectangle: BBox): TriangleElements {
 		const { xMax, xMin, yMax, yMin } = rectangle;
 		const id = [xMin, yMin, xMax, yMax].join(',');
 		const round = (x: number) => (x / 20) | 0;
@@ -84,20 +81,12 @@ export class Shape extends AssetBase {
 		return elements;
 	}
 
-	public static getShapeForBitmap (
-		shapeStyle: ShapeStyle,
-		rectangle: {
-			xMin: number, yMin: number,
-			xMax: number, yMax: number
-		}
-	): Shape {
+	public static getShapeForBitmap (shapeStyle: ShapeStyle, rectangle: BBox): Shape {
 		const style = new Style();
 		const element = this.getElement(rectangle);
 
 		element.usages++;
 
-		// it should have 2 styles - first is trash, second - valid
-		//const shapeStyle = processStyle(tag.fillStyles[1], false, false, tag.parser);
 		const { a, b, c, d, tx, ty } = shapeStyle.transform;
 
 		const bitmapFillStyle = new BitmapFillStyle(
@@ -309,8 +298,9 @@ import {
 import { AnimatorBase } from '../animators/AnimatorBase';
 import { LineElements } from '../elements/LineElements';
 import { ImageSampler } from '@awayjs/stage';
-import { ShapeStyle } from '../Graphics';
+import { ShapeStyle } from '../flash/ShapeStyle';
 import { BitmapFillStyle } from '../draw/BitmapFillStyle';
+import { BBox } from '../flash/ShapeTag';
 
 /**
  * @class away.pool._Render_Shape
