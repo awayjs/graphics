@@ -1,8 +1,8 @@
-import { Point, MathConsts, Rectangle, Matrix, Vector3D } from '@awayjs/core';
+import { Point, MathConsts, Matrix } from '@awayjs/core';
 
-import { ImageSampler, AttributesBuffer, AttributesView, Float3Attributes, Float2Attributes } from '@awayjs/stage';
+import { ImageSampler, AttributesBuffer, AttributesView, Float2Attributes } from '@awayjs/stage';
 
-import { IMaterial, Style, MaterialUtils } from '@awayjs/renderer';
+import { IMaterial, Style } from '@awayjs/renderer';
 
 import { Shape } from '../renderables/Shape';
 import { TriangleElements } from '../elements/TriangleElements';
@@ -40,7 +40,7 @@ export class GraphicsFactoryStrokes {
 		for (let i = 0; i < len; i++) {
 			const path = paths[i];
 			const pathStyle = (<GraphicsStrokeStyle>path.style);
-			const obj: any = MaterialManager.get_material_for_color(pathStyle.color, pathStyle.alpha);
+			const obj: any = MaterialManager.getMaterialForColor(pathStyle.color, pathStyle.alpha);
 			const material: IMaterial = obj.material;
 
 			let shape = targetGraphics.popEmptyStrokeShape();
@@ -48,9 +48,11 @@ export class GraphicsFactoryStrokes {
 			let sampler: ImageSampler;
 
 			path.prepare();
-			let elements: LineElements;
 			// if (targetGraphics.scaleStrokes != null) { //use LineElements
-			elements = GraphicsFactoryStrokes.fillLineElements([path], material.curves, path.stroke.scaleMode, <LineElements>shape?.elements);
+			const elements = this.fillLineElements(
+				[path],
+				material.curves,
+				path.stroke.scaleMode, <LineElements>shape?.elements);
 			// } else { // use TriangleELements
 			// 	elements = GraphicsFactoryStrokes.getTriangleElements([strokePath], material.curves);
 			// }
@@ -165,7 +167,10 @@ export class GraphicsFactoryStrokes {
 		return elements;
 	}
 
-	public static getTriangleElements(graphic_pathes: Array<GraphicsPath>, curves: boolean, scaleMode: LineScaleMode = LineScaleMode.NORMAL): TriangleElements {
+	public static getTriangleElements(
+		graphic_pathes: Array<GraphicsPath>,
+		curves: boolean, scaleMode: LineScaleMode = LineScaleMode.NORMAL): TriangleElements {
+
 		const final_vert_list: number[] = [];
 		const len = graphic_pathes.length;
 		let positions: number[][];
@@ -184,8 +189,6 @@ export class GraphicsFactoryStrokes {
 		let end_y: number = 0;
 		let prev_x: number = 0;
 		let prev_y: number = 0;
-		let prev_prev_x: number = 0;
-		let prev_prev_y: number = 0;
 		let right_point_x: number = 0;
 		let right_point_y: number = 0;
 		let left_point_x: number = 0;
@@ -270,8 +273,7 @@ export class GraphicsFactoryStrokes {
 
 				// check if the path is closed. if yes, than set the last_dir_vec from last segment
 				closed = true;
-				prev_prev_x = null;
-				prev_prev_y = null;
+
 				if ((data[0] != data[data.length - 2]) || (data[1] != data[data.length - 1]))
 					closed = false;
 				else {
@@ -279,8 +281,6 @@ export class GraphicsFactoryStrokes {
 					last_dir_vec.y = data[data.length - 1] - data[data.length - 3];
 					last_dir_vec.normalize();
 					last_direction = Math.atan2(last_dir_vec.y, last_dir_vec.x) * MathConsts.RADIANS_TO_DEGREES;
-					prev_prev_x = data[data.length - 2];
-					prev_prev_y = data[data.length - 1];
 					//console.log("Path is closed, we set initial direction: "+last_direction);
 				}
 
@@ -342,7 +342,8 @@ export class GraphicsFactoryStrokes {
 							// dir_delta delta is the difference in direction between the segments
 							// 2 segments forming a straight line  have a dir_delta of 0
 							// a segments that goes straight back would have a dir_delta of 180 or -180
-							// we want to convert this into a angle where 0 means going back and 180 means straight forward.
+							// we want to convert this into a angle where 0 means going back
+							// and 180 means straight forward.
 							half_angle = (180 - (dir_delta));
 							if (dir_delta < 0) {
 								half_angle = (-180 - (dir_delta));
@@ -359,15 +360,19 @@ export class GraphicsFactoryStrokes {
 								add_segment = true;
 
 								//	half_angle is the angle need to rotate our segments direction with
-								//  in order to have a direction vector that points from original point to the merged contour points
+								//  in order to have a direction vector that points from
+								//  original point to the merged contour points
 								half_angle = half_angle * -0.5 * MathConsts.DEGREES_TO_RADIANS;
 
 								// get the direction vector that splits the angle between the 2 segments in half.
+								// eslint-disable-next-line max-len
 								tmp_point2.x = tmp_dir_point.x * Math.cos(half_angle) + tmp_dir_point.y * Math.sin(half_angle);
+								// eslint-disable-next-line max-len
 								tmp_point2.y = tmp_dir_point.y * Math.cos(half_angle) - tmp_dir_point.x * Math.sin(half_angle);
 								tmp_point2.normalize();
 
-								//  calculate the distance that we need to move original point with direction-vector calculated above
+								//  calculate the distance that we need to move original point
+								//  with direction-vector calculated above
 								// 	very steep angles result in impossible values for distance
 								//	we need to catch those cases and set sensible fallback for distance
 								if (Math.abs(dir_delta) <= 1 || Math.abs(dir_delta) >= 359
@@ -433,9 +438,11 @@ export class GraphicsFactoryStrokes {
 								if (strokeStyle.jointstyle == JointStyle.MITER) {
 									// 	miter means that we have no bevel effect on the corners,
 									// 	as long as the mitter-value is within a given miter_limit
+									// eslint-disable-next-line max-len
 									distance_miter = Math.sqrt((distanceX * distanceX + distanceY * distanceY) / (half_thicknessX * half_thicknessX + half_thicknessY * half_thicknessY) - 1);
 									if (distance_miter <= strokeStyle.miter_limit) {
-										// if within miter_limit, miter is applied, and we only need to add the merged points for both sides
+										// if within miter_limit, miter is applied,
+										// and we only need to add the merged points for both sides
 										addJoints = false;
 										left_point_x = left_point_merged_x;
 										left_point_y = left_point_merged_y;
@@ -444,19 +451,27 @@ export class GraphicsFactoryStrokes {
 									} else {
 										if (dir_delta > 0) {
 											// right side is merged, left side has 2 points
+											// eslint-disable-next-line max-len
 											left_point_contour_x = left_point_contour_x - (tmp_dir_point.x * (strokeStyle.miter_limit * half_thicknessX));
+											// eslint-disable-next-line max-len
 											left_point_contour_y = left_point_contour_y - (tmp_dir_point.y * (strokeStyle.miter_limit * half_thicknessY));
 											tmp_point3.x = prev_normal_y * -1;
 											tmp_point3.y = prev_normal_x;
+											// eslint-disable-next-line max-len
 											left_point_contour_prev_x = left_point_contour_prev_x - (tmp_point3.x * (strokeStyle.miter_limit * half_thicknessX));
+											// eslint-disable-next-line max-len
 											left_point_contour_prev_y = left_point_contour_prev_y - (tmp_point3.y * (strokeStyle.miter_limit * half_thicknessY));
 										} else {
 											// left side is merged, right side has 2 points
+											// eslint-disable-next-line max-len
 											right_point_contour_x = right_point_contour_x - (tmp_dir_point.x * (strokeStyle.miter_limit * half_thicknessX));
+											// eslint-disable-next-line max-len
 											right_point_contour_y = right_point_contour_y - (tmp_dir_point.y * (strokeStyle.miter_limit * half_thicknessY));
 											tmp_point3.x = prev_normal_y * -1;
 											tmp_point3.y = prev_normal_x;
+											// eslint-disable-next-line max-len
 											right_point_contour_prev_x = right_point_contour_prev_x - (tmp_point3.x * (strokeStyle.miter_limit * half_thicknessX));
+											// eslint-disable-next-line max-len
 											right_point_contour_prev_y = right_point_contour_prev_y - (tmp_point3.y * (strokeStyle.miter_limit * half_thicknessY));
 										}
 									}
@@ -464,7 +479,10 @@ export class GraphicsFactoryStrokes {
 
 								if (addJoints) {
 
-									new_cmds[new_cmds_cnt++] = (strokeStyle.jointstyle != JointStyle.ROUND) ? GraphicsPathCommand.BUILD_JOINT : GraphicsPathCommand.BUILD_ROUND_JOINT;
+									new_cmds[new_cmds_cnt++] = (strokeStyle.jointstyle != JointStyle.ROUND)
+										? GraphicsPathCommand.BUILD_JOINT
+										: GraphicsPathCommand.BUILD_ROUND_JOINT;
+
 									if (dir_delta > 0) {
 										// right side is merged, left side has 2 points
 										new_pnts[new_pnts_cnt++] = right_point_merged_x;
@@ -514,8 +532,7 @@ export class GraphicsFactoryStrokes {
 							new_pnts[new_pnts_cnt++] = left_point_x;
 							new_pnts[new_pnts_cnt++] = left_point_y;
 						}
-						prev_prev_x = prev_x;
-						prev_prev_y = prev_y;
+
 						prev_x = end_x;
 						prev_y = end_y;
 						if (i == data.length - 2) {
@@ -553,8 +570,16 @@ export class GraphicsFactoryStrokes {
 						//GraphicsFactoryHelper.drawPoint(start_left.x,start_left.y, final_vert_list, false);
 						//GraphicsFactoryHelper.drawPoint(end_right.x,end_right.y, final_vert_list, false);
 						//GraphicsFactoryHelper.drawPoint(end_left_x,end_left_y, final_vert_list, false);
-						GraphicsFactoryHelper.addTriangle(start_right_x,  start_right_y,    end_right_x,  end_right_y, start_left_x,  start_left_y, 0, final_vert_list, curves);
-						GraphicsFactoryHelper.addTriangle(start_left_x,  start_left_y,  end_right_x,  end_right_y, end_left_x,  end_left_y,  0, final_vert_list, curves);
+						GraphicsFactoryHelper.addTriangle(
+							start_right_x, start_right_y,
+							end_right_x, end_right_y,
+							start_left_x, start_left_y,
+							0, final_vert_list, curves);
+						GraphicsFactoryHelper.addTriangle(
+							start_left_x, start_left_y,
+							end_right_x, end_right_y,
+							end_left_x,  end_left_y,
+							0, final_vert_list, curves);
 
 					} else if (new_cmds[i] >= GraphicsPathCommand.BUILD_JOINT) {
 						end_right_x = new_pnts[new_pnts_cnt++];
@@ -563,7 +588,13 @@ export class GraphicsFactoryStrokes {
 						start_right_y = new_pnts[new_pnts_cnt++];
 						start_left_x = new_pnts[new_pnts_cnt++];
 						start_left_y = new_pnts[new_pnts_cnt++];
-						GraphicsFactoryHelper.addTriangle(start_right_x,  start_right_y,  start_left_x,  start_left_y,  end_right_x,  end_right_y, 0, final_vert_list, curves);
+
+						GraphicsFactoryHelper.addTriangle(
+							start_right_x, start_right_y,
+							start_left_x, start_left_y,
+							end_right_x, end_right_y,
+							0, final_vert_list, curves);
+
 						if (new_cmds[i] == GraphicsPathCommand.BUILD_ROUND_JOINT) {
 							end_left_x = new_pnts[new_pnts_cnt++];
 							end_left_y = new_pnts[new_pnts_cnt++];
@@ -571,7 +602,12 @@ export class GraphicsFactoryStrokes {
 							start_right_y = new_pnts[new_pnts_cnt++];
 							start_left_x = new_pnts[new_pnts_cnt++];
 							start_left_y = new_pnts[new_pnts_cnt++];
-							GraphicsFactoryHelper.tesselateCurve(start_right_x, start_right_y, end_left_x, end_left_y, start_left_x, start_left_y, final_vert_list, true);
+
+							GraphicsFactoryHelper.tesselateCurve(
+								start_right_x, start_right_y,
+								end_left_x, end_left_y,
+								start_left_x, start_left_y,
+								final_vert_list, true);
 						}
 					}
 				}
@@ -579,13 +615,27 @@ export class GraphicsFactoryStrokes {
 					last_dir_vec.x = data[2] - data[0];
 					last_dir_vec.y = data[3] - data[1];
 					last_dir_vec.normalize();
-					//console.log("createCap", data[0], data[1], new_pnts[0], new_pnts[1], new_pnts[2], new_pnts[3], last_dir_vec.x, last_dir_vec.y, strokeStyle.capstyle, -1, half_thickness, final_vert_list, curves, scale);
-					GraphicsFactoryHelper.createCap(data[0], data[1], new_pnts[0], new_pnts[1], new_pnts[2], new_pnts[3], last_dir_vec.x, last_dir_vec.y, strokeStyle.capstyle, -1, half_thicknessX, half_thicknessY, final_vert_list, curves);
+					GraphicsFactoryHelper.createCap(
+						data[0], data[1],
+						new_pnts[0], new_pnts[1],
+						new_pnts[2], new_pnts[3],
+						last_dir_vec.x, last_dir_vec.y,
+						strokeStyle.capstyle, -1,
+						half_thicknessX, half_thicknessY,
+						final_vert_list, curves);
 
 					last_dir_vec.x = data[data.length - 2] - data[data.length - 4];
 					last_dir_vec.y = data[data.length - 1] - data[data.length - 3];
 					last_dir_vec.normalize();
-					GraphicsFactoryHelper.createCap(data[data.length - 2], data[data.length - 1], new_pnts[new_pnts.length - 4], new_pnts[new_pnts.length - 3], new_pnts[new_pnts.length - 2], new_pnts[new_pnts.length - 1], last_dir_vec.x, last_dir_vec.y, strokeStyle.capstyle, 1, half_thicknessX, half_thicknessY, final_vert_list, curves);
+
+					GraphicsFactoryHelper.createCap(
+						data[data.length - 2], data[data.length - 1],
+						new_pnts[new_pnts.length - 4], new_pnts[new_pnts.length - 3],
+						new_pnts[new_pnts.length - 2], new_pnts[new_pnts.length - 1],
+						last_dir_vec.x, last_dir_vec.y,
+						strokeStyle.capstyle, 1,
+						half_thicknessX, half_thicknessY,
+						final_vert_list, curves);
 
 				}
 

@@ -616,7 +616,7 @@ export class Graphics extends AssetBase {
 
 		if (!fill) {
 			fill = this._bitmapFillPool[bitmap.id] = new BitmapFillStyle(
-				MaterialManager.get_material_for_BitmapImage2D(bitmap),
+				MaterialManager.getMaterialForBitmap(bitmap),
 				matrix,
 				repeat,
 				smooth);

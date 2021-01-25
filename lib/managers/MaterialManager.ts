@@ -12,7 +12,7 @@ export class MaterialManager {
 	public static materialClass: any;
 	public static textureClass: any;
 
-	public static get_material_for_color=function(color: number, alpha: number = 1): ITextureAtlasEntry {
+	public static getMaterialForColor (color: number, alpha: number = 1): ITextureAtlasEntry {
 		if (color == 0) {
 			color = 0x000001;
 		}
@@ -31,7 +31,7 @@ export class MaterialManager {
 				texObj.material = MaterialManager._colorMaterials[texObj.bitmap.id];
 				return texObj;
 			}
-			var newmat = new MaterialManager.materialClass(texObj.bitmap);
+			const newmat = new MaterialManager.materialClass(texObj.bitmap);
 			newmat.alphaBlending = true;
 			newmat.useColorTransform = true;
 			newmat.bothSides = true;
@@ -46,16 +46,16 @@ export class MaterialManager {
 			texObj.material = MaterialManager._colorMaterials[colorstr];
 			return texObj;
 		}
-		var newmat = new MaterialManager.materialClass(color, alpha);
+		const newmat = new MaterialManager.materialClass(color, alpha);
 		newmat.alphaBlending = true;
 		newmat.useColorTransform = true;
 		newmat.bothSides = true;
 		texObj.material = newmat;
 		MaterialManager._colorMaterials[colorstr] = newmat;
 		return texObj;
-	};
+	}
 
-	public static get_material_for_gradient=function(gradient: GradientFillStyle): ITextureAtlasEntry {
+	public static getMaterialForGradient (gradient: GradientFillStyle): ITextureAtlasEntry {
 		if (!MaterialManager.materialClass) {
 			throw ('no materialClass registered on MaterialManager!');
 		}
@@ -73,9 +73,9 @@ export class MaterialManager {
 		MaterialManager._textureMaterials[lookupstr] = newmat;
 		texObj.material = newmat;
 		return texObj;
-	};
+	}
 
-	public static get_material_for_BitmapImage2D=function(bitmap: BitmapImage2D): IMaterial {
+	public static getMaterialForBitmap (bitmap: BitmapImage2D): IMaterial {
 		const newmat = new MaterialManager.materialClass(bitmap);
 		newmat.ambientMethod.texture = new MaterialManager.textureClass(bitmap);
 		newmat.alphaBlending = true;
@@ -84,4 +84,18 @@ export class MaterialManager {
 		return newmat;
 	}
 
+	/**
+	 * @deprecated Use `getMaterialForColor` instead
+	 */
+	public static get_material_for_color = MaterialManager.getMaterialForColor;
+
+	/**
+	 * @deprecated Use `getMaterialForGradient` instead
+	 */
+	public static get_material_for_gradient = MaterialManager.getMaterialForGradient;
+
+	/**
+	 * @deprecated Use `getMaterialForBitmap` instead
+	 */
+	public static get_material_for_BitmapImage2D = MaterialManager.getMaterialForBitmap;
 }

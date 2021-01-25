@@ -1,18 +1,13 @@
 
-import { Point, MathConsts, Rectangle, Matrix } from '@awayjs/core';
+import { Point, MathConsts,  Matrix } from '@awayjs/core';
 
-import { ImageSampler, AttributesBuffer, AttributesView, Float3Attributes, Float2Attributes } from '@awayjs/stage';
+import { ImageSampler, AttributesBuffer, AttributesView, Float2Attributes } from '@awayjs/stage';
 
 import { IMaterial, Style } from '@awayjs/renderer';
 
 import { Shape } from '../renderables/Shape';
 import { TriangleElements } from '../elements/TriangleElements';
-import { JointStyle }	 from '../draw/JointStyle';
 import { GraphicsPath } from '../draw/GraphicsPath';
-import { GraphicsPathCommand } from '../draw/GraphicsPathCommand';
-import { GraphicsStrokeStyle } from '../draw/GraphicsStrokeStyle';
-import { LineScaleMode } from '../draw/LineScaleMode';
-import { Graphics } from '../Graphics';
 import { CapsStyle } from '../draw/CapsStyle';
 import { MaterialManager } from '../managers/MaterialManager';
 
@@ -22,7 +17,8 @@ export class GraphicsFactoryHelper {
 	public static drawRectangles(inputRectangles: number[], color: number, alpha: number): Shape {
 
 		if (inputRectangles.length % 4 > 0) {
-			console.log('GraphicsFactoryHelper.drawRectangles: inputRectangles.length is not a multiple of 4', inputRectangles);
+			console.log(
+				'GraphicsFactoryHelper.drawRectangles: inputRectangles.length is not a multiple of 4', inputRectangles);
 			return;
 		}
 
@@ -54,7 +50,7 @@ export class GraphicsFactoryHelper {
 			final_vert_list[outCnt++] = x + w;
 			final_vert_list[outCnt++] = y + h;
 		}
-		const obj: any = MaterialManager.get_material_for_color(color, alpha);
+		const obj: any = MaterialManager.getMaterialForColor(color, alpha);
 		const material: IMaterial = obj.material;
 		const attributesView: AttributesView = new AttributesView(Float32Array, material.curves ? 3 : 2);
 		attributesView.set(final_vert_list);
@@ -111,7 +107,10 @@ export class GraphicsFactoryHelper {
 		elements.invalidate();
 	}
 
-	public static isClockWiseXY(point1x: number, point1y: number, point2x: number, point2y: number, point3x: number, point3y: number): boolean {
+	public static isClockWiseXY(
+		point1x: number, point1y: number, point2x: number,
+		point2y: number, point3x: number, point3y: number): boolean {
+
 		const num: number = (point1x - point2x) * (point3y - point2y) - (point1y - point2y) * (point3x - point2x);
 		if (num < 0)
 			return false;
@@ -122,27 +121,37 @@ export class GraphicsFactoryHelper {
 		return (ax - bx) * (cy - by) - (ay - by) * (cx - bx);
 	}
 
-	public static pointInTri(ax: number, ay: number, bx: number, by: number ,cx: number, cy: number, xx: number, xy: number): boolean {
-		const b1: boolean = GraphicsFactoryHelper.getSign(ax, ay, xx, xy, bx, by) > 0;
-		const b2: boolean = GraphicsFactoryHelper.getSign(bx, by, xx, xy, cx, cy) > 0;
-		const b3: boolean = GraphicsFactoryHelper.getSign(cx, cy, xx, xy, ax, ay) > 0;
+	public static pointInTri(
+		ax: number, ay: number,
+		bx: number, by: number,
+		cx: number, cy: number,
+		xx: number, xy: number): boolean {
+
+		const b1: boolean = this.getSign(ax, ay, xx, xy, bx, by) > 0;
+		const b2: boolean = this.getSign(bx, by, xx, xy, cx, cy) > 0;
+		const b3: boolean = this.getSign(cx, cy, xx, xy, ax, ay) > 0;
 		return ((b1 == b2) && (b2 == b3));
 	}
 
-	public static getControlXForCurveX(a: number, c: number, b: number): number {
+	public static getControlXForCurveX(_a: number, c: number, _b: number): number {
 		return c;
 	}
 
-	public static getControlYForCurveY(a: number, c: number, b: number): number {
+	public static getControlYForCurveY(_a: number, c: number, _b: number): number {
 		return c;
 	}
 
 	public static drawPoint(startX: number,startY: number, vertices: Array<number>, curves: boolean): void {
-		GraphicsFactoryHelper.addTriangle(startX - 2, startY - 2, startX + 2, startY - 2, startX + 2, startY + 2, 0, vertices, curves);
-		GraphicsFactoryHelper.addTriangle(startX - 2, startY - 2, startX - 2, startY + 2, startX + 2, startY + 2, 0, vertices, curves);
+		this.addTriangle(startX - 2, startY - 2, startX + 2, startY - 2, startX + 2, startY + 2, 0, vertices, curves);
+		this.addTriangle(startX - 2, startY - 2, startX - 2, startY + 2, startX + 2, startY + 2, 0, vertices, curves);
 	}
 
-	public static drawElipse(x: number,y: number,width: number, height: number, vertices: Array<number>, startAngle: number, endAngle: number, stepAngle: number, curves: boolean): void {
+	public static drawElipse(
+		x: number,y: number,
+		width: number, height: number,
+		vertices: Array<number>,
+		startAngle: number, endAngle: number, stepAngle: number,
+		curves: boolean): void {
 
 		// todo: validate input / check edge cases
 		const degreeTotal: number = endAngle - startAngle;
@@ -152,7 +161,7 @@ export class GraphicsFactoryHelper {
 		for (let i = 1; i <= steps;i++) {
 			const x_tmp = x + width * Math.cos((startAngle + i * stepAngle) * (Math.PI / 180));
 			const y_tmp = y + height * Math.sin((startAngle + i * stepAngle) * (Math.PI / 180));
-			GraphicsFactoryHelper.addTriangle(x,y,x_tmp,y_tmp, x_last, y_last, 0, vertices, curves);
+			this.addTriangle(x,y,x_tmp,y_tmp, x_last, y_last, 0, vertices, curves);
 			x_last = x_tmp;
 			y_last = y_tmp;
 		}
@@ -175,7 +184,13 @@ export class GraphicsFactoryHelper {
 		}
 	}
 
-	public static addTriangle(startX: number,startY: number, controlX: number, controlY: number, endX: number, endY: number, tri_type: number, vertices: Array<number>, curves: boolean): void {
+	public static addTriangle(
+		startX: number, startY: number,
+		controlX: number, controlY: number,
+		endX: number, endY: number,
+		tri_type: number,
+		vertices: Array<number>, curves: boolean): void {
+
 		const x1 = startX;
 		const y1 = startY;
 		const x2 = controlX;
@@ -233,7 +248,16 @@ export class GraphicsFactoryHelper {
 		}
 	}
 
-	public static createCap(startX: number, startY: number, start_le_x: number, start_le_y: number, start_ri_x: number, start_ri_y: number, direction_x: number, direction_y: number, capstyle: number, cap_position: number, thicknessX: number, thicknessY: number, vertices: Array<number>, curves: boolean): void {
+	public static createCap(
+		startX: number, startY: number,
+		start_le_x: number, start_le_y: number,
+		start_ri_x: number, start_ri_y: number,
+		direction_x: number, direction_y: number,
+		capstyle: number,
+		cap_position: number,
+		thicknessX: number, thicknessY: number,
+		vertices: Array<number>, curves: boolean): void {
+
 		direction_x *= cap_position;
 		direction_y *= cap_position;
 		if (capstyle == CapsStyle.ROUND) {
@@ -242,23 +266,23 @@ export class GraphicsFactoryHelper {
 			const end_y: number = startY + ((direction_y * thicknessY));
 			//end_x = end_x * 2 - start_le.x/2 - start_ri.x/2;
 			//end_y = end_y * 2 - start_le.y/2 - start_ri.y/2;
-			var tmp1_x: number = start_le_x + ((direction_x * thicknessX));
-			var tmp1_y: number = start_le_y + ((direction_y * thicknessY));
-			var tmp2_x: number = start_ri_x + ((direction_x * thicknessX));
-			var tmp2_y: number = start_ri_y + ((direction_y * thicknessY));
+			const tmp1_x: number = start_le_x + ((direction_x * thicknessX));
+			const tmp1_y: number = start_le_y + ((direction_y * thicknessY));
+			const tmp2_x: number = start_ri_x + ((direction_x * thicknessX));
+			const tmp2_y: number = start_ri_y + ((direction_y * thicknessY));
 
-			GraphicsFactoryHelper.tesselateCurve(start_le_x, start_le_y, tmp1_x, tmp1_y, end_x, end_y, vertices, true);
-			GraphicsFactoryHelper.tesselateCurve(end_x, end_y, tmp2_x, tmp2_y, start_ri_x, start_ri_y, vertices, true);
-			GraphicsFactoryHelper.addTriangle(start_le_x, start_le_y, end_x, end_y, start_ri_x, start_ri_y, -1, vertices, curves);
+			this.tesselateCurve(start_le_x, start_le_y, tmp1_x, tmp1_y, end_x, end_y, vertices, true);
+			this.tesselateCurve(end_x, end_y, tmp2_x, tmp2_y, start_ri_x, start_ri_y, vertices, true);
+			this.addTriangle(start_le_x, start_le_y, end_x, end_y, start_ri_x, start_ri_y, -1, vertices, curves);
 		} else if (capstyle == CapsStyle.SQUARE) {
 			//console.log("add square cap");
-			var tmp1_x: number = start_le_x + ((direction_x * thicknessX));
-			var tmp1_y: number = start_le_y + ((direction_y * thicknessY));
-			var tmp2_x: number = start_ri_x + ((direction_x * thicknessX));
-			var tmp2_y: number = start_ri_y + ((direction_y * thicknessY));
+			const tmp1_x: number = start_le_x + ((direction_x * thicknessX));
+			const tmp1_y: number = start_le_y + ((direction_y * thicknessY));
+			const tmp2_x: number = start_ri_x + ((direction_x * thicknessX));
+			const tmp2_y: number = start_ri_y + ((direction_y * thicknessY));
 
-			GraphicsFactoryHelper.addTriangle(tmp2_x,tmp2_y, tmp1_x, tmp1_y, start_le_x, start_le_y, 0, vertices, curves);
-			GraphicsFactoryHelper.addTriangle(tmp2_x,tmp2_y, start_le_x, start_le_y, start_ri_x, start_ri_y, 0, vertices, curves);
+			this.addTriangle(tmp2_x,tmp2_y, tmp1_x, tmp1_y, start_le_x, start_le_y, 0, vertices, curves);
+			this.addTriangle(tmp2_x,tmp2_y, start_le_x, start_le_y, start_ri_x, start_ri_y, 0, vertices, curves);
 		}
 	}
 
@@ -272,12 +296,20 @@ export class GraphicsFactoryHelper {
 		return return_point;
 	}
 
-	public static getQuadricBezierPosition(t, start, control, end): number {
+	public static getQuadricBezierPosition(t: number, start: number, control: number, end: number): number {
 		const xt = 1 - t;
 		return xt * xt * start + 2 * xt * t * control + t * t * end;
 	}
 
-	public static subdivideCurve(startx: number, starty: number, cx: number, cy: number, endx: number, endy: number, startx2: number, starty2: number, cx2: number, cy2: number, endx2: number, endy2: number, array_out: Array<number>, array2_out: Array<number>): void {
+	public static subdivideCurve(
+		startx: number, starty: number,
+		cx: number, cy: number,
+		endx: number, endy: number,
+		startx2: number, starty2: number,
+		cx2: number, cy2: number,
+		endx2: number, endy2: number,
+		array_out: Array<number>, array2_out: Array<number>): void {
+
 		const angle_1: number = Math.atan2(cy - starty, cx - startx) * MathConsts.RADIANS_TO_DEGREES;
 		const angle_2: number = Math.atan2(endy - cy, endx - cx) * MathConsts.RADIANS_TO_DEGREES;
 		let angle_delta: number = angle_2 - angle_1;
@@ -296,17 +328,20 @@ export class GraphicsFactoryHelper {
 		}
 
 		let b1: boolean = false;
-		let b2: boolean = false;
+		//let b2: boolean = false;
 		if (angle_delta < 0) {
 			// curve is curved to right side. right side is convex
 			b1 = GraphicsFactoryHelper.getSign(startx, starty, cx2, cy2, endx, endy) > 0;
-			b2 = GraphicsFactoryHelper.getSign(startx, starty, cx, cy, endx, endy) > 0;
+			//b2 = GraphicsFactoryHelper.getSign(startx, starty, cx, cy, endx, endy) > 0;
+
+			// eslint-disable-next-line max-len
 			b1 = (((starty - endy) * (cx - startx) + (endx - startx) * (cy - starty)) * ((starty - endy) * (cx2 - startx) + (endx - startx) * (cy2 - starty))) < 0;
 
 		} else {
 			// curve is curved to left side. left side is convex
 			b1 = GraphicsFactoryHelper.getSign(startx2, starty2, cx2, cy2, endx2, endy2) > 0;
-			b2 = GraphicsFactoryHelper.getSign(startx2, starty2, cx, cy, endx2, endy2) > 0;
+			//b2 = GraphicsFactoryHelper.getSign(startx2, starty2, cx, cy, endx2, endy2) > 0;
+			// eslint-disable-next-line max-len
 			b1 = (((starty2 - endy) * (cx - startx2) + (endx2 - startx2) * (cy - starty2)) * ((starty2 - endy2) * (cx2 - startx2) + (endx2 - startx2) * (cy2 - starty2))) < 0;
 
 		}
@@ -331,17 +366,25 @@ export class GraphicsFactoryHelper {
 		const ax2 = c1x2 + (c2x2 - c1x2) * 0.5;// new middlepoint 2
 		const ay2 = c1y2 + (c2y2 - c1y2) * 0.5;
 
-		GraphicsFactoryHelper.subdivideCurve(startx, starty, c1x, c1y, ax, ay, startx2, starty2, c1x2, c1y2, ax2, ay2, array_out, array2_out);
-		GraphicsFactoryHelper.subdivideCurve(ax, ay, c2x, c2y, endx, endy, ax2, ay2, c2x2, c2y2, endx2, endy2, array_out, array2_out);
+		this.subdivideCurve(
+			startx, starty, c1x, c1y, ax, ay, startx2, starty2, c1x2, c1y2, ax2, ay2, array_out, array2_out);
+		this.subdivideCurve(
+			ax, ay, c2x, c2y, endx, endy, ax2, ay2, c2x2, c2y2, endx2, endy2, array_out, array2_out);
 
 	}
 
-	public static tesselateCurve(startx: number, starty: number, cx: number, cy: number, endx: number, endy: number, array_out: Array<number>, filled: boolean = false,iterationCnt: number = 0): void {
+	public static tesselateCurve(
+		startx: number, starty: number,
+		cx: number, cy: number,
+		endx: number, endy: number,
+		array_out: Array<number>, filled: boolean = false,iterationCnt: number = 0): void {
+
 		const maxIterations: number = 6;
 		const minAngle: number = 1;
 		const minLength: number = 1;
 
-		// if "filled" is true, we are collecting final vert positions in the array, ready to use for rendering. (6-position values for each tri)
+		// if "filled" is true, we are collecting final vert positions in the array,
+		// ready to use for rendering. (6-position values for each tri)
 		// if "filled" is false, we are collecting vert positions for a path (we do not need the start-position).
 
 		// stop tesselation on maxIteration level. Set it to 0 for no tesselation at all.

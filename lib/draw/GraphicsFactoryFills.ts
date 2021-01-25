@@ -129,7 +129,7 @@ export class GraphicsFactoryFills {
 			switch (pathStyle.data_type) {
 				case GraphicsFillStyle.data_type:
 				{
-					const obj = MaterialManager.get_material_for_color(
+					const obj = MaterialManager.getMaterialForColor(
 						(<GraphicsFillStyle>pathStyle).color,
 						(<GraphicsFillStyle>pathStyle).alpha
 					);
@@ -149,7 +149,7 @@ export class GraphicsFactoryFills {
 				case GradientFillStyle.data_type:
 				{
 					const gradientStyle = <GradientFillStyle>(pathStyle);
-					const obj = MaterialManager.get_material_for_gradient(gradientStyle);
+					const obj = MaterialManager.getMaterialForGradient(gradientStyle);
 
 					material = obj.material;
 					material.animateUVs = true;
