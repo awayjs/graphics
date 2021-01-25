@@ -47,7 +47,7 @@ import { ManagedPool } from './ManagedPool';
 import { Settings } from './Settings';
 import { FillStyle, LineStyle } from './flash/ShapeStyle';
 import { ShapeRecord, ShapeRecordFlags, ShapeTag } from './flash/ShapeTag';
-import { createPathsList, processStyle } from './flash/ShapeUtils';
+import { StyleUtils } from './flash/StyleUtils';
 
 GraphicsFactoryFills.prepareWasm();
 
@@ -1904,15 +1904,15 @@ export class Graphics extends AssetBase {
 				&& (fillStyles[0].type >= FillType.ClippedBitmap)
 		) {
 			//1 style is trash, second is needed
-			const style = processStyle(tag.fillStyles[1], false, false, tag.parser);
+			const style = StyleUtils.processStyle(tag.fillStyles[1], false, false, tag.parser);
 			const bounds = tag.fillBounds || tag.lineBounds;
 
 			this.addShapeInternal(Shape.getShapeForBitmap(style, bounds));
 			return;
 		}
 
-		let fillPaths = createPathsList(fillStyles, false, !!recordsMorph, parser);
-		let linePaths = createPathsList(lineStyles, true, !!recordsMorph, parser);
+		let fillPaths = StyleUtils.createPathsList(fillStyles, false, !!recordsMorph, parser);
+		let linePaths = StyleUtils.createPathsList(lineStyles, true, !!recordsMorph, parser);
 		let styles = { fill0: 0, fill1: 0, line: 0 };
 
 		interface IPathElement {
@@ -1961,11 +1961,11 @@ export class Graphics extends AssetBase {
 					}
 
 					Array_push.apply(allPaths, fillPaths);
-					fillPaths = createPathsList(record.fillStyles, false, isMorph, parser);
+					fillPaths = StyleUtils.createPathsList(record.fillStyles, false, isMorph, parser);
 
 					Array_push.apply(allPaths, linePaths);
 
-					linePaths = createPathsList(record.lineStyles, true, isMorph, parser);
+					linePaths = StyleUtils.createPathsList(record.lineStyles, true, isMorph, parser);
 
 					styles = { fill0: 0, fill1: 0, line: 0 };
 				}
