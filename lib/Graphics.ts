@@ -11,7 +11,7 @@ import {
 	AssetEvent,
 } from '@awayjs/core';
 
-import { AttributesBuffer, BitmapImage2D, ImageSampler } from '@awayjs/stage';
+import { BitmapImage2D } from '@awayjs/stage';
 
 import { IEntityTraverser, PickEntity } from '@awayjs/view';
 
@@ -65,7 +65,6 @@ const Array_push = Array.prototype.push;
  */
 
 export class Graphics extends AssetBase {
-	private static CLEARS_BEFORE_POOLING = 10;
 	private static _pool: Array<Graphics> = new Array<Graphics>();
 
 	public static getGraphics(): Graphics {
@@ -1874,94 +1873,6 @@ export class Graphics extends AssetBase {
 		return false;
 	}
 
-	private static _imageShapeElements: Record<string, TriangleElements> = {};
-	private static getElement(size: {
-		xMin: number, yMin: number,
-		xMax: number, yMax: number
-	}): TriangleElements {
-		const { xMax, xMin, yMax, yMin } = size;
-		const id = [xMin, yMin, xMax, yMax].join(',');
-		const round = (x: number) => (x / 20) | 0;
-
-		let elements = this._imageShapeElements[id];
-
-		if (!elements) {
-			elements = Graphics._imageShapeElements[id] = new TriangleElements(new AttributesBuffer(11, 4));
-			// elements.autoDeriveNormals = false;
-			// elements.autoDeriveTangents = false;
-			elements.setIndices([
-				0, 1, 2,
-				0, 2, 3]
-			);
-			/*
-			elements.setPositions(
-				[
-					-billboardRect.x, height - billboardRect.y, 0,
-					width - billboardRect.x, height - billboardRect.y, 0,
-					width - billboardRect.x, -billboardRect.y, 0,
-					-billboardRect.x, -billboardRect.y, 0
-				]);
-			*/
-			elements.setPositions(
-				[
-					round(xMin), round(yMin), 0,
-					round(xMax), round(yMin), 0,
-					round(xMax), round(yMax), 0,
-					round(xMin), round(yMax), 0
-				]);
-
-			/*
-			elements.setNormals([1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0]);
-			elements.setTangents([0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1]);
-			elements.setUVs([
-				0, 1,
-				1, 1,
-				1, 0,
-				0, 0
-			]);*/
-		}
-
-		return elements;
-	}
-
-	public _generateImageShape(tag: ShapeTag) {
-
-		// console.log('Generate simple shape:', tag.id);
-
-		const bounds = tag.fillBounds || tag.lineBounds;
-		const style = new Style();
-		const element = Graphics.getElement(bounds);
-
-		element.usages++;
-
-		// it should have 2 styles - first is trash, second - valid
-		const fillStyle = processStyle(tag.fillStyles[1], false, false, tag.parser);
-		const { a, b, c, d, tx, ty } = fillStyle.transform;
-
-		const bitmapFillStyle = new BitmapFillStyle(
-			fillStyle.material,
-			new Matrix(a, b, c ,d, tx, ty),
-			fillStyle.repeat,
-			fillStyle.smooth
-		);
-
-		const material = bitmapFillStyle.material;
-		//enforce image smooth style
-		const sampler = new ImageSampler(
-			bitmapFillStyle.repeat, bitmapFillStyle.smooth, fillStyle.smooth);
-
-		material.style.sampler = sampler;
-		material.animateUVs = true;
-
-		style.addSamplerAt(sampler, material.getTextureAt(0));
-		style.uvMatrix = bitmapFillStyle.getUVMatrix();
-
-		const shape = Shape.getShape(element, material, style);
-		this.addShapeInternal(shape);
-
-		//debugger;
-	}
-
 	/*
 	* Converts records from the space-optimized format they're stored in to a
 	* format that's more amenable to fast rendering.
@@ -1990,7 +1901,11 @@ export class Graphics extends AssetBase {
 				&& fillStyles.length === 2
 				&& (fillStyles[0].type >= FillType.ClippedBitmap)
 		) {
-			this._generateImageShape(tag);
+			//1 style is trash, second is needed
+			const style = processStyle(tag.fillStyles[1], false, false, tag.parser);
+			const bounds = tag.fillBounds || tag.lineBounds;
+
+			this.addShapeInternal(Shape.getShapeForBitmap(style, bounds));
 			return;
 		}
 
@@ -2465,7 +2380,7 @@ function createPathsList(styles: any[], isLineStyle: boolean, isMorph: boolean,
 	return paths;
 }
 
-interface ShapeStyle {
+export interface ShapeStyle {
 	type: number;
 
 	fillType?: number;
