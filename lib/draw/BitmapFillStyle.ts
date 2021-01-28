@@ -36,11 +36,17 @@ export class BitmapFillStyle implements IGraphicsData {
 		const image = <BitmapImage2D> (this.material.getTextureAt(0).getImageAt(0));
 		//const image: BitmapImage2D = (<any> this.material).ambientMethod.texture._images[0];
 
-		if (!image)
-			throw ('BitmapFillStyle.getUVMatrix - no texture found');
+		let projection_width_half: number;
+		let projection_height_half: number;
 
-		const projection_width_half: number = image.width;
-		const projection_height_half: number = image.height;
+		if (!image) {
+			console.warn('[BitmapFillStyle] - getUVMatrix - no texture found');
+			projection_width_half = 512;
+			projection_height_half = 512;
+		} else {
+			projection_width_half = image.width;
+			projection_height_half = image.height;
+		}
 
 		//	Get and invert the uv transform:
 		const a: number =  this.matrix.a;
