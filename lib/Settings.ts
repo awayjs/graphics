@@ -14,6 +14,8 @@ export interface IGraphicsSettings {
 	POINTS_COUNT_FOR_CONVEX: number;
 	USE_NATIVE_DEFLATE: boolean;
 	MINIMUM_DRAWING_DISTANCE: number;
+
+	EXPEREMENTAL_MATERIAL_FOR_IMAGE: boolean;
 }
 
 export const Settings: IGraphicsSettings = {
@@ -69,4 +71,9 @@ export const Settings: IGraphicsSettings = {
 	 * and the previous command upated to point to the new position
 	 */
 	MINIMUM_DRAWING_DISTANCE: 0.01,
+
+	/**
+	 * @description Use experemental material for Shapes based from ImageBitmap2D
+	 */
+	EXPEREMENTAL_MATERIAL_FOR_IMAGE: true
 };

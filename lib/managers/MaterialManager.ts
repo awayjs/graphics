@@ -6,7 +6,7 @@ import { BitmapImage2D } from '@awayjs/stage';
 type ISpecialMaterial = IMaterial & {
 	alphaBlending: boolean;
 	useColorTransform: boolean;
-	ambientMethod: any;
+	ambientMethod?: any;
 }
 
 type IMaterialCtr = { new(...args: any[]): ISpecialMaterial};
@@ -85,7 +85,10 @@ export class MaterialManager {
 	}
 
 	public static getMaterialForBitmap (bitmap: BitmapImage2D, useSpecialMaterial = false): IMaterial {
-		const Class = useSpecialMaterial ? this.specialBitmapMaterialClass : this.materialClass;
+		const Class = (useSpecialMaterial && this.specialBitmapMaterialClass)
+			? this.specialBitmapMaterialClass
+			: this.materialClass;
+
 		const newmat = new Class(bitmap);
 
 		if (!useSpecialMaterial) {

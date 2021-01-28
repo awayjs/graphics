@@ -88,9 +88,15 @@ export class Shape extends AssetBase {
 		element.usages++;
 
 		const { a, b, c, d, tx, ty } = shapeStyle.transform;
+		const texture = shapeStyle.material.getTextureAt(0);
+		const mat = MaterialManager.getMaterialForBitmap(
+			<BitmapImage2D>texture.getImageAt(0),
+			// this will generate special material based on RAW GLSL
+			Settings.EXPEREMENTAL_MATERIAL_FOR_IMAGE
+		);
 
 		const bitmapFillStyle = new BitmapFillStyle(
-			shapeStyle.material,
+			mat,
 			new Matrix(a, b, c ,d, tx, ty),
 			shapeStyle.repeat,
 			shapeStyle.smooth
@@ -104,7 +110,7 @@ export class Shape extends AssetBase {
 		material.style.sampler = sampler;
 		material.animateUVs = true;
 
-		style.addSamplerAt(sampler, material.getTextureAt(0));
+		style.addSamplerAt(sampler, texture);
 		style.uvMatrix = bitmapFillStyle.getUVMatrix();
 
 		return Shape.getShape(element, material, style);
@@ -297,11 +303,12 @@ import {
 
 import { AnimatorBase } from '../animators/AnimatorBase';
 import { LineElements } from '../elements/LineElements';
-import { ImageSampler } from '@awayjs/stage';
+import { BitmapImage2D, ImageSampler } from '@awayjs/stage';
 import { ShapeStyle } from '../flash/ShapeStyle';
 import { BitmapFillStyle } from '../draw/BitmapFillStyle';
 import { BBox } from '../flash/ShapeTag';
 import { MaterialManager } from '../managers/MaterialManager';
+import { Settings } from '../Settings';
 
 /**
  * @class away.pool._Render_Shape
