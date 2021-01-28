@@ -301,6 +301,7 @@ import { ImageSampler } from '@awayjs/stage';
 import { ShapeStyle } from '../flash/ShapeStyle';
 import { BitmapFillStyle } from '../draw/BitmapFillStyle';
 import { BBox } from '../flash/ShapeTag';
+import { MaterialManager } from '../managers/MaterialManager';
 
 /**
  * @class away.pool._Render_Shape

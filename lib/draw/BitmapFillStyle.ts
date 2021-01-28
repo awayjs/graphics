@@ -33,7 +33,9 @@ export class BitmapFillStyle implements IGraphicsData {
 		if (!this.matrix)
 			this.matrix = new Matrix();
 
-		const image: BitmapImage2D = (<any> this.material).ambientMethod.texture._images[0];
+		const image = <BitmapImage2D> (this.material.getTextureAt(0).getImageAt(0));
+		//const image: BitmapImage2D = (<any> this.material).ambientMethod.texture._images[0];
+
 		if (!image)
 			throw ('BitmapFillStyle.getUVMatrix - no texture found');
 

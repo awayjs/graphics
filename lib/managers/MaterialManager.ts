@@ -3,13 +3,22 @@ import { TextureAtlas, ITextureAtlasEntry } from './TextureAtlas';
 import { IMaterial } from '@awayjs/renderer';
 import { BitmapImage2D } from '@awayjs/stage';
 
+type ISpecialMaterial = IMaterial & {
+	alphaBlending: boolean;
+	useColorTransform: boolean;
+	ambientMethod: any;
+}
+
+type IMaterialCtr = { new(...args: any[]): ISpecialMaterial};
+
 export class MaterialManager {
 
 	private static _colorMaterials: any = {};
 	private static _textureMaterials: any = {};
 	private static _useTextureAtlasForColors: boolean = true;
 
-	public static materialClass: any;
+	public static specialBitmapMaterialClass: IMaterialCtr;
+	public static materialClass: IMaterialCtr;
 	public static textureClass: any;
 
 	public static getMaterialForColor (color: number, alpha: number = 1): ITextureAtlasEntry {
@@ -75,12 +84,18 @@ export class MaterialManager {
 		return texObj;
 	}
 
-	public static getMaterialForBitmap (bitmap: BitmapImage2D): IMaterial {
-		const newmat = new MaterialManager.materialClass(bitmap);
-		newmat.ambientMethod.texture = new MaterialManager.textureClass(bitmap);
+	public static getMaterialForBitmap (bitmap: BitmapImage2D, useSpecialMaterial = false): IMaterial {
+		const Class = useSpecialMaterial ? this.specialBitmapMaterialClass : this.materialClass;
+		const newmat = new Class(bitmap);
+
+		if (!useSpecialMaterial) {
+			newmat.ambientMethod.texture = new MaterialManager.textureClass(bitmap);
+		}
+
 		newmat.alphaBlending = true;
 		newmat.useColorTransform = true;
 		newmat.bothSides = true;
+
 		return newmat;
 	}
 
