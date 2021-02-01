@@ -913,7 +913,14 @@ export class _Stage_TriangleElements extends _Stage_ElementsBase {
 		}
 	}
 
-	public draw(renderRenderable: _Render_RenderableBase, shader: ShaderBase, count: number, offset: number): void {
+	public draw(
+		renderRenderable: _Render_RenderableBase,
+		shader: ShaderBase & { supportModernAPI?: boolean, syncUniforms?: () => void },
+		count: number,
+		offset: number): void {
+
+		const modern = shader.supportModernAPI;
+
 		//set constants
 		if (shader.sceneMatrixIndex >= 0) {
 			shader.sceneMatrix.copyFrom(renderRenderable.renderSceneTransform, true);
@@ -925,9 +932,13 @@ export class _Stage_TriangleElements extends _Stage_ElementsBase {
 			shader.viewMatrix.copyFrom(matrix3D, true);
 		}
 
-		const context: IContextGL = this._stage.context;
-		context.setProgramConstantsFromArray(ContextGLProgramType.VERTEX, shader.vertexConstantData);
-		context.setProgramConstantsFromArray(ContextGLProgramType.FRAGMENT, shader.fragmentConstantData);
+		if (!modern) {
+			const context: IContextGL = this._stage.context;
+			context.setProgramConstantsFromArray(ContextGLProgramType.VERTEX, shader.vertexConstantData);
+			context.setProgramConstantsFromArray(ContextGLProgramType.FRAGMENT, shader.fragmentConstantData);
+		} else {
+			shader.syncUniforms();
+		}
 
 		if (this._indices)
 			this.getIndexBufferGL().draw(ContextGLDrawMode.TRIANGLES, offset * 3, count * 3 || this.numIndices);
