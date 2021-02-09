@@ -2,7 +2,7 @@ import { AbstractMethodError, Box, Sphere, Matrix3D, Vector3D, AssetBase } from 
 
 import { AttributesBuffer, AttributesView, Float3Attributes, Short3Attributes } from '@awayjs/stage';
 
-import { View, PickingCollision, IPickingEntity } from '@awayjs/view';
+import { View, PickingCollision, IPartitionEntity, ContainerNode } from '@awayjs/view';
 
 import { ElementsEvent, IElements, IMaterial } from '@awayjs/renderer';
 
@@ -261,7 +261,7 @@ export class ElementsBase extends AssetBase implements IElements {
 
 	public getBoxBounds(
 		view: View,
-		entity: IPickingEntity = null,
+		entity: ContainerNode = null,
 		strokeFlag: boolean = true,
 		matrix3D: Matrix3D = null,
 		cache: Box = null,
@@ -286,7 +286,7 @@ export class ElementsBase extends AssetBase implements IElements {
 
 	public hitTestPoint(
 		view: View,
-		entity: IPickingEntity,
+		entity: ContainerNode,
 		x: number, y: number, z: number,
 		box: Box,
 		count: number = 0,

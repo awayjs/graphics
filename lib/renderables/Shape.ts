@@ -1,6 +1,6 @@
 import { Box, Matrix3D, Sphere, Vector3D, AssetBase, Matrix } from '@awayjs/core';
 
-import { PickingCollision, PickEntity, _Pick_PickableBase, IPickingEntity } from '@awayjs/view';
+import { PickingCollision, PickEntity, _Pick_PickableBase } from '@awayjs/view';
 
 import {
 	IMaterial,
@@ -348,20 +348,20 @@ export class _Render_Shape extends _Render_RenderableBase {
 		this._offset = this.shape.offset;
 		this._count = this.shape.count;
 
-		const elements: IElements = this.sourceEntity.animator
-			? (<AnimatorBase> this.sourceEntity.animator).getRenderableElements(this, this.shape.elements)
+		const elements: IElements = (<IRenderEntity> this.sourceEntity.entity).animator
+			? (<AnimatorBase> (<IRenderEntity> this.sourceEntity.entity).animator).getRenderableElements(this, this.shape.elements)
 			: this.shape.elements;
 		return elements.getAbstraction<_Stage_ElementsBase>(this._stage);
 	}
 
 	protected _getRenderMaterial(): _Render_MaterialBase {
 		const material: IMaterial =
-			(<Shape> this._asset).material || this.sourceEntity.material || this.getDefaultMaterial();
+			(<Shape> this._asset).material || (<IRenderEntity> this.sourceEntity.entity).material || this.getDefaultMaterial();
 		return material.getAbstraction<_Render_MaterialBase>(this.renderGroup.getRenderElements(this.shape.elements));
 	}
 
 	protected _getStyle(): Style {
-		return (<Shape> this._asset).style || this.sourceEntity.style;
+		return (<Shape> this._asset).style || (<IRenderEntity> this.sourceEntity.entity).style;
 	}
 
 	protected getDefaultMaterial(): IMaterial {
@@ -424,7 +424,7 @@ export class _Pick_Shape extends _Pick_PickableBase {
 
 		return (<Shape> this._asset).elements.hitTestPoint(
 			this._view,
-			<IPickingEntity> this.sourceEntity,
+			this.sourceEntity,
 			x, y, z,
 			box,
 			(<Shape> this._asset).count,
@@ -441,7 +441,7 @@ export class _Pick_Shape extends _Pick_PickableBase {
 		if (matrix3D)
 			return (<Shape> this._asset).elements.getBoxBounds(
 				this._view,
-				<IPickingEntity> this.sourceEntity,
+				this.sourceEntity,
 				strokeFlag,
 				matrix3D,
 				cache,
@@ -455,7 +455,7 @@ export class _Pick_Shape extends _Pick_PickableBase {
 
 			this._orientedBoxBounds = (<Shape> this._asset).elements.getBoxBounds(
 				this._view,
-				<IPickingEntity> this.sourceEntity,
+				this.sourceEntity,
 				strokeFlag,
 				null,
 				this._orientedBoxBounds,
@@ -520,7 +520,7 @@ export class _Pick_Shape extends _Pick_PickableBase {
 			collision,
 			box,
 			findClosestCollision,
-			(<Shape> this._asset).material || (<IRenderEntity>collision.entity).material,
+			(<Shape> this._asset).material || (<IRenderEntity>collision.entity.entity).material,
 			(<Shape> this._asset).count || (<Shape> this._asset).elements.numVertices,
 			(<Shape> this._asset).offset,
 		);

@@ -27,8 +27,8 @@ export class ParticleRotateToHeadingState extends ParticleStateBase {
 
 	public setRenderState(shader: ShaderBase, renderable: _Render_RenderableBase, animationElements: AnimationElements, animationRegisterData: AnimationRegisterData): void {
 		if ((<ParticleAnimationSet> this._pParticleAnimator.animationSet).hasBillboard) {
-			this._matrix.copyFrom(renderable.sourceEntity.transform.concatenatedMatrix3D);
-			this._matrix.append(shader.view.projection.transform.inverseConcatenatedMatrix3D);
+			this._matrix.copyFrom(renderable.sourceEntity.parent.getMatrix3D());
+			this._matrix.append(shader.view.projection.transform.inverseMatrix3D);
 			shader.setVertexConstFromMatrix(animationRegisterData.getRegisterIndex(this._pAnimationNode, ParticleRotateToHeadingState.MATRIX_INDEX), this._matrix);
 		}
 	}

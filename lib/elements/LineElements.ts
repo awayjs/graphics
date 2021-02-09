@@ -2,7 +2,7 @@ import { Box, Sphere, Vector3D } from '@awayjs/core';
 
 import { AttributesBuffer, AttributesView, Byte4Attributes, Float1Attributes } from '@awayjs/stage';
 
-import { View, PickingCollision, IPickingEntity, IPartitionEntity } from '@awayjs/view';
+import { View, PickingCollision, IPartitionEntity, ContainerNode } from '@awayjs/view';
 
 import { ElementsUtils, IMaterial } from '@awayjs/renderer';
 
@@ -26,12 +26,12 @@ export class LineElements extends ElementsBase {
 
 	public stroke: GraphicsStrokeStyle;
 
-	public getThicknessScale(view: View, entity: IPartitionEntity, strokeFlag: boolean): Vector3D {
+	public getThicknessScale(view: View, entity: ContainerNode, strokeFlag: boolean): Vector3D {
 		if (!strokeFlag && this.stroke.scaleMode == LineScaleMode.HAIRLINE) {
 			this._thicknessScale.identity();
 		} else {
 			if (entity)
-				this._thicknessScale.copyFrom(entity.transform.concatenatedMatrix3D.decompose()[3]);
+				this._thicknessScale.copyFrom(entity.getMatrix3D().decompose()[3]);
 			else
 				this._thicknessScale.identity();
 
@@ -97,7 +97,7 @@ export class LineElements extends ElementsBase {
 
 	public getBoxBounds(
 		view: View,
-		entity: IPickingEntity = null,
+		entity: ContainerNode = null,
 		strokeFlag: boolean = false,
 		matrix3D: Matrix3D = null,
 		cache: Box = null,
@@ -190,7 +190,7 @@ export class LineElements extends ElementsBase {
 
 	public hitTestPoint(
 		view: View,
-		entity: IPickingEntity,
+		entity: ContainerNode,
 		x: number, y: number, z: number,
 		box: Box,
 		count: number = 0,
@@ -421,7 +421,7 @@ export class LineElements extends ElementsBase {
 	// eslint-disable-next-line brace-style
 	{
 		//TODO: peform correct line collision calculations
-		const scale: Vector3D = this.getThicknessScale(view, collision.entity, true);
+		const scale: Vector3D = this.getThicknessScale(view, collision.entity.parent, true);
 		const thickness: number = (scale.x + scale.y) / 2;//approx hack for now
 
 		const rayEntryDistance: number = -collision.rayPosition.z / collision.rayDirection.z;
@@ -519,7 +519,7 @@ export class _Stage_LineElements extends _Stage_ElementsBase {
 		data[oConst01n1 + 2] = -1;
 		data[oConst01n1 + 3] = -1;
 
-		this._scale.copyFrom(renderRenderable.sourceEntity.transform.concatenatedMatrix3D.decompose()[3]);
+		this._scale.copyFrom(renderRenderable.sourceEntity.parent.getMatrix3D().decompose()[3]);
 
 		const stroke: GraphicsStrokeStyle = this._lineElements.stroke;
 		if (stroke && stroke.scaleMode == LineScaleMode.NORMAL) {
@@ -549,8 +549,8 @@ export class _Stage_LineElements extends _Stage_ElementsBase {
 		shader.viewMatrix.copyFrom(shader.view.frustumMatrix3D, true);
 
 		const matrix3D: Matrix3D = Matrix3D.CALCULATION_MATRIX;
-		matrix3D.copyFrom(renderRenderable.sourceEntity.transform.concatenatedMatrix3D);
-		matrix3D.append(shader.view.projection.transform.inverseConcatenatedMatrix3D);
+		matrix3D.copyFrom(renderRenderable.sourceEntity.parent.getMatrix3D());
+		matrix3D.append(shader.view.projection.transform.inverseMatrix3D);
 		shader.sceneMatrix.copyFrom(matrix3D, true);
 
 		context.setProgramConstantsFromArray(ContextGLProgramType.VERTEX, shader.vertexConstantData);

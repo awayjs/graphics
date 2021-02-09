@@ -63,9 +63,9 @@ export class ParticleFollowState extends ParticleStateBase {
 	public setRenderState(shader: ShaderBase, renderable: _Render_RenderableBase, animationElements: AnimationElements, animationRegisterData: AnimationRegisterData): void {
 		if (this._followTarget) {
 			if (this._particleFollowNode._iUsesPosition) {
-				this._targetPos.x = this._followTarget.transform.position.x / renderable.sourceEntity.transform.scale.x;
-				this._targetPos.y = this._followTarget.transform.position.y / renderable.sourceEntity.transform.scale.y;
-				this._targetPos.z = this._followTarget.transform.position.z / renderable.sourceEntity.transform.scale.z;
+				this._targetPos.x = this._followTarget.transform.position.x / renderable.sourceEntity.entity.transform.scale.x;
+				this._targetPos.y = this._followTarget.transform.position.y / renderable.sourceEntity.entity.transform.scale.y;
+				this._targetPos.z = this._followTarget.transform.position.z / renderable.sourceEntity.entity.transform.scale.z;
 			}
 			if (this._particleFollowNode._iUsesRotation) {
 				this._targetEuler.x = this._followTarget.transform.rotation.x;
