@@ -421,7 +421,7 @@ export class LineElements extends ElementsBase {
 	// eslint-disable-next-line brace-style
 	{
 		//TODO: peform correct line collision calculations
-		const scale: Vector3D = this.getThicknessScale(view, collision.entity.parent, true);
+		const scale: Vector3D = this.getThicknessScale(view, collision.entityNode.parent, true);
 		const thickness: number = (scale.x + scale.y) / 2;//approx hack for now
 
 		const rayEntryDistance: number = -collision.rayPosition.z / collision.rayDirection.z;
@@ -519,7 +519,7 @@ export class _Stage_LineElements extends _Stage_ElementsBase {
 		data[oConst01n1 + 2] = -1;
 		data[oConst01n1 + 3] = -1;
 
-		this._scale.copyFrom(renderRenderable.sourceEntity.parent.getMatrix3D().decompose()[3]);
+		this._scale.copyFrom(renderRenderable.node.parent.getMatrix3D().decompose()[3]);
 
 		const stroke: GraphicsStrokeStyle = this._lineElements.stroke;
 		if (stroke && stroke.scaleMode == LineScaleMode.NORMAL) {
@@ -549,7 +549,7 @@ export class _Stage_LineElements extends _Stage_ElementsBase {
 		shader.viewMatrix.copyFrom(shader.view.frustumMatrix3D, true);
 
 		const matrix3D: Matrix3D = Matrix3D.CALCULATION_MATRIX;
-		matrix3D.copyFrom(renderRenderable.sourceEntity.parent.getMatrix3D());
+		matrix3D.copyFrom(renderRenderable.node.parent.getMatrix3D());
 		matrix3D.append(shader.view.projection.transform.inverseMatrix3D);
 		shader.sceneMatrix.copyFrom(matrix3D, true);
 
