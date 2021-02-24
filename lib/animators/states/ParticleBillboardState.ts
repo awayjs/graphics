@@ -1,6 +1,4 @@
-import { Matrix3D, Orientation3D, Vector3D, MathConsts, ProjectionBase } from '@awayjs/core';
-
-import { Stage } from '@awayjs/stage';
+import { Matrix3D, Orientation3D, Vector3D, MathConsts } from '@awayjs/core';
 
 import { ShaderBase, _Render_RenderableBase, AnimationRegisterData } from '@awayjs/renderer';
 

@@ -1,6 +1,6 @@
-import { Vector3D, MathConsts, ProjectionBase } from '@awayjs/core';
+import { Vector3D } from '@awayjs/core';
 
-import { Stage, ContextGLVertexBufferFormat } from '@awayjs/stage';
+import { ContextGLVertexBufferFormat } from '@awayjs/stage';
 
 import { ShaderBase, _Render_RenderableBase, AnimationRegisterData, IRenderEntity } from '@awayjs/renderer';
 

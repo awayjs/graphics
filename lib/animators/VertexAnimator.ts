@@ -1,13 +1,7 @@
-import { ProjectionBase } from '@awayjs/core';
-
 import { IElements, AnimationRegisterData, ShaderBase, _Render_RenderableBase, _Stage_ElementsBase } from '@awayjs/renderer';
-
-import { Stage } from '@awayjs/stage';
 
 import { Shape, _Render_Shape } from '../renderables/Shape';
 import { TriangleElements } from '../elements/TriangleElements';
-
-import { Graphics } from '../Graphics';
 
 import { VertexAnimationMode } from './data/VertexAnimationMode';
 import { IVertexAnimationState } from './states/IVertexAnimationState';

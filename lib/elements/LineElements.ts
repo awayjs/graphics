@@ -2,7 +2,7 @@ import { Box, Sphere, Vector3D } from '@awayjs/core';
 
 import { AttributesBuffer, AttributesView, Byte4Attributes, Float1Attributes } from '@awayjs/stage';
 
-import { View, PickingCollision, IPartitionEntity, ContainerNode } from '@awayjs/view';
+import { View, PickingCollision, ContainerNode } from '@awayjs/view';
 
 import { ElementsUtils, IMaterial } from '@awayjs/renderer';
 

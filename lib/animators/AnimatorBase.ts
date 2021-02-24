@@ -1,6 +1,4 @@
-import { Vector3D, AssetBase, AbstractMethodError, RequestAnimationFrame, ProjectionBase, getTimer } from '@awayjs/core';
-
-import { Stage } from '@awayjs/stage';
+import { Vector3D, AssetBase, AbstractMethodError, RequestAnimationFrame, getTimer } from '@awayjs/core';
 
 import { ShaderBase, IAnimator, AnimationNodeBase, IRenderEntity, _Render_RenderableBase, IElements } from '@awayjs/renderer';
 

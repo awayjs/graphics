@@ -1,6 +1,4 @@
-import { ColorTransform, ProjectionBase } from '@awayjs/core';
-
-import { Stage } from '@awayjs/stage';
+import { ColorTransform } from '@awayjs/core';
 
 import { ShaderBase, _Render_RenderableBase, AnimationRegisterData } from '@awayjs/renderer';
 

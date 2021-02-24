@@ -1,7 +1,3 @@
-import { ProjectionBase } from '@awayjs/core';
-
-import { Stage } from '@awayjs/stage';
-
 import { IElements, ShaderBase, _Render_RenderableBase, AnimationRegisterData } from '@awayjs/renderer';
 
 import { _Render_Shape } from '../renderables/Shape';

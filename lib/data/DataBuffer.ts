@@ -711,13 +711,14 @@ export class DataBuffer implements IDataInput, IDataOutput {
 	}
 
 	writeMultiByte(value: string, charSet: string): void {
-	  value = axCoerceString(value); charSet = axCoerceString(charSet);
-	  if (charSet == 'UTF-8') {
+		value = axCoerceString(value);
+		charSet = axCoerceString(charSet);
+		if (charSet == 'UTF-8') {
 			const bytes = utf8decode(value);
 			this.writeRawBytes(bytes);
-	  } else {
+		} else {
 			console.log('packageInternal flash.utils.ObjectOutput::writeMultiByte only encoding supported is UTF-8');
-	  }
+		}
 	}
 
 	readMultiByte(length: number /*uint*/, charSet: string): string {

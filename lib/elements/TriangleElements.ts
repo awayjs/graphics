@@ -1,6 +1,6 @@
 import { Rectangle, Box, Sphere, Matrix3D, Vector3D, Point } from '@awayjs/core';
 
-import { View, IPartitionEntity, PickingCollision, ContainerNode } from '@awayjs/view';
+import { View, PickingCollision, ContainerNode } from '@awayjs/view';
 
 import { ElementsEvent, ElementsUtils, IMaterial } from '@awayjs/renderer';
 

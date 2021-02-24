@@ -2,7 +2,7 @@ import { AbstractMethodError, Box, Sphere, Matrix3D, Vector3D, AssetBase } from 
 
 import { AttributesBuffer, AttributesView, Float3Attributes, Short3Attributes } from '@awayjs/stage';
 
-import { View, PickingCollision, IPartitionEntity, ContainerNode } from '@awayjs/view';
+import { View, PickingCollision, ContainerNode } from '@awayjs/view';
 
 import { ElementsEvent, IElements, IMaterial } from '@awayjs/renderer';
 

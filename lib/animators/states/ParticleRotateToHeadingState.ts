@@ -1,6 +1,4 @@
-import { Matrix3D, ProjectionBase } from '@awayjs/core';
-
-import { Stage } from '@awayjs/stage';
+import { Matrix3D } from '@awayjs/core';
 
 import { ShaderBase, _Render_RenderableBase, AnimationRegisterData } from '@awayjs/renderer';
 

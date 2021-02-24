@@ -54,7 +54,7 @@ export class PathSegment {
 	}
 
 	morphCurveTo(cpx: number, cpy: number, x: number, y: number,
-				 mcpx: number, mcpy: number, mx: number, my: number) {
+		mcpx: number, mcpy: number, mx: number, my: number) {
 		this.curveTo(cpx, cpy, x, y);
 		this.morphData.write4Ints(mcpx, mcpy, mx, my);
 	}
@@ -195,7 +195,7 @@ export class PathSegment {
 		}
 		for (let i = commandsCount; i-- > 1;) {
 			dataPosition -= 2;
-			const command: PathCommand = commands[i];
+
 			switch (commands[i]) {
 				case PathCommand.MoveTo:
 					//console.log("moveTo",data[dataPosition]/20, data[dataPosition+1]/20);

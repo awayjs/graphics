@@ -1,6 +1,6 @@
-import { Vector3D, ColorTransform, ProjectionBase } from '@awayjs/core';
+import { Vector3D, ColorTransform } from '@awayjs/core';
 
-import { Stage, ContextGLVertexBufferFormat } from '@awayjs/stage';
+import { ContextGLVertexBufferFormat } from '@awayjs/stage';
 
 import { ShaderBase, _Render_RenderableBase, AnimationRegisterData } from '@awayjs/renderer';
 
@@ -118,7 +118,6 @@ export class ParticleColorState extends ParticleStateBase {
 	public setRenderState(shader: ShaderBase, renderable: _Render_RenderableBase, animationElements: AnimationElements, animationRegisterData: AnimationRegisterData): void {
 		if (shader.usesFragmentAnimation) {
 			let dataOffset: number = this._particleColorNode._iDataOffset;
-			let index: number;
 			if (this._usesCycle)
 				shader.setVertexConst(animationRegisterData.getRegisterIndex(this._pAnimationNode, ParticleColorState.CYCLE_INDEX), this._cycleData.x, this._cycleData.y, this._cycleData.z, this._cycleData.w);
 

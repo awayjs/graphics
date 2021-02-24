@@ -266,7 +266,7 @@ export class ShapeData {
 	}
 
 	cubicCurveTo(controlX1: number, controlY1: number, controlX2: number, controlY2: number,
-				 anchorX: number, anchorY: number): void {
+		anchorX: number, anchorY: number): void {
 		this.ensurePathCapacities(1, 6);
 		this.commands[this.commandsPosition++] = PathCommand.CubicCurveTo;
 		this.coordinates[this.coordinatesPosition++] = controlX1;
@@ -299,7 +299,7 @@ export class ShapeData {
 	}
 
 	lineStyle(thickness: number, color: number, pixelHinting: boolean,
-			  scaleMode: LineScaleMode, caps: number, joints: number, miterLimit: number): void {
+		scaleMode: LineScaleMode, caps: number, joints: number, miterLimit: number): void {
 		assert(thickness === (thickness|0), thickness >= 0 && thickness <= 0xff * 20);
 		this.ensurePathCapacities(2, 0);
 		this.commands[this.commandsPosition++] = PathCommand.LineStyleSolid;
@@ -348,8 +348,8 @@ export class ShapeData {
 	 * be one of BeginGradientFill and LineStyleGradient.
 	 */
 	beginGradient(pathCommand: PathCommand, colors: number[], ratios: number[],
-				  gradientType: number, matrix: ShapeMatrix,
-				  spread: number, interpolation: number, focalPointRatio: number) {
+		gradientType: number, matrix: ShapeMatrix,
+		spread: number, interpolation: number, focalPointRatio: number) {
 		assert(pathCommand === PathCommand.BeginGradientFill ||
 			pathCommand === PathCommand.LineStyleGradient);
 

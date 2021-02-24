@@ -18,7 +18,7 @@
 /* LzmaSpec.c -- LZMA Reference Decoder
  2013-07-28 : Igor Pavlov : Public domain */
 
-import { IDataDecoder, memCopy } from './utilities';
+import { IDataDecoder } from './utilities';
 class InputStream {
 	available: number;
 	pos: number;
@@ -316,7 +316,7 @@ const kNumPosBitsMax = 4;
 const kNumStates = 12;
 const kNumLenToPosStates = 4;
 const kNumAlignBits = 4;
-const kStartPosModelIndex = 4;
+//const kStartPosModelIndex = 4;
 const kEndPosModelIndex = 14;
 const kNumFullDistances = 1 << (kEndPosModelIndex >> 1);
 const kMatchMinLen = 2;
@@ -687,9 +687,10 @@ export class LzmaDecoder implements IDataDecoder {
 		if (this._state < LzmaDecoderState.PROCESS_DATA) {
 			const buffered = this.buffer ? this.buffer.length : 0;
 			const headerBytesExpected =
-          (this._state === LzmaDecoderState.WAIT_FOR_SWF_HEADER ?
-          	SWF_LZMA_HEADER_LENGTH : STANDARD_LZMA_HEADER_LENGTH) +
-          EXTRA_LZMA_BYTES_NEEDED;
+				(this._state === LzmaDecoderState.WAIT_FOR_SWF_HEADER
+					? SWF_LZMA_HEADER_LENGTH
+					: STANDARD_LZMA_HEADER_LENGTH)
+				+ EXTRA_LZMA_BYTES_NEEDED;
 			if (buffered + data.length < headerBytesExpected) {
 				const newBuffer = new Uint8Array(buffered + data.length);
 				if (buffered > 0) {

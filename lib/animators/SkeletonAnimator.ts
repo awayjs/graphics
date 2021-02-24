@@ -1,8 +1,6 @@
-import { Quaternion, Vector3D, ProjectionBase } from '@awayjs/core';
+import { Quaternion, Vector3D } from '@awayjs/core';
 
-import { ShaderBase, _Render_RenderableBase, _Stage_ElementsBase, ElementsEvent, IElements } from '@awayjs/renderer';
-
-import { Stage } from '@awayjs/stage';
+import { ShaderBase, _Render_RenderableBase, ElementsEvent, IElements } from '@awayjs/renderer';
 
 import { TriangleElements } from '../elements/TriangleElements';
 import { _Render_Shape } from '../renderables/Shape';
