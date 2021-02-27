@@ -14,7 +14,7 @@ import { MaterialManager } from '../managers/MaterialManager';
 export class GraphicsFactoryHelper {
 	public static _tess_obj: any;
 
-	public static drawRectangles(inputRectangles: number[], color: number, alpha: number): Shape {
+	public static drawRectangles (inputRectangles: number[], color: number, alpha: number): Shape {
 
 		if (inputRectangles.length % 4 > 0) {
 			console.log(

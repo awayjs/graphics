@@ -11,7 +11,7 @@ import {
 	AssetEvent,
 } from '@awayjs/core';
 
-import { BitmapImage2D } from '@awayjs/stage';
+import { BitmapImage2D, ImageSampler } from '@awayjs/stage';
 
 import { IEntityTraverser, PickEntity } from '@awayjs/view';
 
@@ -45,13 +45,15 @@ import { MaterialManager } from './managers/MaterialManager';
 import { LineElements } from './elements/LineElements';
 import { ManagedPool } from './ManagedPool';
 import { Settings } from './Settings';
-import { FillStyle, LineStyle } from './flash/ShapeStyle';
-import { ShapeRecord, ShapeRecordFlags, ShapeTag } from './flash/ShapeTag';
+import { FillStyle, LineStyle, ShapeStyle } from './flash/ShapeStyle';
+import { BBox, ShapeRecord, ShapeRecordFlags, ShapeTag } from './flash/ShapeTag';
 import { StyleUtils } from './flash/StyleUtils';
+import { Shape9Slice } from './renderables/Shape9Slice';
 
 GraphicsFactoryFills.prepareWasm();
 
 const Array_push = Array.prototype.push;
+const fromTwips = (val: number) => Math.round(val / 20);
 
 /**
  *
@@ -68,6 +70,68 @@ const Array_push = Array.prototype.push;
 
 export class Graphics extends AssetBase {
 	private static _pool: Array<Graphics> = new Array<Graphics>();
+
+	public static getShapeForBitmap (
+		bitmap: BitmapImage2D,
+		rect: Rectangle,
+		as9slice = false
+	): Shape<TriangleElements> | Shape9Slice {
+
+		if (as9slice) {
+			return new Shape9Slice (rect, bitmap);
+		}
+
+		const mat = MaterialManager.getMaterialForBitmap(bitmap, Settings.EXPEREMENTAL_MATERIAL_FOR_IMAGE);
+		const style = mat.style;
+
+		style.sampler = new ImageSampler(false, true, false);
+		style.addSamplerAt(style.sampler, mat.getTextureAt(0));
+
+		return Shape.getShape<TriangleElements> (Shape.getTriangleElement(rect, false, true), mat, style);
+	}
+
+	public static getShapeForBitmapStyle (shapeStyle: ShapeStyle, flashBox: BBox): Shape {
+
+		const style = new Style();
+		const rect = new Rectangle(
+			fromTwips(flashBox.xMin),
+			fromTwips(flashBox.yMin),
+			fromTwips(flashBox.xMax - flashBox.xMin),
+			fromTwips(flashBox.yMax - flashBox.yMin),
+		);
+
+		const element = Shape.getTriangleElement(rect);
+
+		element.usages++;
+
+		const { a, b, c, d, tx, ty } = shapeStyle.transform;
+		const texture = shapeStyle.material.getTextureAt(0);
+		const mat = MaterialManager.getMaterialForBitmap(
+			<BitmapImage2D>texture.getImageAt(0),
+			// this will generate special material based on RAW GLSL
+			Settings.EXPEREMENTAL_MATERIAL_FOR_IMAGE
+		);
+
+		const bitmapFillStyle = new BitmapFillStyle(
+			mat,
+			new Matrix(a, b, c ,d, tx, ty),
+			shapeStyle.repeat,
+			shapeStyle.smooth
+		);
+
+		const material = bitmapFillStyle.material;
+		//enforce image smooth style
+		const sampler = new ImageSampler(
+			bitmapFillStyle.repeat, bitmapFillStyle.smooth, shapeStyle.smooth);
+
+		material.style.sampler = sampler;
+		material.animateUVs = true;
+
+		style.addSamplerAt(sampler, texture);
+		style.uvMatrix = bitmapFillStyle.getUVMatrix();
+
+		return Shape.getShape(element, material, style);
+	}
 
 	public static getGraphics(): Graphics {
 		if (Graphics._pool.length)
@@ -1907,7 +1971,7 @@ export class Graphics extends AssetBase {
 			const style = StyleUtils.processStyle(tag.fillStyles[1], false, false, tag.parser);
 			const bounds = tag.fillBounds || tag.lineBounds;
 
-			this.addShapeInternal(Shape.getShapeForBitmap(style, bounds));
+			this.addShapeInternal(Graphics.getShapeForBitmapStyle(style, bounds));
 			return;
 		}
 

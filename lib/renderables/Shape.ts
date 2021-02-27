@@ -1,4 +1,4 @@
-import { Box, Matrix3D, Sphere, Vector3D, AssetBase, Matrix } from '@awayjs/core';
+import { Box, Matrix3D, Sphere, Vector3D, AssetBase, Rectangle } from '@awayjs/core';
 
 import { PickingCollision, PickEntity, _Pick_PickableBase } from '@awayjs/view';
 
@@ -25,28 +25,30 @@ import { TriangleElements } from '../elements/TriangleElements';
  *
  * @class away.base.Graphic
  */
-export class Shape extends AssetBase {
+export class Shape<T extends ElementsBase = ElementsBase> extends AssetBase {
 	private static _pool: Array<Shape> = new Array<Shape>();
 
-	public static getShape(
-		elements: ElementsBase,
+	public static getShape<T extends ElementsBase>(
+		elements: T,
 		material: IMaterial = null,
 		style: Style = null,
 		count: number = 0,
 		offset: number = 0,
-	): Shape // eslint-disable-next-line brace-style
+	): Shape<T> // eslint-disable-next-line brace-style
 	{
 		if (Shape._pool.length) {
 			const shape: Shape = Shape._pool.pop();
+
 			shape.elements = elements;
 			shape.material = material;
 			shape.style = style;
 			shape.count = count;
 			shape.offset = offset;
-			return shape;
+
+			return shape as Shape<T>;
 		}
 
-		return new Shape(elements, material, style, count, offset);
+		return new Shape<T>(elements, material, style, count, offset);
 	}
 
 	public static clearPool() {
@@ -55,71 +57,104 @@ export class Shape extends AssetBase {
 
 	public static assetType: string = '[asset Shape]';
 
-	private static _imageShapeElements: Record<string, TriangleElements> = {};
-	private static getElement(rectangle: BBox): TriangleElements {
-		const { xMax, xMin, yMax, yMin } = rectangle;
-		const id = [xMin, yMin, xMax, yMax].join(',');
-		const round = (x: number) => (x / 20) | 0;
+	public static quadElement (rect: Rectangle, slices: number = 1, genUv: boolean = false): TriangleElements {
 
-		let elements = this._imageShapeElements[id];
+		const verts = [];
+		const uvs = [];
+
+		const w = rect.width / slices;
+		const h = rect.height / slices;
+
+		const ix = rect.x;
+		const iy = rect.y;
+
+		for (let i = 0; i < slices; i++) {
+			for (let j = 0; j < slices; j++) {
+
+				const x = ix + j * w;
+				const y = iy + i * h;
+				const right = x + w;
+				const bottom = y + h;
+
+				verts.push(
+					x, y , 0,
+					right, bottom, 0,
+					right, y, 0,
+
+					x, y, 0,
+					x, bottom, 0,
+					right, bottom, 0,
+				);
+
+				if (uvs) {
+					uvs.push(
+						j / slices, i / slices,
+						(j + 1) / slices, (i + 1) / slices,
+						(j + 1) / slices, i / slices,
+
+						j / slices, i / slices,
+						j / slices, (i + 1) / slices,
+						(j + 1) / slices, (i + 1) / slices,
+					);
+				}
+
+			}
+		}
+
+		const elements = new TriangleElements();
+		elements.setPositions(verts);
+		genUv && elements.setUVs(uvs);
+
+		return elements;
+	}
+
+	// legacy
+	public static getElement(rectangle: Rectangle): TriangleElements {
+		const { x, y, right, bottom } = rectangle;
+
+		const elements = new TriangleElements();
+
+		elements.setPositions(
+			[
+				x, y, 0,
+				right, y, 0,
+				right, bottom, 0,
+
+				x, y, 0,
+				x, bottom, 0,
+				right, bottom, 0,
+			]);
+
+		return elements;
+	}
+
+	private static _imageShapeElements: Record<string, TriangleElements> = {};
+	public static getTriangleElement(rectangle: Rectangle, cache = true, uv = false, slices = 1): TriangleElements {
+		const id = rectangle.toString();
+
+		let elements = cache ? this._imageShapeElements[id] : null;
 
 		if (!elements) {
-			elements = this._imageShapeElements[id] = new TriangleElements(/*new AttributesBuffer(11, 4)*/);
-			elements.setIndices([
-				0, 1, 2,
-				0, 2, 3]
-			);
-			elements.setPositions(
-				[
-					round(xMin), round(yMin), 0,
-					round(xMax), round(yMin), 0,
-					round(xMax), round(yMax), 0,
-					round(xMin), round(yMax), 0
-				]);
+			elements = Shape.quadElement(rectangle, slices, uv);
+
+			if (cache) {
+				this._imageShapeElements[id] = elements;
+				// remove it from pool, when forget about shared usage
+				elements.addEventListener(AssetEvent.CLEAR, () => {
+					delete this._imageShapeElements[id];
+					elements.usages = 0;
+				});
+				elements.usages++;
+			}
 		}
 
 		return elements;
 	}
 
-	public static getShapeForBitmap (shapeStyle: ShapeStyle, rectangle: BBox): Shape {
-		const style = new Style();
-		const element = this.getElement(rectangle);
-
-		element.usages++;
-
-		const { a, b, c, d, tx, ty } = shapeStyle.transform;
-		const texture = shapeStyle.material.getTextureAt(0);
-		const mat = MaterialManager.getMaterialForBitmap(
-			<BitmapImage2D>texture.getImageAt(0),
-			// this will generate special material based on RAW GLSL
-			Settings.EXPEREMENTAL_MATERIAL_FOR_IMAGE
-		);
-
-		const bitmapFillStyle = new BitmapFillStyle(
-			mat,
-			new Matrix(a, b, c ,d, tx, ty),
-			shapeStyle.repeat,
-			shapeStyle.smooth
-		);
-
-		const material = bitmapFillStyle.material;
-		//enforce image smooth style
-		const sampler = new ImageSampler(
-			bitmapFillStyle.repeat, bitmapFillStyle.smooth, shapeStyle.smooth);
-
-		material.style.sampler = sampler;
-		material.animateUVs = true;
-
-		style.addSamplerAt(sampler, texture);
-		style.uvMatrix = bitmapFillStyle.getUVMatrix();
-
-		return Shape.getShape(element, material, style);
-	}
-
 	private _onInvalidatePropertiesDelegate: (event: StyleEvent) => void;
 	private _onInvalidateVerticesDelegate: (event: ElementsEvent) => void;
 
-	private _elements: ElementsBase;
+	private _elements: T;
 	private _material: IMaterial;
 	private _style: Style;
 
@@ -134,11 +169,11 @@ export class Shape extends AssetBase {
 	/**
 	 * The Elements object which provides the geometry data for this Shape.
 	 */
-	public get elements(): ElementsBase {
+	public get elements(): T {
 		return this._elements;
 	}
 
-	public set elements(value: ElementsBase) {
+	public set elements(value: T) {
 		if (this._elements == value) return;
 
 		if (this._elements) {
@@ -206,7 +241,7 @@ export class Shape extends AssetBase {
 	 * Creates a new Shape object
 	 */
 	constructor(
-		elements: ElementsBase,
+		elements: T,
 		material: IMaterial = null,
 		style: Style = null,
 		count: number = 0,
@@ -303,12 +338,6 @@ import {
 
 import { AnimatorBase } from '../animators/AnimatorBase';
 import { LineElements } from '../elements/LineElements';
-import { BitmapImage2D, ImageSampler } from '@awayjs/stage';
-import { ShapeStyle } from '../flash/ShapeStyle';
-import { BitmapFillStyle } from '../draw/BitmapFillStyle';
-import { BBox } from '../flash/ShapeTag';
-import { MaterialManager } from '../managers/MaterialManager';
-import { Settings } from '../Settings';
 
 /**
  * @class away.pool._Render_Shape
