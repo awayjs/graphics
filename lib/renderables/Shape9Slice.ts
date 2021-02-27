@@ -1,6 +1,6 @@
 import { Rectangle } from '@awayjs/core';
 import { Style } from '@awayjs/renderer';
-import { AttributesView, BitmapImage2D, ImageSampler } from '@awayjs/stage';
+import { BitmapImage2D, ImageSampler } from '@awayjs/stage';
 import { TriangleElements } from '../elements/TriangleElements';
 import { MaterialManager } from '../managers/MaterialManager';
 import { Settings } from '../Settings';
@@ -33,8 +33,11 @@ import { Shape } from './Shape';
 export class Shape9Slice extends Shape<TriangleElements> {
 	private _initialRect: Rectangle;
 	private _slice: Rectangle;
+	private _paddedSlice: Rectangle = new Rectangle();
+
 	private _scaleX: number = 1;
 	private _scaleY: number = 1;
+	public padding: number = 0;
 
 	constructor (frame: Rectangle, bitmap: BitmapImage2D) {
 		super (
@@ -81,25 +84,6 @@ export class Shape9Slice extends Shape<TriangleElements> {
 
 		this._scaleY = v;
 		this._updatePos();
-	}
-
-	private _changeBufferData(attr: AttributesView, data: ArrayLike<number>[]) {
-		const buff = attr.get(0, this.elements._numVertices);
-		const stride = attr.stride;
-		const dim = attr.dimensions;
-		const count = attr.count;
-
-		for (let i = 0; i < count; i++) {
-
-			const sub = data[i / 4 | 0];
-			const subIndex = (i % 4) * dim;
-
-			for (let j = 0; j < dim; j++) {
-				buff[i * stride + j] = sub[subIndex + j];
-			}
-		}
-
-		attr.invalidate();
 	}
 
 	private _updateUV() {
@@ -223,11 +207,14 @@ export class Shape9Slice extends Shape<TriangleElements> {
 		const init = this._initialRect;
 		const slice = this._slice;
 
-		const left = Math.min(0, init.x - slice.x / this._scaleX);
-		const right = Math.max(0, init.right - (init.right - slice.right) / this._scaleX);
+		const scaleY = Math.max(this.scaleY, (init.height - slice.height) / init.height);
+		const scaleX = Math.max(this.scaleX, (init.width - slice.width) / init.width);
 
-		const top = Math.min(0, init.y - slice.y / this._scaleY);
-		const bottom = Math.max(0, init.bottom - (init.bottom - slice.bottom) / this._scaleY);
+		const left = init.x - slice.x / scaleX;
+		const right = init.right - (init.right - slice.right) / scaleX;
+
+		const top = init.y - slice.y / scaleY;
+		const bottom = init.bottom - (init.bottom - slice.bottom) / scaleY;
 
 		for (let i = 0; i < 9; i += 3) {
 			// qo - quad offset, offset remap global offset to subQuad
@@ -342,6 +329,13 @@ export class Shape9Slice extends Shape<TriangleElements> {
 		}
 
 		this._slice = (rect || this._initialRect).clone();
+
+		/*
+		this._paddedSlice.copyFrom(this._slice);
+		this._paddedSlice.x -= this.padding / 2;
+		this._paddedSlice.y -= this.padding / 2;
+		this._paddedSlice.width += this.padding;
+		this._paddedSlice.height += this.padding;*/
 
 		this._updatePos();
 		this._updateUV();
