@@ -1,5 +1,5 @@
 import { Rectangle } from '@awayjs/core';
-import { Style } from '@awayjs/renderer';
+import { ElementsUtils, Style } from '@awayjs/renderer';
 import { BitmapImage2D, ImageSampler } from '@awayjs/stage';
 import { TriangleElements } from '../elements/TriangleElements';
 import { MaterialManager } from '../managers/MaterialManager';
@@ -33,7 +33,6 @@ import { Shape } from './Shape';
 export class Shape9Slice extends Shape<TriangleElements> {
 	private _initialRect: Rectangle;
 	private _slice: Rectangle;
-	private _paddedSlice: Rectangle = new Rectangle();
 
 	private _scaleX: number = 1;
 	private _scaleY: number = 1;
@@ -210,10 +209,10 @@ export class Shape9Slice extends Shape<TriangleElements> {
 		const scaleY = Math.max(this.scaleY, (init.height - slice.height) / init.height);
 		const scaleX = Math.max(this.scaleX, (init.width - slice.width) / init.width);
 
-		const left = init.x - slice.x / scaleX;
+		const left = init.x + (slice.x - init.x) / scaleX;
 		const right = init.right - (init.right - slice.right) / scaleX;
 
-		const top = init.y - slice.y / scaleY;
+		const top = init.y + (slice.y - init.y) / scaleY;
 		const bottom = init.bottom - (init.bottom - slice.bottom) / scaleY;
 
 		for (let i = 0; i < 9; i += 3) {
@@ -227,6 +226,11 @@ export class Shape9Slice extends Shape<TriangleElements> {
 				= pos[qo + 2 * s]
 				= pos[qo + 5 * s] = left;
 
+			// quads 1, 4, 7, left edge vertices
+			pos[qo + 0 * s]
+				= pos[qo + 3 * s]
+				= pos[qo + 4 * s] = init.x;
+
 			// quads 2, 5, 8, left edge vertices
 			pos[qo1 + 3 * s]
 				= pos[qo1 + 4 * s]
@@ -238,24 +242,36 @@ export class Shape9Slice extends Shape<TriangleElements> {
 			const qo = 6 * i * s + o;
 			const qo1 = 6 * (i + 1) * s + o;
 
-			// quads 2, 5, 8, rigt edge vertices
+			// quads 2, 5, 8, right edge vertices
+			pos[qo + 1 * s]
+				= pos[qo + 2 * s]
+				= pos[qo + 5 * s] = right;
+
+			// quads 3, 6, 9, left edge vertices
 			pos[qo1 + 3 * s]
 				= pos[qo1 + 4 * s]
 				= pos[qo1 + 0 * s] = right;
 
 			// quads 3, 6, 9, left edge vertices
-			pos[qo + 1 * s]
-				= pos[qo + 2 * s]
-				= pos[qo + 5 * s] = right;
+			pos[qo1 + 1 * s]
+				= pos[qo1 + 2 * s]
+				= pos[qo1 + 5 * s] = init.right;
+
 		}
 
 		for (let i = 0; i < 3; i++) {
 			const qo = 6 * i * s + o;
 
+			// quads 1, 2, 3, top edge vertices
+			pos[qo + 0 * s + 1]
+				= pos[qo + 2 * s + 1]
+				= pos[qo + 3 * s + 1] = init.y;
+
 			// quads 1, 2, 3, bottom edge vertices
 			pos[qo + 1 * s + 1]
 				= pos[qo + 4 * s + 1]
 				= pos[qo + 5 * s + 1] = top;
+
 		}
 
 		for (let i = 3; i < 6; i++) {
@@ -275,7 +291,12 @@ export class Shape9Slice extends Shape<TriangleElements> {
 		for (let i = 6; i < 9; i++) {
 			const qo = 6 * i * s + o;
 
-			// quads 1, 2, 3, bottom edge vertices
+			// quads 7, 8, 9, top edge vertices
+			pos[qo + 1 * s + 1]
+				= pos[qo + 4 * s + 1]
+				= pos[qo + 5 * s + 1] = init.bottom;
+
+			// quads 7, 8, 9, top edge vertices
 			pos[qo + 0 * s + 1]
 				= pos[qo + 2 * s + 1]
 				= pos[qo + 3 * s + 1] = bottom;
@@ -319,6 +340,7 @@ export class Shape9Slice extends Shape<TriangleElements> {
 		*/
 
 		attribute.invalidate();
+		this.elements.invalidate();
 	}
 
 	public set slice(rect: Rectangle) {
@@ -330,18 +352,12 @@ export class Shape9Slice extends Shape<TriangleElements> {
 
 		this._slice = (rect || this._initialRect).clone();
 
-		/*
-		this._paddedSlice.copyFrom(this._slice);
-		this._paddedSlice.x -= this.padding / 2;
-		this._paddedSlice.y -= this.padding / 2;
-		this._paddedSlice.width += this.padding;
-		this._paddedSlice.height += this.padding;*/
-
-		this._updatePos();
 		this._updateUV();
+		this._updatePos();
 
-		this.invalidate();
+		this.elements.invalidate();
 		this.invalidateElements();
+		this.invalidate();
 	}
 
 	public get slice() {
