@@ -9,7 +9,15 @@ import { HitTestCache } from './HitTestCache';
 export class TriangleElementsUtils {
 	//TODO - generate this dyanamically based on num tris
 
-	public static hitTest(x: number, y: number, z: number, box: Box, triangleElements: TriangleElements, count: number, offset: number = 0): boolean {
+	public static hitTest(
+		x: number,
+		y: number,
+		z: number,
+		box: Box,
+		triangleElements: TriangleElements,
+		count: number,
+		offset: number = 0,
+	): boolean {
 		const positionAttributes: AttributesView = triangleElements.positions;
 		const curveAttributes: AttributesView = triangleElements.getCustomAtributes('curves');
 
@@ -42,7 +50,8 @@ export class TriangleElementsUtils {
 		let cx: number;
 		let cy: number;
 
-		const hitTestCache: HitTestCache = triangleElements.hitTestCache[offset] || (triangleElements.hitTestCache[offset] = new HitTestCache());
+		const hitTestCache: HitTestCache =
+			triangleElements.hitTestCache[offset] || (triangleElements.hitTestCache[offset] = new HitTestCache());
 		const index: number = hitTestCache.lastCollisionIndex;
 
 		if (index != -1 && index < len) {
@@ -65,61 +74,56 @@ export class TriangleElementsUtils {
 				cy = positions[id2 * posStride + 1];
 
 				//from a to p
-				var dx: number = ax - x;
-				var dy: number = ay - y;
+				let dx = ax - x;
+				let dy = ay - y;
 
 				//edge normal (a-b)
-				var nx: number = by - ay;
-				var ny: number = -(bx - ax);
+				let nx = by - ay;
+				let ny = -(bx - ax);
 
-				var dot: number = (dx * nx) + (dy * ny);
+				let dot = dx * nx + dy * ny;
 
-				if (dot > 0)
-					break precheck;
+				if (dot > 0) break precheck;
 
 				dx = bx - x;
 				dy = by - y;
 				nx = cy - by;
 				ny = -(cx - bx);
 
-				dot = (dx * nx) + (dy * ny);
+				dot = dx * nx + dy * ny;
 
-				if (dot > 0)
-					break precheck;
+				if (dot > 0) break precheck;
 
 				dx = cx - x;
 				dy = cy - y;
 				nx = ay - cy;
 				ny = -(ax - cx);
 
-				dot = (dx * nx) + (dy * ny);
+				dot = dx * nx + dy * ny;
 
-				if (dot > 0)
-					break precheck;
+				if (dot > 0) break precheck;
 
 				if (curves) {
 					//check if not solid
 					if (curves[id0 * curveStride + 2] != -128) {
+						const v0x = bx - ax;
+						const v0y = by - ay;
+						const v1x = cx - ax;
+						const v1y = cy - ay;
+						const v2x = x - ax;
+						const v2y = y - ay;
 
-						var v0x: number = bx - ax;
-						var v0y: number = by - ay;
-						var v1x: number = cx - ax;
-						var v1y: number = cy - ay;
-						var v2x: number = x - ax;
-						var v2y: number = y - ay;
-
-						var den: number = v0x * v1y - v1x * v0y;
-						var v: number = (v2x * v1y - v1x * v2y) / den;
-						var w: number = (v0x * v2y - v2x * v0y) / den;
+						const den = v0x * v1y - v1x * v0y;
+						const v = (v2x * v1y - v1x * v2y) / den;
+						const w = (v0x * v2y - v2x * v0y) / den;
 						//var u:number = 1 - v - w;	//commented out as inlined away
 
 						//here be dragons
-						var uu: number = 0.5 * v + w;
-						var vv: number = w;
+						const uu = 0.5 * v + w;
+						const vv = w;
+						const d = uu * uu - vv;
+						const az = curves[id0 * curveStride];
 
-						var d: number = uu * uu - vv;
-
-						var az: number = curves[id0 * curveStride];
 						if (d > 0 && az == -128) {
 							break precheck;
 						} else if (d < 0 && az == 127) {
@@ -135,18 +139,21 @@ export class TriangleElementsUtils {
 		//hard coded min vertex count to bother using a grid for
 		if (len > 150) {
 			const cells: Array<Array<number>> = hitTestCache.cells;
-			const divisions: number = cells.length ? hitTestCache.divisions : (hitTestCache.divisions = Math.min(Math.ceil(Math.sqrt(len)), 32));
+			const divisions: number = cells.length
+				? hitTestCache.divisions
+				: (hitTestCache.divisions = Math.min(Math.ceil(Math.sqrt(len)), 32));
 			const conversionX: number = divisions / box.width;
 			const conversionY: number = divisions / box.height;
 			const minx: number = box.x;
 			const miny: number = box.y;
 
-			if (!cells.length) { //build grid
+			if (!cells.length) {
+				//build grid
 
 				//now we have bounds start creating grid cells and filling
 				cells.length = divisions * divisions;
 
-				for (var k: number = 0; k < len; k += 3) {
+				for (let k = 0; k < len; k += 3) {
 					if (indices) {
 						id0 = indices[k + 2];
 						id1 = indices[k + 1];
@@ -174,7 +181,7 @@ export class TriangleElementsUtils {
 					for (let i: number = min_index_x; i <= max_index_x; i++) {
 						for (let j: number = min_index_y; j <= max_index_y; j++) {
 							const c: number = i + j * divisions;
-							var nodes: Array<number> = cells[c] || (cells[c] = new Array<number>());
+							const nodes: Array<number> = cells[c] || (cells[c] = new Array<number>());
 
 							//push in the triangle ids
 							nodes.push(k);
@@ -185,16 +192,16 @@ export class TriangleElementsUtils {
 
 			const index_x: number = Math.floor((x - minx) * conversionX);
 			const index_y: number = Math.floor((y - miny) * conversionY);
-			var nodes: Array<number> = cells[index_x + index_y * divisions];
+			const nodes: Array<number> = cells[index_x + index_y * divisions];
 
 			if (nodes == null) {
 				hitTestCache.lastCollisionIndex = -1;
 				return false;
 			}
 
-			const nodeCount: number = nodes.length;
-			for (let n: number = 0; n < nodeCount; n++) {
-				var k: number = nodes[n];
+			const nodeCount = nodes.length;
+			for (let n = 0; n < nodeCount; n++) {
+				const k = nodes[n];
 
 				if (indices) {
 					id2 = indices[k];
@@ -220,61 +227,57 @@ export class TriangleElementsUtils {
 				cy = positions[id2 * posStride + 1];
 
 				//from a to p
-				var dx: number = ax - x;
-				var dy: number = ay - y;
+				let dx = ax - x;
+				let dy = ay - y;
 
 				//edge normal (a-b)
-				var nx: number = by - ay;
-				var ny: number = -(bx - ax);
+				let nx = by - ay;
+				let ny = -(bx - ax);
+				let dot = dx * nx + dy * ny;
 
-				var dot: number = (dx * nx) + (dy * ny);
-
-				if (dot > 0)
-					continue;
+				if (dot > 0) continue;
 
 				dx = bx - x;
 				dy = by - y;
 				nx = cy - by;
 				ny = -(cx - bx);
 
-				dot = (dx * nx) + (dy * ny);
+				dot = dx * nx + dy * ny;
 
-				if (dot > 0)
-					continue;
+				if (dot > 0) continue;
 
 				dx = cx - x;
 				dy = cy - y;
 				nx = ay - cy;
 				ny = -(ax - cx);
 
-				dot = (dx * nx) + (dy * ny);
+				dot = dx * nx + dy * ny;
 
-				if (dot > 0)
-					continue;
+				if (dot > 0) continue;
 
 				if (curves) {
 					//check if not solid
 					if (curves[id0 * curveStride + 2] != -128) {
+						const v0x = bx - ax;
+						const v0y = by - ay;
+						const v1x = cx - ax;
+						const v1y = cy - ay;
+						const v2x = x - ax;
+						const v2y = y - ay;
 
-						var v0x: number = bx - ax;
-						var v0y: number = by - ay;
-						var v1x: number = cx - ax;
-						var v1y: number = cy - ay;
-						var v2x: number = x - ax;
-						var v2y: number = y - ay;
-
-						var den: number = v0x * v1y - v1x * v0y;
-						var v: number = (v2x * v1y - v1x * v2y) / den;
-						var w: number = (v0x * v2y - v2x * v0y) / den;
+						const den = v0x * v1y - v1x * v0y;
+						const  v = (v2x * v1y - v1x * v2y) / den;
+						const w = (v0x * v2y - v2x * v0y) / den;
 						//var u:number = 1 - v - w;	//commented out as inlined away
 
 						//here be dragons
-						var uu: number = 0.5 * v + w;
-						var vv: number = w;
+						const uu = 0.5 * v + w;
+						const vv = w;
 
-						var d: number = uu * uu - vv;
+						const d = uu * uu - vv;
 
-						var az: number = curves[id0 * curveStride];
+						const az = curves[id0 * curveStride];
+
 						if (d > 0 && az == -128) {
 							continue;
 						} else if (d < 0 && az == 127) {
@@ -290,7 +293,7 @@ export class TriangleElementsUtils {
 		}
 
 		//brute force
-		for (var k: number = 0; k < len; k += 3) {
+		for (let k = 0; k < len; k += 3) {
 			if (indices) {
 				id2 = indices[k];
 			} else {
@@ -315,61 +318,56 @@ export class TriangleElementsUtils {
 			cy = positions[id2 * posStride + 1];
 
 			//from a to p
-			var dx: number = ax - x;
-			var dy: number = ay - y;
+			let dx = ax - x;
+			let dy = ay - y;
 
 			//edge normal (a-b)
-			var nx: number = by - ay;
-			var ny: number = -(bx - ax);
+			let nx = by - ay;
+			let ny = -(bx - ax);
 
-			var dot: number = (dx * nx) + (dy * ny);
+			let dot = dx * nx + dy * ny;
 
-			if (dot > 0)
-				continue;
+			if (dot > 0) continue;
 
 			dx = bx - x;
 			dy = by - y;
 			nx = cy - by;
 			ny = -(cx - bx);
 
-			dot = (dx * nx) + (dy * ny);
+			dot = dx * nx + dy * ny;
 
-			if (dot > 0)
-				continue;
+			if (dot > 0) continue;
 
 			dx = cx - x;
 			dy = cy - y;
 			nx = ay - cy;
 			ny = -(ax - cx);
 
-			dot = (dx * nx) + (dy * ny);
+			dot = dx * nx + dy * ny;
 
-			if (dot > 0)
-				continue;
+			if (dot > 0) continue;
 
 			if (curves) {
 				//check if not solid
 				if (curves[id0 * curveStride + 2] != -128) {
+					const v0x = bx - ax;
+					const v0y = by - ay;
+					const v1x = cx - ax;
+					const v1y = cy - ay;
+					const v2x = x - ax;
+					const v2y = y - ay;
 
-					var v0x: number = bx - ax;
-					var v0y: number = by - ay;
-					var v1x: number = cx - ax;
-					var v1y: number = cy - ay;
-					var v2x: number = x - ax;
-					var v2y: number = y - ay;
-
-					var den: number = v0x * v1y - v1x * v0y;
-					var v: number = (v2x * v1y - v1x * v2y) / den;
-					var w: number = (v0x * v2y - v2x * v0y) / den;
+					const den = v0x * v1y - v1x * v0y;
+					const v = (v2x * v1y - v1x * v2y) / den;
+					const w = (v0x * v2y - v2x * v0y) / den;
 					//var u:number = 1 - v - w;	//commented out as inlined away
 
 					//here be dragons
-					var uu: number = 0.5 * v + w;
-					var vv: number = w;
+					const uu = 0.5 * v + w;
+					const vv = w;
+					const d = uu * uu - vv;
+					const az = curves[id0 * curveStride];
 
-					var d: number = uu * uu - vv;
-
-					var az: number = curves[id0 * curveStride];
 					if (d > 0 && az == -128) {
 						continue;
 					} else if (d < 0 && az == 127) {
@@ -384,13 +382,25 @@ export class TriangleElementsUtils {
 		return false;
 	}
 
-	public static getBoxBounds(positionAttributes: AttributesView, indexAttributes: Short2Attributes, matrix3D: Matrix3D, cache: Box, target: Box, count: number, offset: number = 0): Box {
+	public static getBoxBounds(
+		positionAttributes: AttributesView,
+		indexAttributes: Short2Attributes,
+		matrix3D: Matrix3D,
+		cache: Box,
+		target: Box,
+		count: number,
+		offset: number = 0,
+	): Box {
 		let positions: ArrayBufferView;
 		const posDim: number = positionAttributes.dimensions;
 		const posStride: number = positionAttributes.stride;
 
-		let minX: number = 0, minY: number = 0, minZ: number = 0;
-		let maxX: number = 0, maxY: number = 0, maxZ: number = 0;
+		let minX: number = 0,
+			minY: number = 0,
+			minZ: number = 0;
+		let maxX: number = 0,
+			maxY: number = 0,
+			maxZ: number = 0;
 
 		let indices: Uint16Array;
 		let len: number;
@@ -403,24 +413,34 @@ export class TriangleElementsUtils {
 			positions = positionAttributes.get(count, offset);
 		}
 
-		if (len == 0)
-			return target;
+		if (len == 0) return target;
 
 		let i: number = 0;
 		let index: number;
 		let pos1: number, pos2: number, pos3: number, rawData: Float32Array;
 
-		if (matrix3D)
-			rawData = matrix3D._rawData;
+		if (matrix3D) rawData = matrix3D._rawData;
 
 		if (target == null) {
 			target = cache || new Box();
-			index = (indices) ? indices[i] * posStride : i * posStride;
+			index = indices ? indices[i] * posStride : i * posStride;
 			if (matrix3D) {
 				if (posDim == 3) {
-					pos1 = positions[index] * rawData[0] + positions[index + 1] * rawData[4] + positions[index + 2] * rawData[8] + rawData[12];
-					pos2 = positions[index] * rawData[1] + positions[index + 1] * rawData[5] + positions[index + 2] * rawData[9] + rawData[13];
-					pos3 = positions[index] * rawData[2] + positions[index + 1] * rawData[6] + positions[index + 2] * rawData[10] + rawData[14];
+					pos1 =
+						positions[index] * rawData[0] +
+						positions[index + 1] * rawData[4] +
+						positions[index + 2] * rawData[8] +
+						rawData[12];
+					pos2 =
+						positions[index] * rawData[1] +
+						positions[index + 1] * rawData[5] +
+						positions[index + 2] * rawData[9] +
+						rawData[13];
+					pos3 =
+						positions[index] * rawData[2] +
+						positions[index + 1] * rawData[6] +
+						positions[index + 2] * rawData[10] +
+						rawData[14];
 				} else {
 					pos1 = positions[index] * rawData[0] + positions[index + 1] * rawData[4] + rawData[12];
 					pos2 = positions[index] * rawData[1] + positions[index + 1] * rawData[5] + rawData[13];
@@ -428,12 +448,12 @@ export class TriangleElementsUtils {
 			} else {
 				pos1 = positions[index];
 				pos2 = positions[index + 1];
-				pos3 = (posDim == 3) ? positions[index + 2] : 0;
+				pos3 = posDim == 3 ? positions[index + 2] : 0;
 			}
 
 			maxX = minX = pos1;
 			maxY = minY = pos2;
-			maxZ = minZ = (posDim == 3) ? pos3 : 0;
+			maxZ = minZ = posDim == 3 ? pos3 : 0;
 			i++;
 		} else {
 			maxX = (minX = target.x) + target.width;
@@ -442,13 +462,25 @@ export class TriangleElementsUtils {
 		}
 
 		for (; i < len; i++) {
-			index = (indices) ? indices[i] * posStride : i * posStride;
+			index = indices ? indices[i] * posStride : i * posStride;
 
 			if (matrix3D) {
 				if (posDim == 3) {
-					pos1 = positions[index] * rawData[0] + positions[index + 1] * rawData[4] + positions[index + 2] * rawData[8] + rawData[12];
-					pos2 = positions[index] * rawData[1] + positions[index + 1] * rawData[5] + positions[index + 2] * rawData[9] + rawData[13];
-					pos3 = positions[index] * rawData[2] + positions[index + 1] * rawData[6] + positions[index + 2] * rawData[10] + rawData[14];
+					pos1 =
+						positions[index] * rawData[0] +
+						positions[index + 1] * rawData[4] +
+						positions[index + 2] * rawData[8] +
+						rawData[12];
+					pos2 =
+						positions[index] * rawData[1] +
+						positions[index + 1] * rawData[5] +
+						positions[index + 2] * rawData[9] +
+						rawData[13];
+					pos3 =
+						positions[index] * rawData[2] +
+						positions[index + 1] * rawData[6] +
+						positions[index + 2] * rawData[10] +
+						rawData[14];
 				} else {
 					pos1 = positions[index] * rawData[0] + positions[index + 1] * rawData[4] + rawData[12];
 					pos2 = positions[index] * rawData[1] + positions[index + 1] * rawData[5] + rawData[13];
@@ -456,24 +488,18 @@ export class TriangleElementsUtils {
 			} else {
 				pos1 = positions[index];
 				pos2 = positions[index + 1];
-				pos3 = (posDim == 3) ? positions[index + 2] : 0;
+				pos3 = posDim == 3 ? positions[index + 2] : 0;
 			}
 
-			if (pos1 < minX)
-				minX = pos1;
-			else if (pos1 > maxX)
-				maxX = pos1;
+			if (pos1 < minX) minX = pos1;
+			else if (pos1 > maxX) maxX = pos1;
 
-			if (pos2 < minY)
-				minY = pos2;
-			else if (pos2 > maxY)
-				maxY = pos2;
+			if (pos2 < minY) minY = pos2;
+			else if (pos2 > maxY) maxY = pos2;
 
 			if (posDim == 3) {
-				if (pos3 < minZ)
-					minZ = pos3;
-				else if (pos3 > maxZ)
-					maxZ = pos3;
+				if (pos3 < minZ) minZ = pos3;
+				else if (pos3 > maxZ) maxZ = pos3;
 			}
 		}
 
@@ -484,7 +510,15 @@ export class TriangleElementsUtils {
 		return target;
 	}
 
-	public static getSphereBounds(positionAttributes: AttributesView, center: Vector3D, matrix3D: Matrix3D, cache: Sphere, output: Sphere, count: number, offset: number = 0): Sphere {
+	public static getSphereBounds(
+		positionAttributes: AttributesView,
+		center: Vector3D,
+		matrix3D: Matrix3D,
+		cache: Sphere,
+		output: Sphere,
+		count: number,
+		offset: number = 0,
+	): Sphere {
 		const positions: ArrayBufferView = positionAttributes.get(count, offset);
 		const posDim: number = positionAttributes.dimensions;
 		const posStride: number = positionAttributes.stride;
@@ -499,15 +533,13 @@ export class TriangleElementsUtils {
 		for (let i: number = 0; i < len; i += posStride) {
 			distanceX = positions[i] - center.x;
 			distanceY = positions[i + 1] - center.y;
-			distanceZ = (posDim == 3) ? positions[i + 2] - center.z : -center.z;
+			distanceZ = posDim == 3 ? positions[i + 2] - center.z : -center.z;
 			radiusSquared = distanceX * distanceX + distanceY * distanceY + distanceZ * distanceZ;
 
-			if (maxRadiusSquared < radiusSquared)
-				maxRadiusSquared = radiusSquared;
+			if (maxRadiusSquared < radiusSquared) maxRadiusSquared = radiusSquared;
 		}
 
-		if (output == null)
-			output = new Sphere();
+		if (output == null) output = new Sphere();
 
 		output.x = center.x;
 		output.y = center.y;
@@ -517,18 +549,27 @@ export class TriangleElementsUtils {
 		return output;
 	}
 
-	public static updateTriangleGraphicsSlice9(triangleElements: TriangleElements, originalRect: Rectangle, scaleX, scaleY, init: boolean = false, copy: boolean = false): TriangleElements {
+	public static updateTriangleGraphicsSlice9(
+		triangleElements: TriangleElements,
+		originalRect: Rectangle,
+		scaleX,
+		scaleY,
+		init: boolean = false,
+		copy: boolean = false,
+	): TriangleElements {
 		// todo: for now this only works for Float2Attributes.
 
 		if (triangleElements.slice9Indices.length != 9) {
-			throw ('ElementUtils: Error - triangleElement does not provide valid slice9Indices!');
+			throw 'ElementUtils: Error - triangleElement does not provide valid slice9Indices!';
 		}
 
 		const s_len = triangleElements.slice9Indices.length;
 
-		let innerWidth: number = originalRect.width - (triangleElements.slice9offsets.x + triangleElements.slice9offsets.width) / scaleX;
+		let innerWidth: number =
+			originalRect.width - (triangleElements.slice9offsets.x + triangleElements.slice9offsets.width) / scaleX;
 
-		let innerHeight: number = originalRect.height - (triangleElements.slice9offsets.y + triangleElements.slice9offsets.height) / scaleY;
+		let innerHeight: number =
+			originalRect.height - (triangleElements.slice9offsets.y + triangleElements.slice9offsets.height) / scaleY;
 
 		if (innerWidth < 0) {
 			innerWidth = 0;
@@ -542,18 +583,22 @@ export class TriangleElementsUtils {
 			scaleY = (triangleElements.slice9offsets.y + triangleElements.slice9offsets.height) / originalRect.height;
 		}
 
-		var newElem: TriangleElements;
+		let newElem: TriangleElements;
 		let positions: ArrayBufferView;
-		if (copy) {
+		let v = 0;
 
+		if (copy) {
 			const newverts: Uint8Array = new Uint8Array(triangleElements.positions.count * 8);
 			while (v < triangleElements.positions.count * 2) {
 				newverts[v] = positions[v++];
 				newverts[v] = positions[v++];
 			}
+
 			const vertexBuffer: AttributesBuffer = new AttributesBuffer(8, triangleElements.positions.count);
 			vertexBuffer.bufferView = newverts;
-			var newElem: TriangleElements = new TriangleElements(vertexBuffer);
+
+			newElem = new TriangleElements(vertexBuffer);
+
 			newElem.setPositions(new Float2Attributes(vertexBuffer));
 			newElem.slice9offsets = triangleElements.slice9offsets;
 			newElem.initialSlice9Positions = triangleElements.initialSlice9Positions;
@@ -563,24 +608,25 @@ export class TriangleElementsUtils {
 
 			v = 0;
 		} else {
-
 			positions = triangleElements.positions.get(triangleElements.positions.count);
-
 		}
 
 		// todo: i had trouble when just cloning the positions
 		//	for now i just create the initialSlice9Positions by iterating the positions
 
-		var v: number = 0;
+		v = 0;
 
 		let init_positions: number[];
+
 		if (init) {
 			init_positions = [];
 			init_positions.length = triangleElements.positions.count * 2;
+
 			while (v < triangleElements.positions.count * 2) {
 				init_positions[v] = positions[v++];
 				init_positions[v] = positions[v++];
 			}
+
 			triangleElements.initialSlice9Positions = init_positions;
 		} else {
 			init_positions = triangleElements.initialSlice9Positions;
@@ -615,8 +661,7 @@ export class TriangleElementsUtils {
 		let offsety: number = 0;
 
 		// iterating over the 9 chunks - keep in mind that we are constructing a 3x3 grid:
-		for (s = 0;s < s_len;s++) {
-
+		for (s = 0; s < s_len; s++) {
 			// keep track of column and row index
 			if (row_cnt == 2) {
 				col_cnt++;
@@ -648,12 +693,9 @@ export class TriangleElementsUtils {
 
 			// iterate the verts and apply the translation / scale
 			while (v < slice9Indices[s]) {
-
-				positions[v] = offsetx + (init_positions[v++] * scalex);
-				positions[v] = offsety + (init_positions[v++] * scaley);
-
+				positions[v] = offsetx + init_positions[v++] * scalex;
+				positions[v] = offsety + init_positions[v++] * scaley;
 			}
-
 		}
 		//console.log("positions",positions);
 		if (copy) {
