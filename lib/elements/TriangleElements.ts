@@ -44,9 +44,22 @@ export class TriangleElements extends ElementsBase {
 	//used for hittesting geometry
 	public hitTestCache: Object = new Object();
 
+	/**
+	 * Original Bounds for 9Slice
+	 */
 	public originalSlice9Size: Rectangle;
+	/**
+	 * Slice constraints! Not a Recangle. x - left side, width - right side, y - top, height - bottom
+	 */
 	public slice9offsets: Rectangle;
+	/**
+	 * Right index bound for vertices for scalable regions
+	 * Lenght MUST BE A 9
+	 */
 	public slice9Indices: number[];
+	/**
+	 * Initial position buffer, store only XY values
+	 */
 	public initialSlice9Positions: number[];
 
 	public updateSlice9(width: number, height: number) {
