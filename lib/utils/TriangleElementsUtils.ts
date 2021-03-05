@@ -1,9 +1,6 @@
 import { Matrix3D, Vector3D, Box, Sphere, Rectangle } from '@awayjs/core';
-
-import { AttributesBuffer, AttributesView, Short2Attributes, Float2Attributes } from '@awayjs/stage';
-
+import { AttributesView, Short2Attributes } from '@awayjs/stage';
 import { TriangleElements } from '../elements/TriangleElements';
-
 import { HitTestCache } from './HitTestCache';
 
 export class TriangleElementsUtils {
@@ -12,7 +9,7 @@ export class TriangleElementsUtils {
 	public static hitTest(
 		x: number,
 		y: number,
-		z: number,
+		_z: number,
 		box: Box,
 		triangleElements: TriangleElements,
 		count: number,
@@ -513,8 +510,8 @@ export class TriangleElementsUtils {
 	public static getSphereBounds(
 		positionAttributes: AttributesView,
 		center: Vector3D,
-		matrix3D: Matrix3D,
-		cache: Sphere,
+		_matrix3D: Matrix3D,
+		_cache: Sphere,
 		output: Sphere,
 		count: number,
 		offset: number = 0,
@@ -551,8 +548,8 @@ export class TriangleElementsUtils {
 
 	public static prepareTriangleGraphicsSlice9 (
 		elem: TriangleElements,
-		offsets: Rectangle,
 		bounds: Rectangle,
+		offsets: Rectangle,
 		copy: boolean
 	): TriangleElements {
 
@@ -560,51 +557,63 @@ export class TriangleElementsUtils {
 			throw 'Indices not support yet';
 		}
 
-		const target = !copy ? elem : elem.clone();
+		const target = copy ? elem.clone() : elem;
 
-		const attr = target.positions;
-		const pos = target.positions.get(elem._numVertices, 0);
-		const pStride = attr.stride;
-		const pOffset = attr.offset;
-		const pDim = attr.dimensions;
+		const shapeBounds = TriangleElementsUtils.getBoxBounds (
+			elem.positions,
+			elem.indices,
+			null,null, null,
+			elem._numElements, 0);
 
-		const uvs = target.uvs ? target.uvs.get(elem._numVertices, 0) : null;
-		const uStride = target.uvs ? target.uvs.stride : 0;
-		const uOffset = target.uvs ? target.uvs.offset : 0;
-		const uDim = target.uvs ? target.uvs.dimensions : 0
+		const sliceX = [
+			-Infinity,
+			bounds.x + offsets.x,
+			bounds.right - offsets.width,
+			Infinity
+		];
 
-		elem.slice9offsets = offsets;
-		const left = offsets[0];
-		const right = offsets[1];
-		const top = offsets[2];
-		const bottom = offsets[3];
+		const sliceY = [
+			-Infinity,
+			bounds.y + offsets.y,
+			bounds.bottom - offsets.height,
+			Infinity
+		];
 
-		const sliceIndices = [];
-		const newPos = [];
-		const newUV = [];
+		const chunkX = [];
+		const chunkY = [];
 
-		// processed positions for triangle
-		const pPos = [];
-		// and it UV
-		const pUv = [];
+		for (let i = 0; i < 3; i++) {
+			if (
+				// left or right side in slice chunk
+				(shapeBounds.x >= sliceX[i] && shapeBounds.x <= sliceX[i + 1]) ||
+				(shapeBounds.right >= sliceX[i] && shapeBounds.right <= sliceX[i + 1])
+			) {
+				chunkX.push(i);
+			}
 
-		// iterate over triangle
-		for (let t = 0; t < elem._numVertices; t += 3) {
-
-			// fill temporary buffers first
-			// k - index for vertices in triangle
-			// p - index in processed buffer, because dimension maybe 2 or 3
-			for (let k = 0; k < 3; k++) {
-
-				for (let p = 0; p < pDim; p++) {
-					pPos[k * pDim + p] = pos[(t + k) * pStride + pOffset + p];
-				}
-
-				for (let p = 0; uvs && p < uDim; p++) {
-					pUv[k * uDim + p] = uvs[(t + k) * uStride + uOffset + p];
-				}
+			// top or bottom in slice chunk
+			if (
+				// left or right side in slice chunk
+				(shapeBounds.y >= sliceY[i] && shapeBounds.y <= sliceY[i + 1]) ||
+				(shapeBounds.bottom >= sliceY[i] && shapeBounds.bottom <= sliceY[i + 1])
+			) {
+				chunkY.push(i);
 			}
 		}
+
+		target.slice9offsets = offsets;
+		target.originalSlice9Size = bounds;
+
+		// shape already in valid region
+		// not require run slicer for this case
+		if (chunkX.length === 1 && chunkY.length === 1) {
+			target.slice9Indices = Array(9).map((_) => 0);
+			target.slice9Indices[chunkY[0] * 3 + chunkX[0]] = target._numVertices;
+
+			return target;
+		}
+
+		throw '[TriangleElementUtils] Not implemented';
 
 		return target;
 	}
@@ -619,7 +628,7 @@ export class TriangleElementsUtils {
 	): TriangleElements {
 		// todo: for now this only works for Float2Attributes.
 
-		if (elem.slice9Indices.length != 9) {
+		if (elem.slice9Indices.length !== 9) {
 			throw 'ElementUtils: Error - triangleElement does not provide valid slice9Indices!';
 		}
 
@@ -678,7 +687,7 @@ export class TriangleElementsUtils {
 
 		let initPos: number[];
 
-		if (init && !elem.initialSlice9Positions) {
+		if (init || !elem.initialSlice9Positions) {
 			initPos = [];
 			// we store only XY, but buffer can be XYZ
 			initPos.length = elem._numVertices * 2;
@@ -757,13 +766,14 @@ export class TriangleElementsUtils {
 			let attrindex = attrOffset;
 
 			// iterate the verts and apply the translation / scale
+			// slice9Indices is vertices indeces, is not attribute indices
 			while (vindex < slice9Indices[s]) {
-				positions[attrindex + 0] = offsetx + initPos[vindex + 0] * scalex;
-				positions[attrindex + 1] = offsety + initPos[vindex + 1] * scaley;
+				positions[attrindex + 0] = offsetx + initPos[vindex * 2 + 0] * scalex;
+				positions[attrindex + 1] = offsety + initPos[vindex * 2 + 1] * scaley;
 				// we should include a stride, because buffer maybe be contecated
 				// or XYZ instead of XY
 				attrindex += stride;
-				vindex += 2;
+				vindex++;
 			}
 		}
 
