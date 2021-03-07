@@ -1,7 +1,17 @@
 import { Matrix3D, Vector3D, Box, Sphere, Rectangle } from '@awayjs/core';
 import { AttributesView, Short2Attributes } from '@awayjs/stage';
 import { TriangleElements } from '../elements/TriangleElements';
+import { GeneratorUtils, MeshView, PolygonView } from './GeneratorUtils';
 import { HitTestCache } from './HitTestCache';
+
+class ResultChunk {
+	index = 0;
+	clone() {
+		const chunk = new ResultChunk();
+		chunk.index = this.index;
+		return chunk;
+	}
+}
 
 export class TriangleElementsUtils {
 	//TODO - generate this dyanamically based on num tris
@@ -579,42 +589,108 @@ export class TriangleElementsUtils {
 			Infinity
 		];
 
-		const chunkX = [];
-		const chunkY = [];
+		const chunkX = {
+			from: 0, to: 0
+		};
 
-		for (let i = 0; i < 3; i++) {
-			if (
-				// left or right side in slice chunk
-				(shapeBounds.x >= sliceX[i] && shapeBounds.x <= sliceX[i + 1]) ||
-				(shapeBounds.right >= sliceX[i] && shapeBounds.right <= sliceX[i + 1])
-			) {
-				chunkX.push(i);
+		const chunkY = {
+			from: 0, to: 0
+		};
+
+		for (let i = 1; i < 3; i++) {
+			if (shapeBounds.x > sliceX[i]) {
+				chunkX.from = chunkX.to = i;
 			}
 
-			// top or bottom in slice chunk
-			if (
-				// left or right side in slice chunk
-				(shapeBounds.y >= sliceY[i] && shapeBounds.y <= sliceY[i + 1]) ||
-				(shapeBounds.bottom >= sliceY[i] && shapeBounds.bottom <= sliceY[i + 1])
-			) {
-				chunkY.push(i);
+			if (shapeBounds.y > sliceY[i]) {
+				chunkY.from = chunkY.to = i;
+			}
+		}
+
+		for (let i = 0; i < 3; i++) {
+			if (shapeBounds.right >= sliceX[i] && i >= chunkX.from) {
+				chunkX.to = i;
+			}
+
+			if (shapeBounds.bottom >= sliceY[i] && i >= chunkY.from) {
+				chunkY.to = i;
 			}
 		}
 
 		target.slice9offsets = offsets;
 		target.originalSlice9Size = bounds;
+		const indices = target.slice9Indices = Array.from({ length: 9 }, (_) => 0);
 
 		// shape already in valid region
 		// not require run slicer for this case
-		if (chunkX.length === 1 && chunkY.length === 1) {
-			target.slice9Indices = Array(9).map((_) => 0);
-			target.slice9Indices[chunkY[0] * 3 + chunkX[0]] = target._numVertices;
+		if (chunkX.from === chunkX.to && chunkY.from === chunkY.to) {
+			target.slice9Indices[chunkY.from * 3 + chunkX.from] = target._numVertices;
 
 			return target;
 		}
 
-		throw '[TriangleElementUtils] Not implemented';
+		// run splitter
+		const attrs = [target.positions, target.uvs].filter(e => !!e);
 
+		let mesh = MeshView.fromAttributes<ResultChunk>(attrs, target._numVertices, 3, ResultChunk);
+
+		const vector = new Vector3D(0,0);
+
+		vector.setTo(1, 0, 0, 0);
+		// we slice only over 2 offsets
+		for (let i = chunkX.from; i < chunkX.to; i++) {
+			//mesh = GeneratorUtils.SliceHodgman(mesh, vector, sliceX[i], emitXFunc);
+			mesh = GeneratorUtils.SliceAllNaive(mesh, vector, sliceX[i + 1]);
+		}
+
+		vector.setTo(0, 1, 0, 0);
+		// we slice only over 2 offsets
+		for (let i = chunkY.from; i < chunkY.to; i++) {
+			//mesh = GeneratorUtils.SliceHodgman(mesh, vector, sliceY[i], emitYFunc);
+			mesh = GeneratorUtils.SliceAllNaive(mesh, vector, sliceX[i + 1]);
+		}
+
+		mesh.normalise();
+
+		// ordering
+
+		for (const p of mesh.poly) {
+			for (let i = 0; i < 9; i++) {
+				const data = p.middle.getData(0);
+				const px = data[0];
+				const py = data[1];
+
+				if (
+					(px > sliceX[i % 3]) &&
+					(px < sliceX[i % 3 + 1]) &&
+					(py > sliceY[i / 3 | 0]) &&
+					(py < sliceY[(i / 3 | 0) + 1])
+				) {
+					p.userData = p.userData || new ResultChunk();
+					p.userData.index = i;
+				}
+			}
+		}
+
+		mesh.poly.sort((a, b) => a.userData.index  - b.userData.index);
+
+		for (let i = 0; i < mesh.poly.length; i++) {
+			const index = mesh.poly[i].userData.index;
+			indices[index] = i  * 3 + 3;
+		}
+
+		// pos
+		const pos = mesh.toFloatArray(0);
+		target.setPositions(pos);
+
+		if (target.uvs) {
+			const uvs = mesh.toFloatArray(1);
+			target.setUVs(uvs);
+		}
+
+		//throw '[TriangleElementUtils] Not implemented';
+
+		target.invalidate();
 		return target;
 	}
 
@@ -722,6 +798,8 @@ export class TriangleElementsUtils {
 			innerHeight - offsets.height * cornerScaleY,
 		];
 
+		// internal buffer iterator
+		let attrindex = attrOffset;
 		let vindex = 0;
 
 		// iterating over the 9 chunks - keep in mind that we are constructing a 3x3 grid:
@@ -743,9 +821,6 @@ export class TriangleElementsUtils {
 
 			// offsety is different for each row
 			const offsety = slice9Offsets_y[row];
-
-			// internal buffer iterator
-			let attrindex = attrOffset;
 
 			// iterate the verts and apply the translation / scale
 			// slice9Indices is vertices indeces, is not attribute indices

@@ -64,10 +64,37 @@ export class Vertice3DView  {
 		return this;
 	}
 
+	public add (source: Vertice3DView, scale: number = 1): this {
+		// interpolate all values
+		for (let i = 0; i < this._data.length; i++) {
+			const from = source._data[i];
+			const to = this._data[i];
+
+			for (let k = 0; k < this._data[i].length; k++) {
+				to[k] += from[k] * scale;
+			}
+		}
+
+		return this;
+	}
+
+	public scale (s: number): this {
+		// interpolate all values
+		for (let i = 0; i < this._data.length; i++) {
+			const to = this._data[i];
+
+			for (let k = 0; k < this._data[i].length; k++) {
+				to[k] *= s;
+			}
+		}
+
+		return this;
+	}
+
 	public copyFrom (from: Vertice3DView): this {
 		const to = this._data;
 
-		for (let i = 0; i < to.length; i++) {
+		for (let i = 0; i < from.length; i++) {
 			if (to[i]) {
 				to[i].set(from._data[i]);
 			} else {
@@ -86,6 +113,31 @@ export class Vertice3DView  {
 export class PolygonView<T extends {clone?(): T} = any> {
 	public vertices: Array<Vertice3DView> = [];
 	public userData: T;
+
+	private _middle: Vertice3DView;
+
+	get middle(): Vertice3DView {
+		if (this._middle) return this._middle;
+
+		this._middle = this.vertices[0].clone();
+
+		for (let i = 1; i < this.vertices.length; i++) {
+			this._middle.add(this.vertices[i]);
+		}
+
+		this._middle.scale(1 / this.vertices.length);
+		return this._middle;
+	}
+
+	constructor(points?: Vertice3DView[], userData?: T) {
+		if (points) {
+			this.vertices = points.map((e)=> e.clone());
+		}
+
+		if (userData) {
+			this.userData = userData;
+		}
+	}
 
 	public clone(): PolygonView<T> {
 		const p = new PolygonView<T>();
@@ -118,15 +170,32 @@ export class PolygonView<T extends {clone?(): T} = any> {
 export class MeshView<T extends {} = never> {
 	public poly: PolygonView<T>[] = [];
 	public rect: Rectangle = new Rectangle();
+	public polySize: number = 3;
+	public hasNGones: boolean = false;
+
+	push (p: PolygonView<T>): this {
+		this.poly.push(p);
+		return this;
+	}
 
 	/**
 	 * Unroll all n-gone convex polys to 3-gone polygons
 	 */
 	public normalise(): this {
+		if (!this.hasNGones) {
+			return;
+		}
+
 		const normalised = [];
 
 		for (const p of this.poly) {
-			if (p.length === 3) {
+
+			// invalid vertices
+			if (p.length < this.polySize) {
+				continue;
+			}
+
+			if (p.length === this.polySize) {
 				normalised.push(p);
 				continue;
 			}
@@ -168,9 +237,10 @@ export class MeshView<T extends {} = never> {
 		const data = new Float32Array(count * dim * 3);
 
 		for (let i = 0; i < count * 3; i++) {
-			const vert = this.poly[i / 3 | 0].vertices[i % 3];
+			const poly = this.poly[i / 3 | 0];
+			const vert = poly.vertices[i % 3];
 
-			data.set(vert.getData(index), 3 * i * dim);
+			data.set(vert.getData(index), i * dim);
 		}
 
 		return data;
@@ -183,6 +253,7 @@ export class MeshView<T extends {} = never> {
 		userDataCtor?: { new(): T}): MeshView<T> {
 
 		const mesh = new MeshView<T>();
+		mesh.polySize = polySize;
 
 		let poly: PolygonView<T>;
 
@@ -199,12 +270,12 @@ export class MeshView<T extends {} = never> {
 			const v = new Vertice3DView();
 			poly.add(v);
 
-			for (let i = 0; i < attrs.length; i++) {
-				const o = attrs[i].offset;
-				const s = attrs[i].stride;
-				const d = attrs[i].dimensions;
+			for (let k = 0; k < attrs.length; k++) {
+				const o = attrs[k].offset;
+				const s = attrs[k].stride;
+				const d = attrs[k].dimensions;
 
-				v.setData(views[i].slice(o + s * i, o + s * i + d), i);
+				v.setData(views[k].slice(o + s * i, o + s * i + d), k);
 			}
 		}
 
@@ -233,6 +304,99 @@ export class GeneratorUtils {
 		return new Vertice3DView().copyFrom(a).lerpTo(b, alpha);
 	}
 
+	private static SliceNaive<T> (
+		out: MeshView<T>,
+		a: Vertice3DView, b: Vertice3DView, c: Vertice3DView,
+		d1: number, d2: number, d3: number): MeshView<T> {
+
+		// Calculate the intersection point from a to b
+		const ab = this.Intersect(a, b, d1, d2);
+
+		if (d1 < 0.0) {
+			// b to c crosses the clipping plane
+			if (d3 < 0.0) {
+				const bc = this.Intersect(b, c, d2, d3);
+
+				out
+					.push(new PolygonView<T>([b, bc, ab]))
+					.push(new PolygonView<T>([bc, c, a]))
+					.push(new PolygonView<T>([ab, bc, a]));
+			// c to a crosses the clipping plane
+			} else {
+				const ac = this.Intersect(a, c, d1, d3);
+
+				out
+					.push(new PolygonView<T>([a, ab, ac]))
+					.push(new PolygonView<T>([ab, b, c]))
+					.push(new PolygonView<T>([ac, ab, c]));
+			}
+		} else {
+			// c to a crosses the clipping plane
+			if (d3 < 0.0) {
+				const ac = this.Intersect(a, c, d1, d3);
+
+				out
+					.push(new PolygonView<T>([a, ab, ac]))
+					.push(new PolygonView<T>([ac, ab, b]))
+					.push(new PolygonView<T>([b, c, ac]));
+			// b to c crosses the clipping plane
+			} else {
+				const bc = this.Intersect(b, c, d2, d3);
+
+				out
+					.push(new PolygonView<T>([b, bc, ab]))
+					.push(new PolygonView<T>([a, ab, bc]))
+					.push(new PolygonView<T>([c, a, bc]));
+			}
+		}
+
+		return out;
+	}
+
+	// Slices all triangles given a vector of triangles.
+	// A new output triangle list is generated. The old
+	// list of triangles is discarded.
+	// n - The normal of the clipping plane
+	// d - Distance of clipping plane from the origin
+	// Reference: Exact Bouyancy for Polyhedra by
+	//            Erin Catto in Game Programming Gems 6
+	public static SliceAllNaive <T>(mesh: MeshView<T>, n: Vector3D,  d: number): MeshView<T> {
+		const out = new MeshView<any>();
+		out.polySize = mesh.polySize;
+
+		const tmp = new Vector3D();
+
+		for (let i = 0; i < mesh.poly.length; ++i) {
+			// Grab a triangle from the global triangle list
+			const tri = mesh.poly[i];
+
+			const a = tri.vertices[0];
+			const b = tri.vertices[1];
+			const c = tri.vertices[2];
+
+			a.toVec(tmp,0);
+			// Compute distance of each triangle vertex to the clipping plane
+			const d1 = a.toVec(tmp).dotProduct(n) - d;
+			const d2 = b.toVec(tmp).dotProduct(n) - d;
+			const d3 = c.toVec(tmp).dotProduct(n) - d;
+
+			// a to b crosses the clipping plane
+			if (d1 * d2 < 0.0) {
+				this.SliceNaive(out, a, b, c, d1, d2, d3);
+				// a to c crosses the clipping plane
+			} else if (d1 * d3 < 0.0) {
+				this.SliceNaive(out, c, a, b, d3, d1, d2);
+				// b to c crosses the clipping plane
+			} else if (d2 * d3 < 0.0) {
+				this.SliceNaive(out, b, c, a, d2, d3, d1);
+			} else {
+				out.push(tri);
+			}
+		}
+
+		return out;
+	}
+
 	// Splits a polygon in half along a splitting plane using a clipping algorithm
 	// call Sutherland-Hodgman clipping
 	// Resource: Page 367 of Ericson (Real-Time Collision Detection)
@@ -250,6 +414,11 @@ export class GeneratorUtils {
 
 		const tmpA = new Vector3D();
 		const tmpB = new Vector3D();
+
+		if (d < 0) {
+			d = -d;
+			normal.scaleBy(-1);
+		}
 
 		let vA = verts[s - 1];
 		let vecA = vA.toVec(tmpA, 0);
@@ -282,7 +451,7 @@ export class GeneratorUtils {
 					backPoly.add(vA, true);
 				}
 
-				backPoly.add(vA, true);
+				backPoly.add(vB, true);
 			} else {
 				frontPoly.add(vB, true);
 
@@ -297,12 +466,26 @@ export class GeneratorUtils {
 		}
 
 		if (frontPoly.length) {
+			//if (frontPoly.length < 3) debugger;
+
 			callback && callback(poly, frontPoly, false);
+
+			if (out.polySize !== frontPoly.length) {
+				out.hasNGones = true;
+			}
+
 			out.poly.push(frontPoly);
 		}
 
 		if (backPoly.length) {
+			//if (backPoly.length < 3) debugger;
+
 			callback && callback(poly, backPoly, true);
+
+			if (out.polySize !== backPoly.length) {
+				out.hasNGones = true;
+			}
+
 			out.poly.push(backPoly);
 		}
 
@@ -311,6 +494,7 @@ export class GeneratorUtils {
 
 	public static SliceHodgman<T>(mesh: MeshView<T>, n: Vector3D, d: number, callback?: TGenCallback): MeshView<T> {
 		const out = new MeshView<T>();
+		out.polySize = mesh.polySize;
 
 		for (const p of mesh.poly) {
 			this.SutherlandHodgman(p, n, d, out, callback);
