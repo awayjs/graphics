@@ -632,7 +632,7 @@ export class TriangleElementsUtils {
 		// run splitter
 		const attrs = [target.positions, target.uvs].filter(e => !!e);
 
-		let mesh = MeshView.fromAttributes<ResultChunk>(attrs, target._numVertices, 3, ResultChunk);
+		let mesh = MeshView.fromAttributes<number>(attrs, target._numVertices, 3);
 
 		const vector = new Vector3D(0,0);
 
@@ -647,15 +647,18 @@ export class TriangleElementsUtils {
 		// we slice only over 2 offsets
 		for (let i = chunkY.from; i < chunkY.to; i++) {
 			//mesh = GeneratorUtils.SliceHodgman(mesh, vector, sliceY[i], emitYFunc);
-			mesh = GeneratorUtils.SliceAllNaive(mesh, vector, sliceX[i + 1]);
+			mesh = GeneratorUtils.SliceAllNaive(mesh, vector, sliceY[i + 1]);
 		}
 
 		mesh.normalise();
 
-		// ordering
-
+		// ordering - determine chunk id
 		for (const p of mesh.poly) {
 			for (let i = 0; i < 9; i++) {
+				// over middle point
+				// because all polygons should be inside rect, all their points should too,
+				// we can use any points to chek chunk
+				// but use middle point to redice slicing errors
 				const data = p.middle.getData(0);
 				const px = data[0];
 				const py = data[1];
@@ -666,16 +669,16 @@ export class TriangleElementsUtils {
 					(py > sliceY[i / 3 | 0]) &&
 					(py < sliceY[(i / 3 | 0) + 1])
 				) {
-					p.userData = p.userData || new ResultChunk();
-					p.userData.index = i;
+					// slicer can not generate user data
+					p.userData = i;
 				}
 			}
 		}
 
-		mesh.poly.sort((a, b) => a.userData.index  - b.userData.index);
+		mesh.poly.sort((a, b) => a.userData  - b.userData);
 
 		for (let i = 0; i < mesh.poly.length; i++) {
-			const index = mesh.poly[i].userData.index;
+			const index = mesh.poly[i].userData;
 			indices[index] = i  * 3 + 3;
 		}
 
