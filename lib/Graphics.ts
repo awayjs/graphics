@@ -9,6 +9,7 @@ import {
 	AssetBase,
 	Rectangle,
 	AssetEvent,
+	Box,
 } from '@awayjs/core';
 
 import { BitmapImage2D, ImageSampler } from '@awayjs/stage';
@@ -90,7 +91,7 @@ export class Graphics extends AssetBase {
 		return Shape.getShape<TriangleElements> (Shape.getTriangleElement(rect, false, true), mat, style);
 	}
 
-	public static getShapeForBitmapStyle (shapeStyle: ShapeStyle, flashBox: BBox): Shape {
+	public static getShapeForBitmapStyle (shapeStyle: ShapeStyle, flashBox: BBox): Shape<TriangleElements> {
 
 		const style = new Style();
 		const rect = new Rectangle(
@@ -163,6 +164,8 @@ export class Graphics extends AssetBase {
 
 	private _current_position: Point=new Point();
 
+	public _sliceInvalid: boolean = false;
+	public _requireCorrectOffsets: boolean = false;
 	public slice9Rectangle: Rectangle;
 	public originalSlice9Size: Rectangle;
 	public minSlice9Width: number;
@@ -219,18 +222,39 @@ export class Graphics extends AssetBase {
 		this._end = v;
 	}
 
+	/**
+	 *
+	 * @param slice Rect, can be as offest (x = left, y = right).. and as real rect (x, y, w, h)
+	 * @param fixOffsets used for offset correction when a rect is not offset rect
+	 * @param bounds space of scale grid, may meashured autmaticaly
+	 */
+	public setSlice9Rectangle (slice: Rectangle, fixOffsets: boolean, bounds?: Rectangle) {
+		if (bounds)
+			this.originalSlice9Size = bounds;
+
+		this.slice9Rectangle = slice.clone();
+		this._requireCorrectOffsets = fixOffsets;
+		this._sliceInvalid = true;
+	}
+
 	public updateSlice9(scaleX: number, scaleY: number) {
-		if (this._scaleX == scaleX && this._scaleY == scaleY)
+		if (!this.slice9Rectangle) {
+			return;
+		}
+
+		if (this._scaleX === scaleX && this._scaleY === scaleY)
 			return;
 
 		this._scaleX = scaleX;
 		this._scaleY = scaleY;
 
-		const len: number = this._shapes.length;
-		for (let i: number = 0; i < len; i++) {
-			TriangleElementsUtils.updateTriangleGraphicsSlice9(
-				<TriangleElements> this._shapes[i].elements,
+		const len = this._shapes.length;
+
+		for (let i = 0; i < len; i++) {
+
+			this._shapes[i].update9ScaleGrid(
 				this.originalSlice9Size,
+				this.slice9Rectangle,
 				scaleX,
 				scaleY
 			);
@@ -334,7 +358,7 @@ export class Graphics extends AssetBase {
 		return this._rStrokePool.pop();
 	}
 
-	/* internal */ addShapeInternal(shape: Shape) {
+	/* internal */ addShapeInternal(shape: Shape<any>) {
 		this.addShape(shape);
 		this._internalShapesId.push(shape.id);
 	}
@@ -344,7 +368,7 @@ export class Graphics extends AssetBase {
 	 *
 	 * @param elements
 	 */
-	public addShape(shape: Shape): Shape {
+	public addShape(shape: Shape<any>): Shape {
 		shape.usages++;
 
 		const shapeIndex: number = this.getShapeIndex(shape);
@@ -403,7 +427,7 @@ export class Graphics extends AssetBase {
 	}
 
 	public getShapeIndex(shape: Shape): number {
-		return this._shapes.indexOf(shape);
+		return this._shapes.indexOf(<any>shape);
 	}
 
 	public applyTransformation(transform: Matrix3D): void {
@@ -421,11 +445,13 @@ export class Graphics extends AssetBase {
 		if (this.slice9Rectangle) {
 			graphics.slice9Rectangle = new Rectangle();
 			graphics.slice9Rectangle.copyFrom(this.slice9Rectangle);
+		}
+
+		if (this.originalSlice9Size) {
 			graphics.originalSlice9Size = new Rectangle();
 			graphics.originalSlice9Size.copyFrom(this.originalSlice9Size);
 			graphics.minSlice9Width = this.minSlice9Width;
 			graphics.minSlice9Height = this.minSlice9Height;
-
 		}
 
 		graphics.sourceGraphics = this;
@@ -601,7 +627,24 @@ export class Graphics extends AssetBase {
 			}
 		}
 
-		const len: number = this._shapes.length;
+		const len = this._shapes.length;
+
+		if (this._sliceInvalid) {
+			let bounds = this.originalSlice9Size;
+
+			if (!bounds) {
+				const box = new Box();
+
+				for (const s of this._shapes) {
+					s.elements.getBoxBounds(null, null, true, null, box, box);
+				}
+
+				bounds = new Rectangle(box.x, box.y, box.width, box.height);
+				this.originalSlice9Size = bounds;
+			}
+
+			this._sliceInvalid = false;
+		}
 
 		for (let i: number = len - 1; i >= 0; i--)
 			traverser.applyTraversable(this._shapes[i]);
@@ -1889,8 +1932,8 @@ export class Graphics extends AssetBase {
 		}
 	}
 
-	private _addShapes(shapes: Array<Shape>, cloneShapes: boolean = false): void {
-		let shape: Shape;
+	private _addShapes(shapes: Array<Shape<any>>, cloneShapes: boolean = false): void {
+		let shape: Shape<TriangleElements | LineElements>;
 		const len: number = shapes.length;
 		for (let i: number = 0; i < len; i++) {
 			shape = shapes[i];

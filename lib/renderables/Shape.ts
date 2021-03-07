@@ -154,6 +154,7 @@ export class Shape<T extends ElementsBase = ElementsBase> extends AssetBase {
 	private _onInvalidatePropertiesDelegate: (event: StyleEvent) => void;
 	private _onInvalidateVerticesDelegate: (event: ElementsEvent) => void;
 
+	private _originalElement: T;
 	private _elements: T;
 	private _material: IMaterial;
 	private _style: Style;
@@ -184,6 +185,7 @@ export class Shape<T extends ElementsBase = ElementsBase> extends AssetBase {
 		}
 
 		this._elements = value;
+		this._originalElement = value;
 
 		if (this._elements) {
 			this._elements.addEventListener(ElementsEvent.INVALIDATE_VERTICES, this._onInvalidateVerticesDelegate);
@@ -303,6 +305,27 @@ export class Shape<T extends ElementsBase = ElementsBase> extends AssetBase {
 		this.invalidate();
 	}
 
+	public update9ScaleGrid (
+		bounds: Rectangle,
+		scaleGrid: Rectangle,
+		scaleX: number,
+		scaleY: number
+	) {
+		let el = this._elements;
+
+		if (el instanceof TriangleElements) {
+			if (!el.slice9Indices) {
+				const clone = TriangleElementsUtils.prepareTriangleGraphicsSlice9(el, bounds, scaleGrid, true);
+				this.elements = el = <any> clone;
+				this._originalElement = el;
+			}
+
+			TriangleElementsUtils.updateTriangleGraphicsSlice9(<any>el, bounds, scaleX, scaleY);
+		} else {
+			console.warn('[Shape] Element not support scale9grid');
+		}
+	}
+
 	/**
 	 * //TODO
 	 *
@@ -338,6 +361,7 @@ import {
 
 import { AnimatorBase } from '../animators/AnimatorBase';
 import { LineElements } from '../elements/LineElements';
+import { TriangleElementsUtils } from '../utils/TriangleElementsUtils';
 
 /**
  * @class away.pool._Render_Shape

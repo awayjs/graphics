@@ -563,19 +563,19 @@ export class TriangleElementsUtils {
 			elem.positions,
 			elem.indices,
 			null,null, null,
-			elem._numElements, 0);
+			elem._numElements | elem._numVertices, 0);
 
 		const sliceX = [
 			-Infinity,
-			bounds.x + offsets.x,
-			bounds.right - offsets.width,
+			offsets.x,
+			offsets.right,
 			Infinity
 		];
 
 		const sliceY = [
 			-Infinity,
-			bounds.y + offsets.y,
-			bounds.bottom - offsets.height,
+			offsets.y,
+			offsets.bottom,
 			Infinity
 		];
 
@@ -632,33 +632,35 @@ export class TriangleElementsUtils {
 			throw 'ElementUtils: Error - triangleElement does not provide valid slice9Indices!';
 		}
 
-		/**
-		 * this is not rectangle.
-		 * it store a top, left, right, bottom offsets relative a original top, left, right, bottom
-		 * */
-		const offsets = elem.slice9offsets._rawData;
-		const left = offsets[0];
-		const right = offsets[1];
-		const top = offsets[2];
-		const bottom = offsets[3];
+		const offsets = elem.slice9offsets;
+		const left = offsets.x - originalRect.x;
+		const right = originalRect.right - offsets.right;
+		const top = offsets.y - originalRect.y;
+		const bottom = originalRect.bottom - offsets.bottom;
 
 		const s_len = elem.slice9Indices.length;
 
-		let innerWidth = originalRect.width - (left + right) / scaleX;
-		let innerHeight = originalRect.height - (top + bottom) / scaleY;
+		let innerWidth = originalRect.width * scaleX - (left + right);
+		let innerHeight = originalRect.height * scaleY - (top + bottom);
+
+		let cornerScaleX = 1;
+		let cornerScaleY = 1;
 
 		// reduce a overflow, when scale to small
 		if (innerWidth < 0) {
 			innerWidth = 0;
 
-			scaleX = (left + right) / originalRect.width;
+			cornerScaleX = originalRect.width * scaleX / (left + right);
 		}
 
 		if (innerHeight < 0) {
 			innerHeight = 0;
 
-			scaleY = (top + bottom) / originalRect.height;
+			cornerScaleY = originalRect.width * scaleY / (top + bottom);
 		}
+
+		const innerScaleX = innerWidth / offsets.width;
+		const innerScaleY = innerHeight / offsets.height;
 
 		const stride = elem.positions.stride;
 		const attrOffset = elem.positions.offset;
@@ -709,58 +711,38 @@ export class TriangleElementsUtils {
 		const slice9Indices: number[] = elem.slice9Indices;
 
 		const slice9Offsets_x = [
-			originalRect.x,
-			originalRect.x + left / scaleX,
-			originalRect.x + left / scaleX + innerWidth
+			0,
+			left - left * innerScaleX,
+			innerWidth - offsets.width * cornerScaleX,
 		];
 
 		const slice9Offsets_y = [
-			originalRect.y,
-			originalRect.y + top / scaleY,
-			originalRect.y + right / scaleY + innerHeight
+			0,
+			top - top * innerScaleY,
+			innerHeight - offsets.height * cornerScaleY,
 		];
 
-		//console.log("slice9Offsets_x",slice9Offsets_x);
-		//console.log("slice9Offsets_y",slice9Offsets_x);
-
-		let row_cnt: number = -1;
-		let col_cnt: number = 0;
-		let scalex: number = 0;
-		let scaley: number = 0;
-		let offsetx: number = 0;
-		let offsety: number = 0;
 		let vindex = 0;
 
 		// iterating over the 9 chunks - keep in mind that we are constructing a 3x3 grid:
 		for (let s = 0; s < s_len; s++) {
-			// keep track of column and row index
-			if (row_cnt === 2) {
-				col_cnt++;
-				row_cnt = -1;
-			}
-			row_cnt++;
+
+			const row = s / 3 | 0;
+			const col = s % 3;
 
 			// only need to x-scale if this is the middle column
 			// if the innerWidth<=0 we can skip this complete column
-			if (col_cnt === 1) {
-				scalex = innerWidth;
-			} else {
-				scalex = 1 / scaleX;
-			}
+			const scalex = col === 1 ? innerScaleX : cornerScaleX;
 
 			// only need to y-scale if this is the middle row
 			// if the innerHeight<=0 we can skip this complete row
-			if (row_cnt === 1) {
-				scaley = innerHeight;
-			} else {
-				scaley = 1 / scaleY;
-			}
+			const scaley = row === 1 ? innerScaleY : cornerScaleY;
 
 			// offsetx is different for each column
-			offsetx = slice9Offsets_x[col_cnt];
+			const offsetx = slice9Offsets_x[col];
 
 			// offsety is different for each row
-			offsety = slice9Offsets_y[row_cnt];
+			const offsety = slice9Offsets_y[row];
 
 			// internal buffer iterator
 			let attrindex = attrOffset;
@@ -768,8 +750,18 @@ export class TriangleElementsUtils {
 			// iterate the verts and apply the translation / scale
 			// slice9Indices is vertices indeces, is not attribute indices
 			while (vindex < slice9Indices[s]) {
-				positions[attrindex + 0] = offsetx + initPos[vindex * 2 + 0] * scalex;
-				positions[attrindex + 1] = offsety + initPos[vindex * 2 + 1] * scaley;
+				let vx = initPos[vindex * 2 + 0] - originalRect.x;
+				let vy = initPos[vindex * 2 + 1] - originalRect.y;
+
+				vx = offsetx + vx * scalex;
+				vy = offsety + vy * scaley;
+
+				vx /= scaleX;
+				vy /= scaleY;
+
+				positions[attrindex + 0] = vx + originalRect.x;
+				positions[attrindex + 1] = vy + originalRect.y;
+
 				// we should include a stride, because buffer maybe be contecated
 				// or XYZ instead of XY
 				attrindex += stride;
@@ -780,10 +772,12 @@ export class TriangleElementsUtils {
 		//console.log("positions",positions);
 		if (copy) {
 			newElem.positions.invalidate();
+			newElem.invalidate();
 			return newElem;
 		}
 
 		elem.positions.invalidate();
+		elem.invalidate();
 
 		return elem;
 	}
