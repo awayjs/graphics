@@ -639,14 +639,16 @@ export class TriangleElementsUtils {
 		vector.setTo(1, 0, 0, 0);
 		// we slice only over 2 offsets
 		for (let i = chunkX.from; i < chunkX.to; i++) {
-			//mesh = GeneratorUtils.SliceHodgman(mesh, vector, sliceX[i], emitXFunc);
+			//mesh = GeneratorUtils.SliceHodgman(mesh, vector, sliceX[i]);
 			mesh = GeneratorUtils.SliceAllNaive(mesh, vector, sliceX[i + 1]);
 		}
 
 		vector.setTo(0, 1, 0, 0);
 		// we slice only over 2 offsets
 		for (let i = chunkY.from; i < chunkY.to; i++) {
-			//mesh = GeneratorUtils.SliceHodgman(mesh, vector, sliceY[i], emitYFunc);
+			// generate errors
+			// mesh = GeneratorUtils.SliceHodgman(mesh, vector, sliceY[i]);
+			// Naive is more stable, but unoptimal
 			mesh = GeneratorUtils.SliceAllNaive(mesh, vector, sliceY[i + 1]);
 		}
 

@@ -397,9 +397,13 @@ export class GeneratorUtils {
 		return out;
 	}
 
-	// Splits a polygon in half along a splitting plane using a clipping algorithm
-	// call Sutherland-Hodgman clipping
-	// Resource: Page 367 of Ericson (Real-Time Collision Detection)
+	/**
+	 * It gen corrupted results, need improve, eXponenta
+	 *
+	 * Splits a polygon in half along a splitting plane using a clipping algorithm
+	 * call Sutherland-Hodgman clipping
+	 * Resource: Page 367 of Ericson (Real-Time Collision Detection)
+	 */
 	public static SutherlandHodgman<T> (
 		poly: PolygonView<T>,
 		normal: Vector3D,
