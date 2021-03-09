@@ -1,4 +1,4 @@
-import { Box, Sphere, Vector3D } from '@awayjs/core';
+import { Box, Rectangle, Sphere, Vector3D } from '@awayjs/core';
 
 import { AttributesBuffer, AttributesView, Byte4Attributes, Float1Attributes } from '@awayjs/stage';
 
@@ -20,6 +20,24 @@ export class LineElements extends ElementsBase {
 	private _thickness: Float1Attributes;
 	private _colors: Byte4Attributes;
 	private _thicknessScale: Vector3D = new Vector3D();
+
+	/**
+	 * Original Bounds for 9Slice
+	 */
+	public originalSlice9Size: Rectangle;
+	/**
+	 * Slice constraints! Not a Recangle. x - left side, width - right side, y - top, height - bottom
+	 */
+	public slice9offsets: Rectangle;
+	/**
+	 * Right index bound for vertices for scalable regions
+	 * Lenght MUST BE A 9
+	 */
+	public slice9Indices: number[];
+	/**
+	 * Initial position buffer, store only XY values
+	 */
+	public initialSlice9Positions: number[] | Float32Array;
 
 	//used for hittesting geometry
 	public hitTestCache: Object = new Object();
@@ -249,7 +267,11 @@ export class LineElements extends ElementsBase {
 
 				if (++j == 4) {
 					const o: number = index / 6 - 4;
-					indices.set([o, o + 1, o + 2, o + 3, o + 2, o + 1], i);
+					indices.set([
+						o, o + 1, o + 2,
+						o + 3, o + 2, o + 1
+					], i);
+
 					j = 0;
 					i += 6;
 				}
@@ -402,10 +424,10 @@ export class LineElements extends ElementsBase {
 			this._concatenatedBuffer ? this._concatenatedBuffer.clone() : null);
 
 		clone.setIndices(this.indices.clone());
-
 		clone.setPositions(this._positions.clone());
-		clone.setThickness(this._thickness.clone());
-		clone.setColors(this._colors.clone());
+
+		this._thickness && clone.setThickness(this._thickness.clone());
+		this._colors && clone.setColors(this._colors.clone());
 
 		return clone;
 	}

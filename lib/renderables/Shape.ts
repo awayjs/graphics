@@ -315,14 +315,20 @@ export class Shape<T extends ElementsBase = ElementsBase> extends AssetBase {
 
 		if (el instanceof TriangleElements) {
 			if (!el.slice9Indices) {
-				const clone = TriangleElementsUtils.prepareTriangleGraphicsSlice9(el, bounds, scaleGrid, true);
+				const clone = TriangleElementsUtils.prepareSlice9(el, bounds, scaleGrid, true);
 				this.elements = el = <any> clone;
 				this._originalElement = el;
 			}
 
-			TriangleElementsUtils.updateTriangleGraphicsSlice9(<any>el, bounds, scaleX, scaleY);
-		} else {
-			console.warn('[Shape] Element not support scale9grid');
+			TriangleElementsUtils.updateSlice9(<any>el, bounds, scaleX, scaleY);
+		} else if (el instanceof LineElements) {
+			if (!el.slice9Indices) {
+				const clone = LineElementsUtils.prepareSlice9(el, bounds, scaleGrid, true);
+				this.elements = el = <any> clone;
+				this._originalElement = el;
+			}
+
+			LineElementsUtils.updateSlice9(<any>el, bounds, scaleX, scaleY);
 		}
 	}
 
@@ -362,6 +368,7 @@ import {
 import { AnimatorBase } from '../animators/AnimatorBase';
 import { LineElements } from '../elements/LineElements';
 import { TriangleElementsUtils } from '../utils/TriangleElementsUtils';
+import { LineElementsUtils } from '../utils/LineElementsUtils';
 
 /**
  * @class away.pool._Render_Shape

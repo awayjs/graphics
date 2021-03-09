@@ -165,7 +165,6 @@ export class Graphics extends AssetBase {
 	private _current_position: Point=new Point();
 
 	public _sliceInvalid: boolean = false;
-	public _requireCorrectOffsets: boolean = false;
 	public slice9Rectangle: Rectangle;
 	public originalSlice9Size: Rectangle;
 	public minSlice9Width: number;
@@ -228,12 +227,11 @@ export class Graphics extends AssetBase {
 	 * @param fixOffsets used for offset correction when a rect is not offset rect
 	 * @param bounds space of scale grid, may meashured autmaticaly
 	 */
-	public setSlice9Rectangle (slice: Rectangle, fixOffsets: boolean, bounds?: Rectangle) {
+	public setSlice9Rectangle (slice: Rectangle, bounds?: Rectangle) {
 		if (bounds)
 			this.originalSlice9Size = bounds;
 
-		this.slice9Rectangle = slice.clone();
-		this._requireCorrectOffsets = fixOffsets;
+		this.slice9Rectangle = slice?.clone();
 		this._sliceInvalid = true;
 	}
 
@@ -636,7 +634,7 @@ export class Graphics extends AssetBase {
 				const box = new Box();
 
 				for (const s of this._shapes) {
-					s.elements.getBoxBounds(null, null, true, null, box, box);
+					(s.elements instanceof TriangleElements) && s.elements.getBoxBounds(null, null, true, null, box, box);
 				}
 
 				bounds = new Rectangle(box.x, box.y, box.width, box.height);
@@ -1939,7 +1937,7 @@ export class Graphics extends AssetBase {
 			shape = shapes[i];
 			if (this.slice9Rectangle) { // todo: this is a dirty workaround to get the slice9-shapes cloned:
 				shape = Shape.getShape(
-					TriangleElementsUtils.updateTriangleGraphicsSlice9(
+					TriangleElementsUtils.updateSlice9(
 						<TriangleElements> shape.elements,
 						this.originalSlice9Size, 1, 1, false, true),
 					shape.material,

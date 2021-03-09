@@ -556,7 +556,7 @@ export class TriangleElementsUtils {
 		return output;
 	}
 
-	public static prepareTriangleGraphicsSlice9 (
+	public static prepareSlice9 (
 		elem: TriangleElements,
 		bounds: Rectangle,
 		offsets: Rectangle,
@@ -699,7 +699,7 @@ export class TriangleElementsUtils {
 		return target;
 	}
 
-	public static updateTriangleGraphicsSlice9(
+	public static updateSlice9(
 		elem: TriangleElements,
 		originalRect: Rectangle,
 		scaleX: number,
