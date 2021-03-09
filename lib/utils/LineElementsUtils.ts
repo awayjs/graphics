@@ -511,8 +511,8 @@ export class LineElementsUtils {
 				continue;
 			}
 
-			posBuff.set(posByChunks[i], nextIndices * 3 * 2);
-			nextIndices += posByChunks[i].length / 6;
+			posBuff.set(posByChunks[i], nextIndices * 3);
+			nextIndices += posByChunks[i].length / 3;
 			indices[i] = nextIndices;
 		}
 
@@ -609,7 +609,7 @@ export class LineElementsUtils {
 		if (innerHeight < 0) {
 			innerHeight = 0;
 
-			cornerScaleY = originalRect.width * scaleY / (top + bottom);
+			cornerScaleY = originalRect.height * scaleY / (top + bottom);
 		}
 
 		const innerScaleX = innerWidth / offsets.width;
@@ -629,13 +629,13 @@ export class LineElementsUtils {
 
 		const slice9Offsets_x = [
 			0,
-			left - left * innerScaleX,
+			left * cornerScaleX - left * innerScaleX,
 			innerWidth - offsets.width * cornerScaleX,
 		];
 
 		const slice9Offsets_y = [
 			0,
-			top - top * innerScaleY,
+			top * cornerScaleY - top * innerScaleY,
 			innerHeight - offsets.height * cornerScaleY,
 		];
 
