@@ -598,21 +598,21 @@ export class TriangleElementsUtils {
 		};
 
 		for (let i = 1; i < 3; i++) {
-			if (shapeBounds.x > sliceX[i]) {
+			if (shapeBounds.x >= sliceX[i]) {
 				chunkX.from = chunkX.to = i;
 			}
 
-			if (shapeBounds.y > sliceY[i]) {
+			if (shapeBounds.y >= sliceY[i]) {
 				chunkY.from = chunkY.to = i;
 			}
 		}
 
 		for (let i = 0; i < 3; i++) {
-			if (shapeBounds.right >= sliceX[i] && i >= chunkX.from) {
+			if (shapeBounds.right > sliceX[i] && i >= chunkX.from) {
 				chunkX.to = i;
 			}
 
-			if (shapeBounds.bottom >= sliceY[i] && i >= chunkY.from) {
+			if (shapeBounds.bottom > sliceY[i] && i >= chunkY.from) {
 				chunkY.to = i;
 			}
 		}
