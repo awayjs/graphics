@@ -1282,12 +1282,12 @@ export class Graphics extends AssetBase {
 			
 			this._active_stroke_path.lineTo(x + w - ew, y);
 			GraphicsFactoryHelper.drawElipseStrokes(x + w - ew, y + eh, ew, eh, this._active_stroke_path, 270, 360, 2);
-			this._active_stroke_path.lineTo(x + w, y - eh);
-			GraphicsFactoryHelper.drawElipseStrokes(x + w - ew, y + h - eh, ew, eh, this._active_stroke_path, 270, 360, 2);
-			this._active_stroke_path.lineTo(x + ew, y - eh);
-			GraphicsFactoryHelper.drawElipseStrokes(x + ew, y + h - eh, ew, eh, this._active_stroke_path, 270, 360, 2);
-			this._active_stroke_path.lineTo(x, y + h - eh);
-			GraphicsFactoryHelper.drawElipseStrokes(x + ew, y + eh, ew, eh, this._active_stroke_path, 270, 360, 2);
+			this._active_stroke_path.lineTo(x + w, y + h - eh);
+			GraphicsFactoryHelper.drawElipseStrokes(x + w - ew, y + h - eh, ew, eh, this._active_stroke_path, 0, 90, 2);
+			this._active_stroke_path.lineTo(x + ew, y + h);
+			GraphicsFactoryHelper.drawElipseStrokes(x + ew, y + h - eh, ew, eh, this._active_stroke_path, 90, 180, 2);
+			this._active_stroke_path.lineTo(x, y + eh);
+			GraphicsFactoryHelper.drawElipseStrokes(x + ew, y + eh, ew, eh, this._active_stroke_path, 180, 270, 2);
 			/* eslint-enable */
 
 		}
