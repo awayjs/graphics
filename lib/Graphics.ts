@@ -1047,22 +1047,31 @@ export class Graphics extends AssetBase {
 	public drawEllipse(x: number, y: number, width: number, height: number): void {
 		this._drawingDirty = true;
 		this._createGraphicPathes();
-		//var radius2=radius*1.065;
+
+		width /= 2;
+		height /= 2;
+		x += width;
+		y += height;
+
 		if (this._active_fill_path != null) {
 			this._active_fill_path.moveTo(x, y);
 
 			let w = width;
 			let h = height;
+
 			if (this._active_stroke_path != null) {
 				w -= (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2;
 				h -= (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2;
 			}
-			GraphicsFactoryHelper.drawElipse(x, y, w, h, this._active_fill_path.verts, 0, 360, 5, false);
+
+			GraphicsFactoryHelper.drawElipse(x, y, w, h, this._active_fill_path.verts, 0, 360, 6, false);
 
 		}
+
 		if (this._active_stroke_path != null) {
 			GraphicsFactoryHelper.drawElipseStrokes(x, y, width, height, this._active_stroke_path , 0, 360, 2);
 		}
+
 		this.invalidate();
 
 	}
@@ -1323,12 +1332,12 @@ export class Graphics extends AssetBase {
 			
 			this._active_stroke_path.lineTo(x + w - ew, y);
 			GraphicsFactoryHelper.drawElipseStrokes(x + w - ew, y + eh, ew, eh, this._active_stroke_path, 270, 360, 2);
-			this._active_stroke_path.lineTo(x + w, y - eh);
-			GraphicsFactoryHelper.drawElipseStrokes(x + w - ew, y + h - eh, ew, eh, this._active_stroke_path, 270, 360, 2);
-			this._active_stroke_path.lineTo(x + ew, y - eh);
-			GraphicsFactoryHelper.drawElipseStrokes(x + ew, y + h - eh, ew, eh, this._active_stroke_path, 270, 360, 2);
-			this._active_stroke_path.lineTo(x, y + h - eh);
-			GraphicsFactoryHelper.drawElipseStrokes(x + ew, y + eh, ew, eh, this._active_stroke_path, 270, 360, 2);
+			this._active_stroke_path.lineTo(x + w, y + h - eh);
+			GraphicsFactoryHelper.drawElipseStrokes(x + w - ew, y + h - eh, ew, eh, this._active_stroke_path, 0, 90, 2);
+			this._active_stroke_path.lineTo(x + ew, y + h);
+			GraphicsFactoryHelper.drawElipseStrokes(x + ew, y + h - eh, ew, eh, this._active_stroke_path, 90, 180, 2);
+			this._active_stroke_path.lineTo(x, y + eh);
+			GraphicsFactoryHelper.drawElipseStrokes(x + ew, y + eh, ew, eh, this._active_stroke_path, 180, 270, 2);
 			/* eslint-enable */
 
 		}
