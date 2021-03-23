@@ -1,17 +1,8 @@
 import { Matrix3D, Vector3D, Box, Sphere, Rectangle } from '@awayjs/core';
 import { AttributesView, Short2Attributes } from '@awayjs/stage';
 import { TriangleElements } from '../elements/TriangleElements';
-import { GeneratorUtils, MeshView, PolygonView } from './GeneratorUtils';
+import { GeneratorUtils, MeshView } from './GeneratorUtils';
 import { HitTestCache } from './HitTestCache';
-
-class ResultChunk {
-	index = 0;
-	clone() {
-		const chunk = new ResultChunk();
-		chunk.index = this.index;
-		return chunk;
-	}
-}
 
 export class TriangleElementsUtils {
 	//TODO - generate this dyanamically based on num tris
