@@ -316,16 +316,19 @@ export class Shape<T extends ElementsBase = ElementsBase> extends AssetBase {
 		if (el instanceof TriangleElements) {
 			if (!el.slice9Indices) {
 				const clone = TriangleElementsUtils.prepareSlice9(el, bounds, scaleGrid, true);
-				this.elements = el = <any> clone;
+
 				this._originalElement = el;
+				this.elements = el = <any> clone;
+
 			}
 
 			TriangleElementsUtils.updateSlice9(<any>el, bounds, scaleX, scaleY);
 		} else if (el instanceof LineElements) {
 			if (!el.slice9Indices) {
 				const clone = LineElementsUtils.prepareSlice9(el, bounds, scaleGrid, true);
-				this.elements = el = <any> clone;
+
 				this._originalElement = el;
+				this.elements = el = <any> clone;
 			}
 
 			LineElementsUtils.updateSlice9(<any>el, bounds, scaleX, scaleY);
