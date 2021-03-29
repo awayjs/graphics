@@ -3,10 +3,9 @@ import { Point, MathConsts,  Matrix } from '@awayjs/core';
 
 import { ImageSampler, AttributesBuffer, AttributesView, Float2Attributes } from '@awayjs/stage';
 
-import { IMaterial, Style } from '@awayjs/renderer';
+import { IMaterial, Style, TriangleElements } from '@awayjs/renderer';
 
 import { Shape } from '../renderables/Shape';
-import { TriangleElements } from '../elements/TriangleElements';
 import { GraphicsPath } from '../draw/GraphicsPath';
 import { CapsStyle } from '../draw/CapsStyle';
 import { MaterialManager } from '../managers/MaterialManager';

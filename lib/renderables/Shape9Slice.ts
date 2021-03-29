@@ -1,7 +1,6 @@
 import { Rectangle } from '@awayjs/core';
-import { Style } from '@awayjs/renderer';
+import { Style, TriangleElements } from '@awayjs/renderer';
 import { BitmapImage2D, ImageSampler } from '@awayjs/stage';
-import { TriangleElements } from '../elements/TriangleElements';
 import { MaterialManager } from '../managers/MaterialManager';
 import { Settings } from '../Settings';
 import { Shape } from './Shape';

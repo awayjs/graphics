@@ -5,9 +5,8 @@ import {
 	Float2Attributes,
 } from '@awayjs/stage';
 
-import { MappingMode, IMaterial, Style } from '@awayjs/renderer';
+import { MappingMode, IMaterial, Style, TriangleElements } from '@awayjs/renderer';
 
-import { TriangleElements } from '../elements/TriangleElements';
 import { Shape } from '../renderables/Shape';
 
 import { GraphicsFillStyle } from './GraphicsFillStyle';

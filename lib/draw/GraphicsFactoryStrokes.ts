@@ -2,18 +2,15 @@ import { Point, MathConsts, Matrix } from '@awayjs/core';
 
 import { ImageSampler, AttributesBuffer, AttributesView, Float2Attributes } from '@awayjs/stage';
 
-import { IMaterial, Style } from '@awayjs/renderer';
+import { IMaterial, Style, LineElements, LineScaleMode, TriangleElements } from '@awayjs/renderer';
 
 import { Shape } from '../renderables/Shape';
-import { TriangleElements } from '../elements/TriangleElements';
 import { JointStyle }	 from '../draw/JointStyle';
 import { GraphicsPath } from '../draw/GraphicsPath';
 import { GraphicsPathCommand } from '../draw/GraphicsPathCommand';
 import { GraphicsFactoryHelper } from '../draw/GraphicsFactoryHelper';
 import { GraphicsStrokeStyle } from '../draw/GraphicsStrokeStyle';
-import { LineScaleMode } from '../draw/LineScaleMode';
 import { Graphics } from '../Graphics';
-import { LineElements } from '../elements/LineElements';
 import { MaterialManager } from '../managers/MaterialManager';
 import { GraphicsFactoryFills } from './GraphicsFactoryFills';
 
@@ -60,7 +57,8 @@ export class GraphicsFactoryStrokes {
 			if (!elements)
 				continue;
 
-			elements.stroke = path.stroke;
+			elements.scaleMode = path.stroke.scaleMode;
+			elements.half_thickness = path.stroke.half_thickness;
 
 			if (obj.colorPos) {
 				style = new Style();

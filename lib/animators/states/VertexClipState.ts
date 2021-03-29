@@ -1,4 +1,4 @@
-import { ElementsBase } from '../../elements/ElementsBase';
+import { ElementsBase } from '@awayjs/renderer';
 
 import { VertexAnimator } from '../VertexAnimator';
 import { VertexClipNode } from '../nodes/VertexClipNode';

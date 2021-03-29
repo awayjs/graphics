@@ -133,18 +133,12 @@ export { GraphicsPathWinding } from './lib/draw/GraphicsPathWinding';
 export { IGraphicsData } from './lib/draw/IGraphicsData';
 export { InterpolationMethod } from './lib/draw/InterpolationMethod';
 export { JointStyle } from './lib/draw/JointStyle';
-export { LineScaleMode } from './lib/draw/LineScaleMode';
 export { PixelSnapping } from './lib/draw/PixelSnapping';
 export { SpreadMethod } from './lib/draw/SpreadMethod';
 export { TriangleCulling } from './lib/draw/TriangleCulling';
 
 export { AnimatorEvent } from './lib/events/AnimatorEvent';
 export { AnimationStateEvent } from './lib/events/AnimationStateEvent';
-
-export { ElementsBase } from './lib/elements/ElementsBase';
-export { ElementsType } from './lib/elements/ElementsType';
-export { LineElements, _Render_LineElements, _Stage_LineElements } from './lib/elements/LineElements';
-export { TriangleElements, _Render_TriangleElements, _Stage_TriangleElements } from './lib/elements/TriangleElements';
 
 export { AnimationSetError } from './lib/errors/AnimationSetError';
 
@@ -153,10 +147,8 @@ export { TextureAtlas } from './lib/managers/TextureAtlas';
 
 export { Shape, _Render_Shape } from './lib/renderables/Shape';
 
-export { HitTestCache } from './lib/utils/HitTestCache';
 export { ParticleGraphicsHelper } from './lib/utils/ParticleGraphicsHelper';
 export { ParticleGraphicsTransform } from './lib/utils/ParticleGraphicsTransform';
-export { TriangleElementsUtils } from './lib/utils/TriangleElementsUtils';
 
 export {
 	Graphics,

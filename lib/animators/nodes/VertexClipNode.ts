@@ -1,6 +1,6 @@
 import { Vector3D } from '@awayjs/core';
 
-import { ElementsBase } from '../../elements/ElementsBase';
+import { ElementsBase } from '@awayjs/renderer';
 
 import { VertexClipState } from '../states/VertexClipState';
 

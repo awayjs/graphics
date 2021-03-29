@@ -1,8 +1,8 @@
+import { LineScaleMode } from '@awayjs/renderer';
+
 import { IGraphicsData } from '../draw/IGraphicsData';
 import { JointStyle } from '../draw/JointStyle';
 import { CapsStyle } from '../draw/CapsStyle';
-
-import { LineScaleMode } from './LineScaleMode';
 
 export class GraphicsStrokeStyle implements IGraphicsData {
 	public static data_type: string = '[graphicsdata StrokeStyle]';

@@ -7,7 +7,7 @@ import { GraphicsFillStyle } from '../draw/GraphicsFillStyle';
 import { Matrix } from '@awayjs/core';
 import { GradientFillStyle } from '../draw/GradientFillStyle';
 import { BitmapFillStyle } from '../draw/BitmapFillStyle';
-import { LineScaleMode } from '../draw/LineScaleMode';
+import { LineScaleMode } from '@awayjs/renderer';
 import { CapsStyle } from '../draw/CapsStyle';
 import { GraphicsStrokeStyle } from '../draw/GraphicsStrokeStyle';
 

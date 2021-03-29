@@ -7,11 +7,7 @@ export interface IGraphicsSettings {
 	ALLOW_INTERNAL_POOL: tShapeEntry;
 	CLEARS_BEFORE_POOLING: number;
 	ALLOW_COMBINER: tShapeEntry;
-	ALLOW_VAO: boolean;
 
-	ENABLE_CONVEX_BOUNDS: boolean;
-	CONVEX_MIN_REQUIEST_FOR_BUILD: number;
-	POINTS_COUNT_FOR_CONVEX: number;
 	USE_NATIVE_DEFLATE: boolean;
 	MINIMUM_DRAWING_DISTANCE: number;
 
@@ -40,25 +36,6 @@ export const Settings: IGraphicsSettings = {
 		// Strokes not support yet
 		STROKES: false,
 	},
-
-	/**
-	 * @description Allow vao for elements
-	 */
-	ALLOW_VAO: true,
-
-	/**
-	 * @description Enable construct a approximation convex for triangle element.
-	 */
-	ENABLE_CONVEX_BOUNDS: false,
-
-	/**
-	 * @description Run convex filling after bounds N requiest, 0 - immedate when any bounds requested
-	 */
-	CONVEX_MIN_REQUIEST_FOR_BUILD: 10,
-	/**
-	 * @description Threshold for points count, that enable a hull generator
-	 */
-	POINTS_COUNT_FOR_CONVEX: 10,
 
 	/**
 	 * @description Try to use native deflate (Chrome and FF, Sufari suckings again)

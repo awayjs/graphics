@@ -8,13 +8,13 @@ import {
 	StyleEvent,
 	Style,
 	ElementsEvent,
-	IRenderEntity,
+	IRenderContainer,
 	IElements,
+	ElementsBase,
+	TriangleElements
 } from '@awayjs/renderer';
 
 import { ParticleCollection } from '../animators/data/ParticleCollection';
-import { ElementsBase } from '../elements/ElementsBase';
-import { TriangleElements } from '../elements/TriangleElements';
 
 /**
  * Graphic wraps a Elements as a scene graph instantiation. A Graphic is owned by a Sprite object.
@@ -363,12 +363,12 @@ import {
 	_Stage_ElementsBase,
 	_Render_MaterialBase,
 	MaterialUtils,
+	LineElements,
+	TriangleElementsUtils,
+	LineElementsUtils
 } from '@awayjs/renderer';
 
 import { AnimatorBase } from '../animators/AnimatorBase';
-import { LineElements } from '../elements/LineElements';
-import { TriangleElementsUtils } from '../utils/TriangleElementsUtils';
-import { LineElementsUtils } from '../utils/LineElementsUtils';
 
 /**
  * @class away.pool._Render_Shape
@@ -408,20 +408,20 @@ export class _Render_Shape extends _Render_RenderableBase {
 		this._offset = this.shape.offset;
 		this._count = this.shape.count;
 
-		const elements: IElements = (<IRenderEntity> this.node.entity).animator
-			? (<AnimatorBase> (<IRenderEntity> this.node.entity).animator).getRenderableElements(this, this.shape.elements)
+		const elements: IElements = (<IRenderContainer> this.node.container).animator
+			? (<AnimatorBase> (<IRenderContainer> this.node.container).animator).getRenderableElements(this, this.shape.elements)
 			: this.shape.elements;
 		return elements.getAbstraction<_Stage_ElementsBase>(this._stage);
 	}
 
 	protected _getRenderMaterial(): _Render_MaterialBase {
 		const material: IMaterial =
-			(<Shape> this._asset).material || (<IRenderEntity> this.node.entity).material || this.getDefaultMaterial();
+			(<Shape> this._asset).material || (<IRenderContainer> this.node.container).material || this.getDefaultMaterial();
 		return material.getAbstraction<_Render_MaterialBase>(this.renderGroup.getRenderElements(this.shape.elements));
 	}
 
 	protected _getStyle(): Style {
-		return (<Shape> this._asset).style || (<IRenderEntity> this.node.entity).style;
+		return (<Shape> this._asset).style || (<IRenderContainer> this.node.container).style;
 	}
 
 	protected getDefaultMaterial(): IMaterial {
@@ -580,7 +580,7 @@ export class _Pick_Shape extends _Pick_PickableBase {
 			collision,
 			box,
 			findClosestCollision,
-			(<Shape> this._asset).material || (<IRenderEntity>collision.entityNode.entity).material,
+			(<Shape> this._asset).material || (<IRenderContainer>collision.entityNode.entity).material,
 			(<Shape> this._asset).count || (<Shape> this._asset).elements.numVertices,
 			(<Shape> this._asset).offset,
 		);

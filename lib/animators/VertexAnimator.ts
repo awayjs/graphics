@@ -1,7 +1,6 @@
-import { IElements, AnimationRegisterData, ShaderBase, _Render_RenderableBase, _Stage_ElementsBase } from '@awayjs/renderer';
+import { IElements, AnimationRegisterData, ShaderBase, _Render_RenderableBase, _Stage_ElementsBase, TriangleElements, ElementsBase } from '@awayjs/renderer';
 
 import { Shape, _Render_Shape } from '../renderables/Shape';
-import { TriangleElements } from '../elements/TriangleElements';
 
 import { VertexAnimationMode } from './data/VertexAnimationMode';
 import { IVertexAnimationState } from './states/IVertexAnimationState';
@@ -9,7 +8,6 @@ import { IAnimationTransition } from './transitions/IAnimationTransition';
 
 import { AnimatorBase } from './AnimatorBase';
 import { VertexAnimationSet } from './VertexAnimationSet';
-import { ElementsBase } from '../elements/ElementsBase';
 
 /**
  * Provides an interface for assigning vertex-based animation data sets to entity-based entity objects

@@ -16,7 +16,7 @@ import { BitmapImage2D, ImageSampler } from '@awayjs/stage';
 
 import { IEntityTraverser, PickEntity } from '@awayjs/view';
 
-import { IMaterial, Style, RenderableEvent } from '@awayjs/renderer';
+import { IMaterial, Style, RenderableEvent, TriangleElements, TriangleElementsUtils, LineElements, LineScaleMode } from '@awayjs/renderer';
 
 import { GraphicsPath } from './draw/GraphicsPath';
 import { GraphicsFactoryFills } from './draw/GraphicsFactoryFills';
@@ -24,7 +24,6 @@ import { GraphicsFactoryStrokes } from './draw/GraphicsFactoryStrokes';
 import { GraphicsFactoryHelper } from './draw/GraphicsFactoryHelper';
 import { InterpolationMethod } from './draw/InterpolationMethod';
 import { JointStyle } from './draw/JointStyle';
-import { LineScaleMode } from './draw/LineScaleMode';
 import { TriangleCulling } from './draw/TriangleCulling';
 import { SpreadMethod } from './draw/SpreadMethod';
 import { CapsStyle } from './draw/CapsStyle';
@@ -35,15 +34,12 @@ import { IGraphicsData } from './draw/IGraphicsData';
 import { GraphicsStrokeStyle } from './draw/GraphicsStrokeStyle';
 import { GraphicsFillStyle } from './draw/GraphicsFillStyle';
 import { GradientFillStyle } from './draw/GradientFillStyle';
-import { TriangleElements } from './elements/TriangleElements';
-import { TriangleElementsUtils } from './utils/TriangleElementsUtils';
 import { Shape } from './renderables/Shape';
 import { SegmentedPath } from './data/SegmentedPath';
 import { FillType } from './data/FillType';
 import { PathSegment } from './data/PathSegment';
 import { assert } from './data/utilities';
 import { MaterialManager } from './managers/MaterialManager';
-import { LineElements } from './elements/LineElements';
 import { ManagedPool } from './ManagedPool';
 import { Settings } from './Settings';
 import { FillStyle, LineStyle, ShapeStyle } from './flash/ShapeStyle';

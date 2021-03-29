@@ -1,4 +1,4 @@
-import { TriangleElements } from '../../elements/TriangleElements';
+import { TriangleElements } from '@awayjs/renderer';
 
 export class ParticleData {
 	public particleIndex: number /*uint*/;

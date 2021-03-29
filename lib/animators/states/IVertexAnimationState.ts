@@ -1,4 +1,4 @@
-import { ElementsBase } from '../../elements/ElementsBase';
+import { ElementsBase } from '@awayjs/renderer';
 
 import { IAnimationState } from './IAnimationState';
 

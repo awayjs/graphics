@@ -1,6 +1,6 @@
 import { Vector3D, AssetBase, AbstractMethodError, RequestAnimationFrame, getTimer } from '@awayjs/core';
 
-import { ShaderBase, IAnimator, AnimationNodeBase, IRenderEntity, _Render_RenderableBase, IElements } from '@awayjs/renderer';
+import { ShaderBase, IAnimator, AnimationNodeBase, IRenderContainer, _Render_RenderableBase, IElements } from '@awayjs/renderer';
 
 import { AnimatorEvent } from '../events/AnimatorEvent';
 
@@ -47,7 +47,7 @@ export class AnimatorBase extends AssetBase implements IAnimator {
 	private _playbackSpeed: number = 1;
 
 	public _pAnimationSet: AnimationSetBase;
-	public _pOwners: Array<IRenderEntity> = new Array<IRenderEntity>();
+	public _pOwners: Array<IRenderContainer> = new Array<IRenderContainer>();
 	public _pActiveNode: AnimationNodeBase;
 	public _pActiveState: IAnimationState;
 	public _pActiveAnimationName: string;
@@ -258,7 +258,7 @@ export class AnimatorBase extends AssetBase implements IAnimator {
 	 *
 	 * @private
 	 */
-	public addOwner(entity: IRenderEntity): void {
+	public addOwner(entity: IRenderContainer): void {
 		this._pOwners.push(entity);
 	}
 
@@ -267,7 +267,7 @@ export class AnimatorBase extends AssetBase implements IAnimator {
 	 *
 	 * @private
 	 */
-	public removeOwner(entity: IRenderEntity): void {
+	public removeOwner(entity: IRenderContainer): void {
 		this._pOwners.splice(this._pOwners.indexOf(entity), 1);
 	}
 
@@ -331,7 +331,7 @@ export class AnimatorBase extends AssetBase implements IAnimator {
 	}
 
 	public invalidateElements(): void {
-		let entity: IRenderEntity;
+		let entity: IRenderContainer;
 		const len: number = this._pOwners.length;
 		for (let i: number = 0; i < len; i++) {
 			entity = this._pOwners[i];

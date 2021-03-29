@@ -2,7 +2,7 @@ import { Vector3D } from '@awayjs/core';
 
 import { ContextGLVertexBufferFormat } from '@awayjs/stage';
 
-import { ShaderBase, _Render_RenderableBase, AnimationRegisterData, IRenderEntity } from '@awayjs/renderer';
+import { ShaderBase, _Render_RenderableBase, AnimationRegisterData, IRenderContainer } from '@awayjs/renderer';
 
 import { ParticleAnimationData } from '../data/ParticleAnimationData';
 import { AnimationElements } from '../data/AnimationElements';
@@ -23,7 +23,7 @@ export class ParticleFollowState extends ParticleStateBase {
 	public static FOLLOW_ROTATION_INDEX: number = 1;
 
 	private _particleFollowNode: ParticleFollowNode;
-	private _followTarget: IRenderEntity;
+	private _followTarget: IRenderContainer;
 
 	private _targetPos: Vector3D = new Vector3D();
 	private _targetEuler: Vector3D = new Vector3D();
@@ -41,11 +41,11 @@ export class ParticleFollowState extends ParticleStateBase {
 		this._smooth = particleFollowNode._iSmooth;
 	}
 
-	public get followTarget(): IRenderEntity {
+	public get followTarget(): IRenderContainer {
 		return this._followTarget;
 	}
 
-	public set followTarget(value: IRenderEntity) {
+	public set followTarget(value: IRenderContainer) {
 		this._followTarget = value;
 	}
 
@@ -63,9 +63,9 @@ export class ParticleFollowState extends ParticleStateBase {
 	public setRenderState(shader: ShaderBase, renderable: _Render_RenderableBase, animationElements: AnimationElements, animationRegisterData: AnimationRegisterData): void {
 		if (this._followTarget) {
 			if (this._particleFollowNode._iUsesPosition) {
-				this._targetPos.x = this._followTarget.transform.position.x / renderable.node.entity.transform.scale.x;
-				this._targetPos.y = this._followTarget.transform.position.y / renderable.node.entity.transform.scale.y;
-				this._targetPos.z = this._followTarget.transform.position.z / renderable.node.entity.transform.scale.z;
+				this._targetPos.x = this._followTarget.transform.position.x / renderable.node.container.transform.scale.x;
+				this._targetPos.y = this._followTarget.transform.position.y / renderable.node.container.transform.scale.y;
+				this._targetPos.z = this._followTarget.transform.position.z / renderable.node.container.transform.scale.z;
 			}
 			if (this._particleFollowNode._iUsesRotation) {
 				this._targetEuler.x = this._followTarget.transform.rotation.x;

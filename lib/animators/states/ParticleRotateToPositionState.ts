@@ -49,13 +49,13 @@ export class ParticleRotateToPositionState extends ParticleStateBase {
 		const index: number = animationRegisterData.getRegisterIndex(this._pAnimationNode, ParticleRotateToPositionState.POSITION_INDEX);
 
 		if ((<ParticleAnimationSet> this._pParticleAnimator.animationSet).hasBillboard) {
-			this._matrix.copyFrom(renderable.node.parent.getMatrix3D());
+			this._matrix.copyFrom(renderable.node.getMatrix3D());
 			this._matrix.append(shader.view.projection.transform.inverseMatrix3D);
 			shader.setVertexConstFromMatrix(animationRegisterData.getRegisterIndex(this._pAnimationNode, ParticleRotateToPositionState.MATRIX_INDEX), this._matrix);
 		}
 
 		if (this._particleRotateToPositionNode.mode == ParticlePropertiesMode.GLOBAL) {
-			this._offset = renderable.node.parent.getMatrix3D().transformVector(this._position);
+			this._offset = renderable.node.getMatrix3D().transformVector(this._position);
 			shader.setVertexConst(index, this._offset.x, this._offset.y, this._offset.z);
 		} else
 			animationElements.activateVertexBuffer(index, this._particleRotateToPositionNode._iDataOffset, shader.stage, ContextGLVertexBufferFormat.FLOAT_3);
