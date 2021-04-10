@@ -305,33 +305,34 @@ export class Shape<T extends ElementsBase = ElementsBase> extends AssetBase {
 		this.invalidate();
 	}
 
-	public update9ScaleGrid (
+	public updateScale9 (
 		bounds: Rectangle,
 		scaleGrid: Rectangle,
 		scaleX: number,
 		scaleY: number
 	) {
-		let el = this._elements;
+		let element = this._elements;
 
-		if (el instanceof TriangleElements) {
-			if (!el.slice9Indices) {
-				const clone = TriangleElementsUtils.prepareSlice9(el, bounds, scaleGrid, true);
+		if (!element.scale9Indices && !scaleGrid) {
+			return;
+		}
 
-				this._originalElement = el;
-				this.elements = el = <any> clone;
+		if (!element.scale9Indices) {
+			const clone = element.prepareScale9(bounds, scaleGrid, !this._originalElement);
+			this._originalElement = element;
+			this.elements = element = <any> clone;
+		}
 
-			}
+		// element have scale9 but we delete it from graphics, reset state
+		element.updateScale9(
+			scaleGrid ?  scaleX : 1,
+			scaleGrid ? scaleY : 1
+		);
 
-			TriangleElementsUtils.updateSlice9(<any>el, bounds, scaleX, scaleY);
-		} else if (el instanceof LineElements) {
-			if (!el.slice9Indices) {
-				const clone = LineElementsUtils.prepareSlice9(el, bounds, scaleGrid, true);
-
-				this._originalElement = el;
-				this.elements = el = <any> clone;
-			}
-
-			LineElementsUtils.updateSlice9(<any>el, bounds, scaleX, scaleY);
+		if (!scaleGrid) {
+			element.scale9Grid = null;
+			element.scale9Indices = null;
+			element.originalScale9Bounds = null;
 		}
 	}
 
@@ -366,9 +367,7 @@ import {
 	_Stage_ElementsBase,
 	_Render_MaterialBase,
 	MaterialUtils,
-	LineElements,
-	TriangleElementsUtils,
-	LineElementsUtils
+	LineElements
 } from '@awayjs/renderer';
 
 import { AnimatorBase } from '../animators/AnimatorBase';

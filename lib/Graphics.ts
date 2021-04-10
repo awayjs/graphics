@@ -9,14 +9,21 @@ import {
 	AssetBase,
 	Rectangle,
 	AssetEvent,
-	Box,
 } from '@awayjs/core';
 
 import { BitmapImage2D, ImageSampler } from '@awayjs/stage';
 
 import { IEntityTraverser, PickEntity } from '@awayjs/view';
 
-import { IMaterial, Style, RenderableEvent, TriangleElements, TriangleElementsUtils, LineElements, LineScaleMode } from '@awayjs/renderer';
+import {
+	IMaterial,
+	Style,
+	RenderableEvent,
+	TriangleElements,
+	TriangleElementsUtils,
+	LineElements,
+	LineScaleMode,
+} from '@awayjs/renderer';
 
 import { GraphicsPath } from './draw/GraphicsPath';
 import { GraphicsFactoryFills } from './draw/GraphicsFactoryFills';
@@ -160,9 +167,9 @@ export class Graphics extends AssetBase {
 
 	private _current_position: Point=new Point();
 
-	public _sliceInvalid: boolean = false;
-	public slice9Rectangle: Rectangle;
-	public originalSlice9Size: Rectangle;
+	public _scale9Invalid: boolean = false;
+	public scale9Grid: Rectangle;
+	public originalScale9Bounds: Rectangle;
 	public minSlice9Width: number;
 	public minSlice9Height: number;
 	public tryOptimiseSigleImage: boolean = false;
@@ -223,17 +230,23 @@ export class Graphics extends AssetBase {
 	 * @param fixOffsets used for offset correction when a rect is not offset rect
 	 * @param bounds space of scale grid, may meashured autmaticaly
 	 */
-	public setSlice9Rectangle (slice: Rectangle, bounds?: Rectangle) {
-		if (bounds)
-			this.originalSlice9Size = bounds;
+	public setScale9 (slice: Rectangle, bounds: Rectangle) {
+		if (!bounds) {
+			this.originalScale9Bounds = null;
+			this.scale9Grid = null;
+			this.updateScale9(1, 1);
+		} else {
+			this.originalScale9Bounds = bounds.clone();
+			this.scale9Grid = slice.clone();
+		}
 
-		this.slice9Rectangle = slice?.clone();
-		this._sliceInvalid = true;
+		this._scale9Invalid = true;
 	}
 
-	public updateSlice9(scaleX: number, scaleY: number) {
-		if (!this.slice9Rectangle) {
-			return;
+	public updateScale9(scaleX: number, scaleY: number) {
+		if (!this.scale9Grid) {
+			scaleX = 1;
+			scaleY = 1;
 		}
 
 		if (this._scaleX === scaleX && this._scaleY === scaleY)
@@ -246,9 +259,9 @@ export class Graphics extends AssetBase {
 
 		for (let i = 0; i < len; i++) {
 
-			this._shapes[i].update9ScaleGrid(
-				this.originalSlice9Size,
-				this.slice9Rectangle,
+			this._shapes[i].updateScale9(
+				this.originalScale9Bounds,
+				this.scale9Grid,
 				scaleX,
 				scaleY
 			);
@@ -436,14 +449,14 @@ export class Graphics extends AssetBase {
 		if (this._drawingDirty)
 			this.endFill();
 
-		if (this.slice9Rectangle) {
-			graphics.slice9Rectangle = new Rectangle();
-			graphics.slice9Rectangle.copyFrom(this.slice9Rectangle);
+		if (this.scale9Grid) {
+			graphics.scale9Grid = new Rectangle();
+			graphics.scale9Grid.copyFrom(this.scale9Grid);
 		}
 
-		if (this.originalSlice9Size) {
-			graphics.originalSlice9Size = new Rectangle();
-			graphics.originalSlice9Size.copyFrom(this.originalSlice9Size);
+		if (this.originalScale9Bounds) {
+			graphics.originalScale9Bounds = new Rectangle();
+			graphics.originalScale9Bounds.copyFrom(this.originalScale9Bounds);
 			graphics.minSlice9Width = this.minSlice9Width;
 			graphics.minSlice9Height = this.minSlice9Height;
 		}
@@ -622,24 +635,6 @@ export class Graphics extends AssetBase {
 		}
 
 		const len = this._shapes.length;
-
-		if (this._sliceInvalid) {
-			let bounds = this.originalSlice9Size;
-
-			if (!bounds) {
-				const box = new Box();
-
-				for (const s of this._shapes) {
-					(s.elements instanceof TriangleElements) && s.elements.getBoxBounds(null, null, true, null, box, box);
-				}
-
-				bounds = new Rectangle(box.x, box.y, box.width, box.height);
-				this.originalSlice9Size = bounds;
-			}
-
-			this._sliceInvalid = false;
-		}
-
 		for (let i: number = len - 1; i >= 0; i--)
 			traverser.applyTraversable(this._shapes[i]);
 
@@ -1940,11 +1935,11 @@ export class Graphics extends AssetBase {
 		const len: number = shapes.length;
 		for (let i: number = 0; i < len; i++) {
 			shape = shapes[i];
-			if (this.slice9Rectangle) { // todo: this is a dirty workaround to get the slice9-shapes cloned:
+			if (this.scale9Grid) { // todo: this is a dirty workaround to get the slice9-shapes cloned:
 				shape = Shape.getShape(
-					TriangleElementsUtils.updateSlice9(
+					TriangleElementsUtils.updateScale9(
 						<TriangleElements> shape.elements,
-						this.originalSlice9Size, 1, 1, false, true),
+						this.originalScale9Bounds, 1, 1, false, true),
 					shape.material,
 					shape.style);
 
