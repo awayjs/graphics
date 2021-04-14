@@ -109,7 +109,7 @@ export class GraphicsFactoryFills {
 			}
 
 			if (!elements) {
-				elements = new TriangleElements(newBuffer);
+				elements = new TriangleElements();
 				elements.setPositions(new Float2Attributes(newBuffer));
 			} else {
 				elements.invalidate();
@@ -189,6 +189,7 @@ export class GraphicsFactoryFills {
 
 			shape.style = style;
 			shape.material = material;
+			shape.originalFillStyle = pathStyle;
 
 			targetGraphics.addShapeInternal(shape);
 		}
