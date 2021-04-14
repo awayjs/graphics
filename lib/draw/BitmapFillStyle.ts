@@ -17,6 +17,8 @@ export class BitmapFillStyle implements IGraphicsData {
 	public repeat: boolean;
 	public smooth: boolean;
 
+	private _uvMatrix: Matrix;
+
 	constructor(material: IMaterial, matrix: Matrix, repeat: boolean,  smooth: boolean) {
 		this.material = material;
 		this.matrix = matrix;
@@ -32,6 +34,9 @@ export class BitmapFillStyle implements IGraphicsData {
 
 		if (!this.matrix)
 			this.matrix = new Matrix();
+
+		if (!this._uvMatrix)
+			this._uvMatrix = new Matrix();
 
 		const image = <BitmapImage2D> (this.material.getTextureAt(0).getImageAt(0));
 		//const image: BitmapImage2D = (<any> this.material).ambientMethod.texture._images[0];
@@ -63,13 +68,13 @@ export class BitmapFillStyle implements IGraphicsData {
 		const tx_inv: number =  (c * ty - d * tx) / (a * d - b * c);
 		const ty_inv: number =  -(a * ty - b * tx) / (a * d - b * c);
 
-		this.matrix.a = a_inv / projection_width_half;
-		this.matrix.b = b_inv / projection_height_half;
-		this.matrix.c = c_inv / projection_width_half;
-		this.matrix.d = d_inv / projection_height_half;
-		this.matrix.tx = tx_inv / projection_width_half;
-		this.matrix.ty = ty_inv / projection_height_half;
+		this._uvMatrix.a = a_inv / projection_width_half;
+		this._uvMatrix.b = b_inv / projection_height_half;
+		this._uvMatrix.c = c_inv / projection_width_half;
+		this._uvMatrix.d = d_inv / projection_height_half;
+		this._uvMatrix.tx = tx_inv / projection_width_half;
+		this._uvMatrix.ty = ty_inv / projection_height_half;
 
-		return this.matrix;
+		return this._uvMatrix;
 	}
 }
