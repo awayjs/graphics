@@ -1,4 +1,4 @@
-import { Box, Matrix3D, Sphere, Vector3D, AssetBase, Rectangle } from '@awayjs/core';
+import { Box, Matrix3D, Sphere, Vector3D, AssetBase, Rectangle, Matrix } from '@awayjs/core';
 
 import { PickingCollision, PickEntity, _Pick_PickableBase } from '@awayjs/view';
 
@@ -13,6 +13,8 @@ import {
 	ElementsBase,
 	TriangleElements
 } from '@awayjs/renderer';
+
+import { IGraphicsData } from '../draw/IGraphicsData';
 
 import { ParticleCollection } from '../animators/data/ParticleCollection';
 
@@ -161,11 +163,13 @@ export class Shape<T extends ElementsBase = ElementsBase> extends AssetBase {
 
 	public usages: number = 0;
 
-	public count: number;
+	public count: number = 0;
 
-	public offset: number;
+	public offset: number = 0;
 
-	public particleCollection: ParticleCollection;
+	public particleCollection: ParticleCollection = null;
+
+	public originalFillStyle: IGraphicsData = null;
 
 	/**
 	 * The Elements object which provides the geometry data for this Shape.
@@ -311,14 +315,31 @@ export class Shape<T extends ElementsBase = ElementsBase> extends AssetBase {
 		scaleX: number,
 		scaleY: number
 	) {
-		let element = this._elements;
 
+		let element = this._elements;
 		if (!element.scale9Indices && !scaleGrid) {
 			return;
 		}
 
 		if (!element.scale9Indices) {
-			const clone = element.prepareScale9(bounds, scaleGrid, !this._originalElement);
+			let uvMatrix: Matrix = null;
+			let generateUV: boolean = false;
+			let clone: ElementsBase;
+
+			if (this.originalFillStyle instanceof BitmapFillStyle)
+				uvMatrix = this.originalFillStyle.getUVMatrix();
+
+			if (element instanceof TriangleElements) {
+				generateUV = !element.uvs && !!uvMatrix;
+			}
+
+			// kill UV matrix if we will generate UV
+			if (generateUV) {
+				this._style.uvMatrix = null;
+			}
+
+			clone = element.prepareScale9(bounds, scaleGrid, !this._originalElement, generateUV, uvMatrix);
+
 			this._originalElement = element;
 			this.elements = element = <any> clone;
 		}
@@ -371,6 +392,7 @@ import {
 } from '@awayjs/renderer';
 
 import { AnimatorBase } from '../animators/AnimatorBase';
+import { BitmapFillStyle } from '../draw/BitmapFillStyle';
 
 /**
  * @class away.pool._Render_Shape
