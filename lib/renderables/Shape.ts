@@ -351,7 +351,7 @@ export class _Render_Shape extends _Render_RenderableBase {
 
 	private _scaleX: number;
 	private _scaleY: number;
-	private _scale9Elements:ElementsBase;
+	private _scale9Elements: ElementsBase;
 	/**
 	 *
 	 */
@@ -390,13 +390,13 @@ export class _Render_Shape extends _Render_RenderableBase {
 
 		if (_scale9Container) {
 			const bounds = this.renderGroup.pickGroup
-			.getBoundsPicker(this.node.partition)
-			.getBoxBounds(this.node, true, true);
+				.getBoundsPicker(this.node.partition)
+				.getBoxBounds(this.node, true, true);
 
 			return this.updateScale9(<any> bounds,
-					_scale9Container.scale9Grid,
-					_scale9Container.transform.scale.x,
-					_scale9Container.transform.scale.y)
+				_scale9Container.scale9Grid,
+				_scale9Container.transform.scale.x,
+				_scale9Container.transform.scale.y)
 				.getAbstraction<_Stage_ElementsBase>(this._stage);
 		}
 
