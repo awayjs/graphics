@@ -167,16 +167,7 @@ export class Graphics extends AssetBase {
 
 	private _current_position: Point=new Point();
 
-	public _scale9Invalid: boolean = false;
-	public scale9Grid: Rectangle;
-	public originalScale9Bounds: Rectangle;
-	public minSlice9Width: number;
-	public minSlice9Height: number;
 	public tryOptimiseSigleImage: boolean = false;
-
-	private _scale: Vector3D = new Vector3D();
-	private _scaleX: number = 0;
-	private _scaleY: number = 0;
 
 	private _lastPrebuildedShapes: Shape[] = [];
 	private _drawingDirty: boolean = false;
@@ -222,52 +213,6 @@ export class Graphics extends AssetBase {
 
 	set end(v: GraphicsPath[]) {
 		this._end = v;
-	}
-
-	/**
-	 *
-	 * @param slice Rect, can be as offest (x = left, y = right).. and as real rect (x, y, w, h)
-	 * @param fixOffsets used for offset correction when a rect is not offset rect
-	 * @param bounds space of scale grid, may meashured autmaticaly
-	 */
-	public setScale9 (slice: Rectangle, bounds: Rectangle) {
-		if (!bounds) {
-			this.originalScale9Bounds = null;
-			this.scale9Grid = null;
-			this.updateScale9(1, 1);
-		} else {
-			this.originalScale9Bounds = bounds.clone();
-			this.scale9Grid = slice.clone();
-		}
-
-		this._scale9Invalid = true;
-	}
-
-	public updateScale9(scaleX: number, scaleY: number) {
-		if (!this.scale9Grid) {
-			scaleX = 1;
-			scaleY = 1;
-		}
-
-		if (this._scaleX === scaleX && this._scaleY === scaleY)
-			return;
-
-		this._scaleX = scaleX;
-		this._scaleY = scaleY;
-
-		const len = this._shapes.length;
-
-		for (let i = 0; i < len; i++) {
-
-			this._shapes[i].updateScale9(
-				this.originalScale9Bounds,
-				this.scale9Grid,
-				scaleX,
-				scaleY
-			);
-		}
-
-		this.invalidate();
 	}
 
 	public get assetType(): string {
@@ -390,9 +335,6 @@ export class Graphics extends AssetBase {
 		shape.addEventListener(RenderableEvent.INVALIDATE_STYLE, this._onInvalidateDelegate);
 		shape.addEventListener(AssetEvent.INVALIDATE, this._onInvalidateDelegate);
 
-		this._scaleX = 0;
-		this._scaleY = 0;
-
 		this.invalidate();
 
 		return shape;
@@ -448,18 +390,6 @@ export class Graphics extends AssetBase {
 	public copyTo(graphics: Graphics, cloneShapes: boolean = false): void {
 		if (this._drawingDirty)
 			this.endFill();
-
-		if (this.scale9Grid) {
-			graphics.scale9Grid = new Rectangle();
-			graphics.scale9Grid.copyFrom(this.scale9Grid);
-		}
-
-		if (this.originalScale9Bounds) {
-			graphics.originalScale9Bounds = new Rectangle();
-			graphics.originalScale9Bounds.copyFrom(this.originalScale9Bounds);
-			graphics.minSlice9Width = this.minSlice9Width;
-			graphics.minSlice9Height = this.minSlice9Height;
-		}
 
 		graphics.sourceGraphics = this;
 
@@ -1935,15 +1865,8 @@ export class Graphics extends AssetBase {
 		const len: number = shapes.length;
 		for (let i: number = 0; i < len; i++) {
 			shape = shapes[i];
-			if (this.scale9Grid) { // todo: this is a dirty workaround to get the slice9-shapes cloned:
-				shape = Shape.getShape(
-					TriangleElementsUtils.updateScale9(
-						<TriangleElements> shape.elements,
-						this.originalScale9Bounds, 1, 1, false, true),
-					shape.material,
-					shape.style);
 
-			} else if (cloneShapes) {
+			if (cloneShapes) {
 				shape = Shape.getShape(
 					shape.elements,
 					shape.material,
@@ -1963,10 +1886,6 @@ export class Graphics extends AssetBase {
 
 			shape.usages++;
 		}
-
-		this._scaleX = 0;
-		this._scaleY = 0;
-		this._scale.identity();
 
 		this.invalidate();
 	}

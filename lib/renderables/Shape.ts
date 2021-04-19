@@ -1,6 +1,6 @@
 import { Box, Matrix3D, Sphere, Vector3D, AssetBase, Rectangle, Matrix } from '@awayjs/core';
 
-import { PickingCollision, PickEntity, _Pick_PickableBase } from '@awayjs/view';
+import { PickingCollision, PickEntity, _Pick_PickableBase, IPartitionContainer } from '@awayjs/view';
 
 import {
 	IMaterial,
@@ -156,7 +156,6 @@ export class Shape<T extends ElementsBase = ElementsBase> extends AssetBase {
 	private _onInvalidatePropertiesDelegate: (event: StyleEvent) => void;
 	private _onInvalidateVerticesDelegate: (event: ElementsEvent) => void;
 
-	private _originalElement: T;
 	private _elements: T;
 	private _material: IMaterial;
 	private _style: Style;
@@ -189,7 +188,6 @@ export class Shape<T extends ElementsBase = ElementsBase> extends AssetBase {
 		}
 
 		this._elements = value;
-		this._originalElement = value;
 
 		if (this._elements) {
 			this._elements.addEventListener(ElementsEvent.INVALIDATE_VERTICES, this._onInvalidateVerticesDelegate);
@@ -309,54 +307,6 @@ export class Shape<T extends ElementsBase = ElementsBase> extends AssetBase {
 		this.invalidate();
 	}
 
-	public updateScale9 (
-		bounds: Rectangle,
-		scaleGrid: Rectangle,
-		scaleX: number,
-		scaleY: number
-	) {
-
-		let element = this._elements;
-		if (!element.scale9Indices && !scaleGrid) {
-			return;
-		}
-
-		if (!element.scale9Indices) {
-			let uvMatrix: Matrix = null;
-			let generateUV: boolean = false;
-			let clone: ElementsBase;
-
-			if (this.originalFillStyle instanceof BitmapFillStyle)
-				uvMatrix = this.originalFillStyle.getUVMatrix();
-
-			if (element instanceof TriangleElements) {
-				generateUV = !element.uvs && !!uvMatrix;
-			}
-
-			// kill UV matrix if we will generate UV
-			if (generateUV) {
-				this._style.uvMatrix = null;
-			}
-
-			clone = element.prepareScale9(bounds, scaleGrid, !this._originalElement, generateUV, uvMatrix);
-
-			this._originalElement = element;
-			this.elements = element = <any> clone;
-		}
-
-		// element have scale9 but we delete it from graphics, reset state
-		element.updateScale9(
-			scaleGrid ?  scaleX : 1,
-			scaleGrid ? scaleY : 1
-		);
-
-		if (!scaleGrid) {
-			element.scale9Grid = null;
-			element.scale9Indices = null;
-			element.originalScale9Bounds = null;
-		}
-	}
-
 	/**
 	 * //TODO
 	 *
@@ -398,6 +348,10 @@ import { BitmapFillStyle } from '../draw/BitmapFillStyle';
  * @class away.pool._Render_Shape
  */
 export class _Render_Shape extends _Render_RenderableBase {
+
+	private _scaleX: number;
+	private _scaleY: number;
+	private _scale9Elements:ElementsBase;
 	/**
 	 *
 	 */
@@ -432,6 +386,20 @@ export class _Render_Shape extends _Render_RenderableBase {
 		this._offset = this.shape.offset;
 		this._count = this.shape.count;
 
+		const _scale9Container: IPartitionContainer = this.node.getScale9Container();
+
+		if (_scale9Container) {
+			const bounds = this.renderGroup.pickGroup
+			.getBoundsPicker(this.node.partition)
+			.getBoxBounds(this.node, true, true);
+
+			return this.updateScale9(<any> bounds,
+					_scale9Container.scale9Grid,
+					_scale9Container.transform.scale.x,
+					_scale9Container.transform.scale.y)
+				.getAbstraction<_Stage_ElementsBase>(this._stage);
+		}
+
 		const elements: IElements = (<IRenderContainer> this.node.container).animator
 			? (<AnimatorBase> (<IRenderContainer> this.node.container).animator).getRenderableElements(this, this.shape.elements)
 			: this.shape.elements;
@@ -452,6 +420,36 @@ export class _Render_Shape extends _Render_RenderableBase {
 		return this.stageElements.elements instanceof LineElements
 			? MaterialUtils.getDefaultColorMaterial()
 			: MaterialUtils.getDefaultTextureMaterial();
+	}
+
+	public updateScale9 (bounds: Rectangle, scaleGrid: Rectangle, scaleX: number, scaleY: number): ElementsBase {
+
+		if (!this._scale9Elements) {
+			let uvMatrix: Matrix = null;
+			let generateUV: boolean = false;
+
+			if (this.shape.originalFillStyle instanceof BitmapFillStyle)
+				uvMatrix = this.shape.originalFillStyle.getUVMatrix();
+
+			if (this.shape.elements instanceof TriangleElements) {
+				generateUV = !this.shape.elements.uvs && !!uvMatrix;
+			}
+
+			// kill UV matrix if we will generate UV
+			if (generateUV) {
+				this.shape.style.uvMatrix = null;
+			}
+
+			this._scale9Elements = this.shape.elements.prepareScale9(bounds, scaleGrid, true, generateUV, uvMatrix);
+		}
+
+		if (this._scaleX != scaleX || this._scaleY != scaleY) {
+			this._scaleX = scaleX;
+			this._scaleY = scaleY;
+			this._scale9Elements.updateScale9(scaleX, scaleY);
+		}
+
+		return this._scale9Elements;
 	}
 }
 
