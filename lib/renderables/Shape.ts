@@ -386,13 +386,9 @@ export class _Render_Shape extends _Render_RenderableBase {
 		this._count = this.shape.count;
 
 		const _scale9Container: IPartitionContainer = this.node.getScale9Container();
-
 		if (_scale9Container) {
-			const bounds = this.renderGroup.pickGroup
-				.getBoundsPicker(this.node.partition)
-				.getBoxBounds(this.node, true, true);
 
-			return this.updateScale9(<any> bounds,
+			return this.updateScale9(
 				_scale9Container.scale9Grid,
 				_scale9Container.transform.scale.x,
 				_scale9Container.transform.scale.y)
@@ -426,7 +422,7 @@ export class _Render_Shape extends _Render_RenderableBase {
 			: MaterialUtils.getDefaultTextureMaterial();
 	}
 
-	public updateScale9 (bounds: Rectangle, scaleGrid: Rectangle, scaleX: number, scaleY: number): ElementsBase {
+	public updateScale9 (scale9Grid: Rectangle, scaleX: number, scaleY: number): ElementsBase {
 
 		if (!this._scale9Elements) {
 			let uvMatrix: Matrix = null;
@@ -444,7 +440,12 @@ export class _Render_Shape extends _Render_RenderableBase {
 				this.shape.style.uvMatrix = null;
 			}
 
-			this._scale9Elements = this.shape.elements.prepareScale9(bounds, scaleGrid, true, generateUV, uvMatrix);
+			const bounds = this.renderGroup.pickGroup
+				.getBoundsPicker(this.node.partition)
+				.getBoxBounds(this.node, true, true);
+
+			this._scale9Elements = this.shape.elements.prepareScale9(
+					<any>bounds, scale9Grid, true, generateUV, uvMatrix);
 		}
 
 		if (this._scaleX != scaleX || this._scaleY != scaleY) {
