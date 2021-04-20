@@ -9,7 +9,6 @@ import {
 	Style,
 	ElementsEvent,
 	IRenderContainer,
-	IElements,
 	ElementsBase,
 	TriangleElements
 } from '@awayjs/renderer';
@@ -400,15 +399,20 @@ export class _Render_Shape extends _Render_RenderableBase {
 				.getAbstraction<_Stage_ElementsBase>(this._stage);
 		}
 
-		const elements: IElements = (<IRenderContainer> this.node.container).animator
-			? (<AnimatorBase> (<IRenderContainer> this.node.container).animator).getRenderableElements(this, this.shape.elements)
+		const container = (<IRenderContainer> this.node.container);
+		const elements = container.animator
+			? (<AnimatorBase> container.animator).getRenderableElements(this, this.shape.elements)
 			: this.shape.elements;
+
 		return elements.getAbstraction<_Stage_ElementsBase>(this._stage);
 	}
 
 	protected _getRenderMaterial(): _Render_MaterialBase {
 		const material: IMaterial =
-			(<Shape> this._asset).material || (<IRenderContainer> this.node.container).material || this.getDefaultMaterial();
+			(<Shape> this._asset).material ||
+			(<IRenderContainer> this.node.container).material ||
+			this.getDefaultMaterial();
+
 		return material.getAbstraction<_Render_MaterialBase>(this.renderGroup.getRenderElements(this.shape.elements));
 	}
 

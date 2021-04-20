@@ -3,7 +3,6 @@ import {
 	RangeError,
 	PartialImplementationError,
 	Point,
-	Vector3D,
 	Matrix,
 	Matrix3D,
 	AssetBase,
@@ -20,7 +19,6 @@ import {
 	Style,
 	RenderableEvent,
 	TriangleElements,
-	TriangleElementsUtils,
 	LineElements,
 	LineScaleMode,
 } from '@awayjs/renderer';
@@ -52,7 +50,6 @@ import { Settings } from './Settings';
 import { FillStyle, LineStyle, ShapeStyle } from './flash/ShapeStyle';
 import { BBox, ShapeRecord, ShapeRecordFlags, ShapeTag } from './flash/ShapeTag';
 import { StyleUtils } from './flash/StyleUtils';
-import { Shape9Slice } from './renderables/Shape9Slice';
 
 GraphicsFactoryFills.prepareWasm();
 
@@ -78,12 +75,7 @@ export class Graphics extends AssetBase {
 	public static getShapeForBitmap (
 		bitmap: BitmapImage2D,
 		rect: Rectangle,
-		as9slice = false
-	): Shape<TriangleElements> | Shape9Slice {
-
-		if (as9slice) {
-			return new Shape9Slice (rect, bitmap);
-		}
+	): Shape<TriangleElements> {
 
 		const mat = MaterialManager.getMaterialForBitmap(bitmap, Settings.EXPEREMENTAL_MATERIAL_FOR_IMAGE);
 		const style = mat.style;
