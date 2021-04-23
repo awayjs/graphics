@@ -2172,6 +2172,9 @@ export class Graphics extends AssetBase {
 				shapeAJS = new GraphicsPath();
 				morphShapeAJS = new GraphicsPath();
 
+				// should disable internal optimisation for regular shapes
+				shapeAJS.morphSource = morphShapeAJS.morphSource = true;
+
 				//shapeAJS.queuePath(allPaths[i], morphShapeAJS)
 				sources[current][i].serializeAJS(shapeAJS, morphShapeAJS);
 

@@ -20,6 +20,11 @@ export class GraphicsPath implements IGraphicsData {
 
 	public static data_type: string = '[graphicsdata path]';
 	/**
+	 * When path is morp, we can't filtrate commands
+	 */
+	public morphSource: boolean = false;
+
+	/**
 	 * The Vector of drawing commands as integers representing the path.
 	 */
 	public _commands: number[][];
@@ -189,13 +194,15 @@ export class GraphicsPath implements IGraphicsData {
 			this._data[this._data.length - 1].push(this._cur_point.y);
 		}
 
-		const lenx = anchorX - this._cur_point.x;
-		const leny = anchorY - this._cur_point.y;
-		const len = Math.sqrt(lenx * lenx + leny * leny);
-		if (len <= Settings.MINIMUM_DRAWING_DISTANCE) {
-			this.data[this.data.length - 1][this.data[this.data.length - 1].length - 2] = anchorX;
-			this.data[this.data.length - 1][this.data[this.data.length - 1].length - 1] = anchorY;
-			return;
+		if (!this.morphSource) {
+			const lenx = anchorX - this._cur_point.x;
+			const leny = anchorY - this._cur_point.y;
+			const len = Math.sqrt(lenx * lenx + leny * leny);
+			if (len <= Settings.MINIMUM_DRAWING_DISTANCE) {
+				this.data[this.data.length - 1][this.data[this.data.length - 1].length - 2] = anchorX;
+				this.data[this.data.length - 1][this.data[this.data.length - 1].length - 1] = anchorY;
+				return;
+			}
 		}
 
 		this._commands[this._commands.length - 1].push(GraphicsPathCommand.CURVE_TO);
@@ -229,13 +236,15 @@ export class GraphicsPath implements IGraphicsData {
 			this._data[this._data.length - 1].push(this._cur_point.y);
 		}
 
-		const lenx = anchorX - this._cur_point.x;
-		const leny = anchorY - this._cur_point.y;
-		const len = Math.sqrt(lenx * lenx + leny * leny);
-		if (len <= Settings.MINIMUM_DRAWING_DISTANCE) {
-			this.data[this.data.length - 1][this.data[this.data.length - 1].length - 2] = anchorX;
-			this.data[this.data.length - 1][this.data[this.data.length - 1].length - 1] = anchorY;
-			return;
+		if (!this.morphSource) {
+			const lenx = anchorX - this._cur_point.x;
+			const leny = anchorY - this._cur_point.y;
+			const len = Math.sqrt(lenx * lenx + leny * leny);
+			if (len <= Settings.MINIMUM_DRAWING_DISTANCE) {
+				this.data[this.data.length - 1][this.data[this.data.length - 1].length - 2] = anchorX;
+				this.data[this.data.length - 1][this.data[this.data.length - 1].length - 1] = anchorY;
+				return;
+			}
 		}
 
 		this._commands[this._commands.length - 1].push(GraphicsPathCommand.CURVE_TO);
@@ -266,13 +275,15 @@ export class GraphicsPath implements IGraphicsData {
 			this._data[this._data.length - 1].push(this._cur_point.y);
 		}
 
-		const lenx = x - this._cur_point.x;
-		const leny = y - this._cur_point.y;
-		const len = Math.sqrt(lenx * lenx + leny * leny);
-		if (len <= Settings.MINIMUM_DRAWING_DISTANCE) {
-			this.data[this.data.length - 1][this.data[this.data.length - 1].length - 2] = x;
-			this.data[this.data.length - 1][this.data[this.data.length - 1].length - 1] = y;
-			return;
+		if (!this.morphSource) {
+			const lenx = x - this._cur_point.x;
+			const leny = y - this._cur_point.y;
+			const len = Math.sqrt(lenx * lenx + leny * leny);
+			if (len <= Settings.MINIMUM_DRAWING_DISTANCE) {
+				this.data[this.data.length - 1][this.data[this.data.length - 1].length - 2] = x;
+				this.data[this.data.length - 1][this.data[this.data.length - 1].length - 1] = y;
+				return;
+			}
 		}
 
 		this._commands[this._commands.length - 1].push(GraphicsPathCommand.LINE_TO);
@@ -303,9 +314,9 @@ export class GraphicsPath implements IGraphicsData {
 		this._dirtyID++;
 	}
 
-	public wideLineTo(x: number, y: number) { }
+	public wideLineTo(_x: number, _y: number) { }
 
-	public wideMoveTo(x: number, y: number) { }
+	public wideMoveTo(_x: number, _y: number) { }
 
 	private _connectedIdx: number[][] = [];
 	private _positionOffset: number[][] = [];

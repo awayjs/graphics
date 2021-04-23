@@ -113,6 +113,11 @@ export class PathSegment {
 	}
 
 	serializeAJS(shape: GraphicsPath, morphShape: GraphicsPath, lastPosition: {x: number; y: number}) {
+		// mark that this is morp source, this should disable some optimisation for regular shapes
+		if (morphShape) {
+			morphShape.morphSource = shape.morphSource = true;
+		}
+
 		//console.log("serializeAJS segment1");
 		if (this.isReversed) {
 			this._serializeReversedAJS(shape, morphShape, lastPosition);
@@ -123,14 +128,16 @@ export class PathSegment {
 		const dataLength = this.data.length >> 2;
 		const morphData = this.morphData ? this.morphData.ints : null;
 		const data = this.data.ints;
-		assert(commands[0] === PathCommand.MoveTo);
+
 		// If the segment1's first moveTo goes to the current coordinates, we have to skip it.
 		let offset = 0;
 		if (data[0] === lastPosition.x && data[1] === lastPosition.y) {
 			offset++;
 		}
+
 		const commandsCount = this.commands.length;
 		let dataPosition = offset * 2;
+
 		for (let i = offset; i < commandsCount; i++) {
 			switch (commands[i]) {
 				case PathCommand.MoveTo:
