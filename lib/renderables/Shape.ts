@@ -170,6 +170,11 @@ export class Shape<T extends ElementsBase = ElementsBase> extends AssetBase {
 	public originalFillStyle: IGraphicsData = null;
 
 	/**
+	 * Process per-triangle hit test - superslow for huge elements
+	 */
+	public deepHitCheck: boolean = true;
+
+	/**
 	 * The Elements object which provides the geometry data for this Shape.
 	 */
 	public get elements(): T {
@@ -597,12 +602,18 @@ export class _Pick_Shape extends _Pick_PickableBase {
 	}
 
 	public testCollision(collision: PickingCollision, findClosestCollision: boolean): boolean {
-		const box: Box = this.getBoxBounds();
+		const box = this.getBoxBounds();
+		const shape = <Shape> this._asset;
 
 		//early out for box test
-		if (box == null || !box.rayIntersection(collision.rayPosition, collision.rayDirection)) return false;
+		if (box == null || !box.rayIntersection(collision.rayPosition, collision.rayDirection))
+			return false;
 
-		return (<Shape> this._asset).elements.testCollision(
+		if (!shape.deepHitCheck) {
+			return true;
+		}
+
+		return shape.elements.testCollision(
 			this._view,
 			collision,
 			box,
