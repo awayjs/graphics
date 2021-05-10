@@ -169,6 +169,16 @@ export class Shape<T extends ElementsBase = ElementsBase> extends AssetBase {
 
 	public originalFillStyle: IGraphicsData = null;
 
+	private _isSimpleRect: boolean = false;
+
+	public set isSimpleRect(v: boolean) {
+		this._isSimpleRect = v;
+	}
+
+	public get isSimpleRect(): boolean {
+		return this._isSimpleRect && this.originalFillStyle?.data_type === GraphicsFillStyle.data_type;
+	}
+
 	/**
 	 * Process per-triangle hit test - superslow for huge elements
 	 */
@@ -347,6 +357,7 @@ import {
 
 import { AnimatorBase } from '../animators/AnimatorBase';
 import { BitmapFillStyle } from '../draw/BitmapFillStyle';
+import { GraphicsFillStyle } from '../draw/GraphicsFillStyle';
 
 /**
  * @class away.pool._Render_Shape
@@ -356,6 +367,25 @@ export class _Render_Shape extends _Render_RenderableBase {
 	private _scaleX: number;
 	private _scaleY: number;
 	private _scale9Elements: ElementsBase;
+
+	public get isSimpleRect(): boolean {
+		const matrix = this.node.getMatrix3D();
+		const rot = matrix.decompose()[1];
+		// disable fast Rect if there are rotation
+		return !!this.shape?.isSimpleRect && Math.abs(rot.z) < 0.00001;
+	}
+
+	private _globalBounds: Box;
+	public globalBounds (): Box {
+
+		const bounds = this.node.getMatrix3D().transformBox(
+			this.renderGroup.pickGroup.getBoundsPicker(this.node.partition).getBoxBounds(this.node, true, true),
+			this._globalBounds
+		);
+
+		return bounds;
+	}
+
 	/**
 	 *
 	 */

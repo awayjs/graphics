@@ -190,6 +190,7 @@ export class GraphicsFactoryFills {
 			shape.style = style;
 			shape.material = material;
 			shape.originalFillStyle = pathStyle;
+			shape.isSimpleRect = path.isSimpleRect;
 
 			targetGraphics.addShapeInternal(shape);
 		}

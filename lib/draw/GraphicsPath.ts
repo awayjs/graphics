@@ -19,6 +19,20 @@ export class GraphicsPath implements IGraphicsData {
 	private _orientedBoxBoundsDirty: boolean = true;
 
 	public static data_type: string = '[graphicsdata path]';
+
+	private _isSimpleRect: boolean = false;
+	/**
+	 * Marking that this path is simple simple rect
+	 */
+	public get isSimpleRect() {
+		return this._isSimpleRect;
+	}
+
+	public set isSimpleRect (v: boolean) {
+		// simple rect can be only when MoveTo and 6 vertices
+		this._isSimpleRect = v && this.commands.length === 1 && this.verts.length === 6 * 2;
+	}
+
 	/**
 	 * When path is morp, we can't filtrate commands
 	 */
@@ -39,10 +53,20 @@ export class GraphicsPath implements IGraphicsData {
 	public _data: number[][];
 	public _positions: number[][];
 
+	private _verts: number[] = [];
+
 	/**
 	 * The Vector of Numbers containing the parameters used with the drawing commands.
 	 */
-	public verts: number[];
+	public get verts() {
+		return this._verts;
+	}
+
+	public set verts(v: number[]) {
+		this._verts = v;
+		this._isSimpleRect = false;
+	}
+
 	/**
 	 * Specifies the winding rule using a value defined in the GraphicsPathWinding class.
 	 */
@@ -60,7 +84,7 @@ export class GraphicsPath implements IGraphicsData {
 	private _lastDirtyID = 0;
 	private _dirtyID = -1;
 
-	get dirty() {
+	public get dirty() {
 		return this._lastDirtyID !== this._dirtyID;
 	}
 
@@ -150,6 +174,8 @@ export class GraphicsPath implements IGraphicsData {
 	}
 
 	public curveTo(controlX: number, controlY: number, anchorX: number, anchorY: number) {
+		this.isSimpleRect = false;
+
 		// if controlpoint and anchor are same, we add lineTo command
 		if (controlX == anchorX && controlY == anchorY) {
 			this.lineTo(controlX, controlY);
@@ -224,6 +250,8 @@ export class GraphicsPath implements IGraphicsData {
 		anchorX: number,
 		anchorY: number,
 	) {
+		this.isSimpleRect = false;
+
 		console.log('cubicCurveTo not yet fully supported.');
 		if (this._cur_point.x == anchorX && this._cur_point.y == anchorY) {
 			//console.log("curveTo command not added because startpoint and endpoint are the same.");

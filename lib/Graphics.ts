@@ -1138,6 +1138,8 @@ export class Graphics extends AssetBase {
 				this._active_fill_path.verts,
 				false);
 
+			// mark that is simple rect, other internal changes will reset it
+			this._active_fill_path.isSimpleRect = true;
 		}
 		if (this._active_stroke_path != null) {
 			this._active_stroke_path.moveTo(x, y);
