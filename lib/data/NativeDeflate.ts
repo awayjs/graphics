@@ -58,8 +58,13 @@ export class NativeDeflate implements IDataDecoder {
 		const reader = this._reader;
 
 		if (value) {
-			this._buffer.set(value, this._blockPosition);
-			this._blockPosition += value.length;
+			if (value.length >= this._size) {
+				this._buffer = value;
+				this._blockPosition = this._size;
+			} else {
+				this._buffer.set(value, this._blockPosition);
+				this._blockPosition += value.length;
+			}
 		}
 
 		if (done || this._blockPosition >= this._size) {

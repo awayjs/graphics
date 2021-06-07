@@ -169,3 +169,10 @@ export {
 } from './lib/flash/ShapeTag';
 
 export * from './lib/Settings';
+
+import { TessAsyncService } from './lib/utils/TessAsyncService';
+import { AsyncServicesLibrary } from '@awayjs/core';
+
+if (AsyncServicesLibrary) {
+	AsyncServicesLibrary.register(TessAsyncService.instance);
+}

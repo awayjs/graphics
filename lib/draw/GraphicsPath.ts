@@ -260,15 +260,16 @@ export class GraphicsPath implements IGraphicsData {
 		if (this._commands[this._commands.length - 1].length == 0) {
 			// every contour must start with a moveTo command, so we make sure we have correct startpoint
 			this._commands[this._commands.length - 1].push(GraphicsPathCommand.MOVE_TO);
-			this._data[this._data.length - 1].push(this._cur_point.x);
-			this._data[this._data.length - 1].push(this._cur_point.y);
+			this._data[this._data.length - 1].push(this._cur_point.x, this._cur_point.y);
+			//this._data[this._data.length - 1].push(this._cur_point.y);
 		}
 
 		if (!this.morphSource) {
 			const lenx = anchorX - this._cur_point.x;
 			const leny = anchorY - this._cur_point.y;
-			const len = Math.sqrt(lenx * lenx + leny * leny);
-			if (len <= Settings.MINIMUM_DRAWING_DISTANCE) {
+			const lensq = lenx * lenx + leny * leny;
+
+			if (lensq <= Settings.MINIMUM_DRAWING_DISTANCE * Settings.MINIMUM_DRAWING_DISTANCE) {
 				this.data[this.data.length - 1][this.data[this.data.length - 1].length - 2] = anchorX;
 				this.data[this.data.length - 1][this.data[this.data.length - 1].length - 1] = anchorY;
 				return;
@@ -276,10 +277,12 @@ export class GraphicsPath implements IGraphicsData {
 		}
 
 		this._commands[this._commands.length - 1].push(GraphicsPathCommand.CURVE_TO);
-		this._data[this._data.length - 1].push(controlX);
+		this._data[this._data.length - 1].push(controlX, controlY, anchorX, anchorY);
+		/*
 		this._data[this._data.length - 1].push(controlY);
 		this._data[this._data.length - 1].push(anchorX);
 		this._data[this._data.length - 1].push(anchorY);
+	 	*/
 		this._cur_point.x = anchorX;
 		this._cur_point.y = anchorY;
 
@@ -306,8 +309,9 @@ export class GraphicsPath implements IGraphicsData {
 		if (!this.morphSource) {
 			const lenx = x - this._cur_point.x;
 			const leny = y - this._cur_point.y;
-			const len = Math.sqrt(lenx * lenx + leny * leny);
-			if (len <= Settings.MINIMUM_DRAWING_DISTANCE) {
+			const lensq = lenx * lenx + leny * leny;
+
+			if (lensq <= Settings.MINIMUM_DRAWING_DISTANCE * Settings.MINIMUM_DRAWING_DISTANCE) {
 				this.data[this.data.length - 1][this.data[this.data.length - 1].length - 2] = x;
 				this.data[this.data.length - 1][this.data[this.data.length - 1].length - 1] = y;
 				return;
@@ -315,8 +319,8 @@ export class GraphicsPath implements IGraphicsData {
 		}
 
 		this._commands[this._commands.length - 1].push(GraphicsPathCommand.LINE_TO);
-		this._data[this._data.length - 1].push(x);
-		this._data[this._data.length - 1].push(y);
+		this._data[this._data.length - 1].push(x, y);
+		//this._data[this._data.length - 1].push(y);
 
 		this._cur_point.x = x;
 		this._cur_point.y = y;
