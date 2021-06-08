@@ -1725,10 +1725,15 @@ export class Graphics extends AssetBase {
 	 *                     cut off. The following table lists some examples:</p>
 	 */
 	public lineStyle(
-		thickness: number = 0, color: number /*int*/ = 0, alpha: number = 1,
+		thickness: number = NaN, color: number /*int*/ = 0, alpha: number = 1,
 		pixelHinting: boolean = false, scaleMode: LineScaleMode = null,
 		capstyle: number = CapsStyle.NONE, jointstyle: number = JointStyle.MITER,
 		miterLimit: number = 100): void {
+
+		if (isNaN(thickness)) {
+			this._lineStyle = null;
+			return;
+		}
 
 		if (thickness == 0) {
 			thickness = 0.05;
