@@ -331,7 +331,7 @@ export class GraphicsPath implements IGraphicsData {
 	public moveTo(x: number, y: number) {
 		const diffX: number = Math.abs(this._cur_point.x - x);
 		const diffY: number = Math.abs(this._cur_point.y - y);
-		if (diffX < 0.000001 && diffY < 0.000001) {
+		if (diffX < 0.01 && diffY < 0.01) {
 			//console.log("moveTo command not added because startpoint and endpoint are the same.");
 			return;
 		}
