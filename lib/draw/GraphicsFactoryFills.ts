@@ -21,6 +21,7 @@ import { Graphics } from '../Graphics';
 import { MaterialManager } from '../managers/MaterialManager';
 import { Tess2Provider, TessAsyncService } from '../utils/TessAsyncService';
 import { IResult } from './WorkerTesselatorBody';
+import { IStyleData } from './IGraphicsData';
 
 /**
  * The Graphics class contains a set of methods that you can use to create a
@@ -46,6 +47,76 @@ const SHAPE_INFO = window.SHAPE_INFO = {
 };
 
 const FIXED_BASE = 1000;
+
+export interface IStyleElements {
+	material: IMaterial,
+	style: Style,
+	sampler: ImageSampler
+}
+
+type tStyleMapper = (style: IStyleData,data: IStyleElements) => IStyleElements;
+export const UnpackStyle: Record<string, tStyleMapper> = {
+	[GradientFillStyle.data_type] (style: GradientFillStyle,data: IStyleElements): IStyleElements {
+		const obj = MaterialManager.getMaterialForGradient(style);
+		const material = obj.material;
+
+		data.material = obj.material;
+		data.material.animateUVs = true;
+
+		data.style.addSamplerAt(data.sampler, material.getTextureAt(0));
+		data.style.uvMatrix = style.getUVMatrix();
+
+		if (style.type == GradientType.LINEAR) {
+			material.getTextureAt(0).mappingMode = MappingMode.LINEAR;
+		} else if (style.type == GradientType.RADIAL) {
+			data.sampler.imageRect = style.uvRectangle;
+			material.imageRect = true;
+			material.getTextureAt(0).mappingMode = MappingMode.RADIAL;
+		}
+
+		return data;
+	},
+
+	[GraphicsFillStyle.data_type] (style: GraphicsFillStyle, data: IStyleElements): IStyleElements {
+		const obj = MaterialManager.getMaterialForColor(
+			style.color,
+			style.alpha
+		);
+
+		const material = obj.material;
+		data.material = material;
+
+		if (obj.colorPos) {
+			material.animateUVs = true;
+
+			data.style.addSamplerAt(data.sampler, material.getTextureAt(0));
+			data.style.uvMatrix = new Matrix(0, 0, 0, 0, obj.colorPos.x, obj.colorPos.y);
+		} else {
+			data.style = data.sampler = null;
+		}
+
+		return data;
+	},
+
+	[BitmapFillStyle.data_type] (style: BitmapFillStyle, data: IStyleElements): IStyleElements {
+
+		//new ITexture(ImageUtils.getDefaultImage2D());//bitmapStyle.texture;
+		const material = style.material;
+		data.material = material;
+
+		data.sampler.repeat = style.repeat;
+		data.sampler.smooth = style.smooth;
+		data.sampler.mipmap = style.smooth;
+
+		material.style.sampler = data.sampler;
+		material.animateUVs = true;
+
+		data.style.addSamplerAt(data.sampler, material.getTextureAt(0));
+		data.style.uvMatrix = style.getUVMatrix();
+
+		return data;
+	}
+};
 
 export class GraphicsFactoryFills {
 
@@ -110,77 +181,18 @@ export class GraphicsFactoryFills {
 
 			elements.isDynamic = targetGraphics._clearCount > 0;
 
-			//elements.setCustomAttributes("curves", new Float3Attributes(attributesBuffer));
-			//elements.setUVs(new Float2Attributes(attributesBuffer));
+			const data: IStyleElements = {
+				sampler: new ImageSampler(),
+				style: new Style(),
+				material: null
+			};
 
-			let material: IMaterial;
-			let sampler: ImageSampler = new ImageSampler();
-			let style: Style = new Style();
-
-			switch (pathStyle.data_type) {
-				case GraphicsFillStyle.data_type:
-				{
-					const obj = MaterialManager.getMaterialForColor(
-						(<GraphicsFillStyle>pathStyle).color,
-						(<GraphicsFillStyle>pathStyle).alpha
-					);
-
-					material = obj.material;
-
-					if (obj.colorPos) {
-						material.animateUVs = true;
-
-						style.addSamplerAt(sampler, material.getTextureAt(0));
-						style.uvMatrix = new Matrix(0, 0, 0, 0, obj.colorPos.x, obj.colorPos.y);
-					} else {
-						style = sampler = null;
-					}
-					break;
-				}
-				case GradientFillStyle.data_type:
-				{
-					const gradientStyle = <GradientFillStyle>(pathStyle);
-					const obj = MaterialManager.getMaterialForGradient(gradientStyle);
-
-					material = obj.material;
-					material.animateUVs = true;
-
-					style.addSamplerAt(sampler, material.getTextureAt(0));
-					style.uvMatrix = gradientStyle.getUVMatrix();
-
-					if (gradientStyle.type == GradientType.LINEAR) {
-						material.getTextureAt(0).mappingMode = MappingMode.LINEAR;
-					} else if (gradientStyle.type == GradientType.RADIAL) {
-						sampler.imageRect = gradientStyle.uvRectangle;
-						material.imageRect = true;
-						material.getTextureAt(0).mappingMode = MappingMode.RADIAL;
-					}
-					break;
-				}
-				case BitmapFillStyle.data_type:
-				{
-					const bitmapStyle = <BitmapFillStyle>pathStyle;
-
-					//new ITexture(ImageUtils.getDefaultImage2D());//bitmapStyle.texture;
-					material = bitmapStyle.material;
-
-					sampler.repeat = bitmapStyle.repeat;
-					sampler.smooth = bitmapStyle.smooth;
-					sampler.mipmap = bitmapStyle.smooth;
-
-					material.style.sampler = sampler;
-					material.animateUVs = true;
-
-					style.addSamplerAt(sampler, material.getTextureAt(0));
-					style.uvMatrix = bitmapStyle.getUVMatrix();
-					break;
-				}
-			}
+			UnpackStyle[pathStyle.data_type](pathStyle, data);
 
 			shape = shape || Shape.getShape(elements);
 
-			shape.style = style;
-			shape.material = material;
+			shape.style = data.style;
+			shape.material = data.material;
 			shape.originalFillStyle = pathStyle;
 			shape.isSimpleRect = path.isSimpleRect;
 

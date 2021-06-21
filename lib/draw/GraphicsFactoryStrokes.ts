@@ -2,17 +2,17 @@ import { Point, MathConsts, Matrix } from '@awayjs/core';
 
 import { ImageSampler, AttributesBuffer, AttributesView, Float2Attributes } from '@awayjs/stage';
 
-import { IMaterial, Style, LineElements, LineScaleMode, TriangleElements } from '@awayjs/renderer';
+import { Style, LineElements, LineScaleMode, TriangleElements } from '@awayjs/renderer';
 
 import { Shape } from '../renderables/Shape';
-import { JointStyle }	 from '../draw/JointStyle';
-import { GraphicsPath } from '../draw/GraphicsPath';
-import { GraphicsPathCommand } from '../draw/GraphicsPathCommand';
-import { GraphicsFactoryHelper } from '../draw/GraphicsFactoryHelper';
-import { GraphicsStrokeStyle } from '../draw/GraphicsStrokeStyle';
+import { JointStyle }	 from './JointStyle';
+import { GraphicsPath } from './GraphicsPath';
+import { GraphicsPathCommand } from './GraphicsPathCommand';
+import { GraphicsFactoryHelper } from './GraphicsFactoryHelper';
+import { GraphicsStrokeStyle } from './GraphicsStrokeStyle';
 import { Graphics } from '../Graphics';
 import { MaterialManager } from '../managers/MaterialManager';
-import { GraphicsFactoryFills } from './GraphicsFactoryFills';
+import { GraphicsFactoryFills, UnpackStyle } from './GraphicsFactoryFills';
 
 /**
  * The Graphics class contains a set of methods that you can use to create a
@@ -36,52 +36,55 @@ export class GraphicsFactoryStrokes {
 
 		for (let i = 0; i < len; i++) {
 			const path = paths[i];
-			const pathStyle = (<GraphicsStrokeStyle>path.style);
-			const obj: any = MaterialManager.getMaterialForColor(pathStyle.color, pathStyle.alpha);
-			const material: IMaterial = obj.material;
-
+			const baseStyle = (<GraphicsStrokeStyle>path.style.baseStyle);
+			const mapping = UnpackStyle[path.style.data_type];
 			let shape = targetGraphics.popEmptyStrokeShape();
-			let style: Style;
-			let sampler: ImageSampler;
 
 			path.prepare();
+
 			// if (targetGraphics.scaleStrokes != null) { //use LineElements
 			const elements = this.fillLineElements(
 				[path],
-				material.curves,
-				path.stroke.scaleMode, <LineElements>shape?.elements);
-			// } else { // use TriangleELements
-			// 	elements = GraphicsFactoryStrokes.getTriangleElements([strokePath], material.curves);
-			// }
+				false, //material.curves,
+				baseStyle.scaleMode,
+				<LineElements>shape?.elements
+			);
 
 			if (!elements)
 				continue;
 
-			elements.scaleMode = path.stroke.scaleMode;
-			elements.half_thickness = path.stroke.half_thickness;
+			elements.scaleMode = baseStyle.scaleMode;
+			elements.half_thickness = baseStyle.half_thickness;
 
-			if (obj.colorPos) {
-				style = new Style();
-				sampler = new ImageSampler();
+			const data = {
+				style: new Style(),
+				sampler: new ImageSampler(),
+				material: null
+			};
 
-				material.animateUVs = true;
-				material.style.sampler = sampler;
+			if (!mapping) {
+				const obj = MaterialManager.getMaterialForColor(baseStyle.color, baseStyle.alpha);
 
-				style.addSamplerAt(sampler, material.getTextureAt(0));
-				style.uvMatrix = new Matrix(0, 0, 0, 0, obj.colorPos.x, obj.colorPos.y);
+				data.material = obj.material;
+				data.material.animateUVs = true;
+				data.material.style.sampler = data.sampler;
+
+				data.style.addSamplerAt(data.sampler, data.material.getTextureAt(0));
+				data.style.uvMatrix = new Matrix(0, 0, 0, 0, obj.colorPos.x, obj.colorPos.y);
+			} else {
+				mapping(path.style, data);
 			}
 
 			if (shape) {
-				shape.material = material;
-				shape.style = style;
+				shape.material = data.material;
+				shape.style = data.style;
 			} else {
-				shape = Shape.getShape(elements, material, style);
+				shape = Shape.getShape(elements, data.material, data.style);
 			}
 
 			targetGraphics.addShapeInternal(shape);
 
 		}
-		//targetGraphics.queued_stroke_pathes.length=0;
 	}
 
 	// public static updateStrokesForShape(shape:Shape, scale:Vector3D, scaleMode:string ){
@@ -102,7 +105,8 @@ export class GraphicsFactoryStrokes {
 		graphic_pathes: Array<GraphicsPath>,
 		curves: boolean,
 		scaleMode: LineScaleMode = LineScaleMode.NORMAL,
-		target: LineElements = null): LineElements {
+		target: LineElements = null
+	): LineElements {
 		const finalVerts: number[] = [];
 		const final_thickness_list: number[] = [];
 		let data: number[];
@@ -122,7 +126,7 @@ export class GraphicsFactoryStrokes {
 			path.prepare();
 
 			const positions = path._positions;
-			const strokeStyle = path.stroke;
+			const strokeStyle = path.stroke.baseStyle;
 			const half_thickness = (scaleMode != LineScaleMode.HAIRLINE) ? strokeStyle.half_thickness : 0.5;
 
 			for (let k = 0, l1 = positions.length; k < l1; k++) {

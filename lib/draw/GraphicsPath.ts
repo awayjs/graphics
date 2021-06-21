@@ -2,7 +2,7 @@ import { Point, Matrix3D, Box } from '@awayjs/core';
 
 import { GraphicsPathWinding } from '../draw/GraphicsPathWinding';
 import { GraphicsPathCommand } from '../draw/GraphicsPathCommand';
-import { IGraphicsData } from '../draw/IGraphicsData';
+import { IGraphicsData, IStyleData } from '../draw/IGraphicsData';
 import { GraphicsFillStyle } from '../draw/GraphicsFillStyle';
 import { GraphicsStrokeStyle } from '../draw/GraphicsStrokeStyle';
 import { GraphicsFactoryHelper } from '../draw/GraphicsFactoryHelper';
@@ -79,7 +79,7 @@ export class GraphicsPath implements IGraphicsData {
 
 	private _startPoint: Point;
 	private _cur_point: Point;
-	private _style: IGraphicsData;
+	private _style: IStyleData;
 
 	private _lastDirtyID = 0;
 	private _dirtyID = -1;
@@ -118,11 +118,11 @@ export class GraphicsPath implements IGraphicsData {
 		return GraphicsPath.data_type;
 	}
 
-	public get style(): IGraphicsData {
+	public get style(): IStyleData {
 		return this._style;
 	}
 
-	public set style(value: IGraphicsData) {
+	public set style(value: IStyleData) {
 		this._style = value;
 		this._dirtyID++;
 	}
@@ -135,7 +135,12 @@ export class GraphicsPath implements IGraphicsData {
 
 	public get stroke(): GraphicsStrokeStyle {
 		if (this._style == null) return null;
-		if (this._style.data_type == GraphicsStrokeStyle.data_type) return <GraphicsStrokeStyle> this._style;
+		if (this._style.data_type == GraphicsStrokeStyle.data_type ||
+			this._style.baseStyle && this._style.baseStyle.data_type === GraphicsStrokeStyle.data_type
+		) {
+			return <GraphicsStrokeStyle> this._style;
+		}
+
 		return null;
 	}
 

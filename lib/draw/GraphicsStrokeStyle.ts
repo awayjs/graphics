@@ -1,29 +1,22 @@
 import { LineScaleMode } from '@awayjs/renderer';
 
-import { IGraphicsData } from '../draw/IGraphicsData';
-import { JointStyle } from '../draw/JointStyle';
-import { CapsStyle } from '../draw/CapsStyle';
+import { IStyleData } from './IGraphicsData';
+import { JointStyle } from './JointStyle';
+import { CapsStyle } from './CapsStyle';
 
-export class GraphicsStrokeStyle implements IGraphicsData {
-	public static data_type: string = '[graphicsdata StrokeStyle]';
+export class GraphicsStrokeStyle implements IStyleData {
+	public static readonly data_type: string = '[graphicsdata StrokeStyle]';
+	public readonly baseStyle = this;
 
-	private _color: number;
-	private _alpha: number;
-	private _thickness: number;
-	private _jointstyle: number;
-	private _capstyle: number;
-	private _miter_limit: number;
-	public scaleMode: LineScaleMode;
-
-	constructor(color: number = 0xffffff, alpha: number = 1, thickness: number = 10, jointstyle: number = JointStyle.ROUND, capstyle: number = CapsStyle.SQUARE, miter_limit: number = 10, scaleMode: LineScaleMode = LineScaleMode.NORMAL) {
-		this._color = color;
-		this._alpha = alpha;
-		this._thickness = thickness;
-		this._jointstyle = jointstyle;
-		this._capstyle = capstyle;
-		this._miter_limit = miter_limit;
-		this.scaleMode = scaleMode;
-	}
+	constructor(
+		private _color = 0xffffff,
+		private _alpha = 1,
+		private _thickness = 10,
+		private _jointstyle = JointStyle.ROUND,
+		private _capstyle = CapsStyle.SQUARE,
+		private _miter_limit: number = 10,
+		public  scaleMode: LineScaleMode = LineScaleMode.NORMAL
+	) {}
 
 	public get data_type(): string {
 		return GraphicsStrokeStyle.data_type;

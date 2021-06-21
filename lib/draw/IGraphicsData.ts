@@ -11,5 +11,8 @@
 export interface IGraphicsData
 {
 	data_type: string;
+}
 
+export interface IStyleData extends IGraphicsData {
+	baseStyle: IStyleData;
 }

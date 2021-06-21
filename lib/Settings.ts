@@ -12,6 +12,8 @@ export interface IGraphicsSettings {
 	MINIMUM_DRAWING_DISTANCE: number;
 
 	EXPEREMENTAL_MATERIAL_FOR_IMAGE: boolean;
+
+	CURVE_TESSELATION_COUNT: number;
 }
 
 export const Settings: IGraphicsSettings = {
@@ -50,7 +52,12 @@ export const Settings: IGraphicsSettings = {
 	MINIMUM_DRAWING_DISTANCE: 0.01,
 
 	/**
+	 * @description How many maximal passes can be used for tesselationg a curves
+	 */
+	CURVE_TESSELATION_COUNT: 6,
+	/**
 	 * @description Use experemental material for Shapes based from ImageBitmap2D
 	 */
-	EXPEREMENTAL_MATERIAL_FOR_IMAGE: true
+	EXPEREMENTAL_MATERIAL_FOR_IMAGE: true,
+
 };

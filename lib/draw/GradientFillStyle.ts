@@ -1,9 +1,11 @@
 import { ColorUtils, Matrix, Rectangle } from '@awayjs/core';
 
-import { GraphicsFillStyle } from '../draw/GraphicsFillStyle';
-import { GradientType } from '../draw/GradientType';
+import { GraphicsFillStyle } from './GraphicsFillStyle';
+import { GradientType } from './GradientType';
+import { GraphicsStrokeStyle } from './GraphicsStrokeStyle';
+import { IStyleData } from './IGraphicsData';
 
-export class GradientFillStyle extends GraphicsFillStyle {
+export class GradientFillStyle implements IStyleData {
 	public static data_type: string = '[graphicsdata GradientFillStyle]';
 	/**
      * The Vector of drawing commands as integers representing the path.
@@ -23,18 +25,23 @@ export class GradientFillStyle extends GraphicsFillStyle {
 	public focalPointRatio: number;
 	public uvRectangle: Rectangle;
 
+	public baseStyle: GraphicsFillStyle | GraphicsStrokeStyle;
 	private _uvMatrix: Matrix;
 
 	constructor(
-		type: GradientType, colors: number[],
-		alphas: number[], ratios: number[],
-		matrix: Matrix, spreadMethod: string,
-		interpolationMethod: string, focalPointRatio: number) {
-
-		super();
+		type: GradientType,
+		colors: number[],
+		alphas: number[],
+		ratios: number[],
+		matrix: Matrix,
+		spreadMethod: string,
+		interpolationMethod: string,
+		focalPointRatio: number
+	) {
 		if (colors.length != alphas.length || colors.length != ratios.length) {
 			throw ('GradientFillStyle: Error - colors, alphas and ratios must be of same length');
 		}
+
 		this.colors = colors;
 		this.colors_r = [];
 		this.colors_g = [];

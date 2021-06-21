@@ -4,6 +4,7 @@ import { IGraphicsData } from './IGraphicsData';
 
 import { IMaterial } from '@awayjs/renderer';
 import { BitmapImage2D } from '@awayjs/stage';
+import { GraphicsFillStyle } from './GraphicsFillStyle';
 
 export class BitmapFillStyle implements IGraphicsData {
 	public static data_type: string = '[graphicsdata BitmapFillStyle]';
@@ -16,6 +17,8 @@ export class BitmapFillStyle implements IGraphicsData {
 	public matrix: Matrix;
 	public repeat: boolean;
 	public smooth: boolean;
+
+	public baseStyle: GraphicsFillStyle;
 
 	private _uvMatrix: Matrix;
 

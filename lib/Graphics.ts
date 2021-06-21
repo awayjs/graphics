@@ -35,7 +35,7 @@ import { CapsStyle } from './draw/CapsStyle';
 import { GradientType } from './draw/GradientType';
 import { BitmapFillStyle } from './draw/BitmapFillStyle';
 import { GraphicsPathWinding } from './draw/GraphicsPathWinding';
-import { IGraphicsData } from './draw/IGraphicsData';
+import { IGraphicsData, IStyleData } from './draw/IGraphicsData';
 import { GraphicsStrokeStyle } from './draw/GraphicsStrokeStyle';
 import { GraphicsFillStyle } from './draw/GraphicsFillStyle';
 import { GradientFillStyle } from './draw/GradientFillStyle';
@@ -154,8 +154,8 @@ export class Graphics extends AssetBase {
 	private _queued_stroke_pathes: Array<GraphicsPath>;
 	private _active_fill_path: GraphicsPath;
 	private _active_stroke_path: GraphicsPath;
-	private _lineStyle: GraphicsFillStyle;
-	private _fillStyle: IGraphicsData;
+	private _lineStyle: IStyleData;
+	private _fillStyle: IStyleData;
 
 	private _current_position: Point=new Point();
 
@@ -236,21 +236,22 @@ export class Graphics extends AssetBase {
 	}
 
 	public add_queued_path(value: GraphicsPath, supressFill = false) {
-		if (value.style) {
-			if (value.style.data_type == GraphicsFillStyle.data_type
-				|| value.style.data_type == GradientFillStyle.data_type
-				|| value.style.data_type == BitmapFillStyle.data_type) {
-				this._drawingDirty = true;
-				this._queued_fill_pathes.push(value);
-			}
-			if (value.style.data_type == GraphicsStrokeStyle.data_type) {
-				this._queued_stroke_pathes.push(value);
+		if (!value.style) {
+			return;
+		}
+		const isLine = value.style.baseStyle && value.style.baseStyle.data_type === GraphicsStrokeStyle.data_type;
 
-				if (!supressFill) {
-					this.endFill();
-				}
+		if (!isLine) {
+			this._drawingDirty = true;
+			this._queued_fill_pathes.push(value);
+		} else {
+			this._queued_stroke_pathes.push(value);
+
+			if (!supressFill) {
+				this.endFill();
 			}
 		}
+
 	}
 
 	/**

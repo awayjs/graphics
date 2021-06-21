@@ -9,6 +9,7 @@ import { Shape } from '../renderables/Shape';
 import { GraphicsPath } from '../draw/GraphicsPath';
 import { CapsStyle } from '../draw/CapsStyle';
 import { MaterialManager } from '../managers/MaterialManager';
+import { Settings } from '../Settings';
 
 export class GraphicsFactoryHelper {
 	public static _tess_obj: any;
@@ -373,14 +374,20 @@ export class GraphicsFactoryHelper {
 	}
 
 	public static tesselateCurve(
-		startx: number, starty: number,
-		cx: number, cy: number,
-		endx: number, endy: number,
-		array_out: Array<number>, filled: boolean = false,iterationCnt: number = 0): void {
+		startx: number,
+		starty: number,
+		cx: number,
+		cy: number,
+		endx: number,
+		endy: number,
+		array_out: Array<number>,
+		filled: boolean = false,
+		iterationCnt: number = 0
+	): void {
 
-		const maxIterations: number = 6;
-		const minAngle: number = 1;
-		const minLength: number = 1;
+		const maxIterations: number = Settings.CURVE_TESSELATION_COUNT;
+		const minAngle = 1;
+		const minLengthSqr = 1;
 
 		// if "filled" is true, we are collecting final vert positions in the array,
 		// ready to use for rendering. (6-position values for each tri)
@@ -396,24 +403,11 @@ export class GraphicsFactoryHelper {
 			return;
 		}
 
-		// calculate angle between segments
-		const angle_1: number = Math.atan2(cy - starty, cx - startx) * MathConsts.RADIANS_TO_DEGREES;
-		const angle_2: number = Math.atan2(endy - cy, endx - cx) * MathConsts.RADIANS_TO_DEGREES;
-		let angle_delta: number = angle_2 - angle_1;
-
-		// make sure angle is in range -180 - 180
-		while (angle_delta > 180) {
-			angle_delta -= 360;
-		}
-		while (angle_delta < -180) {
-			angle_delta += 360;
-		}
-
 		// calculate length of segment
 		// this does not include the crtl-point position
 		const diff_x = endx - startx;
 		const diff_y = endy - starty;
-		const len: number = Math.sqrt(diff_x * diff_x + diff_y * diff_y);
+		const lenSq = diff_x * diff_x + diff_y * diff_y;
 
 		// subdivide the curve
 		const c1x = startx + (cx - startx) * 0.5;// new controlpoint 1
@@ -424,7 +418,32 @@ export class GraphicsFactoryHelper {
 		const ay = c1y + (c2y - c1y) * 0.5;
 
 		// stop subdividing if the angle or the length is to small
-		if (Math.abs(angle_delta) <= minAngle || len < minLength) {
+		if (lenSq < minLengthSqr) {
+			if (filled) {
+				array_out.push(startx, starty, ax, ay, endx, endy);
+			} else {
+				array_out.push(endx, endy);
+			}
+			return;
+		}
+
+		// calculate angle between segments
+		const angle_1 = Math.atan2(cy - starty, cx - startx) * MathConsts.RADIANS_TO_DEGREES;
+		const angle_2 = Math.atan2(endy - cy, endx - cx) * MathConsts.RADIANS_TO_DEGREES;
+		let angle_delta = angle_2 - angle_1;
+
+		// make sure angle is in range -180 - 180
+		while (angle_delta > 180) {
+			angle_delta -= 360;
+		}
+		while (angle_delta < -180) {
+			angle_delta += 360;
+		}
+
+		angle_delta = angle_delta < 0 ? -angle_delta : angle_delta;
+
+		// stop subdividing if the angle or the length is to small
+		if (angle_delta <= minAngle) {
 			if (filled) {
 				array_out.push(startx, starty, ax, ay, endx, endy);
 			} else {

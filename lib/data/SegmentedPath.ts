@@ -139,6 +139,8 @@ export class SegmentedPath {
 						style.interpolationMode,
 						style.focalPoint / 2 | 0);
 
+					shape.style.baseStyle = shape.style;
+
 					if (morph) {
 						const gradientType = morph.type === FillType.LinearGradient
 							? GradientType.LINEAR
@@ -189,7 +191,10 @@ export class SegmentedPath {
 						style.material,
 						awayMatrix,
 						style.repeat,
-						style.smooth);
+						style.smooth
+					);
+
+					shape.style.baseStyle = shape.style;
 					//shape.beginBitmap(command, style.bitmapIndex, style.transform, style.repeat, style.smooth);
 					if (morph) {
 						//console.log("writeMorphBitmap not handled yet");
@@ -218,7 +223,7 @@ export class SegmentedPath {
 		} else {
 			const style = this.lineStyle;
 			const morph = style.morph;
-			assert(style);
+
 			switch (style.type) {
 				case FillType.Solid: {
 					/*
@@ -286,13 +291,14 @@ export class SegmentedPath {
 					style.alpha = (style.color & 0xff) / 0xff;
 					style.color = this.rgbaToArgb(style.color);
 
-					shape.style = new GraphicsStrokeStyle(
+					const base = new GraphicsStrokeStyle(
 						style.color,
 						style.alpha,
 						thickness,
 						style.jointStyle,
 						style.endCapsStyle,
-						style.miterLimit);
+						style.miterLimit
+					);
 
 					const gradientType: GradientType = style.type === FillType.LinearGradient
 						? GradientType.LINEAR
@@ -313,6 +319,8 @@ export class SegmentedPath {
 						style.spreadMethod,
 						style.interpolationMode,
 						style.focalPoint / 2 | 0);
+
+					shape.style.baseStyle = base;
 
 					if (morph) {
 						//console.log("writeMorphLineStyle not handled yet");
