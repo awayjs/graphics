@@ -1,4 +1,4 @@
-import { GradientFillStyle } from '../draw/GradientFillStyle';
+import { GradientFillStyle } from '../draw/fills/GradientFillStyle';
 import { TextureAtlas, ITextureAtlasEntry } from './TextureAtlas';
 import { IMaterial } from '@awayjs/renderer';
 import { BitmapImage2D } from '@awayjs/stage';

@@ -13,7 +13,7 @@ import {
 	TriangleElements
 } from '@awayjs/renderer';
 
-import { IGraphicsData } from '../draw/IGraphicsData';
+import { IFillStyle, IGraphicsData } from '../draw/IGraphicsData';
 
 import { ParticleCollection } from '../animators/data/ParticleCollection';
 
@@ -167,7 +167,7 @@ export class Shape<T extends ElementsBase = ElementsBase> extends AssetBase {
 
 	public particleCollection: ParticleCollection = null;
 
-	public originalFillStyle: IGraphicsData = null;
+	public originalFillStyle: IFillStyle = null;
 
 	private _isSimpleRect: boolean = false;
 
@@ -356,7 +356,7 @@ import {
 } from '@awayjs/renderer';
 
 import { AnimatorBase } from '../animators/AnimatorBase';
-import { BitmapFillStyle } from '../draw/BitmapFillStyle';
+import { BitmapFillStyle } from '../draw/fills/BitmapFillStyle';
 import { GraphicsFillStyle } from '../draw/GraphicsFillStyle';
 
 /**

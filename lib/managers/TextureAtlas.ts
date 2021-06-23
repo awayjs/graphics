@@ -2,7 +2,7 @@ import { Point, ColorUtils, Rectangle } from '@awayjs/core';
 
 import { BitmapImage2D } from '@awayjs/stage';
 
-import { GradientFillStyle } from '../draw/GradientFillStyle';
+import { GradientFillStyle } from '../draw/fills/GradientFillStyle';
 import { IMaterial } from '@awayjs/renderer';
 
 export interface ITextureAtlasEntry{

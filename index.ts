@@ -120,12 +120,14 @@ export {
 export { CapsStyle } from './lib/draw/CapsStyle';
 export { DrawMode } from './lib/draw/DrawMode';
 export { GradientType } from './lib/draw/GradientType';
-export { BitmapFillStyle } from './lib/draw/BitmapFillStyle';
+export { BitmapFillStyle } from './lib/draw/fills/BitmapFillStyle';
+export { GradientFillStyle } from './lib/draw/fills/GradientFillStyle';
+export { SolidFillStyle } from './lib/draw/fills/SolidFillStyle';
+
 export { GraphicsFactoryFills } from './lib/draw/GraphicsFactoryFills';
 export { GraphicsFactoryHelper } from './lib/draw/GraphicsFactoryHelper';
 export { GraphicsFactoryStrokes } from './lib/draw/GraphicsFactoryStrokes';
 export { GraphicsFillStyle } from './lib/draw/GraphicsFillStyle';
-export { GradientFillStyle } from './lib/draw/GradientFillStyle';
 export { GraphicsStrokeStyle } from './lib/draw/GraphicsStrokeStyle';
 export { GraphicsPath } from './lib/draw/GraphicsPath';
 export { GraphicsPathCommand } from './lib/draw/GraphicsPathCommand';
