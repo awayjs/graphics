@@ -1,4 +1,4 @@
-import { Point, MathConsts, Matrix } from '@awayjs/core';
+import { Point, MathConsts } from '@awayjs/core';
 
 import { ImageSampler, AttributesBuffer, AttributesView, Float2Attributes } from '@awayjs/stage';
 
@@ -11,8 +11,7 @@ import { GraphicsPathCommand } from './GraphicsPathCommand';
 import { GraphicsFactoryHelper } from './GraphicsFactoryHelper';
 import { GraphicsStrokeStyle } from './GraphicsStrokeStyle';
 import { Graphics } from '../Graphics';
-import { MaterialManager } from '../managers/MaterialManager';
-import { GraphicsFactoryFills, UnpackStyle } from './GraphicsFactoryFills';
+import { GraphicsFactoryFills, UnpackFillStyle } from './GraphicsFactoryFills';
 
 /**
  * The Graphics class contains a set of methods that you can use to create a
@@ -36,8 +35,8 @@ export class GraphicsFactoryStrokes {
 
 		for (let i = 0; i < len; i++) {
 			const path = paths[i];
-			const baseStyle = (<GraphicsStrokeStyle>path.style.baseStyle);
-			const mapping = UnpackStyle[path.style.data_type];
+			const style = (<GraphicsStrokeStyle<any>>path.style);
+
 			let shape = targetGraphics.popEmptyStrokeShape();
 
 			path.prepare();
@@ -46,15 +45,15 @@ export class GraphicsFactoryStrokes {
 			const elements = this.fillLineElements(
 				[path],
 				false, //material.curves,
-				baseStyle.scaleMode,
+				style.scaleMode,
 				<LineElements>shape?.elements
 			);
 
 			if (!elements)
 				continue;
 
-			elements.scaleMode = baseStyle.scaleMode;
-			elements.half_thickness = baseStyle.half_thickness;
+			elements.scaleMode = style.scaleMode;
+			elements.half_thickness = style.half_thickness;
 
 			const data = {
 				style: new Style(),
@@ -62,18 +61,7 @@ export class GraphicsFactoryStrokes {
 				material: null
 			};
 
-			if (!mapping) {
-				const obj = MaterialManager.getMaterialForColor(baseStyle.color, baseStyle.alpha);
-
-				data.material = obj.material;
-				data.material.animateUVs = true;
-				data.material.style.sampler = data.sampler;
-
-				data.style.addSamplerAt(data.sampler, data.material.getTextureAt(0));
-				data.style.uvMatrix = new Matrix(0, 0, 0, 0, obj.colorPos.x, obj.colorPos.y);
-			} else {
-				mapping(path.style, data);
-			}
+			UnpackFillStyle[path.style.fillStyle.data_type](path.style.fillStyle, data);
 
 			if (shape) {
 				shape.material = data.material;
@@ -126,7 +114,7 @@ export class GraphicsFactoryStrokes {
 			path.prepare();
 
 			const positions = path._positions;
-			const strokeStyle = path.stroke.baseStyle;
+			const strokeStyle = path.stroke;
 			const half_thickness = (scaleMode != LineScaleMode.HAIRLINE) ? strokeStyle.half_thickness : 0.5;
 
 			for (let k = 0, l1 = positions.length; k < l1; k++) {
@@ -176,7 +164,7 @@ export class GraphicsFactoryStrokes {
 		const final_vert_list: number[] = [];
 		const len = graphic_pathes.length;
 		let positions: number[][];
-		let strokeStyle: GraphicsStrokeStyle;
+		let strokeStyle: GraphicsStrokeStyle<any>;
 		let data: number[];
 		let i: number = 0;
 		let k: number = 0;
@@ -442,7 +430,7 @@ export class GraphicsFactoryStrokes {
 									// 	as long as the mitter-value is within a given miter_limit
 									// eslint-disable-next-line max-len
 									distance_miter = Math.sqrt((distanceX * distanceX + distanceY * distanceY) / (half_thicknessX * half_thicknessX + half_thicknessY * half_thicknessY) - 1);
-									if (distance_miter <= strokeStyle.miter_limit) {
+									if (distance_miter <= strokeStyle.miterLimit) {
 										// if within miter_limit, miter is applied,
 										// and we only need to add the merged points for both sides
 										addJoints = false;
@@ -454,27 +442,27 @@ export class GraphicsFactoryStrokes {
 										if (dir_delta > 0) {
 											// right side is merged, left side has 2 points
 											// eslint-disable-next-line max-len
-											left_point_contour_x = left_point_contour_x - (tmp_dir_point.x * (strokeStyle.miter_limit * half_thicknessX));
+											left_point_contour_x = left_point_contour_x - (tmp_dir_point.x * (strokeStyle.miterLimit * half_thicknessX));
 											// eslint-disable-next-line max-len
-											left_point_contour_y = left_point_contour_y - (tmp_dir_point.y * (strokeStyle.miter_limit * half_thicknessY));
+											left_point_contour_y = left_point_contour_y - (tmp_dir_point.y * (strokeStyle.miterLimit * half_thicknessY));
 											tmp_point3.x = prev_normal_y * -1;
 											tmp_point3.y = prev_normal_x;
 											// eslint-disable-next-line max-len
-											left_point_contour_prev_x = left_point_contour_prev_x - (tmp_point3.x * (strokeStyle.miter_limit * half_thicknessX));
+											left_point_contour_prev_x = left_point_contour_prev_x - (tmp_point3.x * (strokeStyle.miterLimit * half_thicknessX));
 											// eslint-disable-next-line max-len
-											left_point_contour_prev_y = left_point_contour_prev_y - (tmp_point3.y * (strokeStyle.miter_limit * half_thicknessY));
+											left_point_contour_prev_y = left_point_contour_prev_y - (tmp_point3.y * (strokeStyle.miterLimit * half_thicknessY));
 										} else {
 											// left side is merged, right side has 2 points
 											// eslint-disable-next-line max-len
-											right_point_contour_x = right_point_contour_x - (tmp_dir_point.x * (strokeStyle.miter_limit * half_thicknessX));
+											right_point_contour_x = right_point_contour_x - (tmp_dir_point.x * (strokeStyle.miterLimit * half_thicknessX));
 											// eslint-disable-next-line max-len
-											right_point_contour_y = right_point_contour_y - (tmp_dir_point.y * (strokeStyle.miter_limit * half_thicknessY));
+											right_point_contour_y = right_point_contour_y - (tmp_dir_point.y * (strokeStyle.miterLimit * half_thicknessY));
 											tmp_point3.x = prev_normal_y * -1;
 											tmp_point3.y = prev_normal_x;
 											// eslint-disable-next-line max-len
-											right_point_contour_prev_x = right_point_contour_prev_x - (tmp_point3.x * (strokeStyle.miter_limit * half_thicknessX));
+											right_point_contour_prev_x = right_point_contour_prev_x - (tmp_point3.x * (strokeStyle.miterLimit * half_thicknessX));
 											// eslint-disable-next-line max-len
-											right_point_contour_prev_y = right_point_contour_prev_y - (tmp_point3.y * (strokeStyle.miter_limit * half_thicknessY));
+											right_point_contour_prev_y = right_point_contour_prev_y - (tmp_point3.y * (strokeStyle.miterLimit * half_thicknessY));
 										}
 									}
 								}

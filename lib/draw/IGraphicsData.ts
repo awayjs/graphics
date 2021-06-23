@@ -1,3 +1,4 @@
+import { Matrix } from '@awayjs/core';
 /**
  * This interface is used to define objects that can be used as parameters in the
  * <code>away.base.Graphics</code> methods, including fills, strokes, and paths. Use
@@ -13,6 +14,10 @@ export interface IGraphicsData
 	data_type: string;
 }
 
+export interface IFillStyle extends IGraphicsData {
+	getUVMatrix(): Matrix;
+}
+
 export interface IStyleData extends IGraphicsData {
-	baseStyle: IStyleData;
+	fillStyle: IFillStyle;
 }

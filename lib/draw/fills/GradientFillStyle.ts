@@ -1,11 +1,8 @@
 import { ColorUtils, Matrix, Rectangle } from '@awayjs/core';
+import { GradientType } from '../GradientType';
+import { IFillStyle } from '../IGraphicsData';
 
-import { GraphicsFillStyle } from './GraphicsFillStyle';
-import { GradientType } from './GradientType';
-import { GraphicsStrokeStyle } from './GraphicsStrokeStyle';
-import { IStyleData } from './IGraphicsData';
-
-export class GradientFillStyle implements IStyleData {
+export class GradientFillStyle implements IFillStyle {
 	public static data_type: string = '[graphicsdata GradientFillStyle]';
 	/**
      * The Vector of drawing commands as integers representing the path.
@@ -24,8 +21,6 @@ export class GradientFillStyle implements IStyleData {
 	public interpolationMethod: string;
 	public focalPointRatio: number;
 	public uvRectangle: Rectangle;
-
-	public baseStyle: GraphicsFillStyle | GraphicsStrokeStyle;
 	private _uvMatrix: Matrix;
 
 	constructor(

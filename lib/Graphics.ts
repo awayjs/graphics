@@ -33,12 +33,13 @@ import { TriangleCulling } from './draw/TriangleCulling';
 import { SpreadMethod } from './draw/SpreadMethod';
 import { CapsStyle } from './draw/CapsStyle';
 import { GradientType } from './draw/GradientType';
-import { BitmapFillStyle } from './draw/BitmapFillStyle';
+import { BitmapFillStyle } from './draw/fills/BitmapFillStyle';
+import { GradientFillStyle } from './draw/fills/GradientFillStyle';
+import { SolidFillStyle } from './draw/fills/SolidFillStyle';
 import { GraphicsPathWinding } from './draw/GraphicsPathWinding';
-import { IGraphicsData, IStyleData } from './draw/IGraphicsData';
+import { IGraphicsData } from './draw/IGraphicsData';
 import { GraphicsStrokeStyle } from './draw/GraphicsStrokeStyle';
 import { GraphicsFillStyle } from './draw/GraphicsFillStyle';
-import { GradientFillStyle } from './draw/GradientFillStyle';
 import { Shape } from './renderables/Shape';
 import { SegmentedPath } from './data/SegmentedPath';
 import { FillType } from './data/FillType';
@@ -144,7 +145,7 @@ export class Graphics extends AssetBase {
 
 	private _onInvalidateDelegate: (event: AssetEvent) => void;
 
-	private _bitmapFillPool: NumberMap<BitmapFillStyle> = {};
+	private _bitmapFillPool: NumberMap<GraphicsFillStyle<BitmapFillStyle>> = {};
 
 	private _queuedShapeTags: ShapeTag[] = [];
 	private _shapes: Array<Shape> = [];
@@ -154,8 +155,8 @@ export class Graphics extends AssetBase {
 	private _queued_stroke_pathes: Array<GraphicsPath>;
 	private _active_fill_path: GraphicsPath;
 	private _active_stroke_path: GraphicsPath;
-	private _lineStyle: IStyleData;
-	private _fillStyle: IStyleData;
+	private _lineStyle: GraphicsStrokeStyle<any>;
+	private _fillStyle: GraphicsFillStyle<any>;
 
 	private _current_position: Point=new Point();
 
@@ -239,8 +240,8 @@ export class Graphics extends AssetBase {
 		if (!value.style) {
 			return;
 		}
-		const isLine = value.style.baseStyle && value.style.baseStyle.data_type === GraphicsStrokeStyle.data_type;
 
+		const isLine = value.style.data_type === GraphicsStrokeStyle.data_type;
 		if (!isLine) {
 			this._drawingDirty = true;
 			this._queued_fill_pathes.push(value);
@@ -493,7 +494,7 @@ export class Graphics extends AssetBase {
 
 		if (this._bitmapFillPool) {
 			for (const k in this._bitmapFillPool) {
-				this._bitmapFillPool[k].material.dispose();
+				this._bitmapFillPool[k].fillStyle.material.dispose();
 			}
 
 			this._bitmapFillPool = null;
@@ -631,18 +632,21 @@ export class Graphics extends AssetBase {
 		if (!this._bitmapFillPool) {
 			this._bitmapFillPool = {};
 		}
+
 		let fill = this._bitmapFillPool[bitmap.id];
 
 		if (!fill) {
-			fill = this._bitmapFillPool[bitmap.id] = new BitmapFillStyle(
-				MaterialManager.getMaterialForBitmap(bitmap),
-				matrix,
-				repeat,
-				smooth);
+			fill = this._bitmapFillPool[bitmap.id] = new GraphicsFillStyle<BitmapFillStyle>(
+				new BitmapFillStyle(
+					MaterialManager.getMaterialForBitmap(bitmap),
+					matrix,
+					repeat,
+					smooth)
+			);
 		} else {
-			fill.matrix = matrix;
-			fill.repeat = repeat;
-			fill.smooth = smooth;
+			fill.fillStyle.matrix = matrix;
+			fill.fillStyle.repeat = repeat;
+			fill.fillStyle.smooth = smooth;
 		}
 
 		this._fillStyle = fill;
@@ -667,7 +671,7 @@ export class Graphics extends AssetBase {
 			color = 0x010101;
 		}
 		this.draw_fills();
-		this._fillStyle = new GraphicsFillStyle(color, alpha);
+		this._fillStyle = new GraphicsFillStyle<SolidFillStyle>(new SolidFillStyle(color, alpha));
 	}
 
 	/**
@@ -755,20 +759,27 @@ export class Graphics extends AssetBase {
 	 */
 	public beginGradientFill(
 		type: GradientType, colors: number[],
-		alphas: number[], ratios: number[],
-		matrix: Matrix = null, spreadMethod: string = 'pad',
-		interpolationMethod: string = 'rgb', focalPointRatio: number = 0): void {
+		alphas: number[],
+		ratios: number[],
+		matrix: Matrix = null,
+		spreadMethod: string = 'pad',
+		interpolationMethod: string = 'rgb',
+		focalPointRatio: number = 0
+	): void {
 
 		this.draw_fills();
-		this._fillStyle = new GradientFillStyle(
-			type,
-			colors,
-			alphas,
-			ratios,
-			matrix,
-			spreadMethod,
-			interpolationMethod,
-			focalPointRatio);
+		this._fillStyle = new GraphicsFillStyle<GradientFillStyle>(
+			new GradientFillStyle(
+				type,
+				colors,
+				alphas,
+				ratios,
+				matrix,
+				spreadMethod,
+				interpolationMethod,
+				focalPointRatio
+			)
+		);
 	}
 
 	/**
@@ -929,7 +940,7 @@ export class Graphics extends AssetBase {
 
 			let r = radius;
 			if (this._active_stroke_path != null) {
-				r -= (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2;
+				r -= (<GraphicsStrokeStyle<any>> this._active_stroke_path.style).thickness / 2;
 			}
 			GraphicsFactoryHelper.drawElipse(x, y, r, r, this._active_fill_path.verts, 0, 360, 5, false);
 
@@ -974,8 +985,8 @@ export class Graphics extends AssetBase {
 			let h = height;
 
 			if (this._active_stroke_path != null) {
-				w -= (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2;
-				h -= (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2;
+				w -= (<GraphicsStrokeStyle<any>> this._active_stroke_path.style).thickness / 2;
+				h -= (<GraphicsStrokeStyle<any>> this._active_stroke_path.style).thickness / 2;
 			}
 
 			GraphicsFactoryHelper.drawElipse(x, y, w, h, this._active_fill_path.verts, 0, 360, 6, false);
@@ -1118,9 +1129,9 @@ export class Graphics extends AssetBase {
 			let t: number = 0;
 
 			if (this._active_stroke_path != null) {
-				t = (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2;
-				w -= (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness;
-				h -= (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness;
+				t = (<GraphicsStrokeStyle<any>> this._active_stroke_path.style).thickness / 2;
+				w -= (<GraphicsStrokeStyle<any>> this._active_stroke_path.style).thickness;
+				h -= (<GraphicsStrokeStyle<any>> this._active_stroke_path.style).thickness;
 			}
 
 			GraphicsFactoryHelper.addTriangle(
@@ -1221,9 +1232,9 @@ export class Graphics extends AssetBase {
 		if (this._active_fill_path != null) {
 			this._active_fill_path.moveTo(x, y);
 			if (this._active_stroke_path != null) {
-				t = (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2;
-				w -= (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness;
-				h -= (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness;
+				t = (<GraphicsStrokeStyle<any>> this._active_stroke_path.style).thickness / 2;
+				w -= (<GraphicsStrokeStyle<any>> this._active_stroke_path.style).thickness;
+				h -= (<GraphicsStrokeStyle<any>> this._active_stroke_path.style).thickness;
 			}
 
 			/* eslint-disable */
@@ -1280,9 +1291,9 @@ export class Graphics extends AssetBase {
 			this._active_fill_path.moveTo(x, y);
 
 			if (this._active_stroke_path != null) {
-				t = (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2;
-				w -= (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness;
-				h -= (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness;
+				t = (<GraphicsStrokeStyle<any>> this._active_stroke_path.style).thickness / 2;
+				w -= (<GraphicsStrokeStyle<any>> this._active_stroke_path.style).thickness;
+				h -= (<GraphicsStrokeStyle<any>> this._active_stroke_path.style).thickness;
 			}
 
 			/* eslint-disable */
@@ -1310,7 +1321,6 @@ export class Graphics extends AssetBase {
 
 		if (this._active_stroke_path != null) {
 			this._active_stroke_path.moveTo(x, y);
-			t = (<GraphicsStrokeStyle> this._active_stroke_path.style).thickness / 2;
 
 			console.warn('[Graphics] - drawRoundRectComplex for strokes currently disabled');
 
@@ -1546,12 +1556,19 @@ export class Graphics extends AssetBase {
 	 */
 	public lineGradientStyle(
 		type: GradientType, colors: Array<number /*int*/>,
-		alphas: Array<number>, ratios: Array<number>,
-		matrix: Matrix = null, spreadMethod: SpreadMethod = null,
-		interpolationMethod: InterpolationMethod = null, focalPointRatio: number = 0): void {
+		alphas: Array<number>,
+		ratios: Array<number>,
+		matrix: Matrix = null,
+		spreadMethod: SpreadMethod = null,
+		interpolationMethod: InterpolationMethod = null,
+		focalPointRatio: number = 0
+	): void {
 
 		this._drawingDirty = true;
-		this._lineStyle = new  GraphicsStrokeStyle(colors[0], alphas[0], 1);
+		//	TODO
+		//	line styles should be passed after setLineStyle(),
+		//	or change fillType of previous without changes other values
+		this._lineStyle = new  GraphicsStrokeStyle<SolidFillStyle>(new SolidFillStyle(colors[0], alphas[0]), 1);
 	}
 
 	/**
@@ -1726,10 +1743,15 @@ export class Graphics extends AssetBase {
 	 *                     cut off. The following table lists some examples:</p>
 	 */
 	public lineStyle(
-		thickness: number = NaN, color: number /*int*/ = 0, alpha: number = 1,
-		pixelHinting: boolean = false, scaleMode: LineScaleMode = null,
-		capstyle: number = CapsStyle.NONE, jointstyle: number = JointStyle.MITER,
-		miterLimit: number = 100): void {
+		thickness: number = NaN,
+		color: number /*int*/ = 0,
+		alpha: number = 1,
+		pixelHinting: boolean = false,
+		scaleMode: LineScaleMode = null,
+		capstyle: number = CapsStyle.NONE,
+		jointstyle: number = JointStyle.MITER,
+		miterLimit: number = 100
+	): void {
 
 		if (isNaN(thickness)) {
 			this._lineStyle = null;
@@ -1744,8 +1766,15 @@ export class Graphics extends AssetBase {
 		const valid = thickness > 0 && alpha > 0;
 
 		this._drawingDirty = true;
+
 		this._lineStyle = valid
-			? new  GraphicsStrokeStyle(color, alpha, thickness, jointstyle, capstyle, miterLimit)
+			? new  GraphicsStrokeStyle<SolidFillStyle>(
+				new SolidFillStyle(color, alpha),
+				thickness,
+				jointstyle,
+				capstyle,
+				miterLimit
+			)
 			: null;
 	}
 

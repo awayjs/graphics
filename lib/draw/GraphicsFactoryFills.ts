@@ -9,9 +9,10 @@ import { MappingMode, IMaterial, Style, TriangleElements } from '@awayjs/rendere
 
 import { Shape } from '../renderables/Shape';
 
-import { GraphicsFillStyle } from './GraphicsFillStyle';
-import { GradientFillStyle } from './GradientFillStyle';
-import { BitmapFillStyle } from './BitmapFillStyle';
+import { GradientFillStyle } from './fills/GradientFillStyle';
+import { BitmapFillStyle } from './fills/BitmapFillStyle';
+import { SolidFillStyle } from './fills/SolidFillStyle';
+
 import { GradientType } from './GradientType';
 import { GraphicsFactoryHelper } from './GraphicsFactoryHelper';
 import { GraphicsPath } from './GraphicsPath';
@@ -21,7 +22,7 @@ import { Graphics } from '../Graphics';
 import { MaterialManager } from '../managers/MaterialManager';
 import { Tess2Provider, TessAsyncService } from '../utils/TessAsyncService';
 import { IResult } from './WorkerTesselatorBody';
-import { IStyleData } from './IGraphicsData';
+import { IFillStyle } from './IGraphicsData';
 
 /**
  * The Graphics class contains a set of methods that you can use to create a
@@ -54,8 +55,9 @@ export interface IStyleElements {
 	sampler: ImageSampler
 }
 
-type tStyleMapper = (style: IStyleData,data: IStyleElements) => IStyleElements;
-export const UnpackStyle: Record<string, tStyleMapper> = {
+type tStyleMapper = (style: IFillStyle,data: IStyleElements) => IStyleElements;
+
+export const UnpackFillStyle: Record<string, tStyleMapper> = {
 	[GradientFillStyle.data_type] (style: GradientFillStyle,data: IStyleElements): IStyleElements {
 		const obj = MaterialManager.getMaterialForGradient(style);
 		const material = obj.material;
@@ -77,7 +79,8 @@ export const UnpackStyle: Record<string, tStyleMapper> = {
 		return data;
 	},
 
-	[GraphicsFillStyle.data_type] (style: GraphicsFillStyle, data: IStyleElements): IStyleElements {
+	// handle solid, we store inside GraphicsFactoryFill
+	[SolidFillStyle.data_type] (style: SolidFillStyle, data: IStyleElements): IStyleElements {
 		const obj = MaterialManager.getMaterialForColor(
 			style.color,
 			style.alpha
@@ -91,6 +94,8 @@ export const UnpackStyle: Record<string, tStyleMapper> = {
 
 			data.style.addSamplerAt(data.sampler, material.getTextureAt(0));
 			data.style.uvMatrix = new Matrix(0, 0, 0, 0, obj.colorPos.x, obj.colorPos.y);
+			style.uvMatrix = data.style.uvMatrix;
+
 		} else {
 			data.style = data.sampler = null;
 		}
@@ -187,7 +192,11 @@ export class GraphicsFactoryFills {
 				material: null
 			};
 
-			UnpackStyle[pathStyle.data_type](pathStyle, data);
+			if (!(pathStyle.fillStyle.data_type in UnpackFillStyle)) {
+				console.error('Unknown style:', pathStyle.fillStyle.data_type);
+			}
+
+			UnpackFillStyle[pathStyle.fillStyle.data_type](pathStyle.fillStyle, data);
 
 			shape = shape || Shape.getShape(elements);
 

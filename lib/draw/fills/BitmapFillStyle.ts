@@ -1,12 +1,10 @@
 import { Matrix } from '@awayjs/core';
 
-import { IGraphicsData } from './IGraphicsData';
-
+import { IFillStyle } from '../IGraphicsData';
 import { IMaterial } from '@awayjs/renderer';
 import { BitmapImage2D } from '@awayjs/stage';
-import { GraphicsFillStyle } from './GraphicsFillStyle';
 
-export class BitmapFillStyle implements IGraphicsData {
+export class BitmapFillStyle implements IFillStyle {
 	public static data_type: string = '[graphicsdata BitmapFillStyle]';
 	/**
      * The Vector of drawing commands as integers representing the path.
@@ -17,9 +15,6 @@ export class BitmapFillStyle implements IGraphicsData {
 	public matrix: Matrix;
 	public repeat: boolean;
 	public smooth: boolean;
-
-	public baseStyle: GraphicsFillStyle;
-
 	private _uvMatrix: Matrix;
 
 	constructor(material: IMaterial, matrix: Matrix, repeat: boolean,  smooth: boolean) {
