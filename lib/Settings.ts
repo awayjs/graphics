@@ -14,6 +14,8 @@ export interface IGraphicsSettings {
 	EXPEREMENTAL_MATERIAL_FOR_IMAGE: boolean;
 
 	CURVE_TESSELATION_COUNT: number;
+
+	SMOOTH_BITMAP_FILL_DEFAULT: boolean;
 }
 
 export const Settings: IGraphicsSettings = {
@@ -55,9 +57,15 @@ export const Settings: IGraphicsSettings = {
 	 * @description How many maximal passes can be used for tesselationg a curves
 	 */
 	CURVE_TESSELATION_COUNT: 6,
+
 	/**
 	 * @description Use experemental material for Shapes based from ImageBitmap2D
 	 */
 	EXPEREMENTAL_MATERIAL_FOR_IMAGE: true,
+
+	/**
+	 * @description Smooth = true for default bitmap style
+	 */
+	SMOOTH_BITMAP_FILL_DEFAULT: false,
 
 };

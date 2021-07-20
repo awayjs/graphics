@@ -624,8 +624,11 @@ export class Graphics extends AssetBase {
 	 */
 
 	public beginBitmapFill(
-		bitmap: BitmapImage2D, matrix: Matrix = null,
-		repeat: boolean = true, smooth: boolean = false): void {
+		bitmap: BitmapImage2D,
+		matrix: Matrix = null,
+		repeat: boolean = true,
+		smooth: boolean = Settings.SMOOTH_BITMAP_FILL_DEFAULT
+	): void {
 
 		this.draw_fills();
 
