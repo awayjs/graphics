@@ -222,7 +222,7 @@ export function isNullOrUndefined(value) {
 	return value == undefined;
 }
 
-export function utf8decode(str: string): Uint8Array {
+function utf8decode_impl(str: string): Uint8Array {
 	const bytes = new Uint8Array(str.length * 4);
 	let b = 0;
 	for (let i = 0, j = str.length; i < j; i++) {
@@ -264,7 +264,7 @@ export function utf8decode(str: string): Uint8Array {
 	return bytes.subarray(0, b);
 }
 
-export function utf8encode(bytes: Uint8Array): string {
+function utf8encode_impl(bytes: Uint8Array): string {
 	let j = 0, str = '';
 	while (j < bytes.length) {
 		const b1 = bytes[j++] & 0xFF;
@@ -313,6 +313,32 @@ export function utf8encode(bytes: Uint8Array): string {
 	}
 	return str;
 }
+
+const textEncoder = self.TextEncoder ? new self.TextEncoder() : null;
+const textDecoder = self.TextDecoder ? new self.TextDecoder() : null;
+
+export function utf8decode(str: string): Uint8Array {
+	if (!textEncoder)
+		return utf8decode_impl(str);
+
+	try {
+		return textEncoder.encode(str);
+	} catch (e) {
+		return utf8decode_impl(str);
+	}
+}
+
+export function utf8encode(buffer: Uint8Array): string {
+	if (!textDecoder)
+		return utf8encode_impl(buffer);
+
+	try {
+		return textDecoder.decode(buffer);
+	} catch (e) {
+		return utf8encode_impl(buffer);
+	}
+}
+
 /**
  * Simple pool allocator for ArrayBuffers. This reduces memory usage in data structures
  * that resize buffers.
