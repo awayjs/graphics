@@ -21,6 +21,8 @@ export class GraphicsPath implements IGraphicsData {
 	public static data_type: string = '[graphicsdata path]';
 
 	private _isSimpleRect: boolean = false;
+	private _lastPrepareScale: number = -1;
+
 	/**
 	 * Marking that this path is simple simple rect
 	 */
@@ -359,13 +361,19 @@ export class GraphicsPath implements IGraphicsData {
 	private _positionOffset: number[][] = [];
 	public forceClose: boolean = false;
 
-	public prepare(): boolean {
+	/**
+	 *
+	 * @param qualityScale change a pretesselation quality, > 1 decrease limits
+	 * shape will have more vertices,  < 1 >0, reduce vertices - bad scale ratio
+	 */
+	public prepare(qualityScale: number = 1): boolean {
 
 		// was not mutated internaly
-		if (this._dirtyID === this._lastDirtyID) {
+		if (this._dirtyID === this._lastDirtyID && qualityScale === this._lastPrepareScale) {
 			return;
 		}
 
+		this._lastPrepareScale = qualityScale;
 		this._lastDirtyID = this._dirtyID;
 
 		const isValidCommand: number[][] = [];
@@ -388,7 +396,7 @@ export class GraphicsPath implements IGraphicsData {
 			return false;
 		}
 
-		const eps = 1 / 100;
+		const eps = 1 / (100 * qualityScale);
 
 		for (let c = 0; c < cmd_len; c++) {
 			const commands = this.commands[c];
@@ -464,7 +472,13 @@ export class GraphicsPath implements IGraphicsData {
 
 						//console.log("CURVE_TO ", i, ctrl_x, ctrl_y, end_x, end_y);
 						curve_verts = [];
-						GraphicsFactoryHelper.tesselateCurve(prev_x, prev_y, ctrl_x, ctrl_y, end_x, end_y, curve_verts);
+						GraphicsFactoryHelper.tesselateCurve(
+							prev_x, prev_y,
+							ctrl_x, ctrl_y,
+							end_x, end_y,
+							curve_verts, false,
+							0, qualityScale
+						);
 
 						k_len = curve_verts.length;
 

@@ -382,12 +382,13 @@ export class GraphicsFactoryHelper {
 		endy: number,
 		array_out: Array<number>,
 		filled: boolean = false,
-		iterationCnt: number = 0
+		iterationCnt: number = 0,
+		qualityScale: number = 1
 	): void {
 
 		const maxIterations: number = Settings.CURVE_TESSELATION_COUNT;
-		const minAngle = 1;
-		const minLengthSqr = 1;
+		const minAngle = 1 / Math.sqrt(qualityScale);
+		const minLengthSqr = 1 / qualityScale;
 
 		// if "filled" is true, we are collecting final vert positions in the array,
 		// ready to use for rendering. (6-position values for each tri)
@@ -460,8 +461,10 @@ export class GraphicsFactoryHelper {
 
 		iterationCnt++;
 
-		GraphicsFactoryHelper.tesselateCurve(startx, starty, c1x, c1y, ax, ay, array_out, filled, iterationCnt);
-		GraphicsFactoryHelper.tesselateCurve(ax, ay, c2x, c2y, endx, endy, array_out, filled, iterationCnt);
+		GraphicsFactoryHelper.tesselateCurve(
+			startx, starty, c1x, c1y, ax, ay, array_out, filled, iterationCnt, qualityScale);
+		GraphicsFactoryHelper.tesselateCurve(
+			ax, ay, c2x, c2y, endx, endy, array_out, filled, iterationCnt, qualityScale);
 
 	}
 }

@@ -210,8 +210,12 @@ export class GraphicsFactoryFills {
 		//targetGraphics.queued_fill_pathes.length = 0;
 	}
 
-	public static prepareContours(graphicsPath: GraphicsPath, applyFix: boolean = false): number[][] {
-		graphicsPath.prepare();
+	public static prepareContours(
+		graphicsPath: GraphicsPath,
+		applyFix: boolean = false,
+		qualityScale: number = 1,
+	): number[][] {
+		graphicsPath.prepare(qualityScale);
 
 		const contours: number[][] = graphicsPath._positions;
 		const finalContours: number[][] = [];
@@ -258,8 +262,8 @@ export class GraphicsFactoryFills {
 		return finalContours;
 	}
 
-	public static runTesselator(graphicsPath: GraphicsPath): IResult {
-		const finalContours = this.prepareContours(graphicsPath, this.USE_TESS_FIX);
+	public static runTesselator(graphicsPath: GraphicsPath, qualityScale: number = 1): IResult {
+		const finalContours = this.prepareContours(graphicsPath, this.USE_TESS_FIX, qualityScale);
 
 		/* workaround for wasm crash
 		if (finalContours.length > 0) {
@@ -342,7 +346,9 @@ export class GraphicsFactoryFills {
 	public static pathToAttributesBuffer(
 		graphicsPath: GraphicsPath,
 		closePath: boolean = true,
-		target: AttributesBuffer = null): AttributesBuffer {
+		target: AttributesBuffer = null,
+		qualityScale: number = 1,
+	): AttributesBuffer {
 
 		const start = performance.now();
 
@@ -358,7 +364,7 @@ export class GraphicsFactoryFills {
 			resultVertexSize = preparedBuffer.length;
 			console.debug('[GraphicsFactoryFills] Use prebuild buffer:', graphicsPath);
 		} else {
-			res = this.runTesselator(graphicsPath);
+			res = this.runTesselator(graphicsPath, qualityScale);
 
 			if (res && res.elements.length > 0) {
 				tesselatedVertexSize = res.elements.length * 2;
