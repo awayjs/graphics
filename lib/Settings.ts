@@ -1,3 +1,5 @@
+import { ConfigManager }  from '@awayjs/core';
+
 type tShapeEntry = {
 	FILLS: boolean,
 	STROKES: boolean,
@@ -18,7 +20,7 @@ export interface IGraphicsSettings {
 	SMOOTH_BITMAP_FILL_DEFAULT: boolean;
 }
 
-export const Settings: IGraphicsSettings = {
+export const Settings: IGraphicsSettings = ConfigManager.instance.addStore<any>('graphics',{
 	/**
 	 * @description Enable internal shape pooling for Graphics.
 	 * Used for reduce shape rebuilding after clear - filling phases.
@@ -68,4 +70,4 @@ export const Settings: IGraphicsSettings = {
 	 */
 	SMOOTH_BITMAP_FILL_DEFAULT: false,
 
-};
+});
