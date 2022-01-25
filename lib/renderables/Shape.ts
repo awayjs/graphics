@@ -1,6 +1,6 @@
 import { Box, Matrix3D, Sphere, Vector3D, AssetBase, Rectangle, Matrix } from '@awayjs/core';
 
-import { PickingCollision, PickEntity, _Pick_PickableBase, IPartitionContainer } from '@awayjs/view';
+import { PickingCollision, PickEntity, _Pick_PickableBase, IPartitionContainer, PickGroup } from '@awayjs/view';
 
 import {
 	IMaterial,
@@ -379,7 +379,7 @@ export class _Render_Shape extends _Render_RenderableBase {
 	public globalBounds (): Box {
 
 		const bounds = this.node.getMatrix3D().transformBox(
-			this.renderGroup.pickGroup.getBoundsPicker(this.node.partition).getBoxBounds(this.node, true, true),
+			PickGroup.getInstance(this.renderGroup.view).getBoundsPicker(this.node.partition).getBoxBounds(this.node, true, true),
 			this._globalBounds
 		);
 
@@ -475,7 +475,7 @@ export class _Render_Shape extends _Render_RenderableBase {
 				this.shape.style.uvMatrix = null;
 			}
 
-			const bounds = this.renderGroup.pickGroup
+			const bounds = PickGroup.getInstance(this.renderGroup.view)
 				.getBoundsPicker(this.node.partition)
 				.getBoxBounds(this.node, true, true);
 
