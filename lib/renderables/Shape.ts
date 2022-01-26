@@ -13,7 +13,7 @@ import {
 	TriangleElements
 } from '@awayjs/renderer';
 
-import { IFillStyle, IGraphicsData } from '../draw/IGraphicsData';
+import { IFillStyle } from '../draw/IGraphicsData';
 
 import { ParticleCollection } from '../animators/data/ParticleCollection';
 
@@ -379,7 +379,7 @@ export class _Render_Shape extends _Render_RenderableBase {
 	public globalBounds (): Box {
 
 		const bounds = this.node.getMatrix3D().transformBox(
-			PickGroup.getInstance(this.renderGroup.view).getBoundsPicker(this.node.partition).getBoxBounds(this.node, true, true),
+			PickGroup.getInstance().getBoundsPicker(this.node.partition).getBoxBounds(this.node, true, true),
 			this._globalBounds
 		);
 
@@ -444,7 +444,7 @@ export class _Render_Shape extends _Render_RenderableBase {
 			(<IRenderContainer> this.node.container).material ||
 			this.getDefaultMaterial();
 
-		return material.getAbstraction<_Render_MaterialBase>(this.renderGroup.getRenderElements(this.shape.elements));
+		return material.getAbstraction<_Render_MaterialBase>(this.renderer.getRenderElements(this.shape.elements));
 	}
 
 	protected _getStyle(): Style {
@@ -475,7 +475,7 @@ export class _Render_Shape extends _Render_RenderableBase {
 				this.shape.style.uvMatrix = null;
 			}
 
-			const bounds = PickGroup.getInstance(this.renderGroup.view)
+			const bounds = PickGroup.getInstance()
 				.getBoundsPicker(this.node.partition)
 				.getBoxBounds(this.node, true, true);
 
