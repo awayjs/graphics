@@ -559,7 +559,7 @@ export class Graphics extends AssetBase {
 		}
 
 		const len = this._shapes.length;
-		for (let i: number = len - 1; i >= 0; i--)
+		for (let i: number = 0; i < len; i++)
 			traverser.applyTraversable(this._shapes[i]);
 
 	}
