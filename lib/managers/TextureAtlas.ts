@@ -134,8 +134,6 @@ export class TextureAtlas {
 			this.bitmap.setPixelFromArray(px, this.gradientRow, gradient.getColorAtPosition(px));
 		}
 
-		this.bitmap.invalidate();
-
 		gradient.uvRectangle.x = 1 / 512;
 		gradient.uvRectangle.y = 1 / 512 + (this.gradientRow / 256);//+1/512;
 		gradient.uvRectangle.width = 1 - 1 / 512;
@@ -165,7 +163,6 @@ export class TextureAtlas {
 		argb[0] = alpha;
 
 		this.bitmap.setPixelFromArray(this.colorPosition, this.colorRow, argb);
-		this.bitmap.invalidate();
 
 		return new Point(1 / 512 + this.colorPosition / 256, 1 / 512 + this.colorRow / 256);
 	}
