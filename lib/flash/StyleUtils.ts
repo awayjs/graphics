@@ -120,6 +120,7 @@ export class StyleUtils  {
 
 		return material;
 	}
+
 	public static processMorphStyle(style: any, isLineStyle: boolean): ShapeStyle {
 		const morphStyle: ShapeStyle = Object.create(style);
 		if (isLineStyle) {
