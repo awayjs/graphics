@@ -1,3 +1,4 @@
+import { IMaterialFactory } from '@awayjs/renderer';
 import { FillStyle, LineStyle } from './ShapeStyle';
 
 export interface ShapeTag extends DefinitionTag {
@@ -10,7 +11,7 @@ export interface ShapeTag extends DefinitionTag {
 	lineStyles: LineStyle[];
 	records: ShapeRecord[];
 	recordsMorph?: ShapeRecord[];
-	parser: any;
+	factory: IMaterialFactory;
 }
 
 export interface BBox {

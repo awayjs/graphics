@@ -21,6 +21,7 @@ import {
 	TriangleElements,
 	LineElements,
 	LineScaleMode,
+	IMaterialFactory,
 } from '@awayjs/renderer';
 
 import { GraphicsPath } from './draw/GraphicsPath';
@@ -1952,7 +1953,7 @@ export class Graphics extends AssetBase {
 		const lineStyles: LineStyle[] = tag.lineStyles;
 		const recordsMorph: ShapeRecord[] = tag.recordsMorph || null;
 		const isMorph: boolean = recordsMorph !== null;
-		const parser: any = tag.parser;
+		const factory: IMaterialFactory = tag.factory;
 
 		if (this.tryOptimiseSigleImage
 				&& records.length === 5
@@ -1960,15 +1961,15 @@ export class Graphics extends AssetBase {
 				&& (fillStyles[0].type >= FillType.ClippedBitmap)
 		) {
 			//1 style is trash, second is needed
-			const style = StyleUtils.processStyle(tag.fillStyles[1], false, false, tag.parser);
+			const style = StyleUtils.processStyle(tag.fillStyles[1], false, false, factory);
 			const bounds = tag.fillBounds || tag.lineBounds;
 
 			this.addShapeInternal(Graphics.getShapeForBitmapStyle(style, bounds));
 			return;
 		}
 
-		let fillPaths = StyleUtils.createPathsList(fillStyles, false, !!recordsMorph, parser);
-		let linePaths = StyleUtils.createPathsList(lineStyles, true, !!recordsMorph, parser);
+		let fillPaths = StyleUtils.createPathsList(fillStyles, false, !!recordsMorph, factory);
+		let linePaths = StyleUtils.createPathsList(lineStyles, true, !!recordsMorph, factory);
 		let styles = { fill0: 0, fill1: 0, line: 0 };
 
 		interface IPathElement {
@@ -2017,11 +2018,11 @@ export class Graphics extends AssetBase {
 					}
 
 					Array_push.apply(allPaths, fillPaths);
-					fillPaths = StyleUtils.createPathsList(record.fillStyles, false, isMorph, parser);
+					fillPaths = StyleUtils.createPathsList(record.fillStyles, false, isMorph, factory);
 
 					Array_push.apply(allPaths, linePaths);
 
-					linePaths = StyleUtils.createPathsList(record.lineStyles, true, isMorph, parser);
+					linePaths = StyleUtils.createPathsList(record.lineStyles, true, isMorph, factory);
 
 					styles = { fill0: 0, fill1: 0, line: 0 };
 				}

@@ -1,3 +1,5 @@
+import { ImageTexture2D, IMaterial, IMaterialFactory } from '@awayjs/renderer';
+import { BitmapImage2D, Image2D } from '@awayjs/stage';
 import { FillType } from '../data/FillType';
 import { SegmentedPath } from '../data/SegmentedPath';
 import { ShapeMatrix } from '../data/ShapeData';
@@ -5,7 +7,7 @@ import { ShapeStyle } from './ShapeStyle';
 
 const IDENTITY_MATRIX: ShapeMatrix = { a: 1, b: 0, c: 0, d: 1, tx: 0, ty: 0 };
 export class StyleUtils  {
-	public static processStyle(style: any, isLineStyle: boolean, isMorph: boolean, parser: any): ShapeStyle {
+	public static processStyle(style: any, isLineStyle: boolean, isMorph: boolean, factory: IMaterialFactory): ShapeStyle {
 		const shapeStyle: ShapeStyle = style;
 		if (isMorph) {
 			shapeStyle.morph = this.processMorphStyle(style, isLineStyle);
@@ -13,7 +15,7 @@ export class StyleUtils  {
 		if (isLineStyle) {
 			shapeStyle.miterLimit = (style.miterLimitFactor || 1.5) * 2;
 			if (!style.color && style.hasFill) {
-				const fillStyle = this.processStyle(style.fillStyle, false, false, parser);
+				const fillStyle = this.processStyle(style.fillStyle, false, false, factory);
 				shapeStyle.type = fillStyle.type;
 				shapeStyle.transform = fillStyle.transform;
 				shapeStyle.colors = fillStyle.colors;
@@ -74,7 +76,7 @@ export class StyleUtils  {
 				index = dependencies.length;
 				dependencies.push(style.bitmapId);
 			}*/
-				shapeStyle.material = parser.getMaterial(style.bitmapId);
+				shapeStyle.material = this.getMaterial(style.bitmapId, factory);
 				scale = 1 / 20;
 				break;
 			default:
@@ -100,6 +102,24 @@ export class StyleUtils  {
 		return shapeStyle;
 	}
 
+	private static _mapMatsForBitmaps: NumberMap<IMaterial> = {};
+	private static getMaterial(bitmapIndex: number, factory: IMaterialFactory): IMaterial {
+		let material: IMaterial = this._mapMatsForBitmaps[bitmapIndex];
+		if (!material) {
+			material = factory.createMaterial();
+			let myImage: Image2D = <Image2D> factory.awaySymbols[bitmapIndex];
+			if (!myImage)
+				myImage = new BitmapImage2D(512, 512, true, 0xff0000ff, true);
+			(<any>material).ambientMethod.texture = new ImageTexture2D(myImage);
+
+			material.alphaBlending = true;
+			material.useColorTransform = true;
+			material.bothSides = true;
+			this._mapMatsForBitmaps[bitmapIndex] = material;
+		}
+
+		return material;
+	}
 	public static processMorphStyle(style: any, isLineStyle: boolean): ShapeStyle {
 		const morphStyle: ShapeStyle = Object.create(style);
 		if (isLineStyle) {
@@ -169,10 +189,10 @@ export class StyleUtils  {
 * all the paths for a certain fill or line style.
 */
 	public static createPathsList(styles: any[], isLineStyle: boolean, isMorph: boolean,
-		parser: any): SegmentedPath[] {
+		factory: IMaterialFactory): SegmentedPath[] {
 		const paths: SegmentedPath[] = [];
 		for (let i = 0; i < styles.length; i++) {
-			const style = this.processStyle(styles[i], isLineStyle, isMorph, parser);
+			const style = this.processStyle(styles[i], isLineStyle, isMorph, factory);
 			if (!isLineStyle) {
 				paths[i] = new SegmentedPath(style, null);
 			} else {
