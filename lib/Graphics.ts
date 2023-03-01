@@ -144,7 +144,6 @@ export class Graphics extends AssetBase {
 
 	public static assetType: string = '[asset Graphics]';
 
-
 	private _bitmapFillPool: NumberMap<GraphicsFillStyle<BitmapFillStyle>> = {};
 
 	private _queuedShapeTags: ShapeTag[] = [];
