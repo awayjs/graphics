@@ -144,7 +144,6 @@ export class Graphics extends AssetBase {
 
 	public static assetType: string = '[asset Graphics]';
 
-	private _onInvalidateDelegate: (event: AssetEvent) => void;
 
 	private _bitmapFillPool: NumberMap<GraphicsFillStyle<BitmapFillStyle>> = {};
 
@@ -272,9 +271,6 @@ export class Graphics extends AssetBase {
 		this._active_stroke_path = null;
 		this._fillStyle = null;
 		this._lineStyle = null;
-
-		this._onInvalidateDelegate = (event: AssetEvent | RenderableEvent) => this._onInvalidate(event);
-
 	}
 
 	/* internal */
@@ -325,11 +321,6 @@ export class Graphics extends AssetBase {
 
 		this._shapes.push(shape);
 
-		shape.addEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateDelegate);
-		shape.addEventListener(RenderableEvent.INVALIDATE_MATERIAL, this._onInvalidateDelegate);
-		shape.addEventListener(RenderableEvent.INVALIDATE_STYLE, this._onInvalidateDelegate);
-		shape.addEventListener(AssetEvent.INVALIDATE, this._onInvalidateDelegate);
-
 		this.invalidate();
 
 		return shape;
@@ -349,11 +340,6 @@ export class Graphics extends AssetBase {
 			throw new RangeError('Index is out of range');
 
 		const shape: Shape = this._shapes.splice(index, 1)[0];
-
-		shape.removeEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateDelegate);
-		shape.removeEventListener(RenderableEvent.INVALIDATE_MATERIAL, this._onInvalidateDelegate);
-		shape.removeEventListener(RenderableEvent.INVALIDATE_STYLE, this._onInvalidateDelegate);
-		shape.removeEventListener(AssetEvent.INVALIDATE, this._onInvalidateDelegate);
 
 		shape.usages--;
 
@@ -455,11 +441,6 @@ export class Graphics extends AssetBase {
 		const len: number = this._shapes.length;
 		for (let i: number = 0; i < len; i++) {
 			shape = this._shapes[i];
-
-			shape.removeEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateDelegate);
-			shape.removeEventListener(RenderableEvent.INVALIDATE_MATERIAL, this._onInvalidateDelegate);
-			shape.removeEventListener(RenderableEvent.INVALIDATE_STYLE, this._onInvalidateDelegate);
-			shape.removeEventListener(AssetEvent.INVALIDATE, this._onInvalidateDelegate);
 
 			shape.usages--;
 
@@ -563,10 +544,6 @@ export class Graphics extends AssetBase {
 		for (let i: number = 0; i < len; i++)
 			traverser.applyTraversable(this._shapes[i]);
 
-	}
-
-	private _onInvalidate(event: AssetEvent | RenderableEvent): void {
-		this.invalidate();
 	}
 
 	public draw_fills(clear = true) {
@@ -1909,11 +1886,6 @@ export class Graphics extends AssetBase {
 			}
 
 			shape.particleCollection = shapes[i].particleCollection;
-
-			shape.addEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateDelegate);
-			shape.addEventListener(RenderableEvent.INVALIDATE_MATERIAL, this._onInvalidateDelegate);
-			shape.addEventListener(RenderableEvent.INVALIDATE_STYLE, this._onInvalidateDelegate);
-			shape.addEventListener(AssetEvent.INVALIDATE, this._onInvalidateDelegate);
 
 			this._shapes.push(shape);
 
