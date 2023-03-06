@@ -376,6 +376,14 @@ export class Graphics extends AssetBase {
 		graphics._addShapes(this._shapes, cloneShapes);
 	}
 
+	public clone(cloneShapes: boolean = false): Graphics {
+		const newInstance: Graphics = new Graphics();
+
+		this.copyTo(newInstance, cloneShapes);
+
+		return newInstance;
+	}
+
 	/**
 	 * Scales the geometry.
 	 * @param scale The amount by which to scale.
