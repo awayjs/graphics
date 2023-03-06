@@ -648,7 +648,7 @@ export class _Pick_Shape extends _Pick_PickableBase {
 			collision,
 			box,
 			findClosestCollision,
-			(<Shape> this._asset).material || (<IRenderContainer>collision.entityNode.entity).material,
+			(<Shape> this._asset).material || (<IRenderContainer>collision.containerNode.container).material,
 			(<Shape> this._asset).count || (<Shape> this._asset).elements.numVertices,
 			(<Shape> this._asset).offset,
 		);
