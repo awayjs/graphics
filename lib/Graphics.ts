@@ -12,7 +12,7 @@ import {
 
 import { BitmapImage2D, ImageSampler } from '@awayjs/stage';
 
-import { IEntityTraverser, PickEntity } from '@awayjs/view';
+import { EntityNode, IEntityTraverser, PartitionBase, PickEntity } from '@awayjs/view';
 
 import {
 	IMaterial,
@@ -377,7 +377,7 @@ export class Graphics extends AssetBase {
 	}
 
 	public clone(cloneShapes: boolean = false): Graphics {
-		const newInstance: Graphics = new Graphics();
+		const newInstance: Graphics = Graphics.getGraphics();
 
 		this.copyTo(newInstance, cloneShapes);
 
@@ -2242,3 +2242,5 @@ export class Graphics extends AssetBase {
 		return { cx, cy, x, y };
 	}
 }
+
+PartitionBase.registerAbstraction(EntityNode, Graphics);
