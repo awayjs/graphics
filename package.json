@@ -14,7 +14,7 @@
   "scripts": {
     "rimraf": "rimraf",
     "rollup": "rollup -c",
-    "uglifyjs": "uglifyjs ./bundle/awayjs-graphics.umd.js -o ./bundle/awayjs-graphics.umd.min.js --in-source-map ./bundle/awayjs-graphics.umd.js.map --source-map --output ./bundle/awayjs-graphics.umd.min.js.map --mangle",
+    "uglifyjs": "uglifyjs ./bundle/awayjs-graphics.umd.js -o ./bundle/awayjs-graphics.umd.min.js --source-map \"content='./bundle/awayjs-graphics.umd.js.map'\" --mangle",
     "tsc": "tsc",
     "tsc:build": "npm run tsc || exit 0",
     "clean": "npm cache clean && npm run rimraf -- node_modules dist bundle",
@@ -66,7 +66,7 @@
     "rollup-plugin-commonjs": "^9.1.0",
     "rollup-plugin-includepaths": "^0.2.1",
     "rollup-plugin-node-resolve": "^3.3.0",
-    "tslib": "^1.9.0",
+    "tslib": "^2.3.0",
     "typescript": "^3.7.3",
     "uglify-js": "^3.0.15"
   }
