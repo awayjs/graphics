@@ -12,7 +12,7 @@ module.exports = {
 			'@awayjs/view': 'AwayjsView',
 			'@awayjs/renderer': 'AwayjsRenderer'
 		},
-		sourceMap: true,
+		sourcemap: true,
 		format: 'umd',
 		file: './bundle/awayjs-graphics.umd.js'
 	},
@@ -30,5 +30,10 @@ module.exports = {
 		}),
 		commonjs({
 			include: /node_modules/
+		}),
+		includePaths({
+			include : {
+				"tslib": "./node_modules/tslib/tslib.es6.js"
+			}
 		}) ]
 };
