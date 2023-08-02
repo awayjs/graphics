@@ -1,8 +1,8 @@
-var includePaths = require('rollup-plugin-includepaths');
-var commonjs = require('rollup-plugin-commonjs');
-var nodeResolve = require('rollup-plugin-node-resolve');
+import nodeResolve from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
+import terser from '@rollup/plugin-terser';
 
-module.exports = {
+export default {
 	input: './dist/index.js',
 	output: {
 		name: 'AwayjsGraphics',
@@ -18,22 +18,13 @@ module.exports = {
 	},
 	external: [
 		'@awayjs/core',
-        '@awayjs/stage',
+		'@awayjs/stage',
 		'@awayjs/view',
 		'@awayjs/renderer'
 	],
 	plugins: [
-		nodeResolve({
-			jsnext: true,
-			main: true,
-			module: true
-		}),
-		commonjs({
-			include: /node_modules/
-		}),
-		includePaths({
-			include : {
-				"tslib": "./node_modules/tslib/tslib.es6.js"
-			}
-		}) ]
+		nodeResolve(),
+		commonjs(),
+		terser(),
+	]
 };
