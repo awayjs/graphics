@@ -2048,7 +2048,7 @@ export class Graphics extends AssetBase {
 					psPool[0] = psPool[1] = undefined;
 				}
 
-				if (isMorph && !i) {
+				if (isMorph) {
 					morphRecord = recordsMorph[j++];
 					if (morphRecord.type === 0) {
 						mX = morphRecord.moveX | 0;
