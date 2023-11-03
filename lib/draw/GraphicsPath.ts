@@ -338,7 +338,7 @@ export class GraphicsPath implements IGraphicsData {
 		const diffY: number = Math.abs(this._cur_point.y - y);
 		if (diffX < 0.01 && diffY < 0.01) {
 			//console.log("moveTo command not added because startpoint and endpoint are the same.");
-			return;
+			//return;
 		}
 		// whenever a moveTo command apears, we start a new contour
 		if (this._commands[this._commands.length - 1].length > 0) {

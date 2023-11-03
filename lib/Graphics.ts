@@ -1978,11 +1978,6 @@ export class Graphics extends AssetBase {
 		for (let i = 0, j = 0; i < numRecords; i++) {
 			const record: ShapeRecord = records[i];
 			//console.log("record", i, record.type);
-
-			if (isMorph) {
-				morphRecord = recordsMorph[j++];
-			}
-
 			// type 0 is a StyleChange record
 			if (record.type === 0) {
 
@@ -2053,8 +2048,8 @@ export class Graphics extends AssetBase {
 					psPool[0] = psPool[1] = undefined;
 				}
 
-				if (isMorph) {
-
+				if (isMorph && !i) {
+					morphRecord = recordsMorph[j++];
 					if (morphRecord.type === 0) {
 						mX = morphRecord.moveX | 0;
 						mY = morphRecord.moveY | 0;
@@ -2091,6 +2086,7 @@ export class Graphics extends AssetBase {
 				assert(record.type === 1);
 
 				if (isMorph) {
+					morphRecord = recordsMorph[j++];
 					// An invalid SWF might contain a move in the EndEdges list where the
 					// StartEdges list contains an edge. The Flash Player seems to skip it,
 					// so we do, too.
