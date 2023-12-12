@@ -131,7 +131,7 @@ export class PathSegment {
 
 		// If the segment1's first moveTo goes to the current coordinates, we have to skip it.
 		let offset = 0;
-		if (data[0] === lastPosition.x && data[1] === lastPosition.y) {
+		if (data[0] === lastPosition.x && data[1] === lastPosition.y && !morphShape) {
 			offset++;
 		}
 
