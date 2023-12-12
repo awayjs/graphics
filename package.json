@@ -1,6 +1,6 @@
 {
   "name": "@awayjs/graphics",
-  "version": "0.5.82",
+  "version": "0.5.83",
   "description": "AwayJS graphics classes",
   "main": "bundle/awayjs-graphics.umd.js",
   "module": "dist/index.js",
