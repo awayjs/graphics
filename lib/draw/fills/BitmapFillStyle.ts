@@ -2,7 +2,7 @@ import { Matrix } from '@awayjs/core';
 
 import { IFillStyle } from '../IGraphicsData';
 import { IMaterial } from '@awayjs/renderer';
-import { BitmapImage2D } from '@awayjs/stage';
+import { BitmapImage2D, ImageUtils } from '@awayjs/stage';
 
 export class BitmapFillStyle implements IFillStyle {
 	public static data_type: string = '[graphicsdata BitmapFillStyle]';
@@ -36,8 +36,10 @@ export class BitmapFillStyle implements IFillStyle {
 		if (!this._uvMatrix)
 			this._uvMatrix = new Matrix();
 
-		const image = <BitmapImage2D> (this.material.getTextureAt(0).getImageAt(0));
-		//const image: BitmapImage2D = (<any> this.material).ambientMethod.texture._images[0];
+		const texture = this.material.getTextureAt(0);
+		const style = this.material.style;
+
+		const image = <BitmapImage2D> (texture.getImageAt(0) || style?.getImageAt(texture, 0) || ImageUtils.getDefaultImage2D());
 
 		let projection_width_half: number;
 		let projection_height_half: number;
