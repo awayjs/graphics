@@ -7,7 +7,6 @@ import {
 	Matrix3D,
 	AssetBase,
 	Rectangle,
-	AssetEvent,
 } from '@awayjs/core';
 
 import { BitmapImage2D, ImageSampler } from '@awayjs/stage';
@@ -17,7 +16,6 @@ import { EntityNode, IEntityTraverser, PartitionBase, PickEntity } from '@awayjs
 import {
 	IMaterial,
 	Style,
-	RenderableEvent,
 	TriangleElements,
 	LineElements,
 	LineScaleMode,
@@ -79,7 +77,7 @@ export class Graphics extends AssetBase {
 		rect: Rectangle,
 	): Shape<TriangleElements> {
 
-		const mat = MaterialManager.getMaterialForBitmap(bitmap, Settings.EXPEREMENTAL_MATERIAL_FOR_IMAGE);
+		const mat = MaterialManager.getMaterialForBitmap(bitmap);
 		const style = mat.style;
 
 		style.sampler = new ImageSampler(false, true, false);
@@ -104,11 +102,7 @@ export class Graphics extends AssetBase {
 
 		const { a, b, c, d, tx, ty } = shapeStyle.transform;
 		const texture = shapeStyle.material.getTextureAt(0);
-		const mat = MaterialManager.getMaterialForBitmap(
-			<BitmapImage2D>texture.getImageAt(0),
-			// this will generate special material based on RAW GLSL
-			Settings.EXPEREMENTAL_MATERIAL_FOR_IMAGE
-		);
+		const mat = MaterialManager.getMaterialForBitmap(<BitmapImage2D>texture.getImageAt(0));
 
 		const bitmapFillStyle = new BitmapFillStyle(
 			mat,

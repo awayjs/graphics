@@ -13,8 +13,6 @@ export interface IGraphicsSettings {
 	USE_NATIVE_DEFLATE: boolean;
 	MINIMUM_DRAWING_DISTANCE: number;
 
-	EXPEREMENTAL_MATERIAL_FOR_IMAGE: boolean;
-
 	CURVE_TESSELATION_COUNT: number;
 
 	SMOOTH_BITMAP_FILL_DEFAULT: boolean;
@@ -59,11 +57,6 @@ export const Settings: IGraphicsSettings = ConfigManager.instance.addStore<any>(
 	 * @description How many maximal passes can be used for tesselationg a curves
 	 */
 	CURVE_TESSELATION_COUNT: 6,
-
-	/**
-	 * @description Use experemental material for Shapes based from ImageBitmap2D
-	 */
-	EXPEREMENTAL_MATERIAL_FOR_IMAGE: true,
 
 	/**
 	 * @description Smooth = true for default bitmap style

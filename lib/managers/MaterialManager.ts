@@ -17,9 +17,7 @@ export class MaterialManager {
 	private static _textureMaterials: any = {};
 	private static _useTextureAtlasForColors: boolean = true;
 
-	public static specialBitmapMaterialClass: IMaterialCtr;
 	public static materialClass: IMaterialCtr;
-	public static textureClass: any;
 
 	public static getMaterialForColor (color: number, alpha: number = 1): ITextureAtlasEntry {
 		if (color == 0) {
@@ -84,17 +82,9 @@ export class MaterialManager {
 		return texObj;
 	}
 
-	public static getMaterialForBitmap (bitmap: BitmapImage2D, useSpecialMaterial = false): IMaterial {
-		useSpecialMaterial = useSpecialMaterial && !!this.specialBitmapMaterialClass;
-		const Class = (useSpecialMaterial)
-			? this.specialBitmapMaterialClass
-			: this.materialClass;
+	public static getMaterialForBitmap (bitmap: BitmapImage2D): IMaterial {
 
-		const newmat = new Class(bitmap);
-
-		if (!useSpecialMaterial) {
-			newmat.ambientMethod.texture = new MaterialManager.textureClass(bitmap);
-		}
+		const newmat = new MaterialManager.materialClass(bitmap);
 
 		newmat.alphaBlending = true;
 		newmat.useColorTransform = true;
@@ -102,19 +92,4 @@ export class MaterialManager {
 
 		return newmat;
 	}
-
-	/**
-	 * @deprecated Use `getMaterialForColor` instead
-	 */
-	public static get_material_for_color = MaterialManager.getMaterialForColor;
-
-	/**
-	 * @deprecated Use `getMaterialForGradient` instead
-	 */
-	public static get_material_for_gradient = MaterialManager.getMaterialForGradient;
-
-	/**
-	 * @deprecated Use `getMaterialForBitmap` instead
-	 */
-	public static get_material_for_BitmapImage2D = MaterialManager.getMaterialForBitmap;
 }
