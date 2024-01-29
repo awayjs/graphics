@@ -1,4 +1,4 @@
-import { ImageTexture2D, IMaterial, IMaterialFactory } from '@awayjs/renderer';
+import { IMaterial, IMaterialFactory } from '@awayjs/renderer';
 import { BitmapImage2D, Image2D } from '@awayjs/stage';
 import { FillType } from '../data/FillType';
 import { SegmentedPath } from '../data/SegmentedPath';
@@ -106,11 +106,12 @@ export class StyleUtils  {
 	private static getMaterial(bitmapIndex: number, factory: IMaterialFactory): IMaterial {
 		let material: IMaterial = this._mapMatsForBitmaps[bitmapIndex];
 		if (!material) {
-			material = factory.createMaterial();
+
 			let myImage: Image2D = <Image2D> factory.awaySymbols[bitmapIndex];
 			if (!myImage)
 				myImage = new BitmapImage2D(512, 512, true, 0xff0000ff, true);
-			(<any>material).ambientMethod.texture = new ImageTexture2D(myImage);
+
+			material = factory.createMaterial(myImage);
 
 			material.alphaBlending = true;
 			material.useColorTransform = true;
