@@ -102,7 +102,7 @@ export class Graphics extends AssetBase {
 
 		const { a, b, c, d, tx, ty } = shapeStyle.transform;
 		const texture = shapeStyle.material.getTextureAt(0);
-		const mat = MaterialManager.getMaterialForBitmap(<BitmapImage2D>texture.getImageAt(0));
+		const mat = MaterialManager.getMaterialForBitmap(<BitmapImage2D>shapeStyle.material.style.image);
 
 		const bitmapFillStyle = new BitmapFillStyle(
 			mat,
