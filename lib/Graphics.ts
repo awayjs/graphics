@@ -50,6 +50,7 @@ import { Settings } from './Settings';
 import { FillStyle, LineStyle, ShapeStyle } from './flash/ShapeStyle';
 import { BBox, ShapeRecord, ShapeRecordFlags, ShapeTag } from './flash/ShapeTag';
 import { StyleUtils } from './flash/StyleUtils';
+import GraphicsPathCommand from './draw/GraphicsPathCommand';
 
 GraphicsFactoryFills.prepareWasm();
 
@@ -1063,21 +1064,47 @@ export class Graphics extends AssetBase {
 	 * @param winding Specifies the winding rule using a value defined in the
 	 *                GraphicsPathWinding class.
 	 */
-	public drawPath(commands: Array<number /*int*/>, data: Array<number>, winding: GraphicsPathWinding): void {
-		//todo
-		/*
-		 if(this._active_fill_path!=null){
-		 this._active_fill_path.curveTo(controlX, controlY, anchorX, anchorY);
-		 }
-		 if(this._active_stroke_path!=null){
-		 this._active_stroke_path.curveTo(controlX, controlY, anchorX, anchorY);
-		 }
-		 this._current_position.x=anchorX;
-		 this._current_position.y=anchorY;
-		 */
+	public drawPath(commands: Int32Array, data: Float64Array, winding: GraphicsPathWinding): void {
+		this._drawingDirty = true;
+		this._createGraphicPathes();
 
+		//shapeAJS.queuePath(allPaths[i], null);
+		// segment.serializeAJS(shape, null, { x: 0, y: 0});
+
+		const commandsCount = commands.length;
+		let dataPosition;
+
+		if (this._active_fill_path != null)
+			this._drawPathInternal(this._active_fill_path, commands, data, winding);
+
+		if (this._active_stroke_path != null)
+			this._drawPathInternal(this._active_stroke_path, commands, data, winding);
+
+		this.invalidate();
 	}
 
+	private _drawPathInternal(path: GraphicsPath, commands: Int32Array, data: Float64Array, winding: GraphicsPathWinding) {
+		let dataPosition = 0;
+		for (let i = 0; i < commands.length; i++) {
+			switch (commands[i]) {
+				case GraphicsPathCommand.MOVE_TO:
+					path.moveTo(data[dataPosition], data[dataPosition + 1]);
+					dataPosition += 2;
+					break;
+				case GraphicsPathCommand.LINE_TO:
+					path.lineTo(data[dataPosition], data[dataPosition + 1]);
+					dataPosition += 2;
+					break;
+				case GraphicsPathCommand.CURVE_TO:
+					path.curveTo(data[dataPosition], data[dataPosition + 1],data[dataPosition + 2], data[dataPosition + 3]);
+					dataPosition += 4;
+					break;
+				case GraphicsPathCommand.NO_OP:
+				default:
+			}
+		}
+
+	}
 	/**
 	 * Draws a rectangle. Set the line style, fill, or both before you call the
 	 * <code>drawRect()</code> method, by calling the <code>linestyle()</code>,
