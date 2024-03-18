@@ -1105,6 +1105,7 @@ export class Graphics extends AssetBase {
 		}
 
 	}
+
 	/**
 	 * Draws a rectangle. Set the line style, fill, or both before you call the
 	 * <code>drawRect()</code> method, by calling the <code>linestyle()</code>,
