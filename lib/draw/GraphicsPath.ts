@@ -410,13 +410,10 @@ export class GraphicsPath implements IGraphicsData {
 
 			isValidCommand[c] = [];
 
-			// check if the path is closed.
-			// if its not closed, we optionally close it by adding the extra lineTo-cmd
-
-			const gap = Math.abs(data[0] - data[data.length - 2]) + Math.abs(data[1] - data[data.length - 1]);
-
-			if (gap > eps) {
-				if (this.forceClose) {
+			if (c == commands.length - 1 && this.forceClose) {
+				// check if the last path is closed.
+				// if its not closed, we optionally close it by adding the extra lineTo-cmd
+				if (Math.abs(data[0] - data[data.length - 2]) + Math.abs(data[1] - data[data.length - 1]) > eps) {
 					commands[commands.length] = GraphicsPathCommand.LINE_TO;
 					data[data.length] = data[0];
 					data[data.length] = data[1];
