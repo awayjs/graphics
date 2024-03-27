@@ -896,7 +896,7 @@ export class Graphics extends AssetBase {
 	 */
 	public drawCircle(x: number, y: number, radius: number): void {
 		this._drawingDirty = true;
-	
+
 		//var radius2=radius*1.065;
 		if (this._active_fill_path) {
 			this._active_fill_path.moveTo(x, y);
