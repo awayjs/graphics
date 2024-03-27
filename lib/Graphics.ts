@@ -145,14 +145,14 @@ export class Graphics extends AssetBase {
 	private _shapes: Array<Shape> = [];
 	private _style: Style;
 
-	private _queued_fill_pathes: Array<GraphicsPath>;
-	private _queued_stroke_pathes: Array<GraphicsPath>;
+	private _queued_fill_pathes: GraphicsPath[] = [];
+	private _queued_stroke_pathes: GraphicsPath[] = [];
 	private _active_fill_path: GraphicsPath;
 	private _active_stroke_path: GraphicsPath;
 	private _lineStyle: GraphicsStrokeStyle<any>;
 	private _fillStyle: GraphicsFillStyle<any>;
 
-	private _current_position: Point=new Point();
+	private _current_position: Point = new Point();
 
 	public tryOptimiseSigleImage: boolean = false;
 
@@ -254,17 +254,6 @@ export class Graphics extends AssetBase {
 	 */
 	constructor() {
 		super();
-
-		//store associated entity object, otherwise assign itself as entity
-
-		this._drawingDirty = false;
-		this._current_position = new Point();
-		this._queued_fill_pathes = [];
-		this._queued_stroke_pathes = [];
-		this._active_fill_path = null;
-		this._active_stroke_path = null;
-		this._fillStyle = null;
-		this._lineStyle = null;
 	}
 
 	/* internal */
@@ -467,7 +456,6 @@ export class Graphics extends AssetBase {
 		this._drawingDirty = false;
 		this._lineStyle = null;
 		this._fillStyle = null;
-		//this.invalidateElements();
 	}
 
 	/**
@@ -548,23 +536,6 @@ export class Graphics extends AssetBase {
 
 	}
 
-	public draw_fills(clear = true) {
-		GraphicsFactoryFills.draw_pathes(this);
-		if (clear) {
-			this._active_fill_path = null;
-			this._queued_fill_pathes.length = 0;
-		}
-	}
-
-	public draw_strokes(clear = true) {
-		GraphicsFactoryStrokes.draw_pathes(this);
-
-		if (clear) {
-			this._active_stroke_path = null;
-			this._queued_stroke_pathes.length = 0;
-		}
-	}
-
 	/**
 	 * Fills a drawing area with a bitmap image. The bitmap can be repeated or
 	 * tiled to fill the area. The fill remains in effect until you call the
@@ -610,7 +581,8 @@ export class Graphics extends AssetBase {
 		smooth: boolean = Settings.SMOOTH_BITMAP_FILL_DEFAULT
 	): void {
 
-		this.draw_fills();
+		if (this._fillStyle)
+			this.endFill();
 
 		if (!this._bitmapFillPool) {
 			this._bitmapFillPool = {};
@@ -633,6 +605,8 @@ export class Graphics extends AssetBase {
 		}
 
 		this._fillStyle = fill;
+
+		this._updateFillPath();
 	}
 
 	/**
@@ -650,11 +624,15 @@ export class Graphics extends AssetBase {
 	 * @param alpha The alpha value of the fill(0.0 to 1.0).
 	 */
 	public beginFill(color: number /*int*/, alpha: number = 1): void {
-		if (color == 0) {
+		if (color == 0)
 			color = 0x010101;
-		}
-		this.draw_fills();
+
+		if (this._fillStyle)
+			this.endFill();
+
 		this._fillStyle = new GraphicsFillStyle<SolidFillStyle>(new SolidFillStyle(color, alpha));
+
+		this._updateFillPath();
 	}
 
 	/**
@@ -750,7 +728,9 @@ export class Graphics extends AssetBase {
 		focalPointRatio: number = 0
 	): void {
 
-		this.draw_fills();
+		if (this._fillStyle)
+			this.endFill();
+
 		this._fillStyle = new GraphicsFillStyle<GradientFillStyle>(
 			new GradientFillStyle(
 				type,
@@ -763,6 +743,8 @@ export class Graphics extends AssetBase {
 				focalPointRatio
 			)
 		);
+
+		this._updateFillPath();
 	}
 
 	/**
@@ -886,14 +868,12 @@ export class Graphics extends AssetBase {
 
 		this._drawingDirty = true;
 
-		this._createGraphicPathes();
-
-		if (this._active_fill_path != null) {
+		if (this._active_fill_path)
 			this._active_fill_path.curveTo(controlX, controlY, anchorX, anchorY);
-		}
-		if (this._active_stroke_path != null) {
+
+		if (this._active_stroke_path)
 			this._active_stroke_path.curveTo(controlX, controlY, anchorX, anchorY);
-		}
+
 		this._current_position.x = anchorX;
 		this._current_position.y = anchorY;
 		this.invalidate();
@@ -916,23 +896,21 @@ export class Graphics extends AssetBase {
 	 */
 	public drawCircle(x: number, y: number, radius: number): void {
 		this._drawingDirty = true;
-		this._createGraphicPathes();
+	
 		//var radius2=radius*1.065;
-		if (this._active_fill_path != null) {
+		if (this._active_fill_path) {
 			this._active_fill_path.moveTo(x, y);
 
 			let r = radius;
-			if (this._active_stroke_path != null) {
+			if (this._active_stroke_path)
 				r -= (<GraphicsStrokeStyle<any>> this._active_stroke_path.style).thickness / 2;
-			}
+
 			GraphicsFactoryHelper.drawElipse(x, y, r, r, this._active_fill_path.verts, 0, 360, 5, false);
-
 		}
-		if (this._active_stroke_path != null) {
 
+		if (this._active_stroke_path)
 			GraphicsFactoryHelper.drawElipseStrokes(x, y, radius, radius, this._active_stroke_path , 0, 360, 2);
 
-		}
 		this.invalidate();
 	}
 
@@ -954,7 +932,6 @@ export class Graphics extends AssetBase {
 	 */
 	public drawEllipse(x: number, y: number, width: number, height: number): void {
 		this._drawingDirty = true;
-		this._createGraphicPathes();
 
 		width /= 2;
 		height /= 2;
@@ -981,7 +958,6 @@ export class Graphics extends AssetBase {
 		}
 
 		this.invalidate();
-
 	}
 
 	/**
@@ -997,7 +973,6 @@ export class Graphics extends AssetBase {
 	 *
 	 */
 	public drawGraphicsData(graphicsData: Array<IGraphicsData>): void {
-		//this.draw_fills();
 		/*
 		 for (var i:number=0; i<graphicsData.length; i++){
 		 //todo
@@ -1066,7 +1041,6 @@ export class Graphics extends AssetBase {
 	 */
 	public drawPath(commands: Int32Array, data: Float64Array, winding: GraphicsPathWinding): void {
 		this._drawingDirty = true;
-		this._createGraphicPathes();
 
 		//shapeAJS.queuePath(allPaths[i], null);
 		// segment.serializeAJS(shape, null, { x: 0, y: 0});
@@ -1074,10 +1048,10 @@ export class Graphics extends AssetBase {
 		const commandsCount = commands.length;
 		let dataPosition;
 
-		if (this._active_fill_path != null)
+		if (this._active_fill_path)
 			this._drawPathInternal(this._active_fill_path, commands, data, winding);
 
-		if (this._active_stroke_path != null)
+		if (this._active_stroke_path)
 			this._drawPathInternal(this._active_stroke_path, commands, data, winding);
 
 		this.invalidate();
@@ -1125,7 +1099,7 @@ export class Graphics extends AssetBase {
 	 */
 	public drawRect(x: number, y: number, width: number, height: number): void {
 		this._drawingDirty = true;
-		this._createGraphicPathes();
+
 		if (this._active_fill_path != null) {
 			this._active_fill_path.moveTo(x, y);
 			/*
@@ -1227,7 +1201,6 @@ export class Graphics extends AssetBase {
 		ellipseWidth: number, ellipseHeight: number = NaN): void {
 
 		this._drawingDirty = true;
-		this._createGraphicPathes();
 
 		if (isNaN(ellipseHeight)) {
 			ellipseHeight = ellipseWidth;
@@ -1295,7 +1268,7 @@ export class Graphics extends AssetBase {
 		const bl: number = bottomLeftRadius;
 		const br: number = bottomRightRadius;
 		this._drawingDirty = true;
-		this._createGraphicPathes();
+
 		let t: number = 0;
 		if (this._active_fill_path != null) {
 			this._active_fill_path.moveTo(x, y);
@@ -1404,24 +1377,10 @@ export class Graphics extends AssetBase {
 	 *
 	 */
 	public endFill(): void {
-
-		/**
-		 * @todo this is a hack for getting stroke pathes closed if a fill_path exists.
-		 * Needs refactor to make this work correctly
-		 */
-
-		if (this._active_stroke_path && this._active_fill_path) {
+		if (this._active_stroke_path && this._active_fill_path)
 			this._active_stroke_path.forceClose = true;
-		}
 
 		this._endFillInternal(true);
-
-		this._active_fill_path = null;
-		this._active_stroke_path = null;
-		//this._lineStyle=null;
-		this._fillStyle = null;
-		//this.invalidate();
-		//this.invalidateElements();
 	}
 
 	private _endFillInternal(clear = false) {
@@ -1441,8 +1400,21 @@ export class Graphics extends AssetBase {
 
 		const lastShapes = this._shapes.length;
 
-		this.draw_fills(clear);
-		this.draw_strokes(clear);
+		GraphicsFactoryFills.draw_pathes(this);
+		GraphicsFactoryStrokes.draw_pathes(this);
+
+		if (clear) {
+			this._active_fill_path = null;
+			this._queued_fill_pathes.length = 0;
+			this._active_stroke_path = null;
+			this._queued_stroke_pathes.length = 0;
+
+			//reset fill style
+			this._fillStyle = null;
+
+			//create a new line path if needed
+			this._updateLinePath();
+		}
 
 		if (!clear) {
 			for (let i = lastShapes; i < this._shapes.length; i++) {
@@ -1765,6 +1737,7 @@ export class Graphics extends AssetBase {
 
 		if (isNaN(thickness)) {
 			this._lineStyle = null;
+			this._updateLinePath();
 			return;
 		}
 
@@ -1775,8 +1748,6 @@ export class Graphics extends AssetBase {
 
 		const valid = thickness > 0 && alpha > 0;
 
-		this._drawingDirty = true;
-
 		this._lineStyle = valid
 			? new  GraphicsStrokeStyle<SolidFillStyle>(
 				new SolidFillStyle(color, alpha),
@@ -1786,6 +1757,8 @@ export class Graphics extends AssetBase {
 				miterLimit
 			)
 			: null;
+
+		this._updateLinePath();
 	}
 
 	/**
@@ -1806,13 +1779,13 @@ export class Graphics extends AssetBase {
 	 */
 	public lineTo(x: number, y: number): void {
 		this._drawingDirty = true;
-		this._createGraphicPathes();
-		if (this._active_fill_path != null) {
+
+		if (this._active_fill_path)
 			this._active_fill_path.lineTo(x, y);
-		}
-		if (this._active_stroke_path != null) {
+
+		if (this._active_stroke_path)
 			this._active_stroke_path.lineTo(x, y);
-		}
+
 		this._current_position.x = x;
 		this._current_position.y = y;
 		this.invalidate();
@@ -1831,14 +1804,13 @@ export class Graphics extends AssetBase {
 	 */
 	public moveTo(x: number, y: number): void {
 		this._drawingDirty = true;
-		this._createGraphicPathes();
 
-		if (this._active_fill_path != null) {
+		if (this._active_fill_path)
 			this._active_fill_path.moveTo(x, y);
-		}
-		if (this._active_stroke_path != null) {
+
+		if (this._active_stroke_path)
 			this._active_stroke_path.moveTo(x, y);
-		}
+
 		this._current_position.x = x;
 		this._current_position.y = y;
 		this.invalidate();
@@ -1874,28 +1846,31 @@ export class Graphics extends AssetBase {
 		return;
 	}
 
-	private _createGraphicPathes() {
-
-		if (this._fillStyle != null &&
-			(this._active_fill_path == null ||
-				this._active_fill_path.style != this._fillStyle)) {
-
-			this._active_fill_path = new GraphicsPath();
-			this._active_fill_path.style = this._fillStyle;
-			if (this._current_position.x != 0 || this._current_position.y != 0)
-				this._active_fill_path.moveTo(this._current_position.x, this._current_position.y);
-			this._queued_fill_pathes.push(this._active_fill_path);
+	private _updateFillPath() {
+		if (this._fillStyle) {
+			if (this._active_fill_path == null || this._active_fill_path.style != this._fillStyle) {
+				this._active_fill_path = new GraphicsPath();
+				this._active_fill_path.style = this._fillStyle;
+				if (this._current_position.x != 0 || this._current_position.y != 0)
+					this._active_fill_path.moveTo(this._current_position.x, this._current_position.y);
+				this._queued_fill_pathes.push(this._active_fill_path);
+			}
+		} else {
+			this._active_fill_path = null;
 		}
+	}
 
-		if (this._lineStyle != null &&
-			(this._active_stroke_path == null ||
-				this._active_stroke_path.style != this._lineStyle)) {
-
-			this._active_stroke_path = new GraphicsPath();
-			this._active_stroke_path.style = this._lineStyle;
-			if (this._current_position.x != 0 || this._current_position.y != 0)
-				this._active_stroke_path.moveTo(this._current_position.x, this._current_position.y);
-			this._queued_stroke_pathes.push(this._active_stroke_path);
+	private _updateLinePath() {
+		if (this._lineStyle) {
+			if (this._active_stroke_path == null || this._active_stroke_path.style != this._lineStyle) {
+				this._active_stroke_path = new GraphicsPath();
+				this._active_stroke_path.style = this._lineStyle;
+				if (this._current_position.x != 0 || this._current_position.y != 0)
+					this._active_stroke_path.moveTo(this._current_position.x, this._current_position.y);
+				this._queued_stroke_pathes.push(this._active_stroke_path);
+			}
+		} else {
+			this._active_stroke_path = null;
 		}
 	}
 
