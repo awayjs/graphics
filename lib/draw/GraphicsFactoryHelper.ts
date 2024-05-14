@@ -513,7 +513,6 @@ export class GraphicsFactoryHelper {
 		const ax = (d1x + d2x) * 0.5;// new middlepoint 1
 		const ay = (d1y + d2y) * 0.5;
 
-
 		// stop tesselation on maxIteration level. Set it to 0 for no tesselation at all.
 		if (iterationCnt >= maxIterations) {
 			array_out.push(ax, ay, endx, endy);

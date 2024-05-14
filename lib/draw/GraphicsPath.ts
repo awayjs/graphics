@@ -410,7 +410,7 @@ export class GraphicsPath implements IGraphicsData {
 
 		const isValidCommand: number[][] = [];
 		const contour_merged: boolean[] = [];
-		let k: number = 0;
+		const k: number = 0;
 
 		let data_cnt: number = 0;
 		let prev_x,
