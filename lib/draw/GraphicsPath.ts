@@ -257,16 +257,48 @@ export class GraphicsPath implements IGraphicsData {
 	) {
 		this.isSimpleRect = false;
 
-		console.log('cubicCurveTo not yet fully supported.');
-		if (this._cur_point.x == anchorX && this._cur_point.y == anchorY) {
-			//console.log("curveTo command not added because startpoint and endpoint are the same.");
+		// if controlpoint and anchor are same, we add lineTo command
+		if (controlX == anchorX && controlY == anchorY) {
+			this.lineTo(controlX, controlY);
+			//this.moveTo(anchorX, anchorY);
 			return;
 		}
+		// if anchor is current point, but controlpoint is different, we lineto controlpoint
+		if (
+			this._cur_point.x == anchorX &&
+			this._cur_point.y == anchorY &&
+			(this._cur_point.x != controlX || this._cur_point.y != controlY)
+		) {
+			this.lineTo(controlX, controlY);
+			this.moveTo(anchorX, anchorY);
+			return;
+		}
+		// if controlpoint is current point, but anchor is different, we lineto anchor
+		if (
+			(this._cur_point.x != anchorX || this._cur_point.y != anchorY) &&
+			this._cur_point.x == controlX &&
+			this._cur_point.y == controlY
+		) {
+			this.lineTo(anchorX, anchorY);
+			return;
+		}
+		// if controlpoint and anchor are same as current point
+		if (
+			this._cur_point.x == anchorX &&
+			this._cur_point.y == anchorY &&
+			this._cur_point.x == controlX &&
+			this._cur_point.y == controlY
+		) {
+			//console.log("curveTo command not added because startpoint and endpoint are the same.");
+			this.lineTo(anchorX, anchorY);
+			return;
+		}
+
 		if (this._commands[this._commands.length - 1].length == 0) {
 			// every contour must start with a moveTo command, so we make sure we have correct startpoint
 			this._commands[this._commands.length - 1].push(GraphicsPathCommand.MOVE_TO);
-			this._data[this._data.length - 1].push(this._cur_point.x, this._cur_point.y);
-			//this._data[this._data.length - 1].push(this._cur_point.y);
+			this._data[this._data.length - 1].push(this._cur_point.x);
+			this._data[this._data.length - 1].push(this._cur_point.y);
 		}
 
 		if (!this.morphSource) {
@@ -281,13 +313,13 @@ export class GraphicsPath implements IGraphicsData {
 			}
 		}
 
-		this._commands[this._commands.length - 1].push(GraphicsPathCommand.CURVE_TO);
-		this._data[this._data.length - 1].push(controlX, controlY, anchorX, anchorY);
-		/*
+		this._commands[this._commands.length - 1].push(GraphicsPathCommand.CUBIC_CURVE);
+		this._data[this._data.length - 1].push(controlX);
 		this._data[this._data.length - 1].push(controlY);
+		this._data[this._data.length - 1].push(control2X);
+		this._data[this._data.length - 1].push(control2Y);
 		this._data[this._data.length - 1].push(anchorX);
 		this._data[this._data.length - 1].push(anchorY);
-	 	*/
 		this._cur_point.x = anchorX;
 		this._cur_point.y = anchorY;
 
@@ -378,8 +410,7 @@ export class GraphicsPath implements IGraphicsData {
 
 		const isValidCommand: number[][] = [];
 		const contour_merged: boolean[] = [];
-		let k,
-			k_len: number = 0;
+		let k: number = 0;
 
 		let data_cnt: number = 0;
 		let prev_x,
@@ -387,7 +418,9 @@ export class GraphicsPath implements IGraphicsData {
 			end_x,
 			end_y,
 			ctrl_x,
-			ctrl_y: number = 0;
+			ctrl_y,
+			ctrl_x2,
+			ctrl_y2: number = 0;
 		let curve_verts: number[];
 		let cmd_len = this.commands.length;
 
@@ -468,21 +501,34 @@ export class GraphicsPath implements IGraphicsData {
 						end_y = data[data_cnt++];
 
 						//console.log("CURVE_TO ", i, ctrl_x, ctrl_y, end_x, end_y);
-						curve_verts = [];
 						GraphicsFactoryHelper.tesselateCurve(
 							prev_x, prev_y,
 							ctrl_x, ctrl_y,
 							end_x, end_y,
-							curve_verts, false,
+							this._positions[c], false,
 							0, qualityScale
 						);
 
-						k_len = curve_verts.length;
+						prev_x = end_x;
+						prev_y = end_y;
+						break;
+					case GraphicsPathCommand.CUBIC_CURVE:
+						ctrl_x = data[data_cnt++];
+						ctrl_y = data[data_cnt++];
+						ctrl_x2 = data[data_cnt++];
+						ctrl_y2 = data[data_cnt++];
+						end_x = data[data_cnt++];
+						end_y = data[data_cnt++];
 
-						for (k = 0; k < k_len; k += 2) {
-							this._positions[c].push(curve_verts[k]);
-							this._positions[c].push(curve_verts[k + 1]);
-						}
+						//console.log("CURVE_TO ", i, ctrl_x, ctrl_y, end_x, end_y);
+						GraphicsFactoryHelper.tesselateCubicCurve(
+							prev_x, prev_y,
+							ctrl_x, ctrl_y,
+							ctrl_x2, ctrl_y2,
+							end_x, end_y,
+							this._positions[c],
+							0, qualityScale
+						);
 
 						prev_x = end_x;
 						prev_y = end_y;

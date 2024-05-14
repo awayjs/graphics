@@ -390,6 +390,14 @@ export class GraphicsFactoryHelper {
 		const minAngle = 1 / Math.sqrt(qualityScale);
 		const minLengthSqr = 1 / qualityScale;
 
+		// subdivide the curve
+		const c1x = (startx + cx) * 0.5;// new controlpoint 1
+		const c1y = (starty + cy) * 0.5;
+		const c2x = (cx + endx) * 0.5;// new controlpoint 2
+		const c2y = (cy + endy) * 0.5;
+		const ax = (c1x + c2x) * 0.5;// new middlepoint 1
+		const ay = (c1y + c2y) * 0.5;
+
 		// if "filled" is true, we are collecting final vert positions in the array,
 		// ready to use for rendering. (6-position values for each tri)
 		// if "filled" is false, we are collecting vert positions for a path (we do not need the start-position).
@@ -397,10 +405,10 @@ export class GraphicsFactoryHelper {
 		// stop tesselation on maxIteration level. Set it to 0 for no tesselation at all.
 		if (iterationCnt >= maxIterations) {
 			if (filled) {
-				array_out.push(startx, starty, cx, cy, endx, endy);
+				array_out.push(startx, starty, ax, ay, endx, endy);
 				return;
 			}
-			array_out.push(cx, cy, endx, endy);
+			array_out.push(ax, ay, endx, endy);
 			return;
 		}
 
@@ -409,14 +417,6 @@ export class GraphicsFactoryHelper {
 		const diff_x = endx - startx;
 		const diff_y = endy - starty;
 		const lenSq = diff_x * diff_x + diff_y * diff_y;
-
-		// subdivide the curve
-		const c1x = startx + (cx - startx) * 0.5;// new controlpoint 1
-		const c1y = starty + (cy - starty) * 0.5;
-		const c2x = cx + (endx - cx) * 0.5;// new controlpoint 2
-		const c2y = cy + (endy - cy) * 0.5;
-		const ax = c1x + (c2x - c1x) * 0.5;// new middlepoint 1
-		const ay = c1y + (c2y - c1y) * 0.5;
 
 		// stop subdividing if the angle or the length is to small
 		if (lenSq < minLengthSqr) {
@@ -465,6 +465,88 @@ export class GraphicsFactoryHelper {
 			startx, starty, c1x, c1y, ax, ay, array_out, filled, iterationCnt, qualityScale);
 		GraphicsFactoryHelper.tesselateCurve(
 			ax, ay, c2x, c2y, endx, endy, array_out, filled, iterationCnt, qualityScale);
+	}
+
+	public static tesselateCubicCurve(
+		startx: number,
+		starty: number,
+		cx: number,
+		cy: number,
+		cx2: number,
+		cy2: number,
+		endx: number,
+		endy: number,
+		array_out: Array<number>,
+		iterationCnt: number = 0,
+		qualityScale: number = 1
+	): void {
+
+		const maxIterations: number = Settings.CURVE_TESSELATION_COUNT;
+		const minAngle = 1 / Math.sqrt(qualityScale);
+		const minLengthSqr = 1 / qualityScale;
+
+		// calculate length of segment
+		// this does not include the crtl-point positions
+		const diff_x = endx - startx;
+		const diff_y = endy - starty;
+		const lenSq = diff_x * diff_x + diff_y * diff_y;
+
+		// stop subdividing if the angle or the length is to small
+		if (lenSq < minLengthSqr) {
+			array_out.push(endx, endy);
+			return;
+		}
+
+		// subdivide the curve
+		const c1x = (startx + cx) * 0.5;// new controlpoint 1
+		const c1y = (starty + cy) * 0.5;
+		const c2x = (cx + cx2) * 0.5;// new controlpoint 2
+		const c2y = (cy + cy2) * 0.5;
+		const c3x = (cx2 + endx) * 0.5;// new controlpoint 3
+		const c3y = (cy2 + endy) * 0.5;
+
+		const d1x = (c1x + c2x) * 0.5;// new controlpoint 1
+		const d1y = (c1y + c2y) * 0.5;
+		const d2x = (c2x + c3x) * 0.5;// new controlpoint 2
+		const d2y = (c2y + c3y) * 0.5;
+
+		const ax = (d1x + d2x) * 0.5;// new middlepoint 1
+		const ay = (d1y + d2y) * 0.5;
+
+
+		// stop tesselation on maxIteration level. Set it to 0 for no tesselation at all.
+		if (iterationCnt >= maxIterations) {
+			array_out.push(ax, ay, endx, endy);
+			return;
+		}
+
+		// calculate angle between segments
+		const angle_1 = Math.atan2(cy - starty, cx - startx) * MathConsts.RADIANS_TO_DEGREES;
+		const angle_2 = Math.atan2(endy - cy, endx - cx) * MathConsts.RADIANS_TO_DEGREES;
+		let angle_delta = angle_2 - angle_1;
+
+		// make sure angle is in range -180 - 180
+		while (angle_delta > 180) {
+			angle_delta -= 360;
+		}
+		while (angle_delta < -180) {
+			angle_delta += 360;
+		}
+
+		angle_delta = angle_delta < 0 ? -angle_delta : angle_delta;
+
+		// stop subdividing if the angle or the length is to small
+		if (angle_delta <= minAngle) {
+			array_out.push(endx, endy);
+			return;
+		}
+
+		iterationCnt++;
+
+		GraphicsFactoryHelper.tesselateCubicCurve(
+			startx, starty, c1x, c1y, d1x, d1y, ax, ay, array_out, iterationCnt, qualityScale);
+		GraphicsFactoryHelper.tesselateCubicCurve(
+			ax, ay, d2x, d2y, c3x, c3y, endx, endy, array_out, iterationCnt, qualityScale);
 
 	}
 }

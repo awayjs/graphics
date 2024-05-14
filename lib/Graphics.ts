@@ -813,25 +813,17 @@ export class Graphics extends AssetBase {
 		controlX2: number, controlY2: number,
 		anchorX: number, anchorY: number): void {
 
-		throw new PartialImplementationError('cubicCurveTo');
-		/*
-		 t = 0.5; // given example value
-		 x = (1 - t) * (1 - t) * p[0].x + 2 * (1 - t) * t * p[1].x + t * t * p[2].x;
-		 y = (1 - t) * (1 - t) * p[0].y + 2 * (1 - t) * t * p[1].y + t * t * p[2].y;
+		this._drawingDirty = true;
 
-		 this.queued_command_types.push(Graphics.CMD_BEZIER);
-		 this.queued_command_data.push(controlX1);
-		 this.queued_command_data.push(controlY1);
-		 this.queued_command_data.push(controlX2);
-		 this.queued_command_data.push(controlY2);
-		 this.queued_command_data.push(anchorX);
-		 this.queued_command_data.push(anchorY);
+		if (this._active_fill_path)
+			this._active_fill_path.cubicCurveTo(controlX1, controlY1, controlX2, controlY2, anchorX, anchorY);
 
-		 // todo: somehow convert cubic bezier curve into 2 quadric curves...
+		if (this._active_stroke_path)
+			this._active_stroke_path.cubicCurveTo(controlX1, controlY1, controlX2, controlY2, anchorX, anchorY);
 
-		 this.draw_direction+=0;
-		 */
-
+		this._current_position.x = anchorX;
+		this._current_position.y = anchorY;
+		this.invalidate();
 	}
 
 	/**
