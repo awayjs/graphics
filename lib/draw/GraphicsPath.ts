@@ -20,20 +20,7 @@ export class GraphicsPath implements IGraphicsData {
 
 	public static data_type: string = '[graphicsdata path]';
 
-	private _isSimpleRect: boolean = false;
 	private _lastPrepareScale: number = -1;
-
-	/**
-	 * Marking that this path is simple simple rect
-	 */
-	public get isSimpleRect() {
-		return this._isSimpleRect;
-	}
-
-	public set isSimpleRect (v: boolean) {
-		// simple rect can be only when MoveTo and 6 vertices
-		this._isSimpleRect = v && this.commands.length === 1 && this.verts.length === 6 * 2;
-	}
 
 	/**
 	 * When path is morp, we can't filtrate commands
@@ -66,7 +53,6 @@ export class GraphicsPath implements IGraphicsData {
 
 	public set verts(v: number[]) {
 		this._verts = v;
-		this._isSimpleRect = false;
 	}
 
 	/**
@@ -179,7 +165,6 @@ export class GraphicsPath implements IGraphicsData {
 	}
 
 	public curveTo(controlX: number, controlY: number, anchorX: number, anchorY: number) {
-		this.isSimpleRect = false;
 
 		// if controlpoint and anchor are same, we add lineTo command
 		if (controlX == anchorX && controlY == anchorY) {
@@ -254,7 +239,7 @@ export class GraphicsPath implements IGraphicsData {
 		anchorX: number,
 		anchorY: number,
 	) {
-		this.isSimpleRect = false;
+
 
 		// if controlpoint and anchor are same, we add lineTo command
 		if (controlX == anchorX && controlY == anchorY) {
