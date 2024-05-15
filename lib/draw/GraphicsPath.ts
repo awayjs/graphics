@@ -218,11 +218,13 @@ export class GraphicsPath implements IGraphicsData {
 			return;
 		}
 
-		if (this._commands[this._commands.length - 1].length == 0) {
+		const command = this._commands[this._commands.length - 1];
+		const data = this._data[this._data.length - 1];
+
+		if (command.length == 0) {
 			// every contour must start with a moveTo command, so we make sure we have correct startpoint
-			this._commands[this._commands.length - 1].push(GraphicsPathCommand.MOVE_TO);
-			this._data[this._data.length - 1].push(this._cur_point.x);
-			this._data[this._data.length - 1].push(this._cur_point.y);
+			command.push(GraphicsPathCommand.MOVE_TO);
+			data.push(this._cur_point.x, this._cur_point.y);
 		}
 
 		if (!this.morphSource) {
@@ -230,17 +232,14 @@ export class GraphicsPath implements IGraphicsData {
 			const leny = anchorY - this._cur_point.y;
 			const len = Math.sqrt(lenx * lenx + leny * leny);
 			if (len <= Settings.MINIMUM_DRAWING_DISTANCE) {
-				this.data[this.data.length - 1][this.data[this.data.length - 1].length - 2] = anchorX;
-				this.data[this.data.length - 1][this.data[this.data.length - 1].length - 1] = anchorY;
+				data[data.length - 2] = anchorX;
+				data[data.length - 1] = anchorY;
 				return;
 			}
 		}
 
-		this._commands[this._commands.length - 1].push(GraphicsPathCommand.CURVE_TO);
-		this._data[this._data.length - 1].push(controlX);
-		this._data[this._data.length - 1].push(controlY);
-		this._data[this._data.length - 1].push(anchorX);
-		this._data[this._data.length - 1].push(anchorY);
+		command.push(GraphicsPathCommand.CURVE_TO);
+		data.push(controlX, controlY, anchorX, anchorY);
 		this._cur_point.x = anchorX;
 		this._cur_point.y = anchorY;
 
@@ -294,11 +293,13 @@ export class GraphicsPath implements IGraphicsData {
 			return;
 		}
 
-		if (this._commands[this._commands.length - 1].length == 0) {
+		const command = this._commands[this._commands.length - 1];
+		const data = this._data[this._data.length - 1];
+
+		if (command.length == 0) {
 			// every contour must start with a moveTo command, so we make sure we have correct startpoint
-			this._commands[this._commands.length - 1].push(GraphicsPathCommand.MOVE_TO);
-			this._data[this._data.length - 1].push(this._cur_point.x);
-			this._data[this._data.length - 1].push(this._cur_point.y);
+			command.push(GraphicsPathCommand.MOVE_TO);
+			data.push(this._cur_point.x, this._cur_point.y);
 		}
 
 		if (!this.morphSource) {
@@ -307,19 +308,14 @@ export class GraphicsPath implements IGraphicsData {
 			const lensq = lenx * lenx + leny * leny;
 
 			if (lensq <= Settings.MINIMUM_DRAWING_DISTANCE * Settings.MINIMUM_DRAWING_DISTANCE) {
-				this.data[this.data.length - 1][this.data[this.data.length - 1].length - 2] = anchorX;
-				this.data[this.data.length - 1][this.data[this.data.length - 1].length - 1] = anchorY;
+				data[data.length - 2] = anchorX;
+				data[data.length - 1] = anchorY;
 				return;
 			}
 		}
 
-		this._commands[this._commands.length - 1].push(GraphicsPathCommand.CUBIC_CURVE);
-		this._data[this._data.length - 1].push(controlX);
-		this._data[this._data.length - 1].push(controlY);
-		this._data[this._data.length - 1].push(control2X);
-		this._data[this._data.length - 1].push(control2Y);
-		this._data[this._data.length - 1].push(anchorX);
-		this._data[this._data.length - 1].push(anchorY);
+		command.push(GraphicsPathCommand.CUBIC_CURVE);
+		data.push(controlX, controlY, control2X, control2Y, anchorX, anchorY);
 		this._cur_point.x = anchorX;
 		this._cur_point.y = anchorY;
 
@@ -327,20 +323,13 @@ export class GraphicsPath implements IGraphicsData {
 	}
 
 	public lineTo(x: number, y: number) {
+		const command = this._commands[this._commands.length - 1];
+		const data = this._data[this._data.length - 1];
 
-		/*
-		// We can't do this becouse morphes is failed. Should be filtered before tesselation
-
-		if (this._cur_point.x == x && this._cur_point.y == y) {
-			//console.log("lineTo command not added because startpoint and endpoint are the same.");
-			return;
-		}*/
-
-		if (this._commands[this._commands.length - 1].length == 0) {
+		if (command.length == 0) {
 			// every contour must start with a moveTo command, so we make sure we have correct startpoint
-			this._commands[this._commands.length - 1].push(GraphicsPathCommand.MOVE_TO);
-			this._data[this._data.length - 1].push(this._cur_point.x);
-			this._data[this._data.length - 1].push(this._cur_point.y);
+			command.push(GraphicsPathCommand.MOVE_TO);
+			data.push(this._cur_point.x, this._cur_point.y);
 		}
 
 		if (!this.morphSource) {
@@ -349,15 +338,14 @@ export class GraphicsPath implements IGraphicsData {
 			const lensq = lenx * lenx + leny * leny;
 
 			if (lensq <= Settings.MINIMUM_DRAWING_DISTANCE * Settings.MINIMUM_DRAWING_DISTANCE) {
-				this.data[this.data.length - 1][this.data[this.data.length - 1].length - 2] = x;
-				this.data[this.data.length - 1][this.data[this.data.length - 1].length - 1] = y;
+				data[data.length - 2] = x;
+				data[data.length - 1] = y;
 				return;
 			}
 		}
 
-		this._commands[this._commands.length - 1].push(GraphicsPathCommand.LINE_TO);
-		this._data[this._data.length - 1].push(x, y);
-		//this._data[this._data.length - 1].push(y);
+		command.push(GraphicsPathCommand.LINE_TO);
+		data.push(x, y);
 
 		this._cur_point.x = x;
 		this._cur_point.y = y;
@@ -366,13 +354,7 @@ export class GraphicsPath implements IGraphicsData {
 	}
 
 	public moveTo(x: number, y: number) {
-		const diffX: number = Math.abs(this._cur_point.x - x);
-		const diffY: number = Math.abs(this._cur_point.y - y);
-		if (diffX < 0.01 && diffY < 0.01) {
-			//console.log("moveTo command not added because startpoint and endpoint are the same.");
-			//return;
-		}
-		// whenever a moveTo command apears, we start a new contour
+		// whenever a moveTo command appears, we start a new contour
 		if (this._commands[this._commands.length - 1].length > 0) {
 			this._commands.push([GraphicsPathCommand.MOVE_TO]);
 			this._data.push([x, y]);
