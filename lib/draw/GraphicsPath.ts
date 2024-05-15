@@ -33,9 +33,6 @@ export class GraphicsPath implements IGraphicsData {
 	public _commands: number[][];
 	public pretesselatedBuffer?: Float32Array;
 
-	private _cache: any;
-	private _cacheSharedSegments: any;
-
 	/**
 	 * The Vector of Numbers containing the parameters used with the drawing commands.
 	 */
@@ -81,8 +78,6 @@ export class GraphicsPath implements IGraphicsData {
 		data: Array<number> = null,
 		winding_rule: string = GraphicsPathWinding.EVEN_ODD,
 	) {
-		this._cache = {};
-		this._cacheSharedSegments = {};
 		this._data = [];
 		this._commands = [];
 		this._style = null;
@@ -136,32 +131,6 @@ export class GraphicsPath implements IGraphicsData {
 
 	public get data(): Array<Array<number>> {
 		return this._data;
-	}
-
-	public cacheSegment(
-		contourIdx: number,
-		segmentIdx: number,
-		type: number,
-		startx: number,
-		starty: number,
-		endx: number,
-		endy: number,
-		ctrlx: number = null,
-		ctrly: number = null,
-	) {
-		let idStr: string = type.toString() + '#';
-		idStr += startx > endx ? startx.toString() + '#' + endx.toString() : endx.toString() + '#' + startx.toString();
-		idStr += starty > endy ? starty.toString() + '#' + endy.toString() : endy.toString() + '#' + starty.toString();
-		if (ctrlx != null && ctrly != null) idStr += ctrlx.toString() + '#' + ctrly.toString();
-		let curCacheItem = this._cache[idStr];
-		if (curCacheItem == null) {
-			this._cache[idStr] = curCacheItem = [];
-		}
-		curCacheItem.push(contourIdx);
-		curCacheItem.push(segmentIdx);
-		if (curCacheItem.length > 2) {
-			this._cacheSharedSegments[idStr] = curCacheItem;
-		}
 	}
 
 	public curveTo(controlX: number, controlY: number, anchorX: number, anchorY: number) {
