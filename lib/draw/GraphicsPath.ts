@@ -30,14 +30,14 @@ export class GraphicsPath implements IGraphicsData {
 	/**
 	 * The Vector of drawing commands as integers representing the path.
 	 */
-	public _commands: number[][];
+	public _commands: number[][] = [];
 	public pretesselatedBuffer?: Float32Array;
 
 	/**
 	 * The Vector of Numbers containing the parameters used with the drawing commands.
 	 */
-	public _data: number[][];
-	public _positions: number[][];
+	public _data: number[][] = [];
+	public _positions: number[][] = [];
 
 	private _verts: number[] = [];
 
@@ -52,18 +52,8 @@ export class GraphicsPath implements IGraphicsData {
 		this._verts = v;
 	}
 
-	/**
-	 * Specifies the winding rule using a value defined in the GraphicsPathWinding class.
-	 */
-	private _winding_rule: string;
-
-	/**
-	 * The Vector of Numbers containing the parameters used with the drawing commands.
-	 */
-	private _winding_directions: Array<number>;
-
-	private _startPoint: Point;
-	private _cur_point: Point;
+	private _startPoint: Point = new Point();
+	private _cur_point: Point = new Point();
 	private _style: IStyleData;
 
 	private _lastDirtyID = 0;
@@ -74,14 +64,15 @@ export class GraphicsPath implements IGraphicsData {
 	}
 
 	constructor(
-		commands: Array<number> = null,
-		data: Array<number> = null,
-		winding_rule: string = GraphicsPathWinding.EVEN_ODD,
+		commands: number[] = null,
+		data: number[] = null,
+
+		/**
+		 * Specifies the winding rule using a value defined in the GraphicsPathWinding class.
+		 */
+		public winding: string = GraphicsPathWinding.EVEN_ODD,
 	) {
-		this._data = [];
-		this._commands = [];
 		this._style = null;
-		this.verts = [];
 		this._positions = [];
 
 		if (commands != null && data != null) {
@@ -91,10 +82,6 @@ export class GraphicsPath implements IGraphicsData {
 			this._data[0] = [];
 			this._commands[0] = [];
 		}
-		this._startPoint = new Point();
-		this._cur_point = new Point();
-		this._winding_rule = winding_rule;
-		this._winding_directions = [];
 	}
 
 	public get data_type(): string {
