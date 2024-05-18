@@ -356,7 +356,7 @@ export class GraphicsFactoryFills {
 			: 0;
 		let tesselatedVertexSize = 0;
 
-		let res: IResult = this.runTesselator(graphicsPath, qualityScale);
+		const res: IResult = this.runTesselator(graphicsPath, qualityScale);
 
 		if (res && res.elements.length > 0) {
 			tesselatedVertexSize = res.elements.length * 2;

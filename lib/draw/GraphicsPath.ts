@@ -157,7 +157,7 @@ export class GraphicsPath implements IGraphicsData {
 		this._lastPrepareScale = qualityScale;
 		this._lastDirtyID = this._dirtyID;
 
-		let len = this.commands.length;
+		const len = this.commands.length;
 
 		// commands may be empty
 		if (len === 1 && !this.commands[0])
@@ -195,7 +195,7 @@ export class GraphicsPath implements IGraphicsData {
 						if (this.forceClose
 							&& Math.abs(contour[0] - contour[contour.length - 2])
 							+ Math.abs(contour[1] - contour[contour.length - 1]) > eps)
-								contour.push(contour[0], contour[1])
+							contour.push(contour[0], contour[1]);
 					}
 
 					positions[p++] = contour = [prev_x = data[d++], prev_y = data[d++]];
@@ -401,8 +401,7 @@ export class GraphicsPath implements IGraphicsData {
 
 	private static lensq = Settings.MINIMUM_DRAWING_DISTANCE * Settings.MINIMUM_DRAWING_DISTANCE;
 
-	private _minimumCheck(lenx: number, leny: number): boolean
-	{
+	private _minimumCheck(lenx: number, leny: number): boolean {
 		return (lenx * lenx + leny * leny) < GraphicsPath.lensq;
 	}
 }
