@@ -356,19 +356,11 @@ export class GraphicsFactoryFills {
 			: 0;
 		let tesselatedVertexSize = 0;
 
-		let res: IResult;
-		const preparedBuffer = graphicsPath.pretesselatedBuffer;
+		let res: IResult = this.runTesselator(graphicsPath, qualityScale);
 
-		if (preparedBuffer) {
-			resultVertexSize = preparedBuffer.length;
-			console.debug('[GraphicsFactoryFills] Use prebuild buffer:', graphicsPath);
-		} else {
-			res = this.runTesselator(graphicsPath, qualityScale);
-
-			if (res && res.elements.length > 0) {
-				tesselatedVertexSize = res.elements.length * 2;
-				resultVertexSize += res.elements.length * 2;
-			}
+		if (res && res.elements.length > 0) {
+			tesselatedVertexSize = res.elements.length * 2;
+			resultVertexSize += res.elements.length * 2;
 		}
 
 		const vertexSize = 2;
@@ -384,10 +376,7 @@ export class GraphicsFactoryFills {
 		// fill direct to Float32Array
 		const finalVerts = new Float32Array(target.buffer);
 
-		if (preparedBuffer) {
-
-			finalVerts.set(preparedBuffer);
-		} else if (res) {
+		if (res) {
 
 			this.fillBuffer(res, finalVerts);
 

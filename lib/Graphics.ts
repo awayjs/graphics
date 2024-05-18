@@ -50,7 +50,7 @@ import { Settings } from './Settings';
 import { FillStyle, LineStyle, ShapeStyle } from './flash/ShapeStyle';
 import { BBox, ShapeRecord, ShapeRecordFlags, ShapeTag } from './flash/ShapeTag';
 import { StyleUtils } from './flash/StyleUtils';
-import GraphicsPathCommand from './draw/GraphicsPathCommand';
+import { GraphicsPathCommand } from './draw/GraphicsPathCommand';
 
 GraphicsFactoryFills.prepareWasm();
 
