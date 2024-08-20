@@ -177,7 +177,7 @@ export class GraphicsPath implements IGraphicsData {
 
 		// If we don't start with a moveTo command, ensure origin is added to positions
 		if (commands[0] != GraphicsPathCommand.MOVE_TO) {
-			positions[0] = contour = [prev_x = 0, prev_y = 0];
+			positions[p++] = contour = [prev_x = 0, prev_y = 0];
 		}
 
 		for (let c = 0; c < len; c++) {
