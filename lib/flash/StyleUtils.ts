@@ -102,9 +102,8 @@ export class StyleUtils  {
 		return shapeStyle;
 	}
 
-	private static _mapMatsForBitmaps: NumberMap<IMaterial> = {};
 	private static getMaterial(bitmapIndex: number, factory: IMaterialFactory): IMaterial {
-		let material: IMaterial = this._mapMatsForBitmaps[bitmapIndex];
+		let material: IMaterial = factory.mapMatsForBitmaps[bitmapIndex];
 		if (!material) {
 
 			let myImage: Image2D = <Image2D> factory.awaySymbols[bitmapIndex];
@@ -116,7 +115,7 @@ export class StyleUtils  {
 			material.alphaBlending = true;
 			material.useColorTransform = true;
 			material.bothSides = true;
-			this._mapMatsForBitmaps[bitmapIndex] = material;
+			factory.mapMatsForBitmaps[bitmapIndex] = material;
 		}
 
 		return material;
