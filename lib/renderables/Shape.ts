@@ -347,7 +347,6 @@ import {
 
 import { AnimatorBase } from '../animators/AnimatorBase';
 import { BitmapFillStyle } from '../draw/fills/BitmapFillStyle';
-import { GraphicsFillStyle } from '../draw/GraphicsFillStyle';
 
 /**
  * @class away.pool._Render_Shape
@@ -382,8 +381,8 @@ export class _Render_Shape extends _Render_RenderableBase {
 	 * @param level
 	 * @param indexOffset
 	 */
-	constructor(shape: Shape, renderEntity: RenderEntity) {
-		super(shape, renderEntity);
+	public init(shape: Shape, renderEntity: RenderEntity): void {
+		super.init(shape, renderEntity);
 
 		this.shape = shape;
 	}
@@ -487,6 +486,12 @@ export class _Pick_Shape extends _Pick_PickableBase {
 
 	private _onInvalidateElementsDelegate: (event: RenderableEvent) => void;
 
+	constructor() {
+		super();
+
+		this._onInvalidateElementsDelegate = (event: RenderableEvent) => this._onInvalidateElements(event);
+	}
+
 	/**
 	 * //TODO
 	 *
@@ -495,10 +500,8 @@ export class _Pick_Shape extends _Pick_PickableBase {
 	 * @param level
 	 * @param indexOffset
 	 */
-	constructor(shape: Shape, pickEntity: PickEntity) {
-		super(shape, pickEntity);
-
-		this._onInvalidateElementsDelegate = (event: RenderableEvent) => this._onInvalidateElements(event);
+	public init(shape: Shape, pickEntity: PickEntity): void {
+		super.init(shape, pickEntity);
 
 		this._asset.addEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateElementsDelegate);
 	}
@@ -519,6 +522,11 @@ export class _Pick_Shape extends _Pick_PickableBase {
 		this._asset.removeEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateElementsDelegate);
 
 		super.onClear(event);
+
+		this._orientedBoxBounds = null;
+		this._orientedBoxBoundsDirty = true;
+		this._orientedSphereBounds = null;
+		this._orientedSphereBoundsDirty = true;
 	}
 
 	public hitTestPoint(x: number, y: number, z: number): boolean {
