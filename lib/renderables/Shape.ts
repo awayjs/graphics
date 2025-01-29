@@ -357,15 +357,13 @@ export class _Render_Shape extends _Render_RenderableBase {
 	private _scaleY: number;
 	private _scale9Elements: ElementsBase;
 
-	private _globalBounds: Box;
+	private _globalBounds: Box = new Box();
 	public globalBounds (): Box {
 
-		const bounds = this.node.getMatrix3D().transformBox(
+		return this.node.getMatrix3D().transformBox(
 			PickGroup.getInstance().getBoundsPicker(this.node.partition).getBoxBounds(this.node, true, true),
 			this._globalBounds
 		);
-
-		return bounds;
 	}
 
 	/**
@@ -391,6 +389,9 @@ export class _Render_Shape extends _Render_RenderableBase {
 		super.onClear(event);
 
 		this.shape = null;
+		this._scaleX = null;
+		this._scaleY = null;
+		this._scale9Elements = null;
 	}
 
 	/**
