@@ -128,7 +128,7 @@ export class Graphics extends AssetBase {
 	}
 
 	public static getGraphics(): Graphics {
-		return (Graphics._pool.length)? Graphics._pool.pop() : new Graphics();
+		return (Graphics._pool.length) ? Graphics._pool.pop() : new Graphics();
 	}
 
 	public static clearPool() {
@@ -299,6 +299,7 @@ export class Graphics extends AssetBase {
 
 		this._owners.forEach((asset: IAsset) => asset.invalidate());
 	}
+
 	/**
 	 * Adds a GraphicBase wrapping a Elements.
 	 *
