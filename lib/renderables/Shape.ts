@@ -361,7 +361,7 @@ export class _Render_Shape extends _Render_RenderableBase {
 	public globalBounds (): Box {
 
 		return this.node.getMatrix3D().transformBox(
-			PickGroup.getInstance().getBoundsPicker(this.node.partition).getBoxBounds(this.node, true, true),
+			PickGroup.getInstance().getBoundsPicker(this.node).getBoxBounds(this.node, true, true),
 			this._globalBounds
 		);
 	}
@@ -459,7 +459,7 @@ export class _Render_Shape extends _Render_RenderableBase {
 			}
 
 			const bounds = PickGroup.getInstance()
-				.getBoundsPicker(this.node.partition)
+				.getBoundsPicker(this.node)
 				.getBoxBounds(this.node, true, true);
 
 			this._scale9Elements = this.shape.elements.prepareScale9(
@@ -537,7 +537,6 @@ export class _Pick_Shape extends _Pick_PickableBase {
 		if (box == null || !box.contains(x, y, z)) return false;
 
 		return (<Shape> this._asset).elements.hitTestPoint(
-			this._view,
 			this._node,
 			x, y, z,
 			box,
@@ -554,7 +553,6 @@ export class _Pick_Shape extends _Pick_PickableBase {
 	): Box {
 		if (matrix3D)
 			return (<Shape> this._asset).elements.getBoxBounds(
-				this._view,
 				this._node,
 				strokeFlag,
 				matrix3D,
@@ -568,7 +566,6 @@ export class _Pick_Shape extends _Pick_PickableBase {
 			this._orientedBoxBoundsDirty = false;
 
 			this._orientedBoxBounds = (<Shape> this._asset).elements.getBoxBounds(
-				this._view,
 				this._node,
 				strokeFlag,
 				null,
@@ -593,7 +590,6 @@ export class _Pick_Shape extends _Pick_PickableBase {
 	): Sphere {
 		if (matrix3D)
 			return (<Shape> this._asset).elements.getSphereBounds(
-				this._view,
 				center,
 				matrix3D,
 				strokeFlag,
@@ -607,7 +603,6 @@ export class _Pick_Shape extends _Pick_PickableBase {
 			this._orientedSphereBoundsDirty = false;
 
 			this._orientedSphereBounds = (<Shape> this._asset).elements.getSphereBounds(
-				this._view,
 				center,
 				null,
 				strokeFlag,
@@ -636,7 +631,6 @@ export class _Pick_Shape extends _Pick_PickableBase {
 		}
 
 		return shape.elements.testCollision(
-			this._view,
 			collision,
 			box,
 			findClosestCollision,
