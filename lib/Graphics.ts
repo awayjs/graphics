@@ -1,17 +1,18 @@
 import {
 	ArgumentError,
 	RangeError,
-	PartialImplementationError,
 	Point,
 	Matrix,
 	Matrix3D,
 	AssetBase,
 	Rectangle,
+	WeakAssetSet,
+	IAsset,
 } from '@awayjs/core';
 
 import { BitmapImage2D, ImageSampler } from '@awayjs/stage';
 
-import { EntityNode, IEntityTraverser, PartitionBase, PickEntity } from '@awayjs/view';
+import { IEntityTraverser, PickEntity } from '@awayjs/view';
 
 import {
 	IMaterial,
@@ -127,10 +128,7 @@ export class Graphics extends AssetBase {
 	}
 
 	public static getGraphics(): Graphics {
-		if (Graphics._pool.length)
-			return Graphics._pool.pop();
-
-		return new Graphics();
+		return (Graphics._pool.length)? Graphics._pool.pop() : new Graphics();
 	}
 
 	public static clearPool() {
@@ -143,7 +141,6 @@ export class Graphics extends AssetBase {
 
 	private _queuedShapeTags: ShapeTag[] = [];
 	private _shapes: Array<Shape> = [];
-	private _style: Style;
 
 	private _queued_fill_pathes: GraphicsPath[] = [];
 	private _queued_stroke_pathes: GraphicsPath[] = [];
@@ -159,7 +156,7 @@ export class Graphics extends AssetBase {
 	private _lastPrebuildedShapes: Shape[] = [];
 	private _drawingDirty: boolean = false;
 
-	public usages: number = 0;
+	public _owners: WeakAssetSet = new WeakAssetSet();
 
 	public _start: GraphicsPath[];
 	public _end: GraphicsPath[];
@@ -289,6 +286,19 @@ export class Graphics extends AssetBase {
 		this._internalShapesId.push(shape.id);
 	}
 
+	public addOwner(owner: IAsset): void {
+		this._owners.add(owner);
+	}
+
+	public removeOwner(owner: IAsset): void {
+		this._owners.remove(owner);
+	}
+
+	public invalidate(): void {
+		super.invalidate();
+
+		this._owners.forEach((asset: IAsset) => asset.invalidate());
+	}
 	/**
 	 * Adds a GraphicBase wrapping a Elements.
 	 *
@@ -2224,5 +2234,3 @@ export class Graphics extends AssetBase {
 		return { cx, cy, x, y };
 	}
 }
-
-PartitionBase.registerAbstraction(EntityNode, Graphics);
