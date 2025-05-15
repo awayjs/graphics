@@ -1,6 +1,6 @@
 import { Box, Matrix3D, Sphere, Vector3D, AssetBase, Rectangle, Matrix } from '@awayjs/core';
 
-import { PickingCollision, PickEntity, _Pick_PickableBase, IPartitionContainer, PickGroup } from '@awayjs/view';
+import { PickingCollision, PickEntity, _Pick_PickableBase, IContainer, PickGroup } from '@awayjs/view';
 
 import {
 	IMaterial,
@@ -360,16 +360,15 @@ export class _Render_Shape extends _Render_RenderableBase {
 	private _globalBounds: Box = new Box();
 	public globalBounds (): Box {
 
-		return this.node.getMatrix3D().transformBox(
-			PickGroup.getInstance().getBoundsPicker(this.node).getBoxBounds(this.node, true, true),
+		return this.entity.node.getMatrix3D().transformBox(
+			PickGroup.getInstance().getBoundsPicker(this.entity.node).getBoxBounds(this.entity.node, true, true),
 			this._globalBounds
 		);
 	}
-
-	/**
-	 *
-	 */
-	public shape: Shape;
+		
+	public get shape(): Shape {
+		return <Shape> this._asset;
+	}
 
 	/**
 	 * //TODO
@@ -381,14 +380,11 @@ export class _Render_Shape extends _Render_RenderableBase {
 	 */
 	public init(shape: Shape, renderEntity: RenderEntity): void {
 		super.init(shape, renderEntity);
-
-		this.shape = shape;
 	}
 
 	public onClear(event: AssetEvent): void {
 		super.onClear(event);
 
-		this.shape = null;
 		this._scaleX = null;
 		this._scaleY = null;
 		this._scale9Elements = null;
@@ -400,10 +396,10 @@ export class _Render_Shape extends _Render_RenderableBase {
 	 * @protected
 	 */
 	protected _getStageElements(): _Stage_ElementsBase {
-		this._offset = this.shape.offset;
-		this._count = this.shape.count;
+		this._offset = (<Shape> this._asset).offset;
+		this._count = (<Shape> this._asset).count;
 
-		const _scale9Container: IPartitionContainer = this.node.getScale9Container();
+		const _scale9Container: IContainer = this.entity.node.getScale9Container();
 		if (_scale9Container) {
 
 			return this.updateScale9(
@@ -413,10 +409,10 @@ export class _Render_Shape extends _Render_RenderableBase {
 				.getAbstraction<_Stage_ElementsBase>(this._stage);
 		}
 
-		const container = (<IRenderContainer> this.node.container);
+		const container = (<IRenderContainer> this.entity.node.container);
 		const elements = container.animator
-			? (<AnimatorBase> container.animator).getRenderableElements(this, this.shape.elements)
-			: this.shape.elements;
+			? (<AnimatorBase> container.animator).getRenderableElements(this, (<Shape> this._asset).elements)
+			: (<Shape> this._asset).elements;
 
 		return elements.getAbstraction<_Stage_ElementsBase>(this._stage);
 	}
@@ -424,14 +420,14 @@ export class _Render_Shape extends _Render_RenderableBase {
 	protected _getRenderMaterial(): _Render_MaterialBase {
 		const material: IMaterial =
 			(<Shape> this._asset).material ||
-			(<IRenderContainer> this.node.container).material ||
+			(<IRenderContainer> this.entity.node.container).material ||
 			this.getDefaultMaterial();
 
-		return material.getAbstraction<_Render_MaterialBase>(this.renderer.getRenderElements(this.shape.elements));
+		return material.getAbstraction<_Render_MaterialBase>(this.entity.renderer.getRenderElements((<Shape> this._asset).elements));
 	}
 
 	protected _getStyle(): Style {
-		return (<Shape> this._asset).style || (<IRenderContainer> this.node.container).style;
+		return (<Shape> this._asset).style || (<IRenderContainer> this.entity.node.container).style;
 	}
 
 	protected getDefaultMaterial(): IMaterial {
@@ -445,24 +441,25 @@ export class _Render_Shape extends _Render_RenderableBase {
 		if (!this._scale9Elements) {
 			let uvMatrix: Matrix = null;
 			let generateUV: boolean = false;
+			const shape = <Shape> this._asset;
 
-			if (this.shape.originalFillStyle instanceof BitmapFillStyle)
-				uvMatrix = this.shape.originalFillStyle.getUVMatrix();
+			if (shape.originalFillStyle instanceof BitmapFillStyle)
+				uvMatrix = shape.originalFillStyle.getUVMatrix();
 
-			if (this.shape.elements instanceof TriangleElements) {
-				generateUV = !this.shape.elements.uvs && !!uvMatrix;
+			if (shape.elements instanceof TriangleElements) {
+				generateUV = !shape.elements.uvs && !!uvMatrix;
 			}
 
 			// kill UV matrix if we will generate UV
 			if (generateUV) {
-				this.shape.style.uvMatrix = null;
+				shape.style.uvMatrix = null;
 			}
 
 			const bounds = PickGroup.getInstance()
-				.getBoundsPicker(this.node)
-				.getBoxBounds(this.node, true, true);
+				.getBoundsPicker(this.entity.node)
+				.getBoxBounds(this.entity.node, true, true);
 
-			this._scale9Elements = this.shape.elements.prepareScale9(
+			this._scale9Elements = shape.elements.prepareScale9(
 					<any>bounds, scale9Grid, true, generateUV, uvMatrix);
 		}
 
@@ -532,16 +529,17 @@ export class _Pick_Shape extends _Pick_PickableBase {
 
 	public hitTestPoint(x: number, y: number, z: number): boolean {
 		const box: Box = this.getBoxBounds();
+		const shape = <Shape> this._asset;
 
 		//early out for box test
 		if (box == null || !box.contains(x, y, z)) return false;
 
-		return (<Shape> this._asset).elements.hitTestPoint(
-			this._node,
+		return shape.elements.hitTestPoint(
+			this.entity.node,
 			x, y, z,
 			box,
-			(<Shape> this._asset).count,
-			(<Shape> this._asset).offset,
+			shape.count,
+			shape.offset,
 		);
 	}
 
@@ -551,28 +549,30 @@ export class _Pick_Shape extends _Pick_PickableBase {
 		cache: Box = null,
 		target: Box = null,
 	): Box {
+		const shape = <Shape> this._asset;
+
 		if (matrix3D)
-			return (<Shape> this._asset).elements.getBoxBounds(
-				this._node,
+			return shape.elements.getBoxBounds(
+				this.entity.node,
 				strokeFlag,
 				matrix3D,
 				cache,
 				target,
-				(<Shape> this._asset).count,
-				(<Shape> this._asset).offset,
+				shape.count,
+				shape.offset,
 			);
 
 		if (this._orientedBoxBoundsDirty) {
 			this._orientedBoxBoundsDirty = false;
 
-			this._orientedBoxBounds = (<Shape> this._asset).elements.getBoxBounds(
-				this._node,
+			this._orientedBoxBounds = shape.elements.getBoxBounds(
+				this.entity.node,
 				strokeFlag,
 				null,
 				this._orientedBoxBounds,
 				null,
-				(<Shape> this._asset).count,
-				(<Shape> this._asset).offset,
+				shape.count,
+				shape.offset,
 			);
 		}
 
@@ -588,28 +588,30 @@ export class _Pick_Shape extends _Pick_PickableBase {
 		cache: Sphere = null,
 		target: Sphere = null,
 	): Sphere {
+		const shape = <Shape> this._asset;
+
 		if (matrix3D)
-			return (<Shape> this._asset).elements.getSphereBounds(
+			return shape.elements.getSphereBounds(
 				center,
 				matrix3D,
 				strokeFlag,
 				cache,
 				target,
-				(<Shape> this._asset).count,
-				(<Shape> this._asset).offset,
+				shape.count,
+				shape.offset,
 			);
 
 		if (this._orientedSphereBoundsDirty) {
 			this._orientedSphereBoundsDirty = false;
 
-			this._orientedSphereBounds = (<Shape> this._asset).elements.getSphereBounds(
+			this._orientedSphereBounds = shape.elements.getSphereBounds(
 				center,
 				null,
 				strokeFlag,
 				this._orientedSphereBounds,
 				null,
-				(<Shape> this._asset).count,
-				(<Shape> this._asset).offset,
+				shape.count,
+				shape.offset,
 			);
 		}
 
@@ -634,9 +636,9 @@ export class _Pick_Shape extends _Pick_PickableBase {
 			collision,
 			box,
 			findClosestCollision,
-			(<Shape> this._asset).material || (<IRenderContainer>collision.containerNode.container).material,
-			(<Shape> this._asset).count || (<Shape> this._asset).elements.numVertices,
-			(<Shape> this._asset).offset,
+			shape.material || (<IRenderContainer>collision.containerNode.container).material,
+			shape.count || shape.elements.numVertices,
+			shape.offset,
 		);
 	}
 }
