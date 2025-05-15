@@ -365,7 +365,7 @@ export class _Render_Shape extends _Render_RenderableBase {
 			this._globalBounds
 		);
 	}
-		
+
 	public get shape(): Shape {
 		return <Shape> this._asset;
 	}

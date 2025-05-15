@@ -156,7 +156,7 @@ export class Graphics extends AssetBase {
 	private _lastPrebuildedShapes: Shape[] = [];
 	private _drawingDirty: boolean = false;
 
-	private _owners: WeakAssetSet = new WeakAssetSet("Sprite");
+	private _owners: WeakAssetSet = new WeakAssetSet('Sprite');
 
 	public _start: GraphicsPath[];
 	public _end: GraphicsPath[];
