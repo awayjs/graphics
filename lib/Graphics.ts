@@ -144,8 +144,8 @@ export class Graphics extends AssetBase {
 
 	private _queued_fill_pathes: GraphicsPath[] = [];
 	private _queued_stroke_pathes: GraphicsPath[] = [];
-	private _active_fill_path: GraphicsPath;
-	private _active_stroke_path: GraphicsPath;
+	public _active_fill_path: GraphicsPath;
+	public _active_stroke_path: GraphicsPath;
 	private _lineStyle: GraphicsStrokeStyle<any>;
 	private _fillStyle: GraphicsFillStyle<any>;
 
@@ -153,7 +153,8 @@ export class Graphics extends AssetBase {
 
 	public tryOptimiseSigleImage: boolean = false;
 
-	private _lastPrebuildedShapes: Shape[] = [];
+	public _lastFill: Shape;
+	public _lastStroke: Shape;
 	private _drawingDirty: boolean = false;
 
 	private _owners: WeakAssetSet = new WeakAssetSet('Sprite');
@@ -418,7 +419,8 @@ export class Graphics extends AssetBase {
 
 	public clear(): void {
 		this._clearCount++;
-		this._lastPrebuildedShapes.length = 0;
+		this._lastFill = null;
+		this._lastStroke = null;
 
 		const requireShapePool = (
 			this._internalShapesId.length > 0
@@ -527,11 +529,13 @@ export class Graphics extends AssetBase {
 		// otherwise it will corrupt rendering flow
 		if (this._drawingDirty) {
 
-			// need to drop shapes that was pre-built but not a closed (_endFillInternal(false))
+			// need to drop shape that was pre-built but not a closed (_endFillInternal(false))
 			// because shape was corrupted when a bounds calculation requested between commands
-			for (const s of this._lastPrebuildedShapes) {
-				this.removeShape(s);
-			}
+			if (this._lastFill)
+				this.removeShape(this._lastFill);
+
+			if (this._lastStroke)
+				this.removeShape(this._lastStroke);
 
 			if (traverser instanceof PickEntity) {
 				// build shape construct shapes but not close graphics
@@ -1398,31 +1402,15 @@ export class Graphics extends AssetBase {
 			localQueue.length = 0;
 		}
 
-		const lastShapes = this._shapes.length;
-
-		GraphicsFactoryFills.draw_pathes(this);
-		GraphicsFactoryStrokes.draw_pathes(this);
+		GraphicsFactoryFills.draw_pathes(this, clear);
+		GraphicsFactoryStrokes.draw_pathes(this, clear);
 
 		if (clear) {
-			this._active_fill_path = null;
-			this._queued_fill_pathes.length = 0;
-			this._active_stroke_path = null;
-			this._queued_stroke_pathes.length = 0;
-
 			//reset fill style
 			this._fillStyle = null;
 
 			//create a new line path if needed
 			this._updateLinePath();
-		}
-
-		if (!clear) {
-			for (let i = lastShapes; i < this._shapes.length; i++) {
-				this._lastPrebuildedShapes[i - lastShapes] = this._shapes[i];
-			}
-			this._lastPrebuildedShapes.length = this._shapes.length - lastShapes;
-		} else {
-			this._lastPrebuildedShapes.length = 0;
 		}
 
 		this._drawingDirty = false;
@@ -1816,32 +1804,9 @@ export class Graphics extends AssetBase {
 		this.invalidate();
 	}
 
-	private processLazyTesselation (shapeTag: ShapeTag): void {
-		shapeTag.lazyTaskDone = null;
-		shapeTag.needParse = false;
-
-		// if parsing time more that a 2 ms, how many convert will runs?? =)
-		if (shapeTag.parsingTime < 30) {
-			//return;
-			const index = this._queuedShapeTags.indexOf(shapeTag);
-			if (index > -1) {
-				this._queuedShapeTags.splice(index, 1);
-			}
-
-			this.convertRecordsToShapeData(shapeTag, shapeTag.parsingTime > 1);
-		} else {
-			console.debug('[Graphics] Supress lazy shape convertion:',shapeTag);
-		}
-	}
-
 	public queueShapeTag(shapeTag: ShapeTag): void {
 		this._queuedShapeTags.push(shapeTag);
 		this._drawingDirty = true;
-
-		return;
-		if (shapeTag.needParse) {
-			shapeTag.lazyTaskDone = this.processLazyTesselation.bind(this);
-		}
 
 		return;
 	}
@@ -1851,9 +1816,11 @@ export class Graphics extends AssetBase {
 			if (this._active_fill_path == null || this._active_fill_path.style != this._fillStyle) {
 				this._active_fill_path = new GraphicsPath();
 				this._active_fill_path.style = this._fillStyle;
+				this._queued_fill_pathes.push(this._active_fill_path);
+				
+				//auto-add move command if starting position is not zero
 				if (this._current_position.x != 0 || this._current_position.y != 0)
 					this._active_fill_path.moveTo(this._current_position.x, this._current_position.y);
-				this._queued_fill_pathes.push(this._active_fill_path);
 			}
 		} else {
 			this._active_fill_path = null;
@@ -1865,9 +1832,11 @@ export class Graphics extends AssetBase {
 			if (this._active_stroke_path == null || this._active_stroke_path.style != this._lineStyle) {
 				this._active_stroke_path = new GraphicsPath();
 				this._active_stroke_path.style = this._lineStyle;
+				this._queued_stroke_pathes.push(this._active_stroke_path);
+
+				//auto-add move command if starting position is not zero
 				if (this._current_position.x != 0 || this._current_position.y != 0)
 					this._active_stroke_path.moveTo(this._current_position.x, this._current_position.y);
-				this._queued_stroke_pathes.push(this._active_stroke_path);
 			}
 		} else {
 			this._active_stroke_path = null;

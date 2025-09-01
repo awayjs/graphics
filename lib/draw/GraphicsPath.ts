@@ -1,4 +1,4 @@
-import { Point, Matrix3D, Box } from '@awayjs/core';
+import { Matrix3D, Box } from '@awayjs/core';
 
 import { GraphicsPathWinding } from '../draw/GraphicsPathWinding';
 import { GraphicsPathCommand } from '../draw/GraphicsPathCommand';
@@ -172,7 +172,11 @@ export class GraphicsPath implements IGraphicsData {
 		// now we collect the final position data
 		// a command list is no longer needed for this position data,
 		// we resolve all curves to line segments here
-		let contour, prev_x, prev_y, ctrl_x, ctrl_y, ctrl_x2, ctrl_y2, end_x, end_y;
+		let contour: number[];
+		let prev_x: number, prev_y: number;
+		let ctrl_x: number, ctrl_y: number;
+		let ctrl_x2: number, ctrl_y2: number;
+		let end_x: number, end_y: number;
 		let d = 0, p = 0;
 
 		// If we don't start with a moveTo command, ensure origin is added to positions

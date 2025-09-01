@@ -28,16 +28,17 @@ import { GraphicsFactoryFills, UnpackFillStyle } from './GraphicsFactoryFills';
  * <p>The Graphics class is final; it cannot be subclassed.</p>
  */
 export class GraphicsFactoryStrokes {
-	public static draw_pathes(targetGraphics: Graphics) {
+	public static draw_pathes(targetGraphics: Graphics, clear: boolean = false) {
 		//return;
 		const paths = targetGraphics.queued_stroke_pathes;
 		const len = paths.length;
+		let shape: Shape;
 
 		for (let i = 0; i < len; i++) {
 			const path = paths[i];
 			const style = (<GraphicsStrokeStyle<any>>path.style);
 
-			let shape = targetGraphics.popEmptyStrokeShape();
+			shape = targetGraphics.popEmptyStrokeShape();
 
 			path.prepare();
 
@@ -72,6 +73,15 @@ export class GraphicsFactoryStrokes {
 
 			targetGraphics.addShapeInternal(shape);
 
+		}
+
+		targetGraphics.queued_stroke_pathes.length = 0;
+		if (clear) {
+			targetGraphics._active_stroke_path = null;
+			targetGraphics._lastStroke = null;
+		} else if (shape) {
+			targetGraphics.queued_stroke_pathes.push(targetGraphics._active_stroke_path);
+			targetGraphics._lastStroke = shape;
 		}
 	}
 

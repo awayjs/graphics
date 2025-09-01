@@ -156,17 +156,18 @@ export class GraphicsFactoryFills {
 		return (dx + dy) < this.EPS;
 	}
 
-	public static draw_pathes(targetGraphics: Graphics) {
+	public static draw_pathes(targetGraphics: Graphics, clear: boolean = false) {
 		//return;
 		const pathes = targetGraphics.queued_fill_pathes;
 		const len = pathes.length;
+		let shape: Shape;
 
 		for (let cp = 0; cp < len; cp++) {
 			const path = pathes[cp];
 			const pathStyle = path.style;
 
 			// there are a bug with shapes
-			let shape = targetGraphics.popEmptyFillShape();
+			shape = targetGraphics.popEmptyFillShape();
 			let elements = shape ? <TriangleElements>shape.elements : null;
 
 			const target = elements ? elements.concatenatedBuffer : null;
@@ -206,7 +207,14 @@ export class GraphicsFactoryFills {
 
 			targetGraphics.addShapeInternal(shape);
 		}
-		//targetGraphics.queued_fill_pathes.length = 0;
+		targetGraphics.queued_fill_pathes.length = 0;
+		if (clear) {
+			targetGraphics._active_fill_path = null;
+			targetGraphics._lastFill = null;
+		} else if (shape) {
+			targetGraphics.queued_fill_pathes.push(targetGraphics._active_fill_path);
+			targetGraphics._lastFill = shape;
+		}
 	}
 
 	public static prepareContours(
@@ -263,26 +271,6 @@ export class GraphicsFactoryFills {
 
 	public static runTesselator(graphicsPath: GraphicsPath, qualityScale: number = 1): IResult {
 		const finalContours = this.prepareContours(graphicsPath, this.USE_TESS_FIX, qualityScale);
-
-		/* workaround for wasm crash
-		if (finalContours.length > 0) {
-			const firstContour = finalContours[0];
-			if (firstContour.length >= 6) {
-				if (firstContour[0] == 0 && firstContour[1] == 0
-					&& firstContour[2] == 0  && firstContour[3] == 0
-					&& firstContour[4] == 0  && firstContour[5] == 0) {
-					finalContours = this.prepareContours(graphicsPath, false);
-				} else if (firstContour[1] == 0
-					&& firstContour[3] == 0
-					&& firstContour[5] == 0) {
-					finalContours = this.prepareContours(graphicsPath, false);
-				} else if (firstContour[0] == 0
-					&& firstContour[2] == 0
-					&& firstContour[4] == 0) {
-					finalContours = this.prepareContours(graphicsPath, false);
-				}
-			}
-		}*/
 
 		if (finalContours.length > 0) {
 			SHAPE_INFO.multy_contours += 1;

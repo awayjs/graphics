@@ -357,15 +357,6 @@ export class _Render_Shape extends _Render_RenderableBase {
 	private _scaleY: number;
 	private _scale9Elements: ElementsBase;
 
-	private _globalBounds: Box = new Box();
-	public globalBounds (): Box {
-
-		return this.entity.node.getMatrix3D().transformBox(
-			PickGroup.getInstance().getBoundsPicker(this.entity.node).getBoxBounds(this.entity.node, true, true),
-			this._globalBounds
-		);
-	}
-
 	public get shape(): Shape {
 		return <Shape> this._asset;
 	}
