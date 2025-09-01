@@ -1817,7 +1817,7 @@ export class Graphics extends AssetBase {
 				this._active_fill_path = new GraphicsPath();
 				this._active_fill_path.style = this._fillStyle;
 				this._queued_fill_pathes.push(this._active_fill_path);
-				
+
 				//auto-add move command if starting position is not zero
 				if (this._current_position.x != 0 || this._current_position.y != 0)
 					this._active_fill_path.moveTo(this._current_position.x, this._current_position.y);
