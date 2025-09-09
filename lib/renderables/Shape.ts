@@ -1,16 +1,16 @@
 import { Box, Matrix3D, Sphere, Vector3D, AssetBase, Rectangle, Matrix } from '@awayjs/core';
 
-import { PickingCollision, PickEntity, _Pick_PickableBase, IContainer, PickGroup } from '@awayjs/view';
+import { PickingCollision, PickEntity, _Pick_PickableBase, IContainer, PickGroup, IPickable } from '@awayjs/view';
 
 import {
 	IMaterial,
-	RenderableEvent,
 	StyleEvent,
 	Style,
 	ElementsEvent,
 	IRenderContainer,
 	ElementsBase,
-	TriangleElements
+	TriangleElements,
+	IRenderable
 } from '@awayjs/renderer';
 
 import { IFillStyle } from '../draw/IGraphicsData';
@@ -26,7 +26,10 @@ import { ParticleCollection } from '../animators/data/ParticleCollection';
  *
  * @class away.base.Graphic
  */
-export class Shape<T extends ElementsBase = ElementsBase> extends AssetBase {
+export class Shape<T extends ElementsBase = ElementsBase> extends AssetBase implements IPickable, IRenderable {
+	public _renderObjects : Record<number, _Render_RenderableBase> = {};
+	public _pickObjects: Record<number, _Pick_PickableBase> = {};
+
 	private static _pool: Array<Shape> = new Array<Shape>();
 
 	public static getShape<T extends ElementsBase>(
@@ -290,15 +293,21 @@ export class Shape<T extends ElementsBase = ElementsBase> extends AssetBase {
 	}
 
 	public invalidateElements(): void {
-		this.dispatchEvent(new RenderableEvent(RenderableEvent.INVALIDATE_ELEMENTS, this));
+		for (const key in this._pickObjects)
+			this._pickObjects[key]._onInvalidateElements();
+
+		for (const key in this._renderObjects)
+			this._renderObjects[key]._onInvalidateElements();
 	}
 
 	public invalidateMaterial(): void {
-		this.dispatchEvent(new RenderableEvent(RenderableEvent.INVALIDATE_MATERIAL, this));
+		for (const key in this._renderObjects)
+			this._renderObjects[key]._onInvalidateMaterial();
 	}
 
 	public invalidateStyle(): void {
-		this.dispatchEvent(new RenderableEvent(RenderableEvent.INVALIDATE_STYLE, this));
+		for (const key in this._renderObjects)
+			this._renderObjects[key]._onInvalidateStyle();
 	}
 
 	private _onInvalidateProperties(event: StyleEvent): void {
@@ -373,8 +382,8 @@ export class _Render_Shape extends _Render_RenderableBase {
 		super.init(shape, renderEntity);
 	}
 
-	public onClear(event: AssetEvent): void {
-		super.onClear(event);
+	public onClear(): void {
+		super.onClear();
 
 		this._scaleX = null;
 		this._scaleY = null;
@@ -468,55 +477,6 @@ export class _Render_Shape extends _Render_RenderableBase {
  * @class away.pool._Render_Shape
  */
 export class _Pick_Shape extends _Pick_PickableBase {
-	private _orientedBoxBounds: Box;
-	private _orientedBoxBoundsDirty: boolean = true;
-	private _orientedSphereBounds: Sphere;
-	private _orientedSphereBoundsDirty = true;
-
-	private _onInvalidateElementsDelegate: (event: RenderableEvent) => void;
-
-	constructor() {
-		super();
-
-		this._onInvalidateElementsDelegate = (event: RenderableEvent) => this._onInvalidateElements(event);
-	}
-
-	/**
-	 * //TODO
-	 *
-	 * @param renderEntity
-	 * @param shape
-	 * @param level
-	 * @param indexOffset
-	 */
-	public init(shape: Shape, pickEntity: PickEntity): void {
-		super.init(shape, pickEntity);
-
-		this._asset.addEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateElementsDelegate);
-	}
-
-	public onInvalidate(event: AssetEvent): void {
-		super.onInvalidate(event);
-
-		this._orientedBoxBoundsDirty = true;
-		this._orientedSphereBoundsDirty = true;
-	}
-
-	private _onInvalidateElements(_event: RenderableEvent): void {
-		this._orientedBoxBoundsDirty = true;
-		this._orientedSphereBoundsDirty = true;
-	}
-
-	public onClear(event: AssetEvent): void {
-		this._asset.removeEventListener(RenderableEvent.INVALIDATE_ELEMENTS, this._onInvalidateElementsDelegate);
-
-		super.onClear(event);
-
-		this._orientedBoxBounds = null;
-		this._orientedBoxBoundsDirty = true;
-		this._orientedSphereBounds = null;
-		this._orientedSphereBoundsDirty = true;
-	}
 
 	public hitTestPoint(x: number, y: number, z: number): boolean {
 		const box: Box = this.getBoxBounds();
