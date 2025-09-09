@@ -27,7 +27,7 @@ import { ParticleCollection } from '../animators/data/ParticleCollection';
  * @class away.base.Graphic
  */
 export class Shape<T extends ElementsBase = ElementsBase> extends AssetBase implements IPickable, IRenderable {
-	public _renderObjects : Record<number, _Render_RenderableBase> = {};
+	public _renderObjects: Record<number, _Render_RenderableBase> = {};
 	public _pickObjects: Record<number, _Pick_PickableBase> = {};
 
 	private static _pool: Array<Shape> = new Array<Shape>();
