@@ -20,6 +20,6 @@ export class SolidFillStyle implements IFillStyle {
 	}
 
 	public toString(): string {
-		return (this.color | 0).toString(16) + '#' + ((this.alpha * 255) | 0).toString(16);;
+		return (this.color | 0).toString(16) + '#' + ((this.alpha * 255) | 0).toString(16);
 	}
 }

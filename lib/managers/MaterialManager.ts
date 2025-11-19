@@ -79,7 +79,7 @@ export class MaterialManager {
 		return newmat;
 	}
 
-	public static getMaterialForBitmap (transform:boolean = false): IMaterial {
+	public static getMaterialForBitmap (transform: boolean = false): IMaterial {
 		if (!MaterialManager.materialClass) {
 			throw ('no materialClass registered on MaterialManager!');
 		}
