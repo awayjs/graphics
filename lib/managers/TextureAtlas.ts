@@ -1,14 +1,13 @@
-import { Point, ColorUtils, Rectangle } from '@awayjs/core';
+import { Point, ColorUtils, Rectangle, Matrix } from '@awayjs/core';
 
 import { BitmapImage2D } from '@awayjs/stage';
 
 import { GradientFillStyle } from '../draw/fills/GradientFillStyle';
-import { IMaterial } from '@awayjs/renderer';
+import { SolidFillStyle } from '../draw/fills/SolidFillStyle';
 
 export interface ITextureAtlasEntry{
-	material?: IMaterial;
 	bitmap?: BitmapImage2D;
-	colorPos?: Point;
+	uvMatrix?: Matrix;
 	uvRectangle?: Rectangle;
 }
 
@@ -17,21 +16,12 @@ export class TextureAtlas {
 	private static _allGradients: StringMap<ITextureAtlasEntry> = {};
 	private static _allColors: StringMap<ITextureAtlasEntry> = {};
 
-	public static clearAllMaterials() {
-		for (const key in TextureAtlas._allColors) {
-			TextureAtlas._allColors[key].material = null;
-		}
-
-		for (const key in TextureAtlas._allGradients) {
-			TextureAtlas._allGradients[key].material = null;
-		}
-	}
-
-	public static getTextureForColor(color: number, alpha: number): ITextureAtlasEntry {
-		const hash = (color | 0).toString(16) + '#' + ((alpha * 255) | 0).toString(16);
+	public static getTextureForColor(solid: SolidFillStyle): BitmapImage2D {
+		const hash: string = solid.toString();
 
 		if (hash in this._allColors) {
-			return this._allColors[hash];
+			solid.uvMatrix = this._allColors[hash].uvMatrix;
+			return this._allColors[hash].bitmap;
 		}
 
 		// find textureAtlas that has empty space:
@@ -50,23 +40,25 @@ export class TextureAtlas {
 			this._allTextureAtlas.push(textureAtlas);
 		}
 
-		const newColorObj: ITextureAtlasEntry = {
-			colorPos: textureAtlas.addColor(color, alpha),
+		const colorPos: Point = textureAtlas.addSolid(solid);
+
+		solid.uvMatrix = new Matrix(0, 0, 0, 0, colorPos.x, colorPos.y);
+
+		this._allColors[hash] = {
+			uvMatrix: solid.uvMatrix,
 			bitmap: textureAtlas.bitmap,
-			material: null,
 			uvRectangle: null
 		};
 
-		this._allColors[hash] = newColorObj;
-		return newColorObj;
+		return textureAtlas.bitmap;
 	}
 
-	public static getTextureForGradient(gradient: GradientFillStyle): any {
+	public static getTextureForGradient(gradient: GradientFillStyle): BitmapImage2D {
 		const hash: string = gradient.toString();
 
 		if (hash in this._allGradients) {
 			gradient.uvRectangle = this._allGradients[hash].uvRectangle;
-			return this._allGradients[hash];
+			return this._allGradients[hash].bitmap;
 		}
 
 		let textureAtlas: TextureAtlas;
@@ -86,16 +78,12 @@ export class TextureAtlas {
 
 		textureAtlas.addGradient(gradient);
 
-		const newGradEntry: ITextureAtlasEntry = {
-			colorPos: null,
+		this._allGradients[hash] = {
 			bitmap: textureAtlas.bitmap,
-			material: null,
-			uvRectangle: gradient.uvRectangle.clone()
+			uvRectangle: gradient.uvRectangle
 		};
 
-		this._allGradients[hash] = newGradEntry;
-
-		return newGradEntry;
+		return textureAtlas.bitmap;
 	}
 
 	public availableRows: number = 256;
@@ -142,7 +130,7 @@ export class TextureAtlas {
 		return this.availableRows;
 	}
 
-	public addColor(color: number, alpha: number = 1): Point {
+	public addSolid(solid: SolidFillStyle): Point {
 		this.colorPosition--;
 
 		if (this.colorPosition < 0) {
@@ -153,14 +141,14 @@ export class TextureAtlas {
 			if (this.availableRows < 0) {
 				this.availableRows = 0;
 
-				console.error('[TextureAtlass] There are not free space for color:', color.toString(16));
+				console.error('[TextureAtlass] There are not free space for color:', solid.color.toString(16));
 				return null;
 			}
 		}
 
-		const argb = ColorUtils.float32ColorToARGB(color);
+		const argb = ColorUtils.float32ColorToARGB(solid.color);
 
-		argb[0] = alpha;
+		argb[0] = solid.alpha;
 
 		this.bitmap.setPixelFromArray(this.colorPosition, this.colorRow, argb);
 

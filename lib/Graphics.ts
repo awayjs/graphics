@@ -10,7 +10,7 @@ import {
 	IAsset,
 } from '@awayjs/core';
 
-import { BitmapImage2D, ImageSampler } from '@awayjs/stage';
+import { BitmapImage2D, Image2D, ImageSampler } from '@awayjs/stage';
 
 import { IEntityTraverser, PickEntity } from '@awayjs/view';
 
@@ -74,20 +74,6 @@ const fromTwips = (val: number) => Math.round(val / 20);
 export class Graphics extends AssetBase {
 	private static _pool: Array<Graphics> = new Array<Graphics>();
 
-	public static getShapeForBitmap (
-		bitmap: BitmapImage2D,
-		rect: Rectangle,
-	): Shape<TriangleElements> {
-
-		const mat = MaterialManager.getMaterialForBitmap(bitmap);
-		const style = mat.style;
-
-		style.sampler = new ImageSampler(false, true, false);
-		style.addSamplerAt(style.sampler, mat.getTextureAt(0));
-
-		return Shape.getShape<TriangleElements> (Shape.getTriangleElement(rect, false, true), mat, style);
-	}
-
 	public static getShapeForBitmapStyle (shapeStyle: ShapeStyle, flashBox: BBox): Shape<TriangleElements> {
 
 		const style = new Style();
@@ -103,25 +89,21 @@ export class Graphics extends AssetBase {
 		element.usages++;
 
 		const { a, b, c, d, tx, ty } = shapeStyle.transform;
-		const texture = shapeStyle.material.getTextureAt(0);
-		const mat = MaterialManager.getMaterialForBitmap(<BitmapImage2D>shapeStyle.material.style.image);
+
+		style.image = shapeStyle.image;
 
 		const bitmapFillStyle = new BitmapFillStyle(
-			mat,
+			<Image2D> shapeStyle.image,
 			new Matrix(a, b, c ,d, tx, ty),
 			shapeStyle.repeat,
 			shapeStyle.smooth
 		);
 
-		const material = bitmapFillStyle.material;
+		const material = MaterialManager.getMaterialForBitmap(true);
+
 		//enforce image smooth style
-		const sampler = new ImageSampler(
-			bitmapFillStyle.repeat, bitmapFillStyle.smooth, shapeStyle.smooth);
+		style.sampler = new ImageSampler(shapeStyle.repeat, shapeStyle.smooth, shapeStyle.smooth);
 
-		material.style.sampler = sampler;
-		material.animateUVs = true;
-
-		style.addSamplerAt(sampler, texture);
 		style.uvMatrix = bitmapFillStyle.getUVMatrix();
 
 		return Shape.getShape(element, material, style);
@@ -477,14 +459,6 @@ export class Graphics extends AssetBase {
 	public dispose(): void {
 		this.clear();
 
-		if (this._bitmapFillPool) {
-			for (const k in this._bitmapFillPool) {
-				this._bitmapFillPool[k].fillStyle.material.dispose();
-			}
-
-			this._bitmapFillPool = null;
-		}
-
 		this._bitmapFillPool = null;
 
 		/* we can not release shapes for this, it was a store elements that can be reused then */
@@ -608,7 +582,7 @@ export class Graphics extends AssetBase {
 		if (!fill) {
 			fill = this._bitmapFillPool[bitmap.id] = new GraphicsFillStyle<BitmapFillStyle>(
 				new BitmapFillStyle(
-					MaterialManager.getMaterialForBitmap(bitmap),
+					bitmap,
 					matrix,
 					repeat,
 					smooth)

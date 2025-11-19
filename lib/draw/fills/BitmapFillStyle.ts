@@ -1,15 +1,14 @@
 import { Matrix } from '@awayjs/core';
 
 import { IFillStyle } from '../IGraphicsData';
-import { IMaterial } from '@awayjs/renderer';
-import { BitmapImage2D, ImageUtils } from '@awayjs/stage';
+import { Image2D } from '@awayjs/stage';
 
 export class BitmapFillStyle implements IFillStyle {
 	public static data_type: string = '[graphicsdata BitmapFillStyle]';
 	/**
      * The Vector of drawing commands as integers representing the path.
      */
-	public material: IMaterial;
+	public image: Image2D;
 	public imgWidth: number;
 	public imgHeight: number;
 	public matrix: Matrix;
@@ -17,8 +16,8 @@ export class BitmapFillStyle implements IFillStyle {
 	public smooth: boolean;
 	private _uvMatrix: Matrix;
 
-	constructor(material: IMaterial, matrix: Matrix, repeat: boolean,  smooth: boolean) {
-		this.material = material;
+	constructor(image: Image2D, matrix: Matrix, repeat: boolean,  smooth: boolean) {
+		this.image = image;
 		this.matrix = matrix;
 		this.repeat = repeat;
 		this.smooth = smooth;
@@ -36,21 +35,16 @@ export class BitmapFillStyle implements IFillStyle {
 		if (!this._uvMatrix)
 			this._uvMatrix = new Matrix();
 
-		const texture = this.material.getTextureAt(0);
-		const style = this.material.style;
-
-		const image = <BitmapImage2D> (texture.getImageAt(0) || style?.getImageAt(texture, 0) || ImageUtils.getDefaultImage2D());
-
 		let projection_width_half: number;
 		let projection_height_half: number;
 
-		if (!image) {
+		if (!this.image) {
 			console.warn('[BitmapFillStyle] - getUVMatrix - no texture found');
 			projection_width_half = 512;
 			projection_height_half = 512;
 		} else {
-			projection_width_half = image.width;
-			projection_height_half = image.height;
+			projection_width_half = this.image.width;
+			projection_height_half = this.image.height;
 		}
 
 		//	Get and invert the uv transform:

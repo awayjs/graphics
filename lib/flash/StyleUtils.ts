@@ -1,4 +1,4 @@
-import { IMaterial, IMaterialFactory } from '@awayjs/renderer';
+import { IMaterialFactory } from '@awayjs/renderer';
 import { BitmapImage2D, Image2D } from '@awayjs/stage';
 import { FillType } from '../data/FillType';
 import { SegmentedPath } from '../data/SegmentedPath';
@@ -22,7 +22,7 @@ export class StyleUtils  {
 				shapeStyle.ratios = fillStyle.ratios;
 				shapeStyle.focalPoint = fillStyle.focalPoint;
 				shapeStyle.bitmapId = fillStyle.bitmapId;
-				shapeStyle.material = fillStyle.material;
+				shapeStyle.image = fillStyle.image;
 				shapeStyle.repeat = fillStyle.repeat;
 				style.fillStyle = null;
 				return shapeStyle;
@@ -76,7 +76,7 @@ export class StyleUtils  {
 				index = dependencies.length;
 				dependencies.push(style.bitmapId);
 			}*/
-				shapeStyle.material = this.getMaterial(style.bitmapId, factory);
+				shapeStyle.image = this.getImage(style.bitmapId, factory);
 				scale = 1 / 20;
 				break;
 			default:
@@ -102,23 +102,8 @@ export class StyleUtils  {
 		return shapeStyle;
 	}
 
-	private static getMaterial(bitmapIndex: number, factory: IMaterialFactory): IMaterial {
-		let material: IMaterial = factory.mapMatsForBitmaps[bitmapIndex];
-		if (!material) {
-
-			let myImage: Image2D = <Image2D> factory.awaySymbols[bitmapIndex];
-			if (!myImage)
-				myImage = new BitmapImage2D(512, 512, true, 0xff0000ff, true);
-
-			material = factory.createMaterial(myImage);
-
-			material.alphaBlending = true;
-			material.useColorTransform = true;
-			material.bothSides = true;
-			factory.mapMatsForBitmaps[bitmapIndex] = material;
-		}
-
-		return material;
+	private static getImage(bitmapIndex: number, factory: IMaterialFactory): Image2D {
+		return <Image2D> factory.awaySymbols[bitmapIndex] || new BitmapImage2D(512, 512, true, 0xff0000ff, true);
 	}
 
 	public static processMorphStyle(style: any, isLineStyle: boolean): ShapeStyle {

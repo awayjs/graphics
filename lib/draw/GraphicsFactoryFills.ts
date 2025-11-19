@@ -1,8 +1,7 @@
-import { Matrix } from '@awayjs/core';
 import {
 	ImageSampler,
 	AttributesBuffer,
-	Float2Attributes,
+	Float2Attributes
 } from '@awayjs/stage';
 
 import { MappingMode, IMaterial, Style, TriangleElements } from '@awayjs/renderer';
@@ -23,6 +22,7 @@ import { MaterialManager } from '../managers/MaterialManager';
 import { Tess2Provider, TessAsyncService } from '../utils/TessAsyncService';
 import { IResult } from './WorkerTesselatorBody';
 import { IFillStyle } from './IGraphicsData';
+import { TextureAtlas } from '../managers/TextureAtlas';
 
 /**
  * The Graphics class contains a set of methods that you can use to create a
@@ -51,27 +51,25 @@ const FIXED_BASE = 1000;
 
 export interface IStyleElements {
 	material: IMaterial,
-	style: Style,
-	sampler: ImageSampler
+	style: Style
 }
 
 type tStyleMapper = (style: IFillStyle,data: IStyleElements) => IStyleElements;
 
 export const UnpackFillStyle: Record<string, tStyleMapper> = {
 	[GradientFillStyle.data_type] (style: GradientFillStyle,data: IStyleElements): IStyleElements {
-		const obj = MaterialManager.getMaterialForGradient(style);
-		const material = obj.material;
+		const material = MaterialManager.getMaterialForGradient(style);
 
-		data.material = obj.material;
-		data.material.animateUVs = true;
+		data.material = material;
 
-		data.style.addSamplerAt(data.sampler, material.getTextureAt(0));
+		data.style.image = TextureAtlas.getTextureForGradient(style);
 		data.style.uvMatrix = style.getUVMatrix();
 
 		if (style.type == GradientType.LINEAR) {
 			material.getTextureAt(0).mappingMode = MappingMode.LINEAR;
 		} else if (style.type == GradientType.RADIAL) {
-			data.sampler.imageRect = style.uvRectangle;
+			const sampler = data.style.sampler = new ImageSampler();
+			sampler.imageRect = style.uvRectangle;
 			material.imageRect = true;
 			material.getTextureAt(0).mappingMode = MappingMode.RADIAL;
 		}
@@ -81,23 +79,15 @@ export const UnpackFillStyle: Record<string, tStyleMapper> = {
 
 	// handle solid, we store inside GraphicsFactoryFill
 	[SolidFillStyle.data_type] (style: SolidFillStyle, data: IStyleElements): IStyleElements {
-		const obj = MaterialManager.getMaterialForColor(
-			style.color,
-			style.alpha
-		);
+		const material = MaterialManager.getMaterialForColor(style);
 
-		const material = obj.material;
 		data.material = material;
 
-		if (obj.colorPos) {
-			material.animateUVs = true;
-
-			data.style.addSamplerAt(data.sampler, material.getTextureAt(0));
-			data.style.uvMatrix = new Matrix(0, 0, 0, 0, obj.colorPos.x, obj.colorPos.y);
-			style.uvMatrix = data.style.uvMatrix;
-
+		if (material.getNumTextures()) {
+			data.style.image = TextureAtlas.getTextureForColor(style);
+			data.style.uvMatrix = style.getUVMatrix();
 		} else {
-			data.style = data.sampler = null;
+			data.style = null;
 		}
 
 		return data;
@@ -105,18 +95,11 @@ export const UnpackFillStyle: Record<string, tStyleMapper> = {
 
 	[BitmapFillStyle.data_type] (style: BitmapFillStyle, data: IStyleElements): IStyleElements {
 
-		//new ITexture(ImageUtils.getDefaultImage2D());//bitmapStyle.texture;
-		const material = style.material;
-		data.material = material;
+		data.material = MaterialManager.getMaterialForBitmap(true);
 
-		data.sampler.repeat = style.repeat;
-		data.sampler.smooth = style.smooth;
-		data.sampler.mipmap = style.smooth;
+		data.style.sampler = new ImageSampler(style.repeat, style.smooth, style.smooth);
 
-		material.style.sampler = data.sampler;
-		material.animateUVs = true;
-
-		data.style.addSamplerAt(data.sampler, material.getTextureAt(0));
+		data.style.image = style.image;
 		data.style.uvMatrix = style.getUVMatrix();
 
 		return data;
@@ -188,7 +171,6 @@ export class GraphicsFactoryFills {
 			elements.isDynamic = targetGraphics._clearCount > 0;
 
 			const data: IStyleElements = {
-				sampler: new ImageSampler(),
 				style: new Style(),
 				material: null
 			};

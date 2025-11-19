@@ -1,5 +1,5 @@
-import { IMaterial } from '@awayjs/renderer';
 import { ShapeMatrix } from '../data/ShapeData';
+import { Image2D } from '@awayjs/stage';
 
 export interface FillStyle {
 	type: number;
@@ -43,7 +43,7 @@ export interface ShapeStyle {
 	interpolationMode?: number;
 	focalPoint?: number;
 	bitmapId?: number;
-	material?: IMaterial;
+	image?: Image2D;
 	repeat?: boolean;
 	smooth?: boolean;
 

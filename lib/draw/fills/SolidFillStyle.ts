@@ -18,4 +18,8 @@ export class SolidFillStyle implements IFillStyle {
 	public get data_type () {
 		return SolidFillStyle.data_type;
 	}
+
+	public toString(): string {
+		return (this.color | 0).toString(16) + '#' + ((this.alpha * 255) | 0).toString(16);;
+	}
 }

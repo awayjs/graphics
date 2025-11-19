@@ -141,7 +141,7 @@ export class SegmentedPath {
 					style.transform.ty);
 
 				fillStyle = new BitmapFillStyle(
-					style.material,
+					style.image,
 					awayMatrix,
 					style.repeat,
 					style.smooth

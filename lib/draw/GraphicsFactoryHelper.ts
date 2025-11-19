@@ -1,15 +1,17 @@
 
-import { Point, MathConsts,  Matrix } from '@awayjs/core';
+import { Point, MathConsts } from '@awayjs/core';
 
-import { ImageSampler, AttributesBuffer, AttributesView, Float2Attributes } from '@awayjs/stage';
+import { AttributesBuffer, AttributesView, Float2Attributes } from '@awayjs/stage';
 
-import { IMaterial, Style, TriangleElements } from '@awayjs/renderer';
+import { Style, TriangleElements } from '@awayjs/renderer';
 
 import { Shape } from '../renderables/Shape';
 import { GraphicsPath } from '../draw/GraphicsPath';
 import { CapsStyle } from '../draw/CapsStyle';
 import { MaterialManager } from '../managers/MaterialManager';
 import { Settings } from '../Settings';
+import { SolidFillStyle } from './fills/SolidFillStyle';
+import { TextureAtlas } from '../managers/TextureAtlas';
 
 export class GraphicsFactoryHelper {
 	public static _tess_obj: any;
@@ -50,8 +52,8 @@ export class GraphicsFactoryHelper {
 			final_vert_list[outCnt++] = x + w;
 			final_vert_list[outCnt++] = y + h;
 		}
-		const obj: any = MaterialManager.getMaterialForColor(color, alpha);
-		const material: IMaterial = obj.material;
+		const solid = new SolidFillStyle(color, alpha);
+		const material = MaterialManager.getMaterialForColor(solid);
 		const attributesView: AttributesView = new AttributesView(Float32Array, material.curves ? 3 : 2);
 		attributesView.set(final_vert_list);
 		const attributesBuffer: AttributesBuffer = attributesView.attributesBuffer.cloneBufferView();
@@ -60,14 +62,14 @@ export class GraphicsFactoryHelper {
 		elements.setPositions(new Float2Attributes(attributesBuffer));
 
 		const shape: Shape = Shape.getShape(elements, material);
-		if (obj.colorPos) {
+
+		shape.material = material;
+		if (material.getNumTextures()) {
 			shape.style = new Style();
-			const sampler: ImageSampler = new ImageSampler();
-			material.animateUVs = true;
-			shape.style.color = color;
-			shape.style.addSamplerAt(sampler, material.getTextureAt(0));
-			shape.style.uvMatrix = new Matrix(0, 0, 0, 0, obj.colorPos.x, obj.colorPos.y);
+			shape.style.image = TextureAtlas.getTextureForColor(solid);
+			shape.style.uvMatrix = solid.getUVMatrix();
 		}
+
 		return shape;
 	}
 
