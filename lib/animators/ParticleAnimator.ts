@@ -1,6 +1,6 @@
 import { IElements, ShaderBase, _Render_RenderableBase, AnimationRegisterData } from '@awayjs/renderer';
 
-import { _Render_Shape } from '../renderables/Shape';
+import { _Render_Shape, Shape } from '../renderables/Shape';
 
 import { AnimationElements } from './data/AnimationElements';
 import { ParticleCollection } from './data/ParticleCollection';
@@ -69,9 +69,9 @@ export class ParticleAnimator extends AnimatorBase {
 	public setRenderState(shader: ShaderBase, renderable: _Render_Shape): void {
 		const animationRegisterData: AnimationRegisterData = this._particleAnimationSet._iAnimationRegisterData;
 
-		const particleCollection: ParticleCollection = renderable.shape.particleCollection;
+		const particleCollection: ParticleCollection = (<Shape> renderable.renderable).particleCollection;
 
-		const elements: IElements = renderable.shape.elements;
+		const elements: IElements = (<Shape> renderable.renderable).elements;
 
 		//process animation sub geometries
 		const animationElements: AnimationElements = this._particleAnimationSet.getAnimationElements(particleCollection, elements);

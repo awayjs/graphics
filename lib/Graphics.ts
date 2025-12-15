@@ -12,7 +12,7 @@ import {
 
 import { BitmapImage2D, Image2D, ImageSampler } from '@awayjs/stage';
 
-import { IEntityTraverser, PickEntity } from '@awayjs/view';
+import { IContainer, IEntityTraverser, PickEntity } from '@awayjs/view';
 
 import {
 	IMaterial,
@@ -20,7 +20,7 @@ import {
 	TriangleElements,
 	LineElements,
 	LineScaleMode,
-	IMaterialFactory,
+	IMaterialFactory
 } from '@awayjs/renderer';
 
 import { GraphicsPath } from './draw/GraphicsPath';
@@ -139,7 +139,7 @@ export class Graphics extends AssetBase {
 	public _lastStroke: Shape;
 	private _drawingDirty: boolean = false;
 
-	private _owners: WeakAssetSet = new WeakAssetSet('Sprite');
+	private _owners: WeakAssetSet<IContainer> = new WeakAssetSet<IContainer>();
 
 	public _start: GraphicsPath[];
 	public _end: GraphicsPath[];
@@ -269,18 +269,18 @@ export class Graphics extends AssetBase {
 		this._internalShapesId.push(shape.id);
 	}
 
-	public addOwner(owner: IAsset): void {
+	public addOwner(owner: IContainer): void {
 		this._owners.add(owner);
 	}
 
-	public removeOwner(owner: IAsset): void {
+	public removeOwner(owner: IContainer): void {
 		this._owners.remove(owner);
 	}
 
 	public invalidate(): void {
 		super.invalidate();
 
-		this._owners.forEach((asset: IAsset) => asset.invalidate());
+		this._owners.forEach((asset: IContainer) => asset.invalidate());
 	}
 
 	/**

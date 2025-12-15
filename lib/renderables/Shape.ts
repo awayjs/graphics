@@ -366,10 +366,6 @@ export class _Render_Shape extends _Render_RenderableBase {
 	private _scaleY: number;
 	private _scale9Elements: ElementsBase;
 
-	public get shape(): Shape {
-		return <Shape> this._asset;
-	}
-
 	/**
 	 * //TODO
 	 *
@@ -396,38 +392,43 @@ export class _Render_Shape extends _Render_RenderableBase {
 	 * @protected
 	 */
 	protected _getStageElements(): _Stage_ElementsBase {
-		this._offset = (<Shape> this._asset).offset;
-		this._count = (<Shape> this._asset).count;
+		const shape: Shape = (<Shape> this.renderable);
+		this._offset = shape.offset;
+		this._count = shape.count;
 
 		const _scale9Container: IContainer = this.entity.node.getScale9Container();
 		if (_scale9Container) {
 
-			return this.updateScale9(
-				_scale9Container.scale9Grid,
-				_scale9Container.transform.scale.x,
-				_scale9Container.transform.scale.y)
-				.getAbstraction<_Stage_ElementsBase>(this._stage);
+			return this._stage.abstractions
+				.getAbstraction<_Stage_ElementsBase>(this.updateScale9(
+					_scale9Container.scale9Grid,
+					_scale9Container.transform.scale.x,
+					_scale9Container.transform.scale.y)
+				);
 		}
 
 		const container = (<IRenderContainer> this.entity.node.container);
 		const elements = container.animator
-			? (<AnimatorBase> container.animator).getRenderableElements(this, (<Shape> this._asset).elements)
-			: (<Shape> this._asset).elements;
+			? (<AnimatorBase> container.animator).getRenderableElements(this, shape.elements)
+			: shape.elements;
 
-		return elements.getAbstraction<_Stage_ElementsBase>(this._stage);
+		return this._stage.abstractions.getAbstraction<_Stage_ElementsBase>(elements);
 	}
 
 	protected _getRenderMaterial(): _Render_MaterialBase {
-		const material: IMaterial =
-			(<Shape> this._asset).material ||
-			(<IRenderContainer> this.entity.node.container).material ||
-			this.getDefaultMaterial();
+		const shape: Shape = <Shape> this.renderable
 
-		return material.getAbstraction<_Render_MaterialBase>(this.entity.renderer.getRenderElements((<Shape> this._asset).elements));
+		return this.entity.renderer
+			.getRenderElements(shape.elements).abstractions
+			.getAbstraction<_Render_MaterialBase>(
+				shape.material
+				|| (<IRenderContainer> this.entity.node.container).material
+				|| this.getDefaultMaterial()
+			);
 	}
 
 	protected _getStyle(): Style {
-		return (<Shape> this._asset).style || (<IRenderContainer> this.entity.node.container).style;
+		return this.renderable.style || (<IRenderContainer> this.entity.node.container).style;
 	}
 
 	protected getDefaultMaterial(): IMaterial {
@@ -441,7 +442,7 @@ export class _Render_Shape extends _Render_RenderableBase {
 		if (!this._scale9Elements) {
 			let uvMatrix: Matrix = null;
 			let generateUV: boolean = false;
-			const shape = <Shape> this._asset;
+			const shape = <Shape> this.renderable;
 
 			if (shape.originalFillStyle instanceof BitmapFillStyle)
 				uvMatrix = shape.originalFillStyle.getUVMatrix();
@@ -480,13 +481,13 @@ export class _Pick_Shape extends _Pick_PickableBase {
 
 	public hitTestPoint(x: number, y: number, z: number): boolean {
 		const box: Box = this.getBoxBounds();
-		const shape = <Shape> this._asset;
+		const shape = <Shape> this.pickable;
 
 		//early out for box test
 		if (box == null || !box.contains(x, y, z)) return false;
 
 		return shape.elements.hitTestPoint(
-			this.entity.node,
+			(<PickEntity> this._pool).node,
 			x, y, z,
 			box,
 			shape.count,
@@ -500,11 +501,11 @@ export class _Pick_Shape extends _Pick_PickableBase {
 		cache: Box = null,
 		target: Box = null,
 	): Box {
-		const shape = <Shape> this._asset;
+		const shape = <Shape> this.pickable;
 
 		if (matrix3D)
 			return shape.elements.getBoxBounds(
-				this.entity.node,
+				(<PickEntity> this._pool).node,
 				strokeFlag,
 				matrix3D,
 				cache,
@@ -517,7 +518,7 @@ export class _Pick_Shape extends _Pick_PickableBase {
 			this._orientedBoxBoundsDirty = false;
 
 			this._orientedBoxBounds = shape.elements.getBoxBounds(
-				this.entity.node,
+				(<PickEntity> this._pool).node,
 				strokeFlag,
 				null,
 				this._orientedBoxBounds,
@@ -539,7 +540,7 @@ export class _Pick_Shape extends _Pick_PickableBase {
 		cache: Sphere = null,
 		target: Sphere = null,
 	): Sphere {
-		const shape = <Shape> this._asset;
+		const shape = <Shape> this.pickable;
 
 		if (matrix3D)
 			return shape.elements.getSphereBounds(
@@ -573,7 +574,7 @@ export class _Pick_Shape extends _Pick_PickableBase {
 
 	public testCollision(collision: PickingCollision, findClosestCollision: boolean): boolean {
 		const box = this.getBoxBounds();
-		const shape = <Shape> this._asset;
+		const shape = <Shape> this.pickable;
 
 		//early out for box test
 		if (box == null || !box.rayIntersection(collision.rayPosition, collision.rayDirection))

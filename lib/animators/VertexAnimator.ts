@@ -100,7 +100,7 @@ export class VertexAnimator extends AnimatorBase {
 	public setRenderState(shader: ShaderBase, renderable: _Render_Shape): void {
 		// todo: add code for when running on cpu
 		// this type of animation can only be IRenderable
-		const shape: Shape = renderable.shape;
+		const shape: Shape = (<Shape> renderable.renderable);
 		let elements: TriangleElements = <TriangleElements> renderable.stageElements.elements;
 
 		// if no poses defined, set temp data
@@ -126,8 +126,8 @@ export class VertexAnimator extends AnimatorBase {
 		for (; i < len; ++i) {
 			elements = <TriangleElements> (this._poses[i] || shape.elements);
 
-			stageElements = <_Stage_ElementsBase> elements.getAbstraction(shader.stage);
-			stageElements._indexMappings = shape.elements.getAbstraction<_Stage_ElementsBase>(shader.stage).getIndexMappings();
+			stageElements = <_Stage_ElementsBase> shader.stage.abstractions.getAbstraction(elements);
+			stageElements._indexMappings = shader.stage.abstractions.getAbstraction<_Stage_ElementsBase>(shape.elements).getIndexMappings();
 
 			stageElements.activateVertexBufferVO(animationRegisterData.poseIndices[k++], elements.positions);
 
@@ -140,7 +140,7 @@ export class VertexAnimator extends AnimatorBase {
 		const animationRegisterData: AnimationRegisterData = shader.animationRegisterData;
 
 		shader.setVertexConstFromArray(animationRegisterData.weightsIndex, this._weights);
-		const stageElements = elements.getAbstraction<_Stage_ElementsBase>(shader.stage);
+		const stageElements = shader.stage.abstractions.getAbstraction<_Stage_ElementsBase>(elements);
 		let k: number = 0;
 
 		if (this._vertexAnimationSet.blendMode == VertexAnimationMode.ABSOLUTE) {
