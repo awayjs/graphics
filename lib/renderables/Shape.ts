@@ -401,10 +401,10 @@ export class _Render_Shape extends _Render_RenderableBase {
 
 			return this._stage.abstractions
 				.getAbstraction<_Stage_ElementsBase>(this.updateScale9(
-					_scale9Container.scale9Grid,
-					_scale9Container.transform.scale.x,
-					_scale9Container.transform.scale.y)
-				);
+				_scale9Container.scale9Grid,
+				_scale9Container.transform.scale.x,
+				_scale9Container.transform.scale.y)
+			);
 		}
 
 		const container = (<IRenderContainer> this.entity.node.container);
@@ -416,15 +416,15 @@ export class _Render_Shape extends _Render_RenderableBase {
 	}
 
 	protected _getRenderMaterial(): _Render_MaterialBase {
-		const shape: Shape = <Shape> this.renderable
+		const shape: Shape = <Shape> this.renderable;
 
 		return this.entity.renderer
 			.getRenderElements(shape.elements).abstractions
 			.getAbstraction<_Render_MaterialBase>(
-				shape.material
+			shape.material
 				|| (<IRenderContainer> this.entity.node.container).material
 				|| this.getDefaultMaterial()
-			);
+		);
 	}
 
 	protected _getStyle(): Style {
