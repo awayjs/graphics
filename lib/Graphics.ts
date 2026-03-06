@@ -1423,9 +1423,18 @@ export class Graphics extends AssetBase {
 		bitmap: BitmapImage2D, matrix: Matrix = null,
 		repeat: boolean = true, smooth: boolean = false): void {
 
-		//this._drawingDirty=true;
-		//this._lineStyle=new  GraphicsStrokeStyle(colors[0], alphas[0], 1);
-		// start a new stroke path
+		if (this._lineStyle) {
+			this._lineStyle = this._lineStyle.clone();
+			this._lineStyle.fillStyle = new GraphicsFillStyle<BitmapFillStyle>(
+				new BitmapFillStyle(
+					bitmap,
+					matrix,
+					repeat,
+					smooth)
+			);
+		}
+
+		this._updateLinePath();
 	}
 
 	/**
@@ -1503,16 +1512,26 @@ export class Graphics extends AssetBase {
 		alphas: Array<number>,
 		ratios: Array<number>,
 		matrix: Matrix = null,
-		spreadMethod: SpreadMethod = null,
-		interpolationMethod: InterpolationMethod = null,
+		spreadMethod: SpreadMethod = SpreadMethod.PAD,
+		interpolationMethod: InterpolationMethod = InterpolationMethod.RGB,
 		focalPointRatio: number = 0
 	): void {
 
-		this._drawingDirty = true;
-		//	TODO
-		//	line styles should be passed after setLineStyle(),
-		//	or change fillType of previous without changes other values
-		this._lineStyle = new  GraphicsStrokeStyle<SolidFillStyle>(new SolidFillStyle(colors[0], alphas[0]), 1);
+		if (this._lineStyle) {
+			this._lineStyle = this._lineStyle.clone();
+			this._lineStyle.fillStyle = new GradientFillStyle(
+				type,
+				colors,
+				alphas,
+				ratios,
+				matrix,
+				spreadMethod,
+				interpolationMethod,
+				focalPointRatio
+			);
+		}
+
+		this._updateLinePath();
 	}
 
 	/**
@@ -1692,8 +1711,8 @@ export class Graphics extends AssetBase {
 		alpha: number = 1,
 		pixelHinting: boolean = false,
 		scaleMode: LineScaleMode = null,
-		capstyle: number = CapsStyle.NONE,
-		jointstyle: number = JointStyle.MITER,
+		capstyle: CapsStyle = CapsStyle.NONE,
+		jointstyle: JointStyle = JointStyle.MITER,
 		miterLimit: number = 100
 	): void {
 

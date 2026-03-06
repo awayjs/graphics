@@ -1,6 +1,8 @@
 import { ColorUtils, Matrix, Rectangle } from '@awayjs/core';
 import { GradientType } from '../GradientType';
 import { IFillStyle } from '../IGraphicsData';
+import { SpreadMethod } from '../SpreadMethod';
+import { InterpolationMethod } from '../InterpolationMethod';
 
 export class GradientFillStyle implements IFillStyle {
 	public static data_type: string = '[graphicsdata GradientFillStyle]';
@@ -29,22 +31,22 @@ export class GradientFillStyle implements IFillStyle {
 		alphas: number[],
 		ratios: number[],
 		matrix: Matrix,
-		spreadMethod: string,
-		interpolationMethod: string,
+		spreadMethod: SpreadMethod,
+		interpolationMethod: InterpolationMethod,
 		focalPointRatio: number
 	) {
 		if (colors.length != alphas.length || colors.length != ratios.length) {
 			throw ('GradientFillStyle: Error - colors, alphas and ratios must be of same length');
 		}
 
-		this.colors = colors;
+		this.colors = colors.concat();
 		this.colors_r = [];
 		this.colors_g = [];
 		this.colors_b = [];
 		this.colors_r.length = this.colors_g.length = this.colors_g.length = this.colors.length;
-		this.alphas = alphas;
-		this.ratios = ratios;
-		this.matrix = matrix;
+		this.alphas = alphas.concat();
+		this.ratios = ratios.concat();
+		this.matrix = matrix.clone();
 		this.type = type;
 
 		this.uvRectangle = new Rectangle();

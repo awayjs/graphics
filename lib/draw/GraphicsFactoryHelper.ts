@@ -255,7 +255,7 @@ export class GraphicsFactoryHelper {
 		start_le_x: number, start_le_y: number,
 		start_ri_x: number, start_ri_y: number,
 		direction_x: number, direction_y: number,
-		capstyle: number,
+		capstyle: CapsStyle,
 		cap_position: number,
 		thicknessX: number, thicknessY: number,
 		vertices: Array<number>, curves: boolean): void {

@@ -10,8 +10,8 @@ export class GraphicsStrokeStyle <T extends IFillStyle> implements IStyleData {
 	constructor(
 		public fillStyle: T,
 		public  thickness = 10,
-		public  jointstyle = JointStyle.ROUND,
-		public  capstyle = CapsStyle.SQUARE,
+		public  jointstyle: JointStyle = JointStyle.ROUND,
+		public  capstyle: CapsStyle = CapsStyle.SQUARE,
 		public  miterLimit: number = 10,
 		public  scaleMode: LineScaleMode = LineScaleMode.NORMAL
 	) {}
@@ -22,5 +22,10 @@ export class GraphicsStrokeStyle <T extends IFillStyle> implements IStyleData {
 
 	public get data_type(): string {
 		return GraphicsStrokeStyle.data_type;
+	}
+
+	public clone(): GraphicsStrokeStyle <T>
+	{
+		return new GraphicsStrokeStyle(this.fillStyle, this.thickness, this.jointstyle, this.capstyle, this.miterLimit, this.scaleMode);
 	}
 }
