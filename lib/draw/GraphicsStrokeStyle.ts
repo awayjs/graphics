@@ -24,8 +24,7 @@ export class GraphicsStrokeStyle <T extends IFillStyle> implements IStyleData {
 		return GraphicsStrokeStyle.data_type;
 	}
 
-	public clone(): GraphicsStrokeStyle <T>
-	{
+	public clone(): GraphicsStrokeStyle <T> {
 		return new GraphicsStrokeStyle(this.fillStyle, this.thickness, this.jointstyle, this.capstyle, this.miterLimit, this.scaleMode);
 	}
 }
