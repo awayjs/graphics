@@ -95,9 +95,10 @@ export const UnpackFillStyle: Record<string, tStyleMapper> = {
 
 	[BitmapFillStyle.data_type] (style: BitmapFillStyle, data: IStyleElements): IStyleElements {
 
-		data.material = MaterialManager.getMaterialForBitmap(true);
+		data.material = MaterialManager.getMaterialForBitmap(true, style.image);
 
-		data.style.sampler = new ImageSampler(style.repeat, style.smooth, style.smooth);
+		// 3rd ImageSampler arg is mipmap, not smooth — mipmaps on NPOT fills sample black
+		data.style.sampler = new ImageSampler(style.repeat, style.smooth, false);
 
 		data.style.image = style.image;
 		data.style.uvMatrix = style.getUVMatrix();

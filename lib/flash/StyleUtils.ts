@@ -103,7 +103,16 @@ export class StyleUtils  {
 	}
 
 	private static getImage(bitmapIndex: number, factory: IMaterialFactory): Image2D {
-		return <Image2D> factory.awaySymbols[bitmapIndex] || new BitmapImage2D(512, 512, true, 0xff0000ff, true);
+		const image = factory && factory.awaySymbols ? factory.awaySymbols[bitmapIndex] : null;
+		if (image) {
+			if (typeof (image as any).applySymbol === 'function')
+				(image as any).applySymbol();
+			if (typeof (image as any).unuseWeakRef === 'function')
+				(image as any).unuseWeakRef();
+			return <Image2D> image;
+		}
+		console.warn('[StyleUtils.getImage] missing bitmapId', bitmapIndex);
+		return new BitmapImage2D(512, 512, true, 0xff0000ff, true);
 	}
 
 	public static processMorphStyle(style: any, isLineStyle: boolean): ShapeStyle {

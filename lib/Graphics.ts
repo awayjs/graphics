@@ -100,14 +100,16 @@ export class Graphics extends AssetBase {
 			shapeStyle.smooth
 		);
 
-		const material = MaterialManager.getMaterialForBitmap(true);
+		const material = MaterialManager.getMaterialForBitmap(true, <Image2D> shapeStyle.image);
 
-		//enforce image smooth style
-		style.sampler = new ImageSampler(shapeStyle.repeat, shapeStyle.smooth, shapeStyle.smooth);
+		//enforce image smooth style (mipmap=false: 3rd sampler arg is mipmap)
+		style.sampler = new ImageSampler(shapeStyle.repeat, shapeStyle.smooth, false);
 
 		style.uvMatrix = bitmapFillStyle.getUVMatrix();
 
-		return Shape.getShape(element, material, style);
+		const shape = Shape.getShape(element, material, style);
+		shape.originalFillStyle = bitmapFillStyle;
+		return shape;
 	}
 
 	public static getGraphics(): Graphics {
@@ -586,6 +588,11 @@ export class Graphics extends AssetBase {
 		if (this._fillStyle)
 			this.endFill();
 
+		if (!bitmap) {
+			console.warn('[beginBitmapFill] null bitmap');
+			return;
+		}
+
 		if (!this._bitmapFillPool) {
 			this._bitmapFillPool = {};
 		}
@@ -601,6 +608,7 @@ export class Graphics extends AssetBase {
 					smooth)
 			);
 		} else {
+			fill.fillStyle.image = bitmap;
 			fill.fillStyle.matrix = matrix;
 			fill.fillStyle.repeat = repeat;
 			fill.fillStyle.smooth = smooth;
@@ -990,27 +998,32 @@ export class Graphics extends AssetBase {
 	 */
 	public readGraphicsData(): Array<IGraphicsData> {
 		const result: IGraphicsData[] = [];
+		const emittedFills: IFillStyle[] = [];
 
 		const fillPaths = this._collectRecordedPaths(
 			this._recorded_fill_pathes, this._queued_fill_pathes, this._active_fill_path);
 		for (let i = 0; i < fillPaths.length; i++) {
-			const path = fillPaths[i];
-			if (!path.commands || !path.commands.length)
+			const path = this._ensurePathCommands(fillPaths[i]);
+			if (!this._pathHasDrawableCommands(path))
 				continue;
 
 			const fill = this._unwrapFill(path.style);
-			if (fill)
+			if (fill) {
 				result.push(fill);
+				emittedFills.push(fill);
+			}
 
 			result.push(this._clonePathForRead(path));
 			result.push(new GraphicsEndFill());
 		}
 
+		this._appendBitmapFillsFromShapes(result, emittedFills);
+
 		const strokePaths = this._collectRecordedPaths(
 			this._recorded_stroke_pathes, this._queued_stroke_pathes, this._active_stroke_path);
 		for (let i = 0; i < strokePaths.length; i++) {
-			const path = strokePaths[i];
-			if (!path.commands || !path.commands.length)
+			const path = this._ensurePathCommands(strokePaths[i]);
+			if (!this._pathHasDrawableCommands(path))
 				continue;
 
 			const stroke = path.stroke;
@@ -1493,6 +1506,9 @@ export class Graphics extends AssetBase {
 		bitmap: BitmapImage2D, matrix: Matrix = null,
 		repeat: boolean = true, smooth: boolean = false): void {
 
+		if (!bitmap)
+			return;
+
 		if (this._lineStyle) {
 			this._lineStyle = this._lineStyle.clone();
 			this._lineStyle.fillStyle = new GraphicsFillStyle<BitmapFillStyle>(
@@ -1923,6 +1939,185 @@ export class Graphics extends AssetBase {
 		return <IFillStyle> style;
 	}
 
+	private _pathHasDrawableCommands(path: GraphicsPath): boolean {
+		const cmds = path && path.commands;
+		if (!cmds || !cmds.length)
+			return false;
+
+		for (let i = 0; i < cmds.length; i++) {
+			const cmd = cmds[i];
+			if (cmd == GraphicsPathCommand.LINE_TO ||
+				cmd == GraphicsPathCommand.CURVE_TO ||
+				cmd == GraphicsPathCommand.CUBIC_CURVE ||
+				cmd == GraphicsPathCommand.WIDE_LINE_TO)
+				return true;
+		}
+		return false;
+	}
+
+	private _ensurePathCommands(path: GraphicsPath): GraphicsPath {
+		if (!path || this._pathHasDrawableCommands(path))
+			return path;
+
+		const verts = path.verts;
+		if (!verts || verts.length < 6)
+			return path;
+
+		const outline = this._outlineFromTriangleVerts(verts);
+		if (outline.length < 6)
+			return path;
+
+		const commands: GraphicsPathCommand[] = [GraphicsPathCommand.MOVE_TO];
+		const data: number[] = [outline[0], outline[1]];
+		for (let i = 2; i + 1 < outline.length; i += 2) {
+			commands.push(GraphicsPathCommand.LINE_TO);
+			data.push(outline[i], outline[i + 1]);
+		}
+
+		const clone = new GraphicsPath(commands, data, path.winding);
+		clone.style = path.style;
+		return clone;
+	}
+
+	private _outlineFromTriangleVerts(verts: number[]): number[] {
+		if (!verts || verts.length < 6)
+			return [];
+
+		const quant = (v: number) => Math.round(v * 1000) / 1000;
+		const edgeKey = (x1: number, y1: number, x2: number, y2: number) => {
+			if (x1 < x2 || (x1 === x2 && y1 < y2))
+				return x1 + ',' + y1 + '>' + x2 + ',' + y2;
+			return x2 + ',' + y2 + '>' + x1 + ',' + y1;
+		};
+
+		const edges = new Map<string, { ax: number, ay: number, bx: number, by: number, n: number }>();
+		for (let i = 0; i + 5 < verts.length; i += 6) {
+			const xs = [quant(verts[i]), quant(verts[i + 2]), quant(verts[i + 4])];
+			const ys = [quant(verts[i + 1]), quant(verts[i + 3]), quant(verts[i + 5])];
+			for (let e = 0; e < 3; e++) {
+				const ax = xs[e];
+				const ay = ys[e];
+				const bx = xs[(e + 1) % 3];
+				const by = ys[(e + 1) % 3];
+				const k = edgeKey(ax, ay, bx, by);
+				const rec = edges.get(k);
+				if (rec)
+					rec.n++;
+				else
+					edges.set(k, { ax, ay, bx, by, n: 1 });
+			}
+		}
+
+		const boundary: { ax: number, ay: number, bx: number, by: number }[] = [];
+		edges.forEach((rec) => {
+			if (rec.n === 1)
+				boundary.push(rec);
+		});
+
+		if (!boundary.length)
+			return [];
+
+		const used: boolean[] = [];
+		for (let i = 0; i < boundary.length; i++)
+			used[i] = false;
+
+		const out: number[] = [boundary[0].ax, boundary[0].ay, boundary[0].bx, boundary[0].by];
+		used[0] = true;
+		let cx = boundary[0].bx;
+		let cy = boundary[0].by;
+		const eps = 0.001;
+
+		for (let n = 1; n < boundary.length; n++) {
+			let found = -1;
+			for (let i = 0; i < boundary.length; i++) {
+				if (used[i])
+					continue;
+				const e = boundary[i];
+				if (Math.abs(e.ax - cx) < eps && Math.abs(e.ay - cy) < eps) {
+					found = i;
+					cx = e.bx;
+					cy = e.by;
+					break;
+				}
+				if (Math.abs(e.bx - cx) < eps && Math.abs(e.by - cy) < eps) {
+					found = i;
+					cx = e.ax;
+					cy = e.ay;
+					break;
+				}
+			}
+			if (found < 0)
+				break;
+			used[found] = true;
+			out.push(cx, cy);
+		}
+
+		return out;
+	}
+
+	private _appendBitmapFillsFromShapes(result: IGraphicsData[], emitted: IFillStyle[]): void {
+		const shapes = this._shapes;
+		if (!shapes)
+			return;
+
+		for (let i = 0; i < shapes.length; i++) {
+			const shape = shapes[i];
+			if (!shape || !shape.elements || shape.elements.assetType == LineElements.assetType)
+				continue;
+
+			let fill = this._unwrapFill(shape.originalFillStyle);
+			if (!fill || fill.data_type != BitmapFillStyle.data_type) {
+				const image = shape.style && shape.style.image;
+				if (!image)
+					continue;
+				fill = new BitmapFillStyle(<Image2D> image, new Matrix(), true, false);
+			}
+
+			if (emitted.indexOf(fill) != -1)
+				continue;
+
+			const path = this._pathFromShapeElements(shape);
+			if (!path)
+				continue;
+
+			emitted.push(fill);
+			result.push(fill);
+			result.push(path);
+			result.push(new GraphicsEndFill());
+		}
+	}
+
+	private _pathFromShapeElements(shape: Shape): GraphicsPath {
+		const elements = <TriangleElements> shape.elements;
+		if (!elements || !elements.positions)
+			return null;
+
+		const view = elements.positions;
+		const count = view.count | 0;
+		if (count < 3)
+			return null;
+
+		const dim = view.dimensions || 2;
+		const stride = view.stride || dim;
+		const raw = <Float32Array> view.get(count);
+		const verts: number[] = [];
+		for (let i = 0; i < count; i++) {
+			verts.push(raw[i * stride], raw[i * stride + 1]);
+		}
+
+		const outline = this._outlineFromTriangleVerts(verts);
+		if (outline.length < 6)
+			return null;
+
+		const commands: GraphicsPathCommand[] = [GraphicsPathCommand.MOVE_TO];
+		const data: number[] = [outline[0], outline[1]];
+		for (let i = 2; i + 1 < outline.length; i += 2) {
+			commands.push(GraphicsPathCommand.LINE_TO);
+			data.push(outline[i], outline[i + 1]);
+		}
+		return new GraphicsPath(commands, data);
+	}
+
 	private _clonePathForRead(path: GraphicsPath): GraphicsPath {
 		const commands: GraphicsPathCommand[] = [];
 		const data: number[] = [];
@@ -2033,6 +2228,8 @@ export class Graphics extends AssetBase {
 
 		if (fill.data_type == BitmapFillStyle.data_type) {
 			const bitmap = <BitmapFillStyle> fill;
+			if (!bitmap.image)
+				return;
 			this.beginBitmapFill(
 				<BitmapImage2D> bitmap.image, bitmap.matrix, bitmap.repeat, bitmap.smooth);
 		}
