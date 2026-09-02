@@ -365,6 +365,8 @@ export class Graphics extends AssetBase {
 		graphics._addShapes(this._shapes, cloneShapes);
 		graphics._recorded_fill_pathes = this._recorded_fill_pathes.concat();
 		graphics._recorded_stroke_pathes = this._recorded_stroke_pathes.concat();
+		if (this._queuedShapeTags.length)
+			graphics._queuedShapeTags = this._queuedShapeTags.concat();
 	}
 
 	public clone(cloneShapes: boolean = false): Graphics {
@@ -997,11 +999,22 @@ export class Graphics extends AssetBase {
 	 * (MOVE_TO, LINE_TO, CURVE_TO only).
 	 */
 	public readGraphicsData(): Array<IGraphicsData> {
+		// Make sure author-time ShapeTags have been converted so recorded paths / shapes exist.
+		let source: Graphics = this;
+		if (!this._queuedShapeTags.length
+			&& !this._shapes.length
+			&& !this._recorded_fill_pathes.length
+			&& this.sourceGraphics)
+			source = this.sourceGraphics;
+
+		if (source._queuedShapeTags.length)
+			source._endFillInternal(false);
+
 		const result: IGraphicsData[] = [];
 		const emittedFills: IFillStyle[] = [];
 
-		const fillPaths = this._collectRecordedPaths(
-			this._recorded_fill_pathes, this._queued_fill_pathes, this._active_fill_path);
+		const fillPaths = source._collectRecordedPaths(
+			source._recorded_fill_pathes, source._queued_fill_pathes, source._active_fill_path);
 		for (let i = 0; i < fillPaths.length; i++) {
 			const path = this._ensurePathCommands(fillPaths[i]);
 			if (!this._pathHasDrawableCommands(path))
@@ -1017,10 +1030,10 @@ export class Graphics extends AssetBase {
 			result.push(new GraphicsEndFill());
 		}
 
-		this._appendBitmapFillsFromShapes(result, emittedFills);
+		source._appendFillsFromShapes(result, emittedFills);
 
-		const strokePaths = this._collectRecordedPaths(
-			this._recorded_stroke_pathes, this._queued_stroke_pathes, this._active_stroke_path);
+		const strokePaths = source._collectRecordedPaths(
+			source._recorded_stroke_pathes, source._queued_stroke_pathes, source._active_stroke_path);
 		for (let i = 0; i < strokePaths.length; i++) {
 			const path = this._ensurePathCommands(strokePaths[i]);
 			if (!this._pathHasDrawableCommands(path))
@@ -2055,7 +2068,7 @@ export class Graphics extends AssetBase {
 		return out;
 	}
 
-	private _appendBitmapFillsFromShapes(result: IGraphicsData[], emitted: IFillStyle[]): void {
+	private _appendFillsFromShapes(result: IGraphicsData[], emitted: IFillStyle[]): void {
 		const shapes = this._shapes;
 		if (!shapes)
 			return;
@@ -2066,12 +2079,21 @@ export class Graphics extends AssetBase {
 				continue;
 
 			let fill = this._unwrapFill(shape.originalFillStyle);
-			if (!fill || fill.data_type != BitmapFillStyle.data_type) {
+			// Author-time solid/gradient fills live on tessellated Shapes, not drawing-API paths.
+			// Previously only BitmapFillStyle was reconstructed, so graphicsData[0] was a STROKE
+			// (or the vector was empty) and applyPattern's `graphicsData[0] = bitmapFill` never
+			// replaced the interior fill.
+			if (!fill) {
 				const image = shape.style && shape.style.image;
 				if (!image)
 					continue;
 				fill = new BitmapFillStyle(<Image2D> image, new Matrix(), true, false);
 			}
+
+			if (fill.data_type != BitmapFillStyle.data_type
+				&& fill.data_type != SolidFillStyle.data_type
+				&& fill.data_type != GradientFillStyle.data_type)
+				continue;
 
 			if (emitted.indexOf(fill) != -1)
 				continue;
@@ -2106,16 +2128,35 @@ export class Graphics extends AssetBase {
 		}
 
 		const outline = this._outlineFromTriangleVerts(verts);
-		if (outline.length < 6)
-			return null;
-
-		const commands: GraphicsPathCommand[] = [GraphicsPathCommand.MOVE_TO];
-		const data: number[] = [outline[0], outline[1]];
-		for (let i = 2; i + 1 < outline.length; i += 2) {
-			commands.push(GraphicsPathCommand.LINE_TO);
-			data.push(outline[i], outline[i + 1]);
+		if (outline.length >= 6) {
+			const commands: GraphicsPathCommand[] = [GraphicsPathCommand.MOVE_TO];
+			const data: number[] = [outline[0], outline[1]];
+			for (let i = 2; i + 1 < outline.length; i += 2) {
+				commands.push(GraphicsPathCommand.LINE_TO);
+				data.push(outline[i], outline[i + 1]);
+			}
+			return new GraphicsPath(commands, data);
 		}
-		return new GraphicsPath(commands, data);
+
+		// Fallback: emit each triangle as a closed contour (non-zero winding)
+		// so applyPattern can replace the fill without losing coverage.
+		const commands: GraphicsPathCommand[] = [];
+		const data: number[] = [];
+		for (let i = 0; i + 5 < verts.length; i += 6) {
+			commands.push(
+				GraphicsPathCommand.MOVE_TO,
+				GraphicsPathCommand.LINE_TO,
+				GraphicsPathCommand.LINE_TO,
+				GraphicsPathCommand.LINE_TO);
+			data.push(
+				verts[i], verts[i + 1],
+				verts[i + 2], verts[i + 3],
+				verts[i + 4], verts[i + 5],
+				verts[i], verts[i + 1]);
+		}
+		if (!commands.length)
+			return null;
+		return new GraphicsPath(commands, data, GraphicsPathWinding.NON_ZERO);
 	}
 
 	private _clonePathForRead(path: GraphicsPath): GraphicsPath {
