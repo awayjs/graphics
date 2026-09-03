@@ -129,6 +129,7 @@ export class Graphics extends AssetBase {
 
 	private _queued_fill_pathes: GraphicsPath[] = [];
 	private _queued_stroke_pathes: GraphicsPath[] = [];
+	// Survives tessellation (queued is cleared). This is what readGraphicsData emits.
 	private _recorded_fill_pathes: GraphicsPath[] = [];
 	private _recorded_stroke_pathes: GraphicsPath[] = [];
 	public _active_fill_path: GraphicsPath;
@@ -224,10 +225,10 @@ export class Graphics extends AssetBase {
 		if (!isLine) {
 			this._drawingDirty = true;
 			this._queued_fill_pathes.push(value);
-			this._recordFillPath(value);
+			this._recordPath(this._recorded_fill_pathes, value);
 		} else {
 			this._queued_stroke_pathes.push(value);
-			this._recordStrokePath(value);
+			this._recordPath(this._recorded_stroke_pathes, value);
 
 			if (!supressFill) {
 				this.endFill();
@@ -1013,8 +1014,9 @@ export class Graphics extends AssetBase {
 		const result: IGraphicsData[] = [];
 		const emittedFills: IFillStyle[] = [];
 
-		const fillPaths = source._collectRecordedPaths(
-			source._recorded_fill_pathes, source._queued_fill_pathes, source._active_fill_path);
+		// `_recorded_*` is the single source of truth. Queued/active hold the same
+		// live path objects while drawing, then queued is cleared after tessellation.
+		const fillPaths = source._recorded_fill_pathes;
 		for (let i = 0; i < fillPaths.length; i++) {
 			const path = this._ensurePathCommands(fillPaths[i]);
 			if (!this._pathHasDrawableCommands(path))
@@ -1032,8 +1034,7 @@ export class Graphics extends AssetBase {
 
 		source._appendFillsFromShapes(result, emittedFills);
 
-		const strokePaths = source._collectRecordedPaths(
-			source._recorded_stroke_pathes, source._queued_stroke_pathes, source._active_stroke_path);
+		const strokePaths = source._recorded_stroke_pathes;
 		for (let i = 0; i < strokePaths.length; i++) {
 			const path = this._ensurePathCommands(strokePaths[i]);
 			if (!this._pathHasDrawableCommands(path))
@@ -1904,39 +1905,10 @@ export class Graphics extends AssetBase {
 	}
 
 
-	private _recordFillPath(path: GraphicsPath): void {
-		const recorded = this._recorded_fill_pathes;
-		if (recorded[recorded.length - 1] !== path)
-			recorded.push(path);
-	}
-
-	private _recordStrokePath(path: GraphicsPath): void {
-		const recorded = this._recorded_stroke_pathes;
-		if (recorded[recorded.length - 1] !== path)
-			recorded.push(path);
-	}
-
-	private _collectRecordedPaths(
-		recorded: GraphicsPath[],
-		queued: GraphicsPath[],
-		active: GraphicsPath
-	): GraphicsPath[] {
-		const result: GraphicsPath[] = [];
-		const add = (list: GraphicsPath[]) => {
-			if (!list)
-				return;
-			for (let i = 0; i < list.length; i++) {
-				const path = list[i];
-				if (!path || result.indexOf(path) != -1)
-					continue;
-				result.push(path);
-			}
-		};
-		add(recorded);
-		add(queued);
-		if (active)
-			add([active]);
-		return result;
+	private _recordPath(recorded: GraphicsPath[], path: GraphicsPath): void {
+		if (!path || recorded.indexOf(path) != -1)
+			return;
+		recorded.push(path);
 	}
 
 	private _unwrapFill(style: IGraphicsData): IFillStyle {
@@ -2086,6 +2058,19 @@ export class Graphics extends AssetBase {
 			if (!fill) {
 				const image = shape.style && shape.style.image;
 				if (!image)
+					continue;
+				// Same image may already have been emitted from a recorded path
+				// whose BitmapFillStyle instance is not this fallback object.
+				let already = false;
+				for (let e = 0; e < emitted.length; e++) {
+					const other = emitted[e];
+					if (other && other.data_type == BitmapFillStyle.data_type
+						&& (<BitmapFillStyle> other).image === image) {
+						already = true;
+						break;
+					}
+				}
+				if (already)
 					continue;
 				fill = new BitmapFillStyle(<Image2D> image, new Matrix(), true, false);
 			}
@@ -2336,7 +2321,7 @@ export class Graphics extends AssetBase {
 				this._active_fill_path = new GraphicsPath();
 				this._active_fill_path.style = this._fillStyle;
 				this._queued_fill_pathes.push(this._active_fill_path);
-				this._recordFillPath(this._active_fill_path);
+				this._recordPath(this._recorded_fill_pathes, this._active_fill_path);
 
 				//auto-add move command if starting position is not zero
 				if (this._current_position.x != 0 || this._current_position.y != 0)
@@ -2353,7 +2338,7 @@ export class Graphics extends AssetBase {
 				this._active_stroke_path = new GraphicsPath();
 				this._active_stroke_path.style = this._lineStyle;
 				this._queued_stroke_pathes.push(this._active_stroke_path);
-				this._recordStrokePath(this._active_stroke_path);
+				this._recordPath(this._recorded_stroke_pathes, this._active_stroke_path);
 
 				//auto-add move command if starting position is not zero
 				if (this._current_position.x != 0 || this._current_position.y != 0)
