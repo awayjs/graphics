@@ -100,7 +100,7 @@ export class Graphics extends AssetBase {
 			shapeStyle.smooth
 		);
 
-		const material = MaterialManager.getMaterialForBitmap(true, <Image2D> shapeStyle.image);
+		const material = MaterialManager.getMaterialForBitmap(true);
 
 		//enforce image smooth style (mipmap=false: 3rd sampler arg is mipmap)
 		style.sampler = new ImageSampler(shapeStyle.repeat, shapeStyle.smooth, false);

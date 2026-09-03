@@ -1,7 +1,7 @@
 import { GradientFillStyle } from '../draw/fills/GradientFillStyle';
 import { SolidFillStyle } from '../draw/fills/SolidFillStyle';
 import { IMaterial } from '@awayjs/renderer';
-import { Image2D, ImageUtils } from '@awayjs/stage';
+import { ImageUtils } from '@awayjs/stage';
 
 type ISpecialMaterial = IMaterial & {
 	alphaBlending: boolean;
@@ -16,7 +16,6 @@ export class MaterialManager {
 
 	private static _bitmapMaterial: ISpecialMaterial;
 	private static _bitmapMaterialTransform: ISpecialMaterial;
-	private static _bitmapMaterials: Record<string, ISpecialMaterial> = {};
 	private static _colorMaterial: ISpecialMaterial;
 
 	private static _colorMaterials: any = {};
@@ -81,29 +80,15 @@ export class MaterialManager {
 		return newmat;
 	}
 
-	public static getMaterialForBitmap (transform: boolean = false, image: Image2D = null): IMaterial {
+	public static getMaterialForBitmap (transform: boolean = false): IMaterial {
 		if (!MaterialManager.materialClass) {
 			throw ('no materialClass registered on MaterialManager!');
 		}
 
 		let newmat: ISpecialMaterial;
 
-		if (image) {
-			const key = image.id + '_' + (transform ? 't' : 'n');
-			if (MaterialManager._bitmapMaterials[key])
-				return MaterialManager._bitmapMaterials[key];
-
-			newmat = MaterialManager._bitmapMaterials[key] = new MaterialManager.materialClass(image);
-			if (transform)
-				newmat.animateUVs = true;
-			newmat.alphaBlending = true;
-			newmat.useColorTransform = true;
-			newmat.bothSides = true;
-			return newmat;
-		}
-
+		// Material holds shared shader state only; the bitmap lives on style.image.
 		if (transform) {
-
 			if (MaterialManager._bitmapMaterialTransform)
 				return MaterialManager._bitmapMaterialTransform;
 
