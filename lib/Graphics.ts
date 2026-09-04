@@ -102,14 +102,12 @@ export class Graphics extends AssetBase {
 
 		const material = MaterialManager.getMaterialForBitmap(true);
 
-		//enforce image smooth style (mipmap=false: 3rd sampler arg is mipmap)
-		style.sampler = new ImageSampler(shapeStyle.repeat, shapeStyle.smooth, false);
+		//enforce image smooth style
+		style.sampler = new ImageSampler(shapeStyle.repeat, shapeStyle.smooth, shapeStyle.smooth);
 
 		style.uvMatrix = bitmapFillStyle.getUVMatrix();
 
-		const shape = Shape.getShape(element, material, style);
-		shape.originalFillStyle = bitmapFillStyle;
-		return shape;
+		return Shape.getShape(element, material, style);
 	}
 
 	public static getGraphics(): Graphics {
@@ -591,11 +589,6 @@ export class Graphics extends AssetBase {
 		if (this._fillStyle)
 			this.endFill();
 
-		if (!bitmap) {
-			console.warn('[beginBitmapFill] null bitmap');
-			return;
-		}
-
 		if (!this._bitmapFillPool) {
 			this._bitmapFillPool = {};
 		}
@@ -611,7 +604,6 @@ export class Graphics extends AssetBase {
 					smooth)
 			);
 		} else {
-			fill.fillStyle.image = bitmap;
 			fill.fillStyle.matrix = matrix;
 			fill.fillStyle.repeat = repeat;
 			fill.fillStyle.smooth = smooth;

@@ -103,12 +103,7 @@ export class StyleUtils  {
 	}
 
 	private static getImage(bitmapIndex: number, factory: IMaterialFactory): Image2D {
-		// awaySymbols[bitmapId] is already the Image2D for DefineBits*; no symbol apply needed.
-		const image = factory?.awaySymbols?.[bitmapIndex];
-		if (image)
-			return <Image2D> image;
-		console.warn('[StyleUtils.getImage] missing bitmapId', bitmapIndex);
-		return new BitmapImage2D(512, 512, true, 0xff0000ff, true);
+		return <Image2D> factory.awaySymbols[bitmapIndex] || new BitmapImage2D(512, 512, true, 0xff0000ff, true);
 	}
 
 	public static processMorphStyle(style: any, isLineStyle: boolean): ShapeStyle {
