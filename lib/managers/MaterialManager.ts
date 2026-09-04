@@ -7,6 +7,7 @@ type ISpecialMaterial = IMaterial & {
 	alphaBlending: boolean;
 	useColorTransform: boolean;
 	ambientMethod?: any;
+	animateUVs?: boolean;
 }
 
 type IMaterialCtr = { new(...args: any[]): ISpecialMaterial};
@@ -84,10 +85,10 @@ export class MaterialManager {
 			throw ('no materialClass registered on MaterialManager!');
 		}
 
-		let newmat;
+		let newmat: ISpecialMaterial;
 
+		// Material holds shared shader state only; the bitmap lives on style.image.
 		if (transform) {
-
 			if (MaterialManager._bitmapMaterialTransform)
 				return MaterialManager._bitmapMaterialTransform;
 

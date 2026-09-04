@@ -127,6 +127,7 @@ export { SolidFillStyle } from './lib/draw/fills/SolidFillStyle';
 export { GraphicsFactoryFills } from './lib/draw/GraphicsFactoryFills';
 export { GraphicsFactoryHelper } from './lib/draw/GraphicsFactoryHelper';
 export { GraphicsFactoryStrokes } from './lib/draw/GraphicsFactoryStrokes';
+export { GraphicsEndFill } from './lib/draw/GraphicsEndFill';
 export { GraphicsFillStyle } from './lib/draw/GraphicsFillStyle';
 export { GraphicsStrokeStyle } from './lib/draw/GraphicsStrokeStyle';
 export { GraphicsPath } from './lib/draw/GraphicsPath';

@@ -37,9 +37,10 @@ import { BitmapFillStyle } from './draw/fills/BitmapFillStyle';
 import { GradientFillStyle } from './draw/fills/GradientFillStyle';
 import { SolidFillStyle } from './draw/fills/SolidFillStyle';
 import { GraphicsPathWinding } from './draw/GraphicsPathWinding';
-import { IGraphicsData } from './draw/IGraphicsData';
+import { IFillStyle, IGraphicsData } from './draw/IGraphicsData';
 import { GraphicsStrokeStyle } from './draw/GraphicsStrokeStyle';
 import { GraphicsFillStyle } from './draw/GraphicsFillStyle';
+import { GraphicsEndFill } from './draw/GraphicsEndFill';
 import { Shape } from './renderables/Shape';
 import { SegmentedPath } from './data/SegmentedPath';
 import { FillType } from './data/FillType';
@@ -126,6 +127,9 @@ export class Graphics extends AssetBase {
 
 	private _queued_fill_pathes: GraphicsPath[] = [];
 	private _queued_stroke_pathes: GraphicsPath[] = [];
+	// Survives tessellation (queued is cleared). This is what readGraphicsData emits.
+	private _recorded_fill_pathes: GraphicsPath[] = [];
+	private _recorded_stroke_pathes: GraphicsPath[] = [];
 	public _active_fill_path: GraphicsPath;
 	public _active_stroke_path: GraphicsPath;
 	private _lineStyle: GraphicsStrokeStyle<any>;
@@ -219,8 +223,10 @@ export class Graphics extends AssetBase {
 		if (!isLine) {
 			this._drawingDirty = true;
 			this._queued_fill_pathes.push(value);
+			this._recordPath(this._recorded_fill_pathes, value);
 		} else {
 			this._queued_stroke_pathes.push(value);
+			this._recordPath(this._recorded_stroke_pathes, value);
 
 			if (!supressFill) {
 				this.endFill();
@@ -275,6 +281,10 @@ export class Graphics extends AssetBase {
 
 	public removeOwner(owner: IContainer): void {
 		this._owners.remove(owner);
+	}
+
+	public forEachOwner(callback: (owner: IContainer) => void): void {
+		this._owners.forEach(callback);
 	}
 
 	public invalidate(): void {
@@ -352,6 +362,10 @@ export class Graphics extends AssetBase {
 		graphics.sourceGraphics = this;
 
 		graphics._addShapes(this._shapes, cloneShapes);
+		graphics._recorded_fill_pathes = this._recorded_fill_pathes.concat();
+		graphics._recorded_stroke_pathes = this._recorded_stroke_pathes.concat();
+		if (this._queuedShapeTags.length)
+			graphics._queuedShapeTags = this._queuedShapeTags.concat();
 	}
 
 	public clone(cloneShapes: boolean = false): Graphics {
@@ -446,6 +460,8 @@ export class Graphics extends AssetBase {
 		this._active_stroke_path = null;
 		this._queued_fill_pathes.length = 0;
 		this._queued_stroke_pathes.length = 0;
+		this._recorded_fill_pathes.length = 0;
+		this._recorded_stroke_pathes.length = 0;
 		this._current_position.x = 0;
 		this._current_position.y = 0;
 		this._drawingDirty = false;
@@ -954,25 +970,76 @@ export class Graphics extends AssetBase {
 	 *
 	 */
 	public drawGraphicsData(graphicsData: Array<IGraphicsData>): void {
-		/*
-		 for (var i:number=0; i<graphicsData.length; i++){
-		 //todo
-		 if(graphicsData[i].dataType=="beginFill"){
+		if (!graphicsData)
+			return;
 
-		 }
-		 else if(graphicsData[i].dataType=="endFill"){
+		const len = graphicsData.length;
+		for (let i = 0; i < len; i++) {
+			const item = graphicsData[i];
+			if (item)
+				this._drawGraphicsDataItem(item);
+		}
+	}
 
-		 }
-		 else if(graphicsData[i].dataType=="endFill"){
+	/**
+	 * Serializes this Graphics object's recorded fill/stroke paths back to
+	 * IGraphicsData. Coordinates are in the local space of this Graphics object.
+	 * Display-list recursion and stage-space transforms are handled by the
+	 * playerglobal wrapper.
+	 *
+	 * Result types: SolidFillStyle / GradientFillStyle / BitmapFillStyle,
+	 * GraphicsEndFill, GraphicsStrokeStyle, GraphicsPath
+	 * (MOVE_TO, LINE_TO, CURVE_TO only).
+	 */
+	public readGraphicsData(): Array<IGraphicsData> {
+		// Make sure author-time ShapeTags have been converted so recorded paths / shapes exist.
+		let source: Graphics = this;
+		if (!this._queuedShapeTags.length
+			&& !this._shapes.length
+			&& !this._recorded_fill_pathes.length
+			&& this.sourceGraphics)
+			source = this.sourceGraphics;
 
-		 }
-		 else if(graphicsData[i].dataType=="Path"){
+		if (source._queuedShapeTags.length)
+			source._endFillInternal(false);
 
-		 }
+		const result: IGraphicsData[] = [];
+		const emittedFills: IFillStyle[] = [];
 
-		 }
-		 */
+		// `_recorded_*` is the single source of truth. Queued/active hold the same
+		// live path objects while drawing, then queued is cleared after tessellation.
+		const fillPaths = source._recorded_fill_pathes;
+		for (let i = 0; i < fillPaths.length; i++) {
+			const path = this._ensurePathCommands(fillPaths[i]);
+			if (!this._pathHasDrawableCommands(path))
+				continue;
 
+			const fill = this._unwrapFill(path.style);
+			if (fill) {
+				result.push(fill);
+				emittedFills.push(fill);
+			}
+
+			result.push(this._clonePathForRead(path));
+			result.push(new GraphicsEndFill());
+		}
+
+		source._appendFillsFromShapes(result, emittedFills);
+
+		const strokePaths = source._recorded_stroke_pathes;
+		for (let i = 0; i < strokePaths.length; i++) {
+			const path = this._ensurePathCommands(strokePaths[i]);
+			if (!this._pathHasDrawableCommands(path))
+				continue;
+
+			const stroke = path.stroke;
+			if (stroke)
+				result.push(stroke);
+
+			result.push(this._clonePathForRead(path));
+		}
+
+		return result;
 	}
 
 	/**
@@ -1038,7 +1105,12 @@ export class Graphics extends AssetBase {
 		this.invalidate();
 	}
 
-	private _drawPathInternal(path: GraphicsPath, commands: Int32Array, data: Float64Array, winding: GraphicsPathWinding) {
+	private _drawPathInternal(
+		path: GraphicsPath,
+		commands: Int32Array | ArrayLike<number>,
+		data: Float64Array | ArrayLike<number>,
+		winding: GraphicsPathWinding
+	) {
 		let dataPosition = 0;
 		for (let i = 0; i < commands.length; i++) {
 			switch (commands[i]) {
@@ -1051,8 +1123,25 @@ export class Graphics extends AssetBase {
 					dataPosition += 2;
 					break;
 				case GraphicsPathCommand.CURVE_TO:
-					path.curveTo(data[dataPosition], data[dataPosition + 1],data[dataPosition + 2], data[dataPosition + 3]);
+					path.curveTo(data[dataPosition], data[dataPosition + 1], data[dataPosition + 2], data[dataPosition + 3]);
 					dataPosition += 4;
+					break;
+				case GraphicsPathCommand.CUBIC_CURVE:
+					path.cubicCurveTo(
+						data[dataPosition], data[dataPosition + 1],
+						data[dataPosition + 2], data[dataPosition + 3],
+						data[dataPosition + 4], data[dataPosition + 5]);
+					dataPosition += 6;
+					break;
+				case GraphicsPathCommand.WIDE_MOVE_TO:
+					dataPosition += 2;
+					path.moveTo(data[dataPosition], data[dataPosition + 1]);
+					dataPosition += 2;
+					break;
+				case GraphicsPathCommand.WIDE_LINE_TO:
+					dataPosition += 2;
+					path.lineTo(data[dataPosition], data[dataPosition + 1]);
+					dataPosition += 2;
 					break;
 				case GraphicsPathCommand.NO_OP:
 				default:
@@ -1422,6 +1511,9 @@ export class Graphics extends AssetBase {
 	public lineBitmapStyle(
 		bitmap: BitmapImage2D, matrix: Matrix = null,
 		repeat: boolean = true, smooth: boolean = false): void {
+
+		if (!bitmap)
+			return;
 
 		if (this._lineStyle) {
 			this._lineStyle = this._lineStyle.clone();
@@ -1804,12 +1896,424 @@ export class Graphics extends AssetBase {
 		return;
 	}
 
+
+	private _recordPath(recorded: GraphicsPath[], path: GraphicsPath): void {
+		if (!path || recorded.indexOf(path) != -1)
+			return;
+		recorded.push(path);
+	}
+
+	private _unwrapFill(style: IGraphicsData): IFillStyle {
+		if (!style)
+			return null;
+
+		if (style.data_type == GraphicsFillStyle.data_type)
+			return (<GraphicsFillStyle<any>> style).fillStyle;
+
+		if (style.data_type == GraphicsStrokeStyle.data_type)
+			return this._unwrapFill((<GraphicsStrokeStyle<any>> style).fillStyle);
+
+		return <IFillStyle> style;
+	}
+
+	private _pathHasDrawableCommands(path: GraphicsPath): boolean {
+		const cmds = path && path.commands;
+		if (!cmds || !cmds.length)
+			return false;
+
+		for (let i = 0; i < cmds.length; i++) {
+			const cmd = cmds[i];
+			if (cmd == GraphicsPathCommand.LINE_TO ||
+				cmd == GraphicsPathCommand.CURVE_TO ||
+				cmd == GraphicsPathCommand.CUBIC_CURVE ||
+				cmd == GraphicsPathCommand.WIDE_LINE_TO)
+				return true;
+		}
+		return false;
+	}
+
+	private _ensurePathCommands(path: GraphicsPath): GraphicsPath {
+		if (!path || this._pathHasDrawableCommands(path))
+			return path;
+
+		const verts = path.verts;
+		if (!verts || verts.length < 6)
+			return path;
+
+		const outline = this._outlineFromTriangleVerts(verts);
+		if (outline.length < 6)
+			return path;
+
+		const commands: GraphicsPathCommand[] = [GraphicsPathCommand.MOVE_TO];
+		const data: number[] = [outline[0], outline[1]];
+		for (let i = 2; i + 1 < outline.length; i += 2) {
+			commands.push(GraphicsPathCommand.LINE_TO);
+			data.push(outline[i], outline[i + 1]);
+		}
+
+		const clone = new GraphicsPath(commands, data, path.winding);
+		clone.style = path.style;
+		return clone;
+	}
+
+	private _outlineFromTriangleVerts(verts: number[]): number[] {
+		if (!verts || verts.length < 6)
+			return [];
+
+		const quant = (v: number) => Math.round(v * 1000) / 1000;
+		const edgeKey = (x1: number, y1: number, x2: number, y2: number) => {
+			if (x1 < x2 || (x1 === x2 && y1 < y2))
+				return x1 + ',' + y1 + '>' + x2 + ',' + y2;
+			return x2 + ',' + y2 + '>' + x1 + ',' + y1;
+		};
+
+		const edges = new Map<string, { ax: number, ay: number, bx: number, by: number, n: number }>();
+		for (let i = 0; i + 5 < verts.length; i += 6) {
+			const xs = [quant(verts[i]), quant(verts[i + 2]), quant(verts[i + 4])];
+			const ys = [quant(verts[i + 1]), quant(verts[i + 3]), quant(verts[i + 5])];
+			for (let e = 0; e < 3; e++) {
+				const ax = xs[e];
+				const ay = ys[e];
+				const bx = xs[(e + 1) % 3];
+				const by = ys[(e + 1) % 3];
+				const k = edgeKey(ax, ay, bx, by);
+				const rec = edges.get(k);
+				if (rec)
+					rec.n++;
+				else
+					edges.set(k, { ax, ay, bx, by, n: 1 });
+			}
+		}
+
+		const boundary: { ax: number, ay: number, bx: number, by: number }[] = [];
+		edges.forEach((rec) => {
+			if (rec.n === 1)
+				boundary.push(rec);
+		});
+
+		if (!boundary.length)
+			return [];
+
+		const used: boolean[] = [];
+		for (let i = 0; i < boundary.length; i++)
+			used[i] = false;
+
+		const out: number[] = [boundary[0].ax, boundary[0].ay, boundary[0].bx, boundary[0].by];
+		used[0] = true;
+		let cx = boundary[0].bx;
+		let cy = boundary[0].by;
+		const eps = 0.001;
+
+		for (let n = 1; n < boundary.length; n++) {
+			let found = -1;
+			for (let i = 0; i < boundary.length; i++) {
+				if (used[i])
+					continue;
+				const e = boundary[i];
+				if (Math.abs(e.ax - cx) < eps && Math.abs(e.ay - cy) < eps) {
+					found = i;
+					cx = e.bx;
+					cy = e.by;
+					break;
+				}
+				if (Math.abs(e.bx - cx) < eps && Math.abs(e.by - cy) < eps) {
+					found = i;
+					cx = e.ax;
+					cy = e.ay;
+					break;
+				}
+			}
+			if (found < 0)
+				break;
+			used[found] = true;
+			out.push(cx, cy);
+		}
+
+		return out;
+	}
+
+	private _appendFillsFromShapes(result: IGraphicsData[], emitted: IFillStyle[]): void {
+		const shapes = this._shapes;
+		if (!shapes)
+			return;
+
+		for (let i = 0; i < shapes.length; i++) {
+			const shape = shapes[i];
+			if (!shape || !shape.elements || shape.elements.assetType == LineElements.assetType)
+				continue;
+
+			let fill = this._unwrapFill(shape.originalFillStyle);
+			// Author-time solid/gradient fills live on tessellated Shapes, not drawing-API paths.
+			// Previously only BitmapFillStyle was reconstructed, so graphicsData[0] was a STROKE
+			// (or the vector was empty) and applyPattern's `graphicsData[0] = bitmapFill` never
+			// replaced the interior fill.
+			if (!fill) {
+				const image = shape.style && shape.style.image;
+				if (!image)
+					continue;
+				// Same image may already have been emitted from a recorded path
+				// whose BitmapFillStyle instance is not this fallback object.
+				let already = false;
+				for (let e = 0; e < emitted.length; e++) {
+					const other = emitted[e];
+					if (other && other.data_type == BitmapFillStyle.data_type
+						&& (<BitmapFillStyle> other).image === image) {
+						already = true;
+						break;
+					}
+				}
+				if (already)
+					continue;
+				fill = new BitmapFillStyle(<Image2D> image, new Matrix(), true, false);
+			}
+
+			if (fill.data_type != BitmapFillStyle.data_type
+				&& fill.data_type != SolidFillStyle.data_type
+				&& fill.data_type != GradientFillStyle.data_type)
+				continue;
+
+			if (emitted.indexOf(fill) != -1)
+				continue;
+
+			const path = this._pathFromShapeElements(shape);
+			if (!path)
+				continue;
+
+			emitted.push(fill);
+			result.push(fill);
+			result.push(path);
+			result.push(new GraphicsEndFill());
+		}
+	}
+
+	private _pathFromShapeElements(shape: Shape): GraphicsPath {
+		const elements = <TriangleElements> shape.elements;
+		if (!elements || !elements.positions)
+			return null;
+
+		const view = elements.positions;
+		const count = view.count | 0;
+		if (count < 3)
+			return null;
+
+		const dim = view.dimensions || 2;
+		const stride = view.stride || dim;
+		const raw = <Float32Array> view.get(count);
+		const verts: number[] = [];
+		for (let i = 0; i < count; i++) {
+			verts.push(raw[i * stride], raw[i * stride + 1]);
+		}
+
+		const outline = this._outlineFromTriangleVerts(verts);
+		if (outline.length >= 6) {
+			const commands: GraphicsPathCommand[] = [GraphicsPathCommand.MOVE_TO];
+			const data: number[] = [outline[0], outline[1]];
+			for (let i = 2; i + 1 < outline.length; i += 2) {
+				commands.push(GraphicsPathCommand.LINE_TO);
+				data.push(outline[i], outline[i + 1]);
+			}
+			return new GraphicsPath(commands, data);
+		}
+
+		// Fallback: emit each triangle as a closed contour (non-zero winding)
+		// so applyPattern can replace the fill without losing coverage.
+		const commands: GraphicsPathCommand[] = [];
+		const data: number[] = [];
+		for (let i = 0; i + 5 < verts.length; i += 6) {
+			commands.push(
+				GraphicsPathCommand.MOVE_TO,
+				GraphicsPathCommand.LINE_TO,
+				GraphicsPathCommand.LINE_TO,
+				GraphicsPathCommand.LINE_TO);
+			data.push(
+				verts[i], verts[i + 1],
+				verts[i + 2], verts[i + 3],
+				verts[i + 4], verts[i + 5],
+				verts[i], verts[i + 1]);
+		}
+		if (!commands.length)
+			return null;
+		return new GraphicsPath(commands, data, GraphicsPathWinding.NON_ZERO);
+	}
+
+	private _clonePathForRead(path: GraphicsPath): GraphicsPath {
+		const commands: GraphicsPathCommand[] = [];
+		const data: number[] = [];
+		const srcCommands = path.commands || [];
+		const srcData = path.data || [];
+		let d = 0;
+
+		for (let i = 0; i < srcCommands.length; i++) {
+			const cmd = srcCommands[i];
+			switch (cmd) {
+				case GraphicsPathCommand.MOVE_TO:
+				case GraphicsPathCommand.LINE_TO:
+					commands.push(cmd);
+					data.push(srcData[d++], srcData[d++]);
+					break;
+				case GraphicsPathCommand.CURVE_TO:
+					commands.push(cmd);
+					data.push(srcData[d++], srcData[d++], srcData[d++], srcData[d++]);
+					break;
+				case GraphicsPathCommand.CUBIC_CURVE: {
+					const c1x = srcData[d++];
+					const c1y = srcData[d++];
+					const c2x = srcData[d++];
+					const c2y = srcData[d++];
+					const ax = srcData[d++];
+					const ay = srcData[d++];
+					// AIR readGraphicsData only returns MOVE_TO, LINE_TO, CURVE_TO.
+					commands.push(GraphicsPathCommand.CURVE_TO);
+					data.push((c1x + c2x) * 0.5, (c1y + c2y) * 0.5, ax, ay);
+					break;
+				}
+				case GraphicsPathCommand.WIDE_MOVE_TO:
+					d += 2;
+					commands.push(GraphicsPathCommand.MOVE_TO);
+					data.push(srcData[d++], srcData[d++]);
+					break;
+				case GraphicsPathCommand.WIDE_LINE_TO:
+					d += 2;
+					commands.push(GraphicsPathCommand.LINE_TO);
+					data.push(srcData[d++], srcData[d++]);
+					break;
+				default:
+					break;
+			}
+		}
+
+		return new GraphicsPath(commands, data, path.winding);
+	}
+
+	private _drawGraphicsDataItem(item: IGraphicsData): void {
+		const type = item.data_type;
+
+		if (type == GraphicsPath.data_type) {
+			const path = <GraphicsPath> item;
+			this.drawPath(<any> path.commands, <any> path.data, <any> path.winding);
+			return;
+		}
+
+		if (type == GraphicsEndFill.data_type) {
+			this.endFill();
+			return;
+		}
+
+		if (type == GraphicsFillStyle.data_type) {
+			this._beginFillFromStyle((<GraphicsFillStyle<any>> item).fillStyle);
+			return;
+		}
+
+		if (type == GraphicsStrokeStyle.data_type) {
+			this._lineStyleFromStroke(<GraphicsStrokeStyle<any>> item);
+			return;
+		}
+
+		if (type == SolidFillStyle.data_type ||
+			type == GradientFillStyle.data_type ||
+			type == BitmapFillStyle.data_type) {
+			this._beginFillFromStyle(<IFillStyle> item);
+		}
+	}
+
+	private _beginFillFromStyle(fill: IFillStyle): void {
+		if (!fill)
+			return;
+
+		if (fill.data_type == GraphicsFillStyle.data_type)
+			fill = (<GraphicsFillStyle<any>> <any> fill).fillStyle;
+
+		if (fill.data_type == SolidFillStyle.data_type) {
+			const solid = <SolidFillStyle> fill;
+			this.beginFill(solid.color, solid.alpha);
+			return;
+		}
+
+		if (fill.data_type == GradientFillStyle.data_type) {
+			const gradient = <GradientFillStyle> fill;
+			this.beginGradientFill(
+				gradient.type,
+				gradient.colors,
+				gradient.alphas,
+				gradient.ratios,
+				gradient.matrix || new Matrix(),
+				gradient.spreadMethod,
+				gradient.interpolationMethod,
+				gradient.focalPointRatio
+			);
+			return;
+		}
+
+		if (fill.data_type == BitmapFillStyle.data_type) {
+			const bitmap = <BitmapFillStyle> fill;
+			if (!bitmap.image)
+				return;
+			this.beginBitmapFill(
+				<BitmapImage2D> bitmap.image, bitmap.matrix, bitmap.repeat, bitmap.smooth);
+		}
+	}
+
+	private _lineStyleFromStroke(stroke: GraphicsStrokeStyle<any>): void {
+		const fill = this._unwrapFill(stroke.fillStyle);
+
+		if (fill && fill.data_type == SolidFillStyle.data_type) {
+			const solid = <SolidFillStyle> fill;
+			this.lineStyle(
+				stroke.thickness,
+				solid.color,
+				solid.alpha,
+				false,
+				stroke.scaleMode,
+				stroke.capstyle,
+				stroke.jointstyle,
+				stroke.miterLimit
+			);
+			return;
+		}
+
+		this.lineStyle(
+			stroke.thickness,
+			0,
+			1,
+			false,
+			stroke.scaleMode,
+			stroke.capstyle,
+			stroke.jointstyle,
+			stroke.miterLimit
+		);
+
+		if (!fill)
+			return;
+
+		if (fill.data_type == GradientFillStyle.data_type) {
+			const gradient = <GradientFillStyle> fill;
+			this.lineGradientStyle(
+				gradient.type,
+				gradient.colors,
+				gradient.alphas,
+				gradient.ratios,
+				gradient.matrix || new Matrix(),
+				gradient.spreadMethod,
+				gradient.interpolationMethod,
+				gradient.focalPointRatio
+			);
+			return;
+		}
+
+		if (fill.data_type == BitmapFillStyle.data_type) {
+			const bitmap = <BitmapFillStyle> fill;
+			this.lineBitmapStyle(
+				<BitmapImage2D> bitmap.image, bitmap.matrix, bitmap.repeat, bitmap.smooth);
+		}
+	}
+
 	private _updateFillPath() {
 		if (this._fillStyle) {
 			if (this._active_fill_path == null || this._active_fill_path.style != this._fillStyle) {
 				this._active_fill_path = new GraphicsPath();
 				this._active_fill_path.style = this._fillStyle;
 				this._queued_fill_pathes.push(this._active_fill_path);
+				this._recordPath(this._recorded_fill_pathes, this._active_fill_path);
 
 				//auto-add move command if starting position is not zero
 				if (this._current_position.x != 0 || this._current_position.y != 0)
@@ -1826,6 +2330,7 @@ export class Graphics extends AssetBase {
 				this._active_stroke_path = new GraphicsPath();
 				this._active_stroke_path.style = this._lineStyle;
 				this._queued_stroke_pathes.push(this._active_stroke_path);
+				this._recordPath(this._recorded_stroke_pathes, this._active_stroke_path);
 
 				//auto-add move command if starting position is not zero
 				if (this._current_position.x != 0 || this._current_position.y != 0)
