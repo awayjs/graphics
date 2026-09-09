@@ -8,7 +8,6 @@ type tShapeEntry = {
 export interface IGraphicsSettings {
 	ALLOW_INTERNAL_POOL: tShapeEntry;
 	CLEARS_BEFORE_POOLING: number;
-	ALLOW_COMBINER: tShapeEntry;
 
 	USE_NATIVE_DEFLATE: boolean;
 	MINIMUM_DRAWING_DISTANCE: number;
@@ -31,15 +30,6 @@ export const Settings: IGraphicsSettings = ConfigManager.instance.addStore<any>(
 	 * @description How many clears required for caching a shapes
 	 */
 	CLEARS_BEFORE_POOLING: 10,
-
-	/**
-	 * @description Tryed to combine Pathes to one shape
-	 */
-	ALLOW_COMBINER: {
-		FILLS: true,
-		// Strokes not support yet
-		STROKES: false,
-	},
 
 	/**
 	 * @description Try to use native deflate (Chrome and FF, Sufari suckings again)
