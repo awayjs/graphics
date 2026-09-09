@@ -17,21 +17,22 @@ export class MaterialManager {
 	private static _bitmapMaterial: ISpecialMaterial;
 	private static _bitmapMaterialTransform: ISpecialMaterial;
 	private static _colorMaterial: ISpecialMaterial;
+	/** Atlas solid fills with alpha>=1 — depth-writable / opaque path (E14). */
+	private static _colorMaterialOpaque: ISpecialMaterial;
 
 	private static _colorMaterials: any = {};
 	private static _textureMaterials: any = {};
 	private static _useTextureAtlasForColors: boolean = true;
 
+	/**
+	 * When true, solid atlas colors with alpha>=1 use alphaBlending=false so the
+	 * renderer can depth-test and material-sort them (E14). Kill-switch for SWF bugs.
+	 */
+	public static ALLOW_OPAQUE_SOLID_ATLAS: boolean = true;
+
 	public static materialClass: IMaterialCtr;
 
 	public static getMaterialForColor (style: SolidFillStyle): IMaterial {
-		// if (color == 0) {
-		// 	color = 0x000001;
-		// }
-		// if (color == 0xFF8100) {
-		// 	alpha = 1;
-		// }
-
 		if (!MaterialManager.materialClass) {
 			throw ('no materialClass registered on MaterialManager!');
 		}
@@ -39,11 +40,20 @@ export class MaterialManager {
 		let newmat;
 
 		if (MaterialManager._useTextureAtlasForColors) {
-			if (MaterialManager._colorMaterial)
-				return MaterialManager._colorMaterial;
-
-			newmat = MaterialManager._colorMaterial = new MaterialManager.materialClass(ImageUtils.getDefaultImage2D());
-			newmat.animateUVs = true;
+			const wantOpaque = MaterialManager.ALLOW_OPAQUE_SOLID_ATLAS && style.alpha >= 1;
+			if (wantOpaque) {
+				if (MaterialManager._colorMaterialOpaque)
+					return MaterialManager._colorMaterialOpaque;
+				newmat = MaterialManager._colorMaterialOpaque = new MaterialManager.materialClass(ImageUtils.getDefaultImage2D());
+				newmat.animateUVs = true;
+				newmat.alphaBlending = false;
+			} else {
+				if (MaterialManager._colorMaterial)
+					return MaterialManager._colorMaterial;
+				newmat = MaterialManager._colorMaterial = new MaterialManager.materialClass(ImageUtils.getDefaultImage2D());
+				newmat.animateUVs = true;
+				newmat.alphaBlending = true;
+			}
 		} else {
 			const color = style.color;
 			const alpha = style.alpha;
@@ -53,9 +63,9 @@ export class MaterialManager {
 				return MaterialManager._colorMaterials[colorstr];
 
 			newmat = MaterialManager._colorMaterials[colorstr] = new MaterialManager.materialClass(color, alpha);
+			newmat.alphaBlending = !(MaterialManager.ALLOW_OPAQUE_SOLID_ATLAS && alpha >= 1);
 		}
 
-		newmat.alphaBlending = true;
 		newmat.useColorTransform = true;
 		newmat.bothSides = true;
 
