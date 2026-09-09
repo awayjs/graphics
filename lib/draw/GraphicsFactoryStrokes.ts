@@ -38,9 +38,34 @@ export class GraphicsFactoryStrokes {
 			const path = paths[i];
 			const style = (<GraphicsStrokeStyle<any>>path.style);
 
-			shape = targetGraphics.popEmptyStrokeShape();
-
 			path.prepare();
+
+			// Thick strokes are tessellated to triangles so joint styles (miter/bevel/
+			// round) and cap styles actually apply: GPU-expanded LineElements draw every
+			// segment as an independent quad and cannot form joints, which leaves a
+			// notch at each corner of a polyline. Hairlines and very thin strokes keep
+			// the fast LineElements path — joints are invisible at those sizes.
+			if (style.scaleMode !== LineScaleMode.HAIRLINE && style.thickness > 1.5) {
+				const triElements = this.getTriangleElements([path], false, style.scaleMode);
+
+				if (triElements) {
+					const triData = {
+						style: new Style(),
+						sampler: new ImageSampler(),
+						material: null
+					};
+
+					UnpackFillStyle[path.style.fillStyle.data_type](path.style.fillStyle, triData);
+
+					shape = Shape.getShape(triElements, triData.material, triData.style);
+
+					targetGraphics.addShapeInternal(shape);
+				}
+
+				continue;
+			}
+
+			shape = targetGraphics.popEmptyStrokeShape();
 
 			// if (targetGraphics.scaleStrokes != null) { //use LineElements
 			const elements = this.fillLineElements(
