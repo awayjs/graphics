@@ -456,7 +456,7 @@ export class _Render_Shape extends _Render_RenderableBase {
 				shape.style.uvMatrix = null;
 			}
 
-			const bounds = PickGroup.getInstance()
+			const bounds = PickGroup.getPool((<PickEntity> this._pool).pickPool.view)
 				.getBoundsPicker(this.entity.node)
 				.getBoxBounds(this.entity.node, true, true);
 
@@ -487,6 +487,7 @@ export class _Pick_Shape extends _Pick_PickableBase {
 		if (box == null || !box.contains(x, y, z)) return false;
 
 		return shape.elements.hitTestPoint(
+			(<PickEntity> this._pool).pickPool.view,
 			(<PickEntity> this._pool).node,
 			x, y, z,
 			box,
@@ -505,6 +506,7 @@ export class _Pick_Shape extends _Pick_PickableBase {
 
 		if (matrix3D)
 			return shape.elements.getBoxBounds(
+				(<PickEntity> this._pool).pickPool.view,
 				(<PickEntity> this._pool).node,
 				strokeFlag,
 				matrix3D,
@@ -518,6 +520,7 @@ export class _Pick_Shape extends _Pick_PickableBase {
 			this._orientedBoxBoundsDirty = false;
 
 			this._orientedBoxBounds = shape.elements.getBoxBounds(
+				(<PickEntity> this._pool).pickPool.view,
 				(<PickEntity> this._pool).node,
 				strokeFlag,
 				null,
@@ -585,6 +588,7 @@ export class _Pick_Shape extends _Pick_PickableBase {
 		}
 
 		return shape.elements.testCollision(
+			(<PickEntity> this._pool).pickPool.view, 
 			collision,
 			box,
 			findClosestCollision,
