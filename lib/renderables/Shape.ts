@@ -588,7 +588,7 @@ export class _Pick_Shape extends _Pick_PickableBase {
 		}
 
 		return shape.elements.testCollision(
-			(<PickEntity> this._pool).pickPool.view, 
+			(<PickEntity> this._pool).pickPool.view,
 			collision,
 			box,
 			findClosestCollision,

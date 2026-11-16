@@ -1896,7 +1896,6 @@ export class Graphics extends AssetBase {
 		return;
 	}
 
-
 	private _recordPath(recorded: GraphicsPath[], path: GraphicsPath): void {
 		if (!path || recorded.indexOf(path) != -1)
 			return;
