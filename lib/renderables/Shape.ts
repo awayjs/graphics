@@ -456,7 +456,7 @@ export class _Render_Shape extends _Render_RenderableBase {
 				shape.style.uvMatrix = null;
 			}
 
-			const bounds = PickGroup.getPool((<PickEntity> this._pool).pickPool.view)
+			const bounds = PickGroup.getPool((<RenderEntity> this._pool).renderer.view)
 				.getBoundsPicker(this.entity.node)
 				.getBoxBounds(this.entity.node, true, true);
 
